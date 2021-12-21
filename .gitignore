@@ -1,0 +1,32 @@
+.env
+.vscode/
+.idea/
+
+typechain-types
+
+# OS file
+.DS_Store
+
+# Dependency directories
+node_modules
+jspm_packages
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Compiled binary addons (http://nodejs.org/api/addons.html)
+bin
+build
+artifacts
+cache
+dist
+
+# Coverage directory used by tools like istanbul
+.coverageArtifacts
+coverage
+coverage.json
+__pycache__/
