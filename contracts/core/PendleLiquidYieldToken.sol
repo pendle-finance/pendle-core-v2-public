@@ -61,16 +61,19 @@ abstract contract PendleLiquidYieldToken is ERC20 {
         }
     }
 
-    function mint(address to, uint256 amount) external virtual;
+    // takes in yield bearing token, retuns some LYT
+    function mint(address to, uint256 amount) public virtual;
 
-    function burn(address to, uint256 amount) external virtual;
+    // take in some LYT, returns yield bearing token
+    function burn(address to, uint256 amount) public virtual;
 
     // strictly not overridable to guarantee the definition of baseBalanceOf & exchangeRate
-    function baseBalanceOf(address account) external returns (uint256) {
+    function baseBalanceOf(address account) public returns (uint256) {
         return balanceOf(account).mulDown(exchangeRateCurrent());
     }
 
-    function emergencyWithdraw(address to, uint256 amount) external virtual;
+    // withdraw just the principal, and ignore everthing else
+    function emergencyWithdraw(address to, uint256 amount) public virtual;
 
     function exchangeRateCurrent() public virtual returns (uint256);
 
