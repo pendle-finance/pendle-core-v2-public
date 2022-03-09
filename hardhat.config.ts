@@ -9,6 +9,7 @@ import '@typechain/hardhat';
 import * as dotenv from "dotenv";
 import { HardhatUserConfig } from "hardhat/types";
 import "solidity-coverage";
+import "hardhat-contract-sizer";
 
 dotenv.config();
 
@@ -60,7 +61,7 @@ const config: HardhatUserConfig = {
                     balance: '1000000000000000000000000000000000000',
                 },
             ],
-            allowUnlimitedContractSize: true,
+            allowUnlimitedContractSize: false,
             blockGasLimit: 800000000000000,
             gas: 80000000,
             loggingEnabled: false,
@@ -121,6 +122,13 @@ const config: HardhatUserConfig = {
         // Your API key for Etherscan
         // Obtain one at https://etherscan.io/
         apiKey: process.env.ETHERSCAN_KEY
+    },
+
+    contractSizer: {
+        disambiguatePaths: false,
+        runOnCompile: false,
+        strict: true,
+        only: [],
     }
 };
 

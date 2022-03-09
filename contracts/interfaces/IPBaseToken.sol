@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.0;
+import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+interface IPBaseToken is IERC20Metadata {
+    function expiry() external returns (uint256);
+}

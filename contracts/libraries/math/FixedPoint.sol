@@ -12,10 +12,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity 0.8.9;
+pragma solidity ^0.8.0;
 
-import './LogExpMath.sol';
-import '../helpers/PendleErrors.sol';
+import "./LogExpMath.sol";
+import "../helpers/PendleErrors.sol";
 
 /* solhint-disable private-vars-leading-underscore */
 
@@ -26,23 +26,31 @@ library FixedPoint {
     // Minimum base for the power function when the exponent is 'free' (larger than ONE).
     uint256 internal constant MIN_POW_BASE_FREE_EXPONENT = 0.7e18;
 
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Fixed Point addition is the same as regular checked addition
-
-        uint256 c = a + b;
-        return c;
+    function subMax0(uint256 a, uint256 b) internal pure returns (uint256) {
+        return (a >= b ? a - b : 0);
     }
 
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Fixed Point addition is the same as regular checked addition
-
-        uint256 c = a - b;
-        return c;
+    function subNoNeg(int256 a, int256 b) internal pure returns (int256) {
+        require(a >= b, "NEGATIVE");
+        return a - b;
     }
 
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 product = a * b;
         return product / ONE;
+    }
+
+    function mulDown(int256 a, int256 b) internal pure returns (int256) {
+        int256 product = a * b;
+        return product / toInt(ONE);
+    }
+
+    function mulDown(int256 a, uint256 b) internal pure returns (int256) {
+        return mulDown(a, toInt(b));
+    }
+
+    function mulDown(uint256 a, int256 b) internal pure returns (int256) {
+        return mulDown(toInt(a), b);
     }
 
     function mulUp(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -70,6 +78,23 @@ library FixedPoint {
         }
     }
 
+    function divDown(int256 a, int256 b) internal pure returns (int256) {
+        if (a == 0) {
+            return 0;
+        } else {
+            int256 aInflated = a * toInt(ONE);
+            return aInflated / b;
+        }
+    }
+
+    function divDown(uint256 a, int256 b) internal pure returns (int256) {
+        return divDown(toInt(a), b);
+    }
+
+    function divDown(int256 a, uint256 b) internal pure returns (int256) {
+        return divDown(a, toInt(b));
+    }
+
     function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a == 0) {
             return 0;
@@ -91,12 +116,12 @@ library FixedPoint {
      */
     function powDown(uint256 x, uint256 y) internal pure returns (uint256) {
         uint256 raw = LogExpMath.pow(x, y);
-        uint256 maxError = add(mulUp(raw, MAX_POW_RELATIVE_ERROR), 1);
+        uint256 maxError = mulUp(raw, MAX_POW_RELATIVE_ERROR) + 1;
 
         if (raw < maxError) {
             return 0;
         } else {
-            return sub(raw, maxError);
+            return raw - maxError;
         }
     }
 
@@ -106,9 +131,9 @@ library FixedPoint {
      */
     function powUp(uint256 x, uint256 y) internal pure returns (uint256) {
         uint256 raw = LogExpMath.pow(x, y);
-        uint256 maxError = add(mulUp(raw, MAX_POW_RELATIVE_ERROR), 1);
+        uint256 maxError = mulUp(raw, MAX_POW_RELATIVE_ERROR) + 1;
 
-        return add(raw, maxError);
+        return raw + maxError;
     }
 
     /**
@@ -119,5 +144,37 @@ library FixedPoint {
      */
     function complement(uint256 x) internal pure returns (uint256) {
         return (x < ONE) ? (ONE - x) : 0;
+    }
+
+    function neg(int256 x) internal pure returns (int256) {
+        return -x;
+    }
+
+    function max(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x > y ? x : y);
+    }
+
+    function min(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x < y ? x : y);
+    }
+
+    function toUint(int256 x) internal pure returns (uint256) {
+        require(x >= 0, "INVALID_CAST");
+        return uint256(x);
+    }
+
+    function toInt(uint256 x) internal pure returns (int256) {
+        require(x <= uint256(type(int256).max), "INVALID_CAST");
+        return int256(x);
+    }
+
+    function toUint128(uint256 x) internal pure returns (uint128) {
+        require(0 <= x && x <= type(uint128).max, "INVALID_CAST");
+        return uint128(x);
+    }
+
+    function toUint32(uint256 x) internal pure returns (uint32) {
+        require(0 <= x && x <= type(uint32).max, "INVALID_CAST");
+        return uint32(x);
     }
 }

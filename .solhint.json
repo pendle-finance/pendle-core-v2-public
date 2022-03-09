@@ -1,31 +1,78 @@
 {
   "extends": "solhint:recommended",
-  "plugins": [
-    "prettier"
-  ],
+  "plugins": [],
   "rules": {
-    "prettier/prettier": "error",
+    "code-complexity": [
+      "warn",
+      7
+    ],
+    "function-max-lines": [
+      "warn",
+      50
+    ],
     "max-line-length": [
-      "error",
+      "off",
       120
     ],
-    "func-param-name-mixedcase": "error",
-    "modifier-name-mixedcase": "error",
-    "private-vars-leading-underscore": "error",
+    "max-states-count": [
+      "warn",
+      15
+    ],
+    "no-empty-blocks": "warn",
+    "no-unused-vars": "warn",
+    "payable-fallback": "warn",
     "reason-string": [
-      "error",
+      "warn",
       {
-        "maxLength": 64
+        "maxLength": 32
       }
     ],
+    "constructor-syntax": "warn",
+    "comprehensive-interface": "off",
+    "avoid-call-value": "warn",
+    "avoid-low-level-calls": "warn",
+    "avoid-sha3": "warn",
+    "avoid-suicide": "warn",
+    "avoid-throw": "warn",
+    "avoid-tx-origin": "warn",
+    "check-send-result": "warn",
+    "compiler-version": [
+      "warn",
+      "^0.8.0"
+    ],
+    "imports-on-top": "warn",
+    "mark-callable-contracts": "off",
+    "multiple-sends": "warn",
+    "no-complex-fallback": "warn",
+    "no-inline-assembly": "warn",
+    "not-rely-on-block-hash": "warn",
+    "not-rely-on-time": "off",
+    "ordering": "warn",
+    "quotes": [
+      "warn",
+      "double"
+    ],
+    "reentrancy": "warn",
     "func-visibility": [
-      "error",
+      "warn",
       {
         "ignoreConstructors": true
       }
     ],
-    "compiler-version": [
-      "off"
-    ]
+    "private-vars-leading-underscore": [
+      "off",
+      {
+        "strict": false
+      }
+    ],
+    "const-name-snakecase": "warn",
+    "func-name-mixedcase": "off",
+    "use-forbidden-name": "warn",
+    "var-name-mixedcase": "off",
+    "visibility-modifier-order": "warn",
+    "contract-name-camelcase": "warn",
+    "event-name-camelcase": "warn",
+    "func-param-name-mixedcase": "off",
+    "modifier-name-mixedcase": "warn"
   }
 }
