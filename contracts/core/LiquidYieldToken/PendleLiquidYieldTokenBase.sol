@@ -39,7 +39,6 @@ abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
     GlobalReward[] public globalReward;
     mapping(address => UserReward[]) public userReward;
 
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -65,44 +64,50 @@ abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
     }
 
     /**
-    * @notice takes in the underlying and wrap them into LYT
-    * @param recipient the address to receive LYT
-    * @param amountUnderlyingIn the amount of underlying to pull
-    */
-    function mint(address recipient, uint256 amountUnderlyingIn) public virtual returns (uint256 amountLytOut);
+     * @notice takes in the underlying and wrap them into LYT
+     * @param recipient the address to receive LYT
+     * @param amountUnderlyingIn the amount of underlying to pull
+     */
+    function mint(address recipient, uint256 amountUnderlyingIn)
+        public
+        virtual
+        returns (uint256 amountLytOut);
 
     /**
-    * @notice takes in the baseToken & convert them into LYT. Swapping will be done if necessary
-    * @param recipient the address to receive LYT
-    * @param baseToken the baseToken to pull
-    * @param amountBaseIn the amount of baseToken to pull
-    * @param data optional data. Can be used for swapping path etc...
-    */
-    function mintFromBaseToken(
+     * @notice takes in the rawToken & convert them into LYT. Swapping will be done if necessary
+     * @param recipient the address to receive LYT
+     * @param rawToken the rawToken to pull
+     * @param amountRawIn the amount of rawToken to pull
+     * @param data optional data. Can be used for swapping path etc...
+     */
+    function mintFromRawToken(
         address recipient,
-        address baseToken,
-        uint256 amountBaseIn,
+        address rawToken,
+        uint256 amountRawIn,
         uint256 minAmountLytOut,
-        bytes memory data
+        bytes calldata data
     ) public virtual returns (uint256 amountLytOut);
 
     /**
-    * @notice takes in LYT and returns back the corresponding amount of underlying
-    * @param recipient the address to receive LYT
-    * @param amountLytIn the amount of LYT to burn
-    */
-    function burn(address recipient, uint256 amountLytIn) public virtual returns (uint256 amountUnderlyingOut);
+     * @notice takes in LYT and returns back the corresponding amount of underlying
+     * @param recipient the address to receive LYT
+     * @param amountLytIn the amount of LYT to burn
+     */
+    function burn(address recipient, uint256 amountLytIn)
+        public
+        virtual
+        returns (uint256 amountUnderlyingOut);
 
     /**
-    * @notice takes in LYT and converts all of them to baseToken
-    */
-    function burnToBaseToken(
+     * @notice takes in LYT and converts all of them to rawToken
+     */
+    function burnToRawToken(
         address recipient,
-        address baseToken,
-        uint256 amountBaseIn,
-        uint256 minAmountBaseOut,
-        bytes memory data
-    ) public virtual returns (uint256 amountBaseOut);
+        address rawToken,
+        uint256 amountLytIn,
+        uint256 minAmountRawOut,
+        bytes calldata data
+    ) public virtual returns (uint256 amountRawOut);
 
     // strictly not overridable to guarantee the definition of baseBalanceOf & exchangeRate
     function baseBalanceOf(address account) public returns (uint256) {

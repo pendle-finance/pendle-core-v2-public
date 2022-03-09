@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 pragma abicoder v2;
 import "./PendleLiquidYieldTokenBase.sol";
+import "./PendleJoeSwapHelper.sol";
 import "../../interfaces/IBenQiComptroller.sol";
 import "../../interfaces/IJoeRouter01.sol";
 import "../../interfaces/IQiErc20.sol";
@@ -10,11 +11,11 @@ import "../../interfaces/IWETH.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/utils/math/Math.sol";
 
-contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase {
+contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase, PendleJoeSwapHelper {
     using SafeERC20 for IERC20;
     address public immutable comptroller;
     address public immutable weth;
-    address public immutable joeRouter;
+    address public immutable baseToken;
 
     constructor(
         string memory _name,
@@ -22,10 +23,11 @@ contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase {
         uint8 __decimals,
         uint8 _underlyingDecimals,
         address[] memory _rewardTokens,
-        address _underlyingYieldToken,
+        address _underlying,
         address _comptroller,
         address _weth,
-        address _joeRouter
+        address _joeRouter,
+        address _joeFactory
     )
         PendleLiquidYieldTokenBase(
             _name,
@@ -33,83 +35,95 @@ contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase {
             __decimals,
             _underlyingDecimals,
             _rewardTokens,
-            _underlyingYieldToken
+            _underlying
         )
+        PendleJoeSwapHelper(_joeRouter, _joeFactory)
     {
         comptroller = _comptroller;
         weth = _weth;
-        joeRouter = _joeRouter;
+        baseToken = IQiErc20(underlying).underlying();
     }
 
-    function mint(address to, uint256 amount) public override {
-        IERC20(underlyingYieldToken).safeTransferFrom(msg.sender, address(this), amount);
-        _mint(to, amount);
+    function mint(address recipient, uint256 amountUnderlyingIn)
+        public
+        override
+        returns (uint256 amountLytOut)
+    {
+        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amountUnderlyingIn);
+
+        amountLytOut = amountUnderlyingIn;
+
+        _mint(recipient, amountLytOut);
     }
 
-    function mintFromBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountLYTOut,
-        bytes memory data
-    ) public override returns (uint256 amountLYTOut) {
-        (address[] memory path, uint256 expiry) = abi.decode(data, (address[], uint256));
-        require(token == path[0], "INVALID_PATH");
-        uint256 amountUnderlying = IJoeRouter01(joeRouter).swapExactTokensForTokens(
-            amount,
-            1,
-            path,
-            to,
-            expiry
-        )[path.length - 1];
+    function mintFromRawToken(
+        address recipient,
+        address rawToken,
+        uint256 amountRawIn,
+        uint256 minAmountLytOut,
+        bytes calldata data
+    ) public override returns (uint256 amountLytOut) {
+        IERC20(rawToken).safeTransferFrom(msg.sender, address(this), amountRawIn);
 
-        uint256 balanceBefore = IQiErc20(underlyingYieldToken).balanceOf(to);
-        IQiErc20(underlyingYieldToken).mint(amountUnderlying);
-        uint256 balanceAfter = IQiErc20(underlyingYieldToken).balanceOf(to);
+        uint256 amountBaseToken;
+        if (rawToken != baseToken) {
+            // requires swapping
+            address[] memory path = abi.decode(data, (address[]));
+            amountBaseToken = _swapExactIn(path, amountRawIn);
+        } else {
+            amountBaseToken = amountRawIn;
+        }
 
-        amountLYTOut = balanceAfter - balanceBefore;
-        require(amountLYTOut >= minAmountLYTOut, "INSUFFICIENT_OUT_AMOUNT");
-        _mint(to, amountLYTOut);
+        uint256 amountUnderlying = _mintQiToken(amountBaseToken);
+
+        amountLytOut = amountUnderlying;
+
+        require(amountLytOut >= minAmountLytOut, "INSUFFICIENT_OUT_AMOUNT");
+
+        _mint(recipient, amountLytOut);
     }
 
-    function burn(address to, uint256 amount) public override {
-        _burn(msg.sender, amount);
-        IERC20(underlyingYieldToken).safeTransfer(to, amount);
+    function burn(address recipient, uint256 amountLytIn)
+        public
+        override
+        returns (uint256 amountUnderlyingOut)
+    {
+        _burn(msg.sender, amountLytIn);
+
+        amountUnderlyingOut = amountLytIn;
+
+        IERC20(underlying).safeTransfer(recipient, amountUnderlyingOut);
     }
 
-    function burnToBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountTokenOut,
-        bytes memory data
-    ) public override returns (uint256 amountTokenOut) {
-        _burn(to, amount);
+    function burnToRawToken(
+        address recipient,
+        address rawToken,
+        uint256 amountLytIn,
+        uint256 minAmountRawOut,
+        bytes calldata data
+    ) public override returns (uint256 amountRawOut) {
+        _burn(msg.sender, amountLytIn);
 
-        (address[] memory path, uint256 expiry) = abi.decode(data, (address[], uint256));
-        require(token == path[path.length - 1], "INVALID_PATH");
+        uint256 amountUnderlying = amountLytIn;
 
-        uint256 balanceBefore = IERC20(path[0]).balanceOf(to);
-        IQiErc20(underlyingYieldToken).redeem(amount);
-        uint256 balanceAfter = IERC20(path[0]).balanceOf(to);
+        uint256 amountBaseToken = _burnQiToken(amountUnderlying);
 
-        uint256 amountUnderlyingOut = balanceAfter - balanceBefore;
-        amountTokenOut = IJoeRouter01(joeRouter).swapExactTokensForTokens(
-            amountUnderlyingOut,
-            1,
-            path,
-            to,
-            expiry
-        )[path.length - 1];
-        require(amountTokenOut >= minAmountTokenOut, "INSUFFICIENT_OUT_AMOUNT");
+        if (rawToken != baseToken) {
+            // requires swapping
+            address[] memory path = abi.decode(data, (address[]));
+            amountRawOut = _swapExactIn(path, amountBaseToken);
+        } else {
+            amountRawOut = amountBaseToken;
+        }
+
+        require(amountRawOut >= minAmountRawOut, "INSUFFICIENT_OUT_AMOUNT");
+
+        IERC20(rawToken).safeTransfer(recipient, amountRawOut);
     }
 
     function exchangeRateCurrent() public override returns (uint256) {
-        exchangeRateStored = Math.max(
-            exchangeRateStored,
-            IQiToken(underlyingYieldToken).exchangeRateCurrent()
-        );
-        return exchangeRateStored;
+        lastExchangeRate = Math.max(lastExchangeRate, IQiToken(underlying).exchangeRateCurrent());
+        return lastExchangeRate;
     }
 
     function redeemReward() public override returns (uint256[] memory outAmounts) {
@@ -132,7 +146,7 @@ contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase {
         address[] memory holders = new address[](1);
         address[] memory qiTokens = new address[](1);
         holders[0] = address(this);
-        qiTokens[0] = underlyingYieldToken;
+        qiTokens[0] = underlying;
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             IBenQiComptroller(comptroller).claimReward(uint8(i), holders, qiTokens, false, true);
         }
@@ -169,5 +183,21 @@ contract PendleBenqiLiquidYieldToken is PendleLiquidYieldTokenBase {
             userReward[user][i].accuredReward += rewardFromLYT;
             userReward[user][i].lastIndex = globalReward[i].index;
         }
+    }
+
+    function _mintQiToken(uint256 amountBase) internal returns (uint256 amountUnderlyingMinted) {
+        uint256 preBalance = IERC20(underlying).balanceOf(address(this));
+        IQiErc20(underlying).mint(amountBase);
+        uint256 postBalance = IERC20(underlying).balanceOf(address(this));
+
+        amountUnderlyingMinted = postBalance - preBalance;
+    }
+
+    function _burnQiToken(uint256 amountUnderlying) internal returns (uint256 amountBaseReceived) {
+        uint256 preBalance = IERC20(baseToken).balanceOf(address(this));
+        IQiErc20(underlying).redeem(amountUnderlying);
+        uint256 postBalance = IERC20(baseToken).balanceOf(address(this));
+
+        amountBaseReceived = postBalance - preBalance;
     }
 }

@@ -35,25 +35,29 @@ interface IPLiquidYieldToken is IERC20Metadata {
         uint256 accuredReward;
     }
 
-    function mint(address to, uint256 amount) external returns (uint256 amountOut);
+    function mint(address recipient, uint256 amountUnderlyingIn)
+        external
+        returns (uint256 amountLytOut);
 
-    function mintFromBaseToken(
+    function mintFromRawToken(
         address recipient,
-        address baseToken,
-        uint256 amountIn,
-        uint256 minAmountOut,
-        bytes memory data
-    ) external returns (uint256 amountOut);
+        address rawToken,
+        uint256 amountRawIn,
+        uint256 minAmountLytOut,
+        bytes calldata data
+    ) external returns (uint256 amountLytOut);
 
-    function burn(address recipient, uint256 amountIn) external returns (uint256 amountOut);
+    function burn(address recipient, uint256 amountLytIn)
+        external
+        returns (uint256 amountUnderlyingOut);
 
-    function burnToBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountTokenOut,
-        bytes memory data
-    ) external returns (uint256 amountTokenOut);
+    function burnToRawToken(
+        address recipient,
+        address rawToken,
+        uint256 amountLytIn,
+        uint256 minAmountRawOut,
+        bytes calldata data
+    ) external returns (uint256 amountRawOut);
 
     function redeemReward() external returns (uint256[] memory outAmounts);
 
