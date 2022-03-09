@@ -25,17 +25,27 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface IPLiquidYieldToken is IERC20Metadata {
-    function mint(address to, uint256 amount) external;
+    struct GlobalReward {
+        uint256 index;
+        uint256 lastBalance;
+    }
+
+    struct UserReward {
+        uint256 lastIndex;
+        uint256 accuredReward;
+    }
+
+    function mint(address to, uint256 amount) external returns (uint256 amountOut);
 
     function mintFromBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountLYTOut,
+        address recipient,
+        address baseToken,
+        uint256 amountIn,
+        uint256 minAmountOut,
         bytes memory data
-    ) external returns (uint256 amountLYTOut);
+    ) external returns (uint256 amountOut);
 
-    function burn(address to, uint256 amount) external;
+    function burn(address recipient, uint256 amountIn) external returns (uint256 amountOut);
 
     function burnToBaseToken(
         address to,

@@ -27,27 +27,18 @@ import "../../libraries/math/FixedPoint.sol";
 import "../../interfaces/IPLiquidYieldToken.sol";
 
 abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
-    struct GlobalReward {
-        uint256 index;
-        uint256 lastBalance;
-    }
-
-    struct UserReward {
-        uint256 lastIndex;
-        uint256 accuredReward;
-    }
+    uint256 private constant _INITIAL_REWARD_INDEX = 1;
 
     uint8 private immutable _decimals;
     uint8 public immutable underlyingDecimals;
-    uint256 public exchangeRateStored;
+    address public immutable underlying;
+
+    uint256 public lastExchangeRate;
 
     address[] public rewardTokens;
     GlobalReward[] public globalReward;
     mapping(address => UserReward[]) public userReward;
 
-    uint256 private constant _INITIAL_REWARD_INDEX = 1;
-
-    address public immutable underlyingYieldToken;
 
     constructor(
         string memory _name,
@@ -55,7 +46,7 @@ abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
         uint8 __decimals,
         uint8 _underlyingDecimals,
         address[] memory _rewardTokens,
-        address _underlyingYieldToken
+        address _underlying
     ) ERC20(_name, _symbol) {
         _decimals = __decimals;
         underlyingDecimals = _underlyingDecimals;
@@ -63,7 +54,7 @@ abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
             globalReward.push(GlobalReward(_INITIAL_REWARD_INDEX, 0));
         }
-        underlyingYieldToken = _underlyingYieldToken;
+        underlying = _underlying;
     }
 
     function getRewardTokens() external view returns (address[] memory res) {
@@ -73,27 +64,45 @@ abstract contract PendleLiquidYieldTokenBase is IPLiquidYieldToken, ERC20 {
         }
     }
 
-    // takes in yield bearing token, retuns some LYT
-    function mint(address to, uint256 amount) public virtual;
+    /**
+    * @notice takes in the underlying and wrap them into LYT
+    * @param recipient the address to receive LYT
+    * @param amountUnderlyingIn the amount of underlying to pull
+    */
+    function mint(address recipient, uint256 amountUnderlyingIn) public virtual returns (uint256 amountLytOut);
 
+    /**
+    * @notice takes in the baseToken & convert them into LYT. Swapping will be done if necessary
+    * @param recipient the address to receive LYT
+    * @param baseToken the baseToken to pull
+    * @param amountBaseIn the amount of baseToken to pull
+    * @param data optional data. Can be used for swapping path etc...
+    */
     function mintFromBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountLYTOut,
+        address recipient,
+        address baseToken,
+        uint256 amountBaseIn,
+        uint256 minAmountLytOut,
         bytes memory data
-    ) public virtual returns (uint256 amountLYTOut);
+    ) public virtual returns (uint256 amountLytOut);
 
-    // take in some LYT, returns yield bearing token
-    function burn(address to, uint256 amount) public virtual;
+    /**
+    * @notice takes in LYT and returns back the corresponding amount of underlying
+    * @param recipient the address to receive LYT
+    * @param amountLytIn the amount of LYT to burn
+    */
+    function burn(address recipient, uint256 amountLytIn) public virtual returns (uint256 amountUnderlyingOut);
 
+    /**
+    * @notice takes in LYT and converts all of them to baseToken
+    */
     function burnToBaseToken(
-        address to,
-        address token,
-        uint256 amount,
-        uint256 minAmountTokenOut,
+        address recipient,
+        address baseToken,
+        uint256 amountBaseIn,
+        uint256 minAmountBaseOut,
         bytes memory data
-    ) public virtual returns (uint256 amountTokenOut);
+    ) public virtual returns (uint256 amountBaseOut);
 
     // strictly not overridable to guarantee the definition of baseBalanceOf & exchangeRate
     function baseBalanceOf(address account) public returns (uint256) {
