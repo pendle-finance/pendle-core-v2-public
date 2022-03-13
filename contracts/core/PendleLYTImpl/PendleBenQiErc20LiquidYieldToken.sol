@@ -57,10 +57,8 @@ contract PendleBenQiErc20LiquidYieldToken is LiquidYieldTokenWrap {
 
         IERC20(baseToken).safeIncreaseAllowance(yieldToken, type(uint256).max);
 
-        globalReward = [
-            GlobalReward(INITIAL_REWARD_INDEX, 0),
-            GlobalReward(INITIAL_REWARD_INDEX, 0)
-        ];
+        globalReward.push(GlobalReward(INITIAL_REWARD_INDEX, 0));
+        globalReward.push(GlobalReward(INITIAL_REWARD_INDEX, 0));
     }
 
     // solhint-disable no-empty-blocks
