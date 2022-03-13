@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPLiquidYieldToken.sol";
+import "../../LiquidYieldToken/LiquidYieldToken.sol";
 import "../../interfaces/IPMarket.sol";
 import "./FixedPoint.sol";
 import "./LogExpMath.sol";
@@ -132,11 +132,10 @@ library MarketMathLib {
         require(market.totalOt.toInt() > otToAccount);
 
         // Calculates initial rate factors for the trade
-        (
-            uint256 scalar,
-            uint256 totalCashUnderlying,
-            int256 anchor
-        ) = getExchangeRateFactors(market, timeToExpiry);
+        (uint256 scalar, uint256 totalCashUnderlying, int256 anchor) = getExchangeRateFactors(
+            market,
+            timeToExpiry
+        );
 
         // Calculates the exchange rate from cash to Ot before any liquidity fees
         // are applied
@@ -363,13 +362,7 @@ library MarketMathLib {
         uint256 timeToExpiry
     ) internal pure returns (uint256 impliedRate) {
         // This will check for exchange rates < Constants.RATE_PRECISION
-        uint256 exchangeRate = _getExchangeRate(
-            totalOt,
-            totalCashUnderlying,
-            scalar,
-            anchor,
-            0
-        );
+        uint256 exchangeRate = _getExchangeRate(totalOt, totalCashUnderlying, scalar, anchor, 0);
 
         uint256 lnRate = exchangeRate.toInt().ln().toUint();
 

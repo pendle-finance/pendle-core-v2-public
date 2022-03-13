@@ -11,6 +11,14 @@ library ArrayLib {
         }
     }
 
+    function addEq(uint256[] storage arr, uint256[] memory arr2) internal {
+        uint256 length = arr.length;
+        require(length == arr2.length, "invalid length");
+        for (uint256 i = 0; i < length; i++) {
+            arr[i] += arr2[i];
+        }
+    }
+
     function eq(uint256[] storage arr, uint256[] storage arr2) internal view returns (bool) {
         if (arr.length != arr2.length) return false;
         for (uint256 i = 0; i < arr.length; i++) {
@@ -24,10 +32,10 @@ library ArrayLib {
         pure
         returns (uint256[] memory res)
     {
-        require(arr.length == arr2.length, "ARR_DIFF_LENGTH");
+        require(arr.length == arr2.length, "invalid length");
         res = new uint256[](arr.length);
         for (uint256 i = 0; i < arr.length; i++) {
-            res[i] = arr[i] - arr2[i];
+            res[i] = arr[i] + arr2[i];
         }
     }
 
@@ -36,7 +44,7 @@ library ArrayLib {
         pure
         returns (uint256[] memory res)
     {
-        require(arr.length == arr2.length, "ARR_DIFF_LENGTH");
+        require(arr.length == arr2.length, "invalid length");
         res = new uint256[](arr.length);
         for (uint256 i = 0; i < arr.length; i++) {
             res[i] = arr[i] - arr2[i];

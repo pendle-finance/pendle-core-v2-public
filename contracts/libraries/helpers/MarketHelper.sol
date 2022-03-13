@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPLiquidYieldToken.sol";
+import "../../LiquidYieldToken/LiquidYieldToken.sol";
 import "../../interfaces/IPMarket.sol";
 
 library MarketHelper {
     struct MarketStruct {
         IPMarket market;
-        IPLiquidYieldToken LYT;
+        LiquidYieldToken LYT;
         IPOwnershipToken OT;
         IPYieldToken YT;
     }
@@ -19,7 +19,7 @@ library MarketHelper {
         IPOwnershipToken OT = IPOwnershipToken(market.OT());
         res = MarketStruct({
             market: market,
-            LYT: IPLiquidYieldToken(market.LYT()),
+            LYT: LiquidYieldToken(market.LYT()),
             OT: OT,
             YT: IPYieldToken(OT.YT())
         });

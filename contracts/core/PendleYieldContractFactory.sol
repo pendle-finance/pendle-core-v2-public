@@ -26,39 +26,54 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/utils/structs/EnumerableSet.sol";
 import "../libraries/helpers/ExpiryUtilsLib.sol";
-
-import "../interfaces/IPLiquidYieldToken.sol";
+import "./misc/BoringOwnable.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 
 import "./PendleOwnershipToken.sol";
 import "./PendleYieldToken.sol";
 
-contract PendleYieldContractFactory is IPYieldContractFactory {
+contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
     using ExpiryUtils for string;
-    using EnumerableSet for EnumerableSet.AddressSet;
 
     string public constant OT_PREFIX = "OT";
     string public constant YT_PREFIX = "YT";
+
+    uint256 public expiryDivisor;
+    uint256 public interestFeeRate;
+    address public treasury;
 
     // LYT => expiry => address
     mapping(address => mapping(uint256 => address)) public getOT;
     mapping(address => mapping(uint256 => address)) public getYT;
 
-    function newYieldContracts(address LYT, uint256 expiry)
+    constructor(
+        uint256 _expiryDivisor,
+        uint256 _interestFeeRate,
+        address _treasury
+    ) BoringOwnable(msg.sender) {
+        expiryDivisor = _expiryDivisor;
+        interestFeeRate = _interestFeeRate;
+        treasury = _treasury;
+    }
+
+    function createYieldContract(address LYT, uint256 expiry)
         external
         returns (address OT, address YT)
     {
-        // add conditions for expiry
+        require(expiry % expiryDivisor == 0, "must be multiple of divisor");
+
         require(getOT[LYT][expiry] == address(0), "OT_EXISTED");
 
-        uint8 underlyingAssetDecimals = IPLiquidYieldToken(LYT).underlyingDecimals();
+        LiquidYieldToken _LYT = LiquidYieldToken(LYT);
+
+        uint8 assetDecimals = _LYT.assetDecimals();
 
         OT = address(
             new PendleOwnershipToken(
                 LYT,
-                OT_PREFIX.concat(IPLiquidYieldToken(LYT).name(), expiry, " "),
-                OT_PREFIX.concat(IPLiquidYieldToken(LYT).symbol(), expiry, "-"),
-                underlyingAssetDecimals,
+                OT_PREFIX.concat(_LYT.name(), expiry, " "),
+                OT_PREFIX.concat(_LYT.symbol(), expiry, "-"),
+                assetDecimals,
                 expiry
             )
         );
@@ -67,9 +82,9 @@ contract PendleYieldContractFactory is IPYieldContractFactory {
             new PendleYieldToken(
                 LYT,
                 OT,
-                YT_PREFIX.concat(IPLiquidYieldToken(LYT).name(), expiry, " "),
-                YT_PREFIX.concat(IPLiquidYieldToken(LYT).symbol(), expiry, "-"),
-                underlyingAssetDecimals,
+                YT_PREFIX.concat(_LYT.name(), expiry, " "),
+                YT_PREFIX.concat(_LYT.symbol(), expiry, "-"),
+                assetDecimals,
                 expiry
             )
         );
@@ -78,5 +93,17 @@ contract PendleYieldContractFactory is IPYieldContractFactory {
 
         getOT[LYT][expiry] = OT;
         getYT[LYT][expiry] = YT;
+    }
+
+    function setExpiryDivisor(uint256 newExpiryDivisor) external onlyOwner {
+        expiryDivisor = newExpiryDivisor;
+    }
+
+    function setInterestFeeRate(uint256 newInterestFeeRate) external onlyOwner {
+        interestFeeRate = newInterestFeeRate;
+    }
+
+    function setTreasury(address newTreasury) external onlyOwner {
+        treasury = newTreasury;
     }
 }

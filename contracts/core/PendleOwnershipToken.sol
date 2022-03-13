@@ -38,16 +38,7 @@ contract PendleOwnershipToken is PendleBaseToken, IPOwnershipToken {
     }
 
     function mintByYT(address user, uint256 amount) external onlyYT {
-        // lock mint
         _mint(user, amount);
         emit Mint(user, amount);
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal virtual override {
-        super._beforeTokenTransfer(from, to, amount);
     }
 }

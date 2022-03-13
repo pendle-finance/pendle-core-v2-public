@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 import "./IPBaseToken.sol";
 
 interface IPYieldToken is IPBaseToken {
-    function tokenizeYield(address to) external returns (uint256 amountMinted);
+    function mintYO(address recipient) external returns (uint256 amountYOOut);
 
-    function redeemUnderlying(address to) external returns (uint256 amountRedeemed);
+    function redeemYO(address recipient) external returns (uint256 amountLytOut);
 
-    function redeemDueInterest(address user) external returns (uint256 dueInterest);
+    function redeemDueInterest(address user) external returns (uint256 interestOut);
 
-    function redeemDueRewards(address user) external returns (uint256[] memory dueRewards);
+    function redeemDueRewards(address user) external returns (uint256[] memory rewardsOut);
 
     function LYT() external view returns (address);
 

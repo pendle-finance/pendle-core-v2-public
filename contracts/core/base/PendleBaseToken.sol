@@ -6,9 +6,10 @@ import "openzeppelin-solidity/contracts/utils/cryptography/ECDSA.sol";
 import "../../interfaces/IPBaseToken.sol";
 
 abstract contract PendleBaseToken is ERC20, IPBaseToken {
+    uint8 private immutable _decimals;
+
     uint256 public immutable timeCreated;
     uint256 public immutable expiry;
-    uint8 private immutable _decimals;
     address public immutable factory;
 
     event Burn(address indexed user, uint256 amount);
@@ -31,5 +32,9 @@ abstract contract PendleBaseToken is ERC20, IPBaseToken {
 
     function decimals() public view virtual override(ERC20, IERC20Metadata) returns (uint8) {
         return _decimals;
+    }
+
+    function isExpired() public view virtual returns (bool res) {
+        res = (block.timestamp > expiry);
     }
 }
