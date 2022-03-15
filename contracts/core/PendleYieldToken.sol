@@ -117,9 +117,10 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
         }
     }
 
-    function getLytIndexBeforeExpiry() public returns (uint256 exchangeRate) {
-        if (isExpired()) return lastLytIndexBeforeExpiry;
-        lastLytIndexBeforeExpiry = LiquidYieldToken(LYT).lytIndexCurrent();
+    function getLytIndexBeforeExpiry() public returns (uint256 res) {
+        if (isExpired()) return res = lastLytIndexBeforeExpiry;
+        res = LiquidYieldToken(LYT).lytIndexCurrent();
+        lastLytIndexBeforeExpiry = res;
     }
 
     function withdrawFeeToTreasury() public {
