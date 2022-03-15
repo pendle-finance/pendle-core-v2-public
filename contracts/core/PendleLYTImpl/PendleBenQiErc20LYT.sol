@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTWrapSingleBaseWithRewards.sol";
+import "../../LiquidYieldToken/implementations/LYTWrapWithRewards.sol";
 import "../../interfaces/IQiErc20.sol";
 import "../../interfaces/IBenQiComptroller.sol";
 import "../../interfaces/IWETH.sol";
 
-contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
+contract PendleBenQiErc20LYT is LYTWrapWithRewards {
     using SafeERC20 for IERC20;
 
+    address internal immutable underlying;
     address internal immutable qi;
     address internal immutable wavax;
     address internal immutable comptroller;
@@ -20,26 +21,17 @@ contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
         string memory _symbol,
         uint8 __lytdecimals,
         uint8 __assetDecimals,
-        address _baseToken,
+        address _underlying,
         address _yieldToken,
         address _comptroller,
         address _qi,
         address _wavax
-    )
-        LYTWrapSingleBaseWithRewards(
-            _name,
-            _symbol,
-            __lytdecimals,
-            __assetDecimals,
-            _baseToken,
-            _yieldToken,
-            2
-        )
-    {
+    ) LYTWrapWithRewards(_name, _symbol, __lytdecimals, __assetDecimals, _yieldToken, 2) {
+        underlying = _underlying;
         qi = _qi;
         wavax = _wavax;
         comptroller = _comptroller;
-        IERC20(baseToken).safeIncreaseAllowance(yieldToken, type(uint256).max);
+        IERC20(underlying).safeIncreaseAllowance(yieldToken, type(uint256).max);
     }
 
     // solhint-disable no-empty-blocks
@@ -48,7 +40,7 @@ contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
-    function _baseToYield(uint256 amountBase)
+    function _baseToYield(address, uint256 amountBase)
         internal
         virtual
         override
@@ -61,19 +53,15 @@ contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
         amountYieldOut = IERC20(yieldToken).balanceOf(address(this)) - preBalance;
     }
 
-    function _yieldToBase(uint256 amountYield)
+    function _yieldToBase(address, uint256 amountYield)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
-        uint256 preBalance = IERC20(baseToken).balanceOf(address(this));
-
         IQiErc20(yieldToken).redeem(amountYield);
 
-        uint256 postBalance = IERC20(baseToken).balanceOf(address(this));
-
-        amountBaseOut = postBalance - preBalance;
+        amountBaseOut = IERC20(underlying).balanceOf(address(this));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -88,6 +76,25 @@ contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
 
     function lytIndexStored() public view override returns (uint256 res) {
         res = lastLytIndex;
+    }
+
+    function getRewardTokens() public view override returns (address[] memory res) {
+        res = new address[](rewardLength);
+        res[0] = qi;
+        res[1] = wavax;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                MISC FUNCTIONS FOR METADATA
+    //////////////////////////////////////////////////////////////*/
+
+    function getBaseTokens() public view virtual override returns (address[] memory res) {
+        res = new address[](1);
+        res[0] = underlying;
+    }
+
+    function isValidBaseToken(address token) public view virtual override returns (bool res) {
+        res = (token == underlying);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -105,22 +112,4 @@ contract PendleBenQiErc20LYT is LYTWrapSingleBaseWithRewards {
 
         if (address(this).balance != 0) IWETH(wavax).deposit{ value: address(this).balance };
     }
-
-    /*///////////////////////////////////////////////////////////////
-                VIEW FUNCTIONS FOR METADATA
-    //////////////////////////////////////////////////////////////*/
-
-    function getRewardTokens() public view override returns (address[] memory res) {
-        res = new address[](rewardLength);
-        res[0] = qi;
-        res[1] = wavax;
-    }
-
-    function _getRewardToken(uint256 index) internal view override returns (IERC20 token) {
-        token = (index == 0 ? IERC20(qi) : IERC20(wavax));
-    }
 }
-/*INVARIANTS TO CHECK
-- all transfers are safeTransfer
-- reentrancy check
-*/

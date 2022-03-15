@@ -45,13 +45,15 @@ interface ILiquidYieldToken is IERC20Metadata {
 
     function updateUserReward(address user) external;
 
-    function redeemReward() external returns (uint256[] memory outAmounts);
+    function redeemReward(address user) external returns (uint256[] memory outAmounts);
 
     function lytIndexCurrent() external returns (uint256);
 
     function lytIndexStored() external view returns (uint256);
 
     function getBaseTokens() external view returns (address[] memory);
+
+    function isValidBaseToken(address token) external view returns (bool);
 
     function getRewardTokens() external view returns (address[] memory);
 

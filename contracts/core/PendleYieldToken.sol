@@ -181,7 +181,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     }
 
     function _updateParamL() internal {
-        uint256[] memory incomeRewards = ILiquidYieldToken(LYT).redeemReward();
+        uint256[] memory incomeRewards = ILiquidYieldToken(LYT).redeemReward(address(this));
 
         // if YT has already expired, all the rewards go to the governance
         if (isExpired()) {
