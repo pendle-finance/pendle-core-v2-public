@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./base/PendleBaseToken.sol";
-import "../LiquidYieldToken/LiquidYieldToken.sol";
+import "../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
 import "../libraries/math/FixedPoint.sol";
@@ -49,7 +49,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
         LYT = _LYT;
         OT = _OT;
 
-        address[] memory rewards = LiquidYieldToken(LYT).getRewardTokens();
+        address[] memory rewards = ILiquidYieldToken(LYT).getRewardTokens();
 
         paramL = new uint256[](rewards.length);
         paramL.setValue(1);
@@ -107,7 +107,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
         _updateDueRewards(user);
 
-        address[] memory rewardTokens = LiquidYieldToken(LYT).getRewardTokens();
+        address[] memory rewardTokens = ILiquidYieldToken(LYT).getRewardTokens();
 
         rewardsOut = data[user].dueRewards;
         data[user].dueRewards.setValue(0);
@@ -119,12 +119,12 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
 
     function getLytIndexBeforeExpiry() public returns (uint256 res) {
         if (isExpired()) return res = lastLytIndexBeforeExpiry;
-        res = LiquidYieldToken(LYT).lytIndexCurrent();
+        res = ILiquidYieldToken(LYT).lytIndexCurrent();
         lastLytIndexBeforeExpiry = res;
     }
 
     function withdrawFeeToTreasury() public {
-        address[] memory rewardTokens = LiquidYieldToken(LYT).getRewardTokens();
+        address[] memory rewardTokens = ILiquidYieldToken(LYT).getRewardTokens();
         uint256 length = rewardTokens.length;
         address treasury = IPYieldContractFactory(factory).treasury();
 
@@ -181,7 +181,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     }
 
     function _updateParamL() internal {
-        uint256[] memory incomeRewards = LiquidYieldToken(LYT).redeemReward();
+        uint256[] memory incomeRewards = ILiquidYieldToken(LYT).redeemReward();
 
         // if YT has already expired, all the rewards go to the governance
         if (isExpired()) {

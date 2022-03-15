@@ -22,30 +22,38 @@
  */
 
 pragma solidity ^0.8.0;
-import "./LiquidYieldToken.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-abstract contract LiquidYieldTokenWrap is LiquidYieldToken {
-    address public immutable yieldToken;
-
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint8 __lytdecimals,
-        uint8 __assetDecimals,
-        address _yieldToken
-    ) LiquidYieldToken(_name, _symbol, __lytdecimals, __assetDecimals) {
-        yieldToken = _yieldToken;
-    }
-
-    function depositYieldToken(
+interface ILiquidYieldToken is IERC20Metadata {
+    function depositBaseToken(
         address recipient,
-        uint256 amountYieldIn,
+        address baseTokenIn,
+        uint256 amountBaseIn,
         uint256 minAmountLytOut
-    ) public virtual returns (uint256 amountLytOut);
+    ) external returns (uint256 amountLytOut);
 
-    function redeemToYieldToken(
+    function redeemToBaseToken(
         address recipient,
         uint256 amountLytRedeem,
-        uint256 minAmountYieldOut
-    ) public virtual returns (uint256 amountYieldOut);
+        address baseTokenOut,
+        uint256 minAmountBaseOut
+    ) external returns (uint256 amountBaseOut);
+
+    function assetBalanceOf(address user) external returns (uint256);
+
+    function updateGlobalReward() external;
+
+    function updateUserReward(address user) external;
+
+    function redeemReward() external returns (uint256[] memory outAmounts);
+
+    function lytIndexCurrent() external returns (uint256);
+
+    function lytIndexStored() external view returns (uint256);
+
+    function getBaseTokens() external view returns (address[] memory);
+
+    function getRewardTokens() external view returns (address[] memory);
+
+    function assetDecimals() external view returns (uint8);
 }

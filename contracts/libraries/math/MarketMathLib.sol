@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../LiquidYieldToken/LiquidYieldToken.sol";
+import "../../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../../interfaces/IPMarket.sol";
 import "./FixedPoint.sol";
 import "./LogExpMath.sol";

@@ -64,7 +64,7 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
 
         require(getOT[LYT][expiry] == address(0), "OT_EXISTED");
 
-        LiquidYieldToken _LYT = LiquidYieldToken(LYT);
+        ILiquidYieldToken _LYT = ILiquidYieldToken(LYT);
 
         uint8 assetDecimals = _LYT.assetDecimals();
 

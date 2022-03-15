@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./base/PendleBaseToken.sol";
 import "../interfaces/IPMarketCallback.sol";
 import "../interfaces/IPOwnershipToken.sol";
-import "../LiquidYieldToken/LiquidYieldToken.sol";
+import "../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPMarketFactory.sol";
 
@@ -123,7 +123,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         market.totalLyt = store.totalLyt;
         market.totalLp = totalSupply();
         market.lastImpliedRate = store.lastImpliedRate;
-        market.lytRate = LiquidYieldToken(LYT).lytIndexCurrent();
+        market.lytRate = ILiquidYieldToken(LYT).lytIndexCurrent();
         market.feeRateRoot = feeRateRoot;
         market.reserveFeePercent = reserveFeePercent;
         market.anchorRoot = anchorRoot;
