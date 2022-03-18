@@ -23,6 +23,10 @@
 pragma solidity ^0.8.0;
 
 interface IWXBTRFLY {
+    function wrapFromBTRFLY(uint256 _amount) external returns (uint256);
+
+    function unwrapToBTRFLY(uint256 _amount) external returns (uint256);
+
     function wrapFromxBTRFLY(uint256 _amount) external returns (uint256);
 
     function unwrapToxBTRFLY(uint256 _amount) external returns (uint256);

@@ -11,7 +11,6 @@ contract PendleBtrflyLYT is LYTWrap {
     address internal immutable BTRFLY;
     address internal immutable xBTRFLY;
     address internal immutable wxBTRFLY;
-    address internal immutable staking;
 
     uint256 internal lastLytIndex;
 
@@ -20,40 +19,31 @@ contract PendleBtrflyLYT is LYTWrap {
         string memory _symbol,
         uint8 __lytdecimals,
         uint8 __assetDecimals,
-        address _REDACTEDStaking,
         address _BTRFLY,
         address _xBTRFLY,
         address _wxBTRFLY
     ) LYTWrap(_name, _symbol, __lytdecimals, __assetDecimals, _wxBTRFLY) {
-        staking = _REDACTEDStaking;
         BTRFLY = _BTRFLY;
         xBTRFLY = _xBTRFLY;
         wxBTRFLY = _wxBTRFLY;
+        IERC20(BTRFLY).safeIncreaseAllowance(wxBTRFLY, type(uint256).max);
         IERC20(xBTRFLY).safeIncreaseAllowance(wxBTRFLY, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
-    function _baseToYield(address token, uint256)
+    function _baseToYield(address token, uint256 amountBase)
         internal
         virtual
         override
         returns (uint256 amountYieldOut)
     {
         if (token == BTRFLY) {
-            uint256 balanceBTRFLY = IERC20(BTRFLY).balanceOf(address(this));
-            _doStaking(balanceBTRFLY);
+            amountYieldOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
+        } else {
+            amountYieldOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
         }
-
-        uint256 balanceXBTRFLY = IERC20(xBTRFLY).balanceOf(address(this));
-        amountYieldOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(balanceXBTRFLY);
-    }
-
-    function _doStaking(uint256 amount) internal {
-        require(IREDACTEDStaking(staking).warmupPeriod() == 0, "WARMUP_PERIOD_NOT_ZERO");
-        IREDACTEDStaking(staking).stake(amount, address(this));
-        IREDACTEDStaking(staking).claim(address(this));
     }
 
     function _yieldToBase(address token, uint256 amountYield)
@@ -62,12 +52,10 @@ contract PendleBtrflyLYT is LYTWrap {
         override
         returns (uint256 amountBaseOut)
     {
-        uint256 amountXBTRFLYout = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountYield);
-        if (token == xBTRFLY) {
-            amountBaseOut = amountXBTRFLYout;
+        if (token == BTRFLY) {
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToBTRFLY(amountYield);
         } else {
-            IREDACTEDStaking(staking).unstake(amountXBTRFLYout, true);
-            amountBaseOut = IERC20(BTRFLY).balanceOf(address(this));
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountYield);
         }
     }
 
