@@ -37,22 +37,26 @@ abstract contract PendleJoeSwapHelper {
         joeFactory = _joeFactory;
     }
 
+    function _getFirstPair(address[] calldata path) internal view returns (address pair) {
+        return JoeLibrary.pairFor(joeFactory, path[0], path[1]);
+    }
+
     /**
-     * @notice swap tokens with no limit on amountOut & the receiver is this contract
+     * @notice swap tokens with no limit on amountOut. Tokens must have been transferred to the first pair
      * @dev TODO: haven't supported ETH yet
      */
-    function _swapExactIn(address[] memory path, uint256 amountIn)
-        internal
-        returns (uint256 amountOut)
-    {
+    function _swapExactIn(
+        address[] calldata path,
+        uint256 amountIn,
+        address recipient
+    ) internal virtual returns (uint256 amountOut) {
         uint256[] memory amounts = JoeLibrary.getAmountsOut(joeFactory, amountIn, path);
-        IERC20(path[0]).safeTransfer(JoeLibrary.pairFor(joeFactory, path[0], path[1]), amounts[0]);
-        _swap(amounts, path, address(this));
+        _low_level_swap(amounts, path, recipient);
         amountOut = amounts[amounts.length - 1];
     }
 
     /// function from TraderJoe
-    function _swap(
+    function _low_level_swap(
         uint256[] memory amounts,
         address[] memory path,
         address _to
