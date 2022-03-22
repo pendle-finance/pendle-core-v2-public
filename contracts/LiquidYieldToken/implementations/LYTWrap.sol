@@ -45,12 +45,11 @@ abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
     function depositBaseToken(
         address recipient,
         address baseTokenIn,
-        uint256 amountBaseIn,
         uint256 minAmountLytOut
     ) public virtual override returns (uint256 amountLytOut) {
         require(isValidBaseToken(baseTokenIn), "invalid base token");
 
-        IERC20(baseTokenIn).safeTransferFrom(msg.sender, address(this), amountBaseIn);
+        uint256 amountBaseIn = IERC20(baseTokenIn).balanceOf(address(this));
 
         amountLytOut = _baseToYield(baseTokenIn, amountBaseIn);
 
@@ -61,13 +60,14 @@ abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
 
     function redeemToBaseToken(
         address recipient,
-        uint256 amountLytRedeem,
         address baseTokenOut,
         uint256 minAmountBaseOut
     ) public virtual override returns (uint256 amountBaseOut) {
         require(isValidBaseToken(baseTokenOut), "invalid base token");
 
-        _burn(msg.sender, amountLytRedeem);
+        uint256 amountLytRedeem = balanceOf(address(this));
+
+        _burn(address(this), amountLytRedeem);
 
         amountBaseOut = _yieldToBase(baseTokenOut, amountLytRedeem);
 

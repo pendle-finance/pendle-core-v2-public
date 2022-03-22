@@ -28,13 +28,11 @@ interface ILiquidYieldToken is IERC20Metadata {
     function depositBaseToken(
         address recipient,
         address baseTokenIn,
-        uint256 amountBaseIn,
         uint256 minAmountLytOut
     ) external returns (uint256 amountLytOut);
 
     function redeemToBaseToken(
         address recipient,
-        uint256 amountLytRedeem,
         address baseTokenOut,
         uint256 minAmountBaseOut
     ) external returns (uint256 amountBaseOut);
