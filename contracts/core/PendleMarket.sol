@@ -12,12 +12,16 @@ import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/FixedPoint.sol";
 import "../libraries/math/MarketMathLib.sol";
 
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+
 // solhint-disable reason-string
-contract PendleMarket is PendleBaseToken, IPMarket {
+contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using LogExpMath for uint256;
     using MarketMathLib for MarketParameters;
+    using SafeERC20 for IERC20;
     // make it ultra simple
 
     // careful, the reserve of the market shouldn't be interferred by external factors
@@ -54,14 +58,24 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         anchorRoot = _anchorRoot;
     }
 
-    function addLiquidity(address recipient) external returns (uint256 lpToUser) {
+    function addLiquidity(
+        address recipient,
+        uint256 lytDesired,
+        uint256 otDesired,
+        bytes calldata data
+    )
+        external
+        nonReentrant
+        returns (
+            uint256 lpToAccount,
+            uint256 lytNeed,
+            uint256 otNeed
+        )
+    {
         MarketParameters memory market = readState();
 
-        uint256 lytDesired = _selfBalance(LYT) - market.totalLyt;
-        uint256 otDesired = _selfBalance(OT) - market.totalOt;
-
         uint256 lpToReserve;
-        (lpToReserve, lpToUser, , ) = market.addLiquidity(lytDesired, otDesired);
+        (lpToReserve, lpToAccount, lytNeed, otNeed) = market.addLiquidity(lytDesired, otDesired);
 
         // initializing the market
         if (lpToReserve != 0) {
@@ -69,29 +83,44 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             _mint(address(1), lpToReserve);
         }
 
-        _mint(recipient, lpToUser);
-        _writeAndVerifyState(market);
+        _mint(recipient, lpToAccount);
+
+        IPMarketCallback(msg.sender).addLiquidityCallback(lpToAccount, lytNeed, otNeed, data);
+
+        require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
+
+        _writeState(market);
     }
 
-    function removeLiquidity(address recipient) external returns (uint256 lytOut, uint256 otOut) {
+    function removeLiquidity(address recipient, uint256 lpToRemove, bytes calldata data)
+        external
+        nonReentrant
+        returns (uint256 lytToAccount, uint256 otToAccount)
+    {
         MarketParameters memory market = readState();
 
-        uint256 lpToRemove = balanceOf(address(this));
+        (lytToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
 
-        (lytOut, otOut) = market.removeLiquidity(lpToRemove);
+        IERC20(LYT).safeTransfer(recipient, lytToAccount);
+        IERC20(OT).safeTransfer(recipient, otToAccount);
+
+        IPMarketCallback(msg.sender).removeLiquidityCallback(
+            lpToRemove,
+            lytToAccount,
+            otToAccount,
+            data
+        );
 
         _burn(address(this), lpToRemove);
-        IERC20(LYT).transfer(recipient, lytOut);
-        IERC20(OT).transfer(recipient, otOut);
-
-        _writeAndVerifyState(market);
+        _writeState(market);
     }
 
     function swap(
         address recipient,
         int256 otToAccount,
-        bytes calldata cbData
-    ) external returns (int256 netLytToAccount, bytes memory cbRes) {
+        bytes calldata data
+    ) external nonReentrant returns (int256 netLytToAccount) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
@@ -103,19 +132,18 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             market.expiry - block.timestamp
         );
 
-        if (netLytToAccount > 0) {
-            // need to push LYT & pull OT
-            IERC20(LYT).transfer(recipient, netLytToAccount.toUint());
-        } else {
-            // need to push OT & pull LYT
-            IERC20(OT).transfer(recipient, otToAccount.neg().toUint());
-        }
-        cbRes = IPMarketCallback(msg.sender).callback(otToAccount, netLytToAccount, cbData);
+        if (netLytToAccount > 0) IERC20(LYT).safeTransfer(recipient, netLytToAccount.toUint());
+        if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.neg().toUint());
 
-        IERC20(LYT).transfer(IPMarketFactory(factory).treasury(), netLytToReserve);
-        _writeAndVerifyState(market);
+        if (data.length > 0)
+            IPMarketCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
+
+        // verify the transfer here shall we?
+        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
+        _writeState(market);
     }
 
+    /// the only non-view part in this function is the ILiquidYieldToken(LYT).lytIndexCurrent()
     function readState() public returns (MarketParameters memory market) {
         MarketStorage storage store = _marketState;
         market.expiry = expiry;
@@ -129,10 +157,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         market.anchorRoot = anchorRoot;
     }
 
-    function _writeAndVerifyState(MarketParameters memory market) internal {
+    function _writeState(MarketParameters memory market) internal {
         MarketStorage storage store = _marketState;
-        require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
         // shall we verify lp here?
         // hmm should we verify the sum right after callback instead?
 
