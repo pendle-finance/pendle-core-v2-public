@@ -15,7 +15,7 @@ abstract contract RewardManager {
 
     struct UserReward {
         uint256 lastIndex;
-        uint256 accuredReward;
+        uint256 accruedReward;
     }
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
@@ -43,8 +43,8 @@ abstract contract RewardManager {
         for (uint256 i = 0; i < rewardLength; ++i) {
             IERC20 token = IERC20(rewardTokens[i]);
 
-            outAmounts[i] = userReward[user][i].accuredReward;
-            userReward[user][i].accuredReward = 0;
+            outAmounts[i] = userReward[user][i].accruedReward;
+            userReward[user][i].accruedReward = 0;
 
             globalReward[i].lastBalance -= outAmounts[i];
 
@@ -89,7 +89,7 @@ abstract contract RewardManager {
             uint256 rewardAmountPerUnit = globalReward[i].index - userLastIndex;
             uint256 rewardFromUnit = balanceOfUser.mulDown(rewardAmountPerUnit);
 
-            userReward[user][i].accuredReward += rewardFromUnit;
+            userReward[user][i].accruedReward += rewardFromUnit;
             userReward[user][i].lastIndex = globalReward[i].index;
         }
     }
