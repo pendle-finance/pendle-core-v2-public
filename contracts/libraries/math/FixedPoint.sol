@@ -146,6 +146,10 @@ library FixedPoint {
         return (x < ONE) ? (ONE - x) : 0;
     }
 
+    function abs(int256 x) internal pure returns (int256) {
+        return (x > 0 ? x : -x);
+    }
+
     function neg(int256 x) internal pure returns (int256) {
         return -x;
     }

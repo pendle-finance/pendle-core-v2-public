@@ -385,6 +385,95 @@ library MarketMathLib {
         extRate = LogExpMath.exp(rt.toInt()).toUint();
     }
 
+    function getOtGivenCashAmount(
+        MarketParameters memory market,
+        int256 netCashToAccount,
+        uint256 maxDelta,
+        uint256 timeToExpiry
+    ) internal pure returns (int256) {
+        require(maxDelta >= 0);
+
+        // Calculates initial rate factors for the trade
+        (uint256 scalar, uint256 totalCashUnderlying, int256 anchor) = getExchangeRateFactors(
+            market,
+            timeToExpiry
+        );
+
+        int256 otChangeToAccountGuess = netCashToAccount.mulDown(anchor).neg();
+
+        uint256 feeRate = getExchangeRateFromImpliedRate(market.feeRateRoot, timeToExpiry);
+
+        for (uint8 i = 0; i < 250; i++) {
+            uint256 extRate = _getExchangeRate(
+                market.totalOt,
+                totalCashUnderlying,
+                scalar,
+                anchor,
+                otChangeToAccountGuess
+            );
+
+            int256 delta = _calculateDelta(
+                netCashToAccount,
+                market.totalOt.toInt(),
+                totalCashUnderlying.toInt(),
+                scalar,
+                otChangeToAccountGuess,
+                extRate.toInt(),
+                feeRate.toInt()
+            );
+
+            if (delta.abs().toUint() <= maxDelta) return otChangeToAccountGuess;
+            otChangeToAccountGuess = otChangeToAccountGuess - delta;
+        }
+
+        revert("No convergence");
+    }
+
+    function _calculateDelta(
+        int256 cashAmount,
+        int256 totalOt,
+        int256 totalCashUnderlying,
+        uint256 scalar,
+        int256 otGuess,
+        int256 exchangeRate,
+        int256 feeRate
+    ) private pure returns (int256) {
+        int256 derivative;
+        // scalar * (totalOt - ot) * (totalCash + ot)
+        // Precision: TOKEN_PRECISION ^ 2
+        int256 denominator = scalar.mulDown((totalOt - otGuess) * (totalCashUnderlying + otGuess));
+
+        if (otGuess > 0) {
+            // Lending
+            exchangeRate = exchangeRate.divDown(feeRate);
+            require(exchangeRate >= LogExpMath.ONE_18); // dev: rate underflow
+
+            // (cashAmount / fee) * (totalOt + totalCash)
+            // Precision: TOKEN_PRECISION ^ 2
+            derivative = (cashAmount * (totalOt + totalCashUnderlying)).divDown(feeRate);
+        } else {
+            // Borrowing
+            exchangeRate = exchangeRate.mulDown(feeRate);
+            require(exchangeRate >= LogExpMath.ONE_18); // dev: rate underflow
+
+            // (cashAmount * fee) * (totalOt + totalCash)
+            // Precision: TOKEN_PRECISION ^ 2
+            derivative = cashAmount.mulDown(feeRate * (totalOt + totalCashUnderlying));
+        }
+        // 1 - numerator / denominator
+        // Precision: TOKEN_PRECISION
+        derivative = LogExpMath.ONE_18 - (derivative / denominator);
+
+        // f(ot) = cashAmount * exchangeRate * fee + ot
+        // NOTE: exchangeRate at this point already has the fee taken into account
+        int256 numerator = cashAmount.mulDown(exchangeRate);
+        numerator = numerator + otGuess;
+
+        // f(ot) / f'(ot), note that they are both denominated as cashAmount so use TOKEN_PRECISION
+        // here instead of RATE_PRECISION
+        return numerator * LogExpMath.ONE_18 / derivative;
+    }
+
     /// @notice Returns the exchange rate between ot and cash for the given market
     /// Calculates the following exchange rate:
     ///     (1 / scalar) * ln(proportion / (1 - proportion)) + anchor
