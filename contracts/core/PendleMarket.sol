@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "./base/PendleBaseToken.sol";
-import "../interfaces/IPMarketCallback.sol";
 import "../interfaces/IPOwnershipToken.sol";
 import "../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPMarketFactory.sol";
+import "../interfaces/IPMarketSwapCallback.sol";
+import "../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/FixedPoint.sol";
@@ -85,7 +86,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         _mint(recipient, lpToAccount);
 
-        IPMarketCallback(msg.sender).addLiquidityCallback(lpToAccount, lytNeed, otNeed, data);
+        IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(lpToAccount, lytNeed, otNeed, data);
 
         require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
         require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
@@ -105,7 +106,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         IERC20(LYT).safeTransfer(recipient, lytToAccount);
         IERC20(OT).safeTransfer(recipient, otToAccount);
 
-        IPMarketCallback(msg.sender).removeLiquidityCallback(
+        IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
             lpToRemove,
             lytToAccount,
             otToAccount,
@@ -136,7 +137,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.neg().toUint());
 
         if (data.length > 0)
-            IPMarketCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
+            IPMarketSwapCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
 
         // verify the transfer here shall we?
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);

@@ -2,10 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IPMarketFactory.sol";
-import "../../interfaces/IPMarketCallback.sol";
-import "../../libraries/math/FixedPoint.sol";
 
-abstract contract PendleRouterBase is IPMarketCallback {
+abstract contract PendleRouterMarketBase {
     address public immutable marketFactory;
 
     modifier onlyPendleMarket(address market) {

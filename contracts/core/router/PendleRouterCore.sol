@@ -3,14 +3,16 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarket.sol";
-import "../base/PendleRouterBase.sol";
+import "../../interfaces/IPMarketAddRemoveCallback.sol";
+import "../../interfaces/IPMarketSwapCallback.sol";
+import "../base/PendleRouterMarketBase.sol";
 
-contract PendleRouterCore is PendleRouterBase {
+contract PendleRouterCore is PendleRouterMarketBase, IPMarketAddRemoveCallback, IPMarketSwapCallback {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
 
-    constructor(address _marketFactory) PendleRouterBase(_marketFactory) {}
+    constructor(address _marketFactory) PendleRouterMarketBase(_marketFactory) {}
 
     function addLiquidity(
         address recipient,
