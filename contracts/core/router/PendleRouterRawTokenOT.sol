@@ -6,7 +6,15 @@ import "./PendleRouterCore.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-contract PendleRouterRawTokenOT is PendleRouterForge, PendleRouterMarketBase {
+contract PendleRouterRawTokenOT is
+    PendleRouterForge,
+    PendleRouterMarketBase,
+    IPMarketSwapCallback
+{
+    using MarketMathLib for MarketParameters;
+    using FixedPoint for uint256;
+    using FixedPoint for int256;
+
     constructor(
         address _joeRouter,
         address _joeFactory,
@@ -14,57 +22,61 @@ contract PendleRouterRawTokenOT is PendleRouterForge, PendleRouterMarketBase {
     ) PendleRouterForge(_joeRouter, _joeFactory) PendleRouterMarketBase(_marketFactory) {}
 
     function swapExactRawTokenForOT(
-        address rawToken,
         uint256 amountRawTokenIn,
-        address baseToken,
         address recipient,
         address[] calldata path,
         address market,
-        uint256 minAmountOTOut
-    ) external {
-        address LYT = IPMarket(market).LYT();
-        swapExactRawTokenForLYT(rawToken, amountRawTokenIn, baseToken, LYT, 1, market, path);
+        uint256 minAmountOTOut,
+        uint256 amountOTOutGuess,
+        uint256 guessRange
+    ) external returns (uint256 amountOTOut) {
+        IPMarket _market = IPMarket(market);
+        address LYT = _market.LYT();
 
-        int256 otToAccount = netOtOut.toInt();
-        int256 lytToAccount = IPMarket(market).swap(
-            recipient,
-            otToAccount,
-            abi.encode(msg.sender)
-        );
-        netLytIn = lytToAccount.neg().toUint();
-        require(netLytIn <= maxLytIn, "LYT_IN_LIMIT_EXCEEDED");
-
-        uint256 amountLYTReceived = swapExactBaseTokenForLYT(
-            baseToken,
-            amountBaseTokenIn,
+        uint256 amountLYTUsedToBuyOT = swapExactRawTokenForLYT(
+            amountRawTokenIn,
             LYT,
-            0, // can have a minLYTOut here to make it fail earlier
-            address(this),
-            data
+            1,
+            market,
+            path
         );
 
-        uint256 amountLYTIn = swapLYTForExactOT(recipient, market, amountOTOut, amountLYTReceived);
-        assert(amountLYTIn == amountLYTReceived);
+        MarketParameters memory marketState = _market.readState();
+        amountOTOut = marketState
+            .getOtGivenLytAmount(
+                amountLYTUsedToBuyOT.toInt().neg(),
+                _market.timeToExpiry(),
+                amountOTOutGuess.toInt(),
+                guessRange
+            )
+            .toUint();
+
+        require(amountOTOut >= minAmountOTOut, "insufficient ot");
+        _market.swap(recipient, amountOTOut.toInt(), abi.encode());
     }
 
-    // function swapExactOTForBaseToken(
-    //     address market,
-    //     uint256 amountOTIn,
-    //     address baseToken,
-    //     uint256 minAmountBaseTokenOut,
-    //     address recipient,
-    //     bytes calldata data
-    // ) external returns (uint256 amountBaseTokenOut) {
-    //     address LYT = IPMarket(market).LYT();
+    function swapExactOTForRawToken(
+        uint256 amountOTIn,
+        address recipient,
+        address[] calldata path,
+        address market,
+        uint256 minAmountRawTokenOut
+    ) external returns (uint256 amountRawTokenOut) {
+        IPMarket _market = IPMarket(market);
+        address OT = _market.OT();
+        address LYT = _market.LYT();
 
-    //     uint256 amountLYTReceived = swapExactOTForLYT(address(this), market, amountOTIn, 0);
-    //     amountBaseTokenOut = swapExactLYTForBaseToken(
-    //         LYT,
-    //         amountLYTReceived,
-    //         baseToken,
-    //         minAmountBaseTokenOut,
-    //         recipient,
-    //         data
-    //     );
-    // }
+        IERC20(OT).transferFrom(msg.sender, market, amountOTIn);
+
+        _market.swap(LYT, amountOTIn.toInt().neg(), abi.encode());
+        amountRawTokenOut = _swapExactLYTToRawToken(LYT, minAmountRawTokenOut, recipient, path);
+    }
+
+    function swapCallback(
+        int256,
+        int256,
+        bytes calldata
+    ) external {
+        // empty body since all tokens has been transferred manually to correct addresses
+    }
 }

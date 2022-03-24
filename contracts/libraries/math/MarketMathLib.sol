@@ -386,24 +386,18 @@ library MarketMathLib {
         extRate = LogExpMath.exp(rt.toInt()).toUint();
     }
 
-    function getOtGivenCashAmount(
+    function getOtGivenLytAmount(
         MarketParameters memory marketImmutable,
         int256 netLytToAccount,
         uint256 timeToExpiry,
         int256 netOtToAccountGuess,
-        uint256 maxSlippage
-    )
-        internal
-        pure
-        returns (
-            int256 netOtToAccount
-        )
-    {
+        uint256 guessRange
+    ) internal pure returns (int256 netOtToAccount) {
         require((netLytToAccount > 0) != (netOtToAccountGuess > 0), "invalid guess");
 
         bool swapLytForOt = (netLytToAccount < 0);
 
-        int256 maxDelta = netOtToAccount.abs().mulDown(maxSlippage);
+        int256 maxDelta = netOtToAccount.abs().mulDown(guessRange);
         int256 low = netOtToAccountGuess - maxDelta;
         int256 high = netOtToAccountGuess + maxDelta;
         while (low != high) {

@@ -7,7 +7,11 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../base/PendleRouterMarketBase.sol";
 
-contract PendleRouterCore is PendleRouterMarketBase, IPMarketAddRemoveCallback, IPMarketSwapCallback {
+contract PendleRouterCore is
+    PendleRouterMarketBase,
+    IPMarketAddRemoveCallback,
+    IPMarketSwapCallback
+{
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
@@ -27,8 +31,7 @@ contract PendleRouterCore is PendleRouterMarketBase, IPMarketAddRemoveCallback, 
             uint256 otUsed
         )
     {
-        IPMarket _market = IPMarket(market);
-        (lpToAccount, lytUsed, otUsed) = _market.addLiquidity(
+        (lpToAccount, lytUsed, otUsed) = IPMarket(market).addLiquidity(
             recipient,
             otDesired,
             lytDesired,
@@ -41,9 +44,11 @@ contract PendleRouterCore is PendleRouterMarketBase, IPMarketAddRemoveCallback, 
         address market,
         uint256 lpToRemove
     ) external returns (uint256 otToAccount, uint256 lytToAccount) {
-        IPMarket _market = IPMarket(market);
-
-        (lytToAccount, otToAccount) = _market.removeLiquidity(recipient, lpToRemove, abi.encode(msg.sender));
+        (lytToAccount, otToAccount) = IPMarket(market).removeLiquidity(
+            recipient,
+            lpToRemove,
+            abi.encode(msg.sender)
+        );
     }
 
     function swapExactOTForLYT(

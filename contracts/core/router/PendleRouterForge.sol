@@ -16,21 +16,29 @@ contract PendleRouterForge is PendleJoeSwapHelper {
     }
 
     function swapExactRawTokenForLYT(
-        address rawToken,
         uint256 amountRawTokenIn,
-        address baseToken,
         address LYT,
         uint256 minAmountLYTOut,
         address recipient,
         address[] calldata path
     ) public returns (uint256 amountLYTOut) {
-        if (rawToken == baseToken) {
-            IERC20(rawToken).transferFrom(msg.sender, LYT, amountRawTokenIn);
+        if (path.length == 1) {
+            IERC20(path[0]).transferFrom(msg.sender, LYT, amountRawTokenIn);
         } else {
-            IERC20(rawToken).transferFrom(msg.sender, _getFirstPair(path), amountRawTokenIn);
+            IERC20(path[0]).transferFrom(msg.sender, _getFirstPair(path), amountRawTokenIn);
             _swapExactIn(path, amountRawTokenIn, LYT);
         }
 
+        amountLYTOut = _swapExactRawTokenForLYT(LYT, minAmountLYTOut, recipient, path);
+    }
+
+    function _swapExactRawTokenForLYT(
+        address LYT,
+        uint256 minAmountLYTOut,
+        address recipient,
+        address[] calldata path
+    ) internal returns (uint256 amountLYTOut) {
+        address baseToken = path[path.length - 1];
         amountLYTOut = ILiquidYieldToken(LYT).depositBaseToken(
             recipient,
             baseToken,
@@ -41,15 +49,22 @@ contract PendleRouterForge is PendleJoeSwapHelper {
     function swapExactLYTToRawToken(
         address LYT,
         uint256 amountLYTIn,
-        address baseToken,
-        address rawToken,
         uint256 minAmountRawTokenOut,
         address recipient,
         address[] calldata path
     ) public returns (uint256 amountRawTokenOut) {
         IERC20(LYT).safeTransferFrom(msg.sender, LYT, amountLYTIn);
+        amountRawTokenOut = _swapExactLYTToRawToken(LYT, minAmountRawTokenOut, recipient, path);
+    }
 
-        if (rawToken == baseToken) {
+    function _swapExactLYTToRawToken(
+        address LYT,
+        uint256 minAmountRawTokenOut,
+        address recipient,
+        address[] calldata path
+    ) internal returns (uint256 amountRawTokenOut) {
+        address baseToken = path[0];
+        if (path.length == 1) {
             amountRawTokenOut = ILiquidYieldToken(LYT).redeemToBaseToken(
                 recipient,
                 baseToken,

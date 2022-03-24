@@ -5,6 +5,6 @@ interface IPMarketSwapCallback {
     function swapCallback(
         int256 otToAccount,
         int256 lytToAccount,
-        bytes calldata cbData
+        bytes calldata data
     ) external;
 }

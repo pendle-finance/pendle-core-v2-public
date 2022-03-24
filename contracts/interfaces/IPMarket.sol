@@ -10,14 +10,24 @@ interface IPMarket is IPBaseToken {
         uint256 lytDesired,
         uint256 otDesired,
         bytes calldata data
-    ) external returns (uint256 lpToUser, uint256 lytUsed, uint256 otUsed);
+    )
+        external
+        returns (
+            uint256 lpToUser,
+            uint256 lytUsed,
+            uint256 otUsed
+        );
 
-    function removeLiquidity(address recipient, uint256 lpToRemove, bytes calldata data) external returns (uint256 lytOut, uint256 otOut);
+    function removeLiquidity(
+        address recipient,
+        uint256 lpToRemove,
+        bytes calldata data
+    ) external returns (uint256 lytOut, uint256 otOut);
 
     function swap(
         address recipient,
         int256 otToAccount,
-        bytes calldata cbData
+        bytes calldata data
     ) external returns (int256 netLytToAccount);
 
     function readState() external returns (MarketParameters memory market);
@@ -25,4 +35,6 @@ interface IPMarket is IPBaseToken {
     function OT() external view returns (address);
 
     function LYT() external view returns (address);
+
+    function timeToExpiry() external view returns (uint256);
 }

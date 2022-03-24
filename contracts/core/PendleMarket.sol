@@ -80,13 +80,18 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(market.expiry - block.timestamp);
+            market.setInitialImpliedRate(timeToExpiry());
             _mint(address(1), lpToReserve);
         }
 
         _mint(recipient, lpToAccount);
 
-        IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(lpToAccount, lytNeed, otNeed, data);
+        IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
+            lpToAccount,
+            lytNeed,
+            otNeed,
+            data
+        );
 
         require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
         require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
@@ -94,11 +99,11 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function removeLiquidity(address recipient, uint256 lpToRemove, bytes calldata data)
-        external
-        nonReentrant
-        returns (uint256 lytToAccount, uint256 otToAccount)
-    {
+    function removeLiquidity(
+        address recipient,
+        uint256 lpToRemove,
+        bytes calldata data
+    ) external nonReentrant returns (uint256 lytToAccount, uint256 otToAccount) {
         MarketParameters memory market = readState();
 
         (lytToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
@@ -128,10 +133,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         uint256 netLytToReserve;
 
-        (netLytToAccount, netLytToReserve) = market.calculateTrade(
-            otToAccount,
-            market.expiry - block.timestamp
-        );
+        (netLytToAccount, netLytToReserve) = market.calculateTrade(otToAccount, timeToExpiry());
 
         if (netLytToAccount > 0) IERC20(LYT).safeTransfer(recipient, netLytToAccount.toUint());
         if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.neg().toUint());
@@ -156,6 +158,10 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.feeRateRoot = feeRateRoot;
         market.reserveFeePercent = reserveFeePercent;
         market.anchorRoot = anchorRoot;
+    }
+
+    function timeToExpiry() public view returns (uint256 res) {
+        res = (expiry >= block.timestamp) ? expiry - block.timestamp : 0;
     }
 
     function _writeState(MarketParameters memory market) internal {
