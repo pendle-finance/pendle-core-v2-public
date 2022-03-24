@@ -19,6 +19,7 @@ struct MarketParameters {
     uint256 scalarRoot;
     uint256 feeRateRoot;
     int256 anchorRoot;
+    // if this is changed, change deepCloneMarket as well
 }
 
 // make sure this struct use minimal number of slots
@@ -386,92 +387,69 @@ library MarketMathLib {
     }
 
     function getOtGivenCashAmount(
-        MarketParameters memory market,
-        int256 netCashToAccount,
-        uint256 maxDelta,
-        uint256 timeToExpiry
-    ) internal pure returns (int256) {
-        require(maxDelta >= 0);
+        MarketParameters memory marketImmutable,
+        int256 netLytToAccount,
+        uint256 timeToExpiry,
+        int256 netOtToAccountGuess,
+        uint256 maxSlippage
+    )
+        internal
+        pure
+        returns (
+            int256 netOtToAccount
+        )
+    {
+        require((netLytToAccount > 0) != (netOtToAccountGuess > 0), "invalid guess");
 
-        // Calculates initial rate factors for the trade
-        (uint256 scalar, uint256 totalCashUnderlying, int256 anchor) = getExchangeRateFactors(
-            market,
-            timeToExpiry
-        );
+        bool swapLytForOt = (netLytToAccount < 0);
 
-        int256 otChangeToAccountGuess = netCashToAccount.mulDown(anchor).neg();
+        int256 maxDelta = netOtToAccount.abs().mulDown(maxSlippage);
+        int256 low = netOtToAccountGuess - maxDelta;
+        int256 high = netOtToAccountGuess + maxDelta;
+        while (low != high) {
+            int256 currentOtGuess = (low + high + 1) / 2;
+            MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-        uint256 feeRate = getExchangeRateFromImpliedRate(market.feeRateRoot, timeToExpiry);
-
-        for (uint8 i = 0; i < 250; i++) {
-            uint256 extRate = _getExchangeRate(
-                market.totalOt,
-                totalCashUnderlying,
-                scalar,
-                anchor,
-                otChangeToAccountGuess
-            );
-
-            int256 delta = _calculateDelta(
-                netCashToAccount,
-                market.totalOt.toInt(),
-                totalCashUnderlying.toInt(),
-                scalar,
-                otChangeToAccountGuess,
-                extRate.toInt(),
-                feeRate.toInt()
-            );
-
-            if (delta.abs().toUint() <= maxDelta) return otChangeToAccountGuess;
-            otChangeToAccountGuess = otChangeToAccountGuess - delta;
+            (int256 lytToAccountOutput, ) = calculateTrade(market, currentOtGuess, timeToExpiry);
+            if (swapLytForOt) {
+                /*
+                * lytToAccount < 0 => lytToAccount increases means less lyt is used
+                * we simple checks if the amount of lyt being used to buy OT is less than the amount
+                of lyt allowed. If yes, we can buy at least the current amount of ot.
+                Else, need to reduce.
+                */
+                bool isResultAcceptable = (lytToAccountOutput >= netLytToAccount);
+                if (isResultAcceptable) low = currentOtGuess;
+                else high = currentOtGuess - 1;
+            } else {
+                /*
+                * lytToAccount > 0 => lytToAccount increases means more lyt is used
+                * currentOtGuess < 0 => currentOtGuess increases means less ot is sold
+                * we simple checks if the amount of lyt receiving is at least the amount of lyt desired.
+                If yes, we can sell at most the current amount of ot. Else, sell more
+                */
+                bool isResultAcceptable = (lytToAccountOutput >= netLytToAccount);
+                if (isResultAcceptable) low = currentOtGuess;
+                else high = currentOtGuess - 1;
+            }
         }
-
-        revert("No convergence");
     }
 
-    function _calculateDelta(
-        int256 cashAmount,
-        int256 totalOt,
-        int256 totalCashUnderlying,
-        uint256 scalar,
-        int256 otGuess,
-        int256 exchangeRate,
-        int256 feeRate
-    ) private pure returns (int256) {
-        int256 derivative;
-        // scalar * (totalOt - ot) * (totalCash + ot)
-        // Precision: TOKEN_PRECISION ^ 2
-        int256 denominator = scalar.mulDown((totalOt - otGuess) * (totalCashUnderlying + otGuess));
-
-        if (otGuess > 0) {
-            // Lending
-            exchangeRate = exchangeRate.divDown(feeRate);
-            require(exchangeRate >= LogExpMath.ONE_18); // dev: rate underflow
-
-            // (cashAmount / fee) * (totalOt + totalCash)
-            // Precision: TOKEN_PRECISION ^ 2
-            derivative = (cashAmount * (totalOt + totalCashUnderlying)).divDown(feeRate);
-        } else {
-            // Borrowing
-            exchangeRate = exchangeRate.mulDown(feeRate);
-            require(exchangeRate >= LogExpMath.ONE_18); // dev: rate underflow
-
-            // (cashAmount * fee) * (totalOt + totalCash)
-            // Precision: TOKEN_PRECISION ^ 2
-            derivative = cashAmount.mulDown(feeRate * (totalOt + totalCashUnderlying));
-        }
-        // 1 - numerator / denominator
-        // Precision: TOKEN_PRECISION
-        derivative = LogExpMath.ONE_18 - (derivative / denominator);
-
-        // f(ot) = cashAmount * exchangeRate * fee + ot
-        // NOTE: exchangeRate at this point already has the fee taken into account
-        int256 numerator = cashAmount.mulDown(exchangeRate);
-        numerator = numerator + otGuess;
-
-        // f(ot) / f'(ot), note that they are both denominated as cashAmount so use TOKEN_PRECISION
-        // here instead of RATE_PRECISION
-        return numerator * LogExpMath.ONE_18 / derivative;
+    function deepCloneMarket(MarketParameters memory marketImmutable)
+        internal
+        pure
+        returns (MarketParameters memory market)
+    {
+        market.expiry = marketImmutable.expiry;
+        market.totalOt = marketImmutable.totalOt;
+        market.totalLyt = marketImmutable.totalLyt;
+        market.totalLp = marketImmutable.totalLp;
+        market.lastImpliedRate = marketImmutable.lastImpliedRate;
+        market.lytRate = marketImmutable.lytRate;
+        market.reserveFeePercent = marketImmutable.reserveFeePercent;
+        market.scalarRoot = marketImmutable.scalarRoot;
+        market.feeRateRoot = marketImmutable.feeRateRoot;
+        market.anchorRoot = marketImmutable.anchorRoot;
     }
 
     /// @notice Returns the exchange rate between ot and cash for the given market
