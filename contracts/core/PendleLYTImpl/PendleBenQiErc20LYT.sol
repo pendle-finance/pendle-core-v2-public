@@ -27,7 +27,7 @@ contract PendleBenQiErc20LYT is LYTBaseWithRewards {
         address _comptroller,
         address _QI,
         address _WAVAX
-    ) LYTBaseWithRewards(_name, _symbol, __lytdecimals, __assetDecimals, 2) {
+    ) LYTBaseWithRewards(_name, _symbol, __lytdecimals, __assetDecimals) {
         underlying = _underlying;
         qiToken = _qiToken;
         QI = _QI;
@@ -90,7 +90,7 @@ contract PendleBenQiErc20LYT is LYTBaseWithRewards {
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {
-        res = new address[](rewardLength);
+        res = new address[](2);
         res[0] = QI;
         res[1] = WAVAX;
     }

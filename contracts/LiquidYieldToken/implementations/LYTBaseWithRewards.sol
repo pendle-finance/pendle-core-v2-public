@@ -21,11 +21,10 @@ abstract contract LYTBaseWithRewards is LYTBase, RewardManager {
         string memory _name,
         string memory _symbol,
         uint8 __lytdecimals,
-        uint8 __assetDecimals,
-        uint256 _rewardLength
+        uint8 __assetDecimals
     )
         LYTBase(_name, _symbol, __lytdecimals, __assetDecimals)
-        RewardManager(_rewardLength)
+        RewardManager()
     // solhint-disable-next-line no-empty-blocks
     {
 
@@ -46,7 +45,8 @@ abstract contract LYTBaseWithRewards is LYTBase, RewardManager {
     }
 
     function updateGlobalReward() public virtual override {
-        _updateGlobalReward(totalSupply());
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, totalSupply());
     }
 
     function updateUserReward(address user) public virtual override {
@@ -68,8 +68,9 @@ abstract contract LYTBaseWithRewards is LYTBase, RewardManager {
         address to,
         uint256 /*amount*/
     ) internal virtual override {
-        _updateGlobalReward(totalSupply());
-        if (from != address(0)) _updateUserRewardSkipGlobal(from, balanceOf(from));
-        if (to != address(0)) _updateUserRewardSkipGlobal(to, balanceOf(to));
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, totalSupply());
+        if (from != address(0)) _updateUserRewardSkipGlobal(rewardTokens, from, balanceOf(from));
+        if (to != address(0)) _updateUserRewardSkipGlobal(rewardTokens, to, balanceOf(to));
     }
 }

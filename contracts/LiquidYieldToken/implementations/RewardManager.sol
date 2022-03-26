@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
+import "../ILiquidYieldToken.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../libraries/math/FixedPoint.sol";
 
@@ -14,41 +15,32 @@ abstract contract RewardManager {
 
     struct UserReward {
         uint256 lastIndex;
-        uint256 accruedReward;
+        uint256 accuredReward;
     }
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
-    uint256 public immutable rewardLength;
-
-    GlobalReward[] public globalReward;
-    mapping(address => UserReward[]) public userReward;
-
-    constructor(uint256 _rewardLength) {
-        rewardLength = _rewardLength;
-        for (uint256 i = 0; i < rewardLength; i++) {
-            globalReward.push(GlobalReward(INITIAL_REWARD_INDEX, 0));
-        }
-    }
+    mapping(address => GlobalReward) public globalReward;
+    mapping(address => mapping(address => UserReward)) public userReward;
 
     function _doTransferOutRewards(address user)
         internal
         virtual
         returns (uint256[] memory outAmounts)
     {
-        outAmounts = new uint256[](rewardLength);
-
         address[] memory rewardTokens = getRewardTokens();
-        for (uint256 i = 0; i < rewardLength; ++i) {
-            IERC20 token = IERC20(rewardTokens[i]);
 
-            outAmounts[i] = userReward[user][i].accruedReward;
-            userReward[user][i].accruedReward = 0;
+        outAmounts = new uint256[](rewardTokens.length);
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+            address token = rewardTokens[i];
 
-            globalReward[i].lastBalance -= outAmounts[i];
+            outAmounts[i] = userReward[user][token].accuredReward;
+            userReward[user][token].accuredReward = 0;
+
+            globalReward[token].lastBalance -= outAmounts[i];
 
             if (outAmounts[i] != 0) {
-                token.safeTransfer(user, outAmounts[i]);
+                IERC20(token).safeTransfer(user, outAmounts[i]);
             }
         }
     }
@@ -58,38 +50,62 @@ abstract contract RewardManager {
         uint256 balanceOfUser,
         uint256 totalSupply
     ) internal virtual {
-        _updateGlobalReward(totalSupply);
-        _updateUserRewardSkipGlobal(user, balanceOfUser);
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, totalSupply);
+        _updateUserRewardSkipGlobal(rewardTokens, user, balanceOfUser);
     }
 
-    function _updateGlobalReward(uint256 totalSupply) internal virtual {
+    function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
+        internal
+        virtual
+    {
         _redeemExternalReward();
 
-        address[] memory rewardTokens = getRewardTokens();
-        for (uint256 i = 0; i < rewardLength; ++i) {
-            IERC20 token = IERC20(rewardTokens[i]);
+        _initGlobalReward(rewardTokens);
 
-            uint256 currentRewardBalance = token.balanceOf(address(this));
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+            address token = rewardTokens[i];
+
+            uint256 currentRewardBalance = IERC20(token).balanceOf(address(this));
 
             if (totalSupply != 0) {
-                globalReward[i].index += (currentRewardBalance - globalReward[i].lastBalance)
-                    .divDown(totalSupply);
+                globalReward[token].index += (currentRewardBalance -
+                    globalReward[token].lastBalance).divDown(totalSupply);
             }
 
-            globalReward[i].lastBalance = currentRewardBalance;
+            globalReward[token].lastBalance = currentRewardBalance;
         }
     }
 
-    function _updateUserRewardSkipGlobal(address user, uint256 balanceOfUser) internal virtual {
-        for (uint256 i = 0; i < rewardLength; ++i) {
-            uint256 userLastIndex = userReward[user][i].lastIndex;
-            if (userLastIndex == globalReward[i].index) continue;
+    function _updateUserRewardSkipGlobal(
+        address[] memory rewardTokens,
+        address user,
+        uint256 balanceOfUser
+    ) internal virtual {
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+            address token = rewardTokens[i];
 
-            uint256 rewardAmountPerUnit = globalReward[i].index - userLastIndex;
+            uint256 userLastIndex = userReward[user][token].lastIndex;
+            if (userLastIndex == 0) {
+                // first time receiving this reward
+                userReward[user][token].lastIndex = globalReward[token].index;
+                continue;
+            }
+            if (userLastIndex == globalReward[token].index) continue;
+
+            uint256 rewardAmountPerUnit = globalReward[token].index - userLastIndex;
             uint256 rewardFromUnit = balanceOfUser.mulDown(rewardAmountPerUnit);
 
-            userReward[user][i].accruedReward += rewardFromUnit;
-            userReward[user][i].lastIndex = globalReward[i].index;
+            userReward[user][token].accuredReward += rewardFromUnit;
+            userReward[user][token].lastIndex = globalReward[token].index;
+        }
+    }
+
+    function _initGlobalReward(address[] memory rewardTokens) internal virtual {
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+            if (globalReward[rewardTokens[i]].index == 0) {
+                globalReward[rewardTokens[i]].index = INITIAL_REWARD_INDEX;
+            }
         }
     }
 
