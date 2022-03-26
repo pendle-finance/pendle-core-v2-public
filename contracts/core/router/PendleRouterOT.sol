@@ -7,14 +7,13 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../base/PendleRouterMarketBase.sol";
 
-contract PendleRouterCore is
+contract PendleRouterOT is
     PendleRouterMarketBase,
     IPMarketAddRemoveCallback,
     IPMarketSwapCallback
 {
     using FixedPoint for uint256;
     using FixedPoint for int256;
-    using MarketMathLib for MarketParameters;
 
     constructor(address _marketFactory) PendleRouterMarketBase(_marketFactory) {}
 

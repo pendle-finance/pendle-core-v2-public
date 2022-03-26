@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./PendleRouterForge.sol";
-import "./PendleRouterCore.sol";
+import "./PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
