@@ -39,11 +39,7 @@ contract PendleRouterForge is PendleJoeSwapHelper {
         address[] calldata path
     ) internal returns (uint256 amountLYTOut) {
         address baseToken = path[path.length - 1];
-        amountLYTOut = ILiquidYieldToken(LYT).depositBaseToken(
-            recipient,
-            baseToken,
-            minAmountLYTOut
-        );
+        amountLYTOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minAmountLYTOut);
     }
 
     function swapExactLYTToRawToken(
@@ -65,13 +61,13 @@ contract PendleRouterForge is PendleJoeSwapHelper {
     ) internal returns (uint256 amountRawTokenOut) {
         address baseToken = path[0];
         if (path.length == 1) {
-            amountRawTokenOut = ILiquidYieldToken(LYT).redeemToBaseToken(
+            amountRawTokenOut = ILiquidYieldToken(LYT).redeem(
                 recipient,
                 baseToken,
                 minAmountRawTokenOut
             );
         } else {
-            amountRawTokenOut = ILiquidYieldToken(LYT).redeemToBaseToken(
+            amountRawTokenOut = ILiquidYieldToken(LYT).redeem(
                 _getFirstPair(path),
                 baseToken,
                 minAmountRawTokenOut

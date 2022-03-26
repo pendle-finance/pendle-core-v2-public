@@ -35,7 +35,7 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function depositBaseToken(
+    function mint(
         address recipient,
         address baseTokenIn,
         uint256 minAmountLytOut
@@ -51,7 +51,7 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
         _mint(recipient, amountLytOut);
     }
 
-    function redeemToBaseToken(
+    function redeem(
         address recipient,
         address baseTokenOut,
         uint256 minAmountBaseOut
