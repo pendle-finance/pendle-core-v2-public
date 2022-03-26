@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "../ILiquidYieldTokenWrap.sol";
+import "../ILiquidYieldToken.sol";
 import "./RewardManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
@@ -11,31 +11,24 @@ import "../../libraries/math/FixedPoint.sol";
 - the token's balance must be static (i.e not increase on its own). Some examples of tokens don't
 satisfy this restriction is AaveV2's aToken
 
-# OVERVIEW OF THIS PRESET
-- 1 unit of YieldToken is wrapped into 1 unit of LYT
 */
-abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
+abstract contract LYTBase is ERC20, ILiquidYieldToken {
     using SafeERC20 for IERC20;
     using FixedPoint for uint256;
 
     uint8 private immutable _lytdecimals;
     uint8 private immutable _assetDecimals;
 
-    address public immutable yieldToken;
+    mapping(address => uint256) internal lastBalanceOf;
 
     constructor(
         string memory _name,
         string memory _symbol,
         uint8 __lytdecimals,
-        uint8 __assetDecimals,
-        address _yieldToken
+        uint8 __assetDecimals
     ) ERC20(_name, _symbol) {
         _lytdecimals = __lytdecimals;
         _assetDecimals = __assetDecimals;
-
-        yieldToken = _yieldToken;
-
-        // Children's constructor needs to approve the address that mints the yieldToken
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -49,9 +42,9 @@ abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
     ) public virtual override returns (uint256 amountLytOut) {
         require(isValidBaseToken(baseTokenIn), "invalid base token");
 
-        uint256 amountBaseIn = IERC20(baseTokenIn).balanceOf(address(this));
+        uint256 amountBaseIn = _afterReceiveToken(baseTokenIn);
 
-        amountLytOut = _baseToYield(baseTokenIn, amountBaseIn);
+        amountLytOut = _deposit(baseTokenIn, amountBaseIn);
 
         require(amountLytOut >= minAmountLytOut, "insufficient out");
 
@@ -69,54 +62,23 @@ abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
 
         _burn(address(this), amountLytRedeem);
 
-        amountBaseOut = _yieldToBase(baseTokenOut, amountLytRedeem);
+        amountBaseOut = _redeem(baseTokenOut, amountLytRedeem);
 
         require(amountBaseOut >= minAmountBaseOut, "insufficient out");
 
         IERC20(baseTokenOut).safeTransfer(recipient, amountBaseOut);
+        _afterSendToken(baseTokenOut);
     }
 
-    function _baseToYield(address token, uint256 amountBase)
+    function _deposit(address token, uint256 amountBase)
         internal
         virtual
-        returns (uint256 amountYieldOut);
+        returns (uint256 amountLytOut);
 
-    function _yieldToBase(address token, uint256 amountYield)
+    function _redeem(address token, uint256 amountLyt)
         internal
         virtual
         returns (uint256 amountBaseOut);
-
-    /*///////////////////////////////////////////////////////////////
-                DEPOSIT/REDEEM USING THE YIELD TOKEN
-    //////////////////////////////////////////////////////////////*/
-
-    function depositYieldToken(
-        address recipient,
-        uint256 amountYieldIn,
-        uint256 minAmountLytOut
-    ) public virtual override returns (uint256 amountLytOut) {
-        IERC20(yieldToken).safeTransferFrom(msg.sender, address(this), amountYieldIn);
-
-        amountLytOut = amountYieldIn;
-
-        require(amountLytOut >= minAmountLytOut, "insufficient out");
-
-        _mint(recipient, amountLytOut);
-    }
-
-    function redeemToYieldToken(
-        address recipient,
-        uint256 amountLytRedeem,
-        uint256 minAmountYieldOut
-    ) public virtual override returns (uint256 amountYieldOut) {
-        _burn(msg.sender, amountLytRedeem);
-
-        amountYieldOut = amountLytRedeem;
-
-        require(amountYieldOut >= minAmountYieldOut, "insufficient out");
-
-        IERC20(yieldToken).safeTransfer(recipient, amountYieldOut);
-    }
 
     /*///////////////////////////////////////////////////////////////
                                LYT-INDEX
@@ -145,6 +107,18 @@ abstract contract LYTWrap is ERC20, ILiquidYieldTokenWrap {
     function getBaseTokens() public view virtual override returns (address[] memory res);
 
     function isValidBaseToken(address token) public view virtual override returns (bool);
+
+    /// @dev token should not be address(this)
+    function _afterReceiveToken(address token) internal virtual returns (uint256 res) {
+        uint256 curBalance = IERC20(token).balanceOf(address(this));
+        res = curBalance - lastBalanceOf[token];
+        lastBalanceOf[token] = curBalance;
+    }
+
+    /// @dev token should not be address(this)
+    function _afterSendToken(address token) internal virtual {
+        lastBalanceOf[token] = IERC20(token).balanceOf(address(this));
+    }
 
     /*///////////////////////////////////////////////////////////////
                             TRANSFER HOOKS

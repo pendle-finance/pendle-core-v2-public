@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTWrap.sol";
+import "../../LiquidYieldToken/implementations/LYTBase.sol";
 import "../../interfaces/IYearnVault.sol";
 
-contract PendleYearnVaultLYT is LYTWrap {
+contract PendleYearnVaultLYT is LYTBase {
     using SafeERC20 for IERC20;
 
     address internal immutable underlying;
+    address internal immutable yvToken;
 
     uint256 internal lastLytIndex;
 
@@ -17,32 +18,47 @@ contract PendleYearnVaultLYT is LYTWrap {
         uint8 __lytdecimals,
         uint8 __assetDecimals,
         address _underlying,
-        address _yieldToken
-    ) LYTWrap(_name, _symbol, __lytdecimals, __assetDecimals, _yieldToken) {
+        address _yvToken
+    ) LYTBase(_name, _symbol, __lytdecimals, __assetDecimals) {
+        yvToken = _yvToken;
         underlying = _underlying;
-        IERC20(underlying).safeIncreaseAllowance(yieldToken, type(uint256).max);
+        IERC20(underlying).safeIncreaseAllowance(yvToken, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _baseToYield(address, uint256 amountBase)
+    function _deposit(address token, uint256 amountBase)
         internal
         virtual
         override
-        returns (uint256 amountYieldOut)
+        returns (uint256 amountLytOut)
     {
-        amountYieldOut = IYearnVault(yieldToken).deposit(amountBase);
+        if (token == yvToken) {
+            amountLytOut = amountBase;
+        } else {
+            // must be underlying
+            IYearnVault(yvToken).deposit(amountBase);
+            _afterSendToken(underlying);
+            amountLytOut = _afterReceiveToken(yvToken);
+        }
     }
 
-    function _yieldToBase(address, uint256 amountYield)
+    function _redeem(address token, uint256 amountLyt)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
-        amountBaseOut = IYearnVault(yieldToken).withdraw(amountYield);
+        if (token == yvToken) {
+            amountBaseOut = amountLyt;
+        } else {
+            // must be underlying
+            IYearnVault(yvToken).withdraw(amountLyt);
+            _afterSendToken(yvToken);
+            amountBaseOut = _afterReceiveToken(underlying);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -50,7 +66,7 @@ contract PendleYearnVaultLYT is LYTWrap {
     //////////////////////////////////////////////////////////////*/
 
     function lytIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastLytIndex, IYearnVault(yieldToken).pricePerShare());
+        res = FixedPoint.max(lastLytIndex, IYearnVault(yvToken).pricePerShare());
         lastLytIndex = res;
         return res;
     }
@@ -65,12 +81,12 @@ contract PendleYearnVaultLYT is LYTWrap {
 
     function getBaseTokens() public view virtual override returns (address[] memory res) {
         res = new address[](1);
-        res[0] = underlying;    
+        res[0] = underlying;
     }
 
     function isValidBaseToken(address token) public view virtual override returns (bool res) {
         res = (token == underlying);
-    }    
+    }
 
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED

@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTWrapWithRewards.sol";
+import "../../LiquidYieldToken/implementations/LYTBaseWithRewards.sol";
 import "../../interfaces/IQiErc20.sol";
 import "../../interfaces/IBenQiComptroller.sol";
 import "../../interfaces/IWETH.sol";
 
-contract PendleBenQiErc20LYT is LYTWrapWithRewards {
+contract PendleBenQiErc20LYT is LYTBaseWithRewards {
     using SafeERC20 for IERC20;
 
     address internal immutable underlying;
-    address internal immutable qi;
-    address internal immutable wavax;
+    address internal immutable QI;
+    address internal immutable WAVAX;
     address internal immutable comptroller;
+    address internal immutable qiToken;
 
     uint256 internal lastLytIndex;
 
@@ -22,16 +23,17 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
         uint8 __lytdecimals,
         uint8 __assetDecimals,
         address _underlying,
-        address _yieldToken,
+        address _qiToken,
         address _comptroller,
-        address _qi,
-        address _wavax
-    ) LYTWrapWithRewards(_name, _symbol, __lytdecimals, __assetDecimals, _yieldToken, 2) {
+        address _QI,
+        address _WAVAX
+    ) LYTBaseWithRewards(_name, _symbol, __lytdecimals, __assetDecimals, 2) {
         underlying = _underlying;
-        qi = _qi;
-        wavax = _wavax;
+        qiToken = _qiToken;
+        QI = _QI;
+        WAVAX = _WAVAX;
         comptroller = _comptroller;
-        IERC20(underlying).safeIncreaseAllowance(yieldToken, type(uint256).max);
+        IERC20(underlying).safeIncreaseAllowance(qiToken, type(uint256).max);
     }
 
     // solhint-disable no-empty-blocks
@@ -40,28 +42,37 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
-    function _baseToYield(address, uint256 amountBase)
+
+    function _deposit(address token, uint256 amountBase)
         internal
         virtual
         override
-        returns (uint256 amountYieldOut)
+        returns (uint256 amountLytOut)
     {
-        uint256 preBalance = IERC20(yieldToken).balanceOf(address(this));
-
-        IQiErc20(yieldToken).mint(amountBase);
-
-        amountYieldOut = IERC20(yieldToken).balanceOf(address(this)) - preBalance;
+        // qiToken -> lyt is 1:1
+        if (token == qiToken) {
+            amountLytOut = amountBase;
+        } else {
+            IQiErc20(qiToken).mint(amountBase);
+            _afterSendToken(underlying);
+            amountLytOut = _afterReceiveToken(qiToken);
+        }
     }
 
-    function _yieldToBase(address, uint256 amountYield)
+    function _redeem(address token, uint256 amountLyt)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
-        IQiErc20(yieldToken).redeem(amountYield);
-
-        amountBaseOut = IERC20(underlying).balanceOf(address(this));
+        if (token == qiToken) {
+            amountBaseOut = amountLyt;
+        } else {
+            // must be underlying
+            IQiErc20(qiToken).redeem(amountLyt);
+            _afterSendToken(qiToken);
+            amountBaseOut = _afterReceiveToken(underlying);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -69,7 +80,7 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function lytIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastLytIndex, IQiToken(yieldToken).exchangeRateCurrent());
+        res = FixedPoint.max(lastLytIndex, IQiToken(qiToken).exchangeRateCurrent());
         lastLytIndex = res;
         return res;
     }
@@ -80,8 +91,8 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
 
     function getRewardTokens() public view override returns (address[] memory res) {
         res = new address[](rewardLength);
-        res[0] = qi;
-        res[1] = wavax;
+        res[0] = QI;
+        res[1] = WAVAX;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -89,12 +100,13 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function getBaseTokens() public view virtual override returns (address[] memory res) {
-        res = new address[](1);
-        res[0] = underlying;
+        res = new address[](2);
+        res[0] = qiToken;
+        res[1] = underlying;
     }
 
     function isValidBaseToken(address token) public view virtual override returns (bool res) {
-        res = (token == underlying);
+        res = (token == underlying || token == qiToken);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -105,11 +117,11 @@ contract PendleBenQiErc20LYT is LYTWrapWithRewards {
         address[] memory holders = new address[](1);
         address[] memory qiTokens = new address[](1);
         holders[0] = address(this);
-        qiTokens[0] = yieldToken;
+        qiTokens[0] = qiToken;
 
         IBenQiComptroller(comptroller).claimReward(0, holders, qiTokens, false, true);
         IBenQiComptroller(comptroller).claimReward(1, holders, qiTokens, false, true);
 
-        if (address(this).balance != 0) IWETH(wavax).deposit{ value: address(this).balance };
+        if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance };
     }
 }

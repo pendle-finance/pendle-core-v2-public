@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTWrap.sol";
+import "../../LiquidYieldToken/implementations/LYTBase.sol";
 import "../../interfaces/IWXBTRFLY.sol";
 import "../../interfaces/IREDACTEDStaking.sol";
 
-contract PendleBtrflyLYT is LYTWrap {
+contract PendleBtrflyLYT is LYTBase {
     using SafeERC20 for IERC20;
 
     address internal immutable BTRFLY;
@@ -22,7 +22,7 @@ contract PendleBtrflyLYT is LYTWrap {
         address _BTRFLY,
         address _xBTRFLY,
         address _wxBTRFLY
-    ) LYTWrap(_name, _symbol, __lytdecimals, __assetDecimals, _wxBTRFLY) {
+    ) LYTBase(_name, _symbol, __lytdecimals, __assetDecimals) {
         BTRFLY = _BTRFLY;
         xBTRFLY = _xBTRFLY;
         wxBTRFLY = _wxBTRFLY;
@@ -33,29 +33,35 @@ contract PendleBtrflyLYT is LYTWrap {
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
-    function _baseToYield(address token, uint256 amountBase)
+    function _deposit(address token, uint256 amountBase)
         internal
         virtual
         override
-        returns (uint256 amountYieldOut)
+        returns (uint256 amountLytOut)
     {
         if (token == BTRFLY) {
-            amountYieldOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
+            amountLytOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
+        } else if (token == xBTRFLY) {
+            amountLytOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
         } else {
-            amountYieldOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
+            // 1 wxBTRFLY = 1 LYT
+            amountLytOut = amountBase;
         }
     }
 
-    function _yieldToBase(address token, uint256 amountYield)
+    function _redeem(address token, uint256 amountLyt)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == BTRFLY) {
-            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToBTRFLY(amountYield);
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToBTRFLY(amountLyt);
+        } else if (token == xBTRFLY) {
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountLyt);
         } else {
-            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountYield);
+            // 1 wxBTRFLY = 1 LYT
+            amountBaseOut = amountLyt;
         }
     }
 

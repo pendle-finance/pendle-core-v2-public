@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "../ILiquidYieldTokenWrap.sol";
+import "../ILiquidYieldToken.sol";
 import "./RewardManager.sol";
-import "./LYTWrap.sol";
+import "./LYTBase.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/FixedPoint.sol";
@@ -12,10 +12,8 @@ import "../../libraries/math/FixedPoint.sol";
 - the token's balance must be static (i.e not increase on its own). Some examples of tokens don't
 satisfy this restriction is AaveV2's aToken
 
-# OVERVIEW OF THIS PRESET
-- 1 unit of YieldToken is wrapped into 1 unit of LYT
 */
-abstract contract LYTWrapWithRewards is LYTWrap, RewardManager {
+abstract contract LYTBaseWithRewards is LYTBase, RewardManager {
     using SafeERC20 for IERC20;
     using FixedPoint for uint256;
 
@@ -24,10 +22,9 @@ abstract contract LYTWrapWithRewards is LYTWrap, RewardManager {
         string memory _symbol,
         uint8 __lytdecimals,
         uint8 __assetDecimals,
-        address _yieldToken,
         uint256 _rewardLength
     )
-        LYTWrap(_name, _symbol, __lytdecimals, __assetDecimals, _yieldToken)
+        LYTBase(_name, _symbol, __lytdecimals, __assetDecimals)
         RewardManager(_rewardLength)
     // solhint-disable-next-line no-empty-blocks
     {
