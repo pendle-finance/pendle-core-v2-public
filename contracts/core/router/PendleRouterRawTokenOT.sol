@@ -19,38 +19,45 @@ contract PendleRouterRawTokenOT is
         address _joeRouter,
         address _joeFactory,
         address _marketFactory
-    ) PendleRouterLytAndForge(_joeRouter, _joeFactory) PendleRouterMarketBase(_marketFactory) {}
+    )
+        PendleRouterLytAndForge(_joeRouter, _joeFactory)
+        PendleRouterMarketBase(_marketFactory)
+    //solhint-disable-next-line no-empty-blocks
+    {
 
-    function swapExactRawTokenForOT(
-        uint256 amountRawTokenIn,
+    }
+
+    function swapExactRawTokenForOt(
+        uint256 exactRawTokenIn,
         address recipient,
         address[] calldata path,
         address market,
-        uint256 minAmountOTOut,
-        uint256 amountOTOutGuess,
+        uint256 minOtOut,
+        uint256 guessOtOut,
         uint256 guessRange
-    ) external returns (uint256 amountOTOut) {
+    ) external returns (uint256 netOtOut) {
         IPMarket _market = IPMarket(market);
         address LYT = _market.LYT();
 
-        uint256 amountLYTUsedToBuyOT = mintLytFromRawToken(amountRawTokenIn, LYT, 1, market, path);
+        uint256 netLytUsedToBuyOT = mintLytFromRawToken(exactRawTokenIn, LYT, 1, market, path);
 
         MarketParameters memory marketState = _market.readState();
-        amountOTOut = marketState
+        netOtOut = marketState
             .getOtGivenLytAmount(
-                amountLYTUsedToBuyOT.toInt().neg(),
+                netLytUsedToBuyOT.toInt().neg(),
                 _market.timeToExpiry(),
-                amountOTOutGuess.toInt(),
+                guessOtOut.toInt(),
                 guessRange
             )
             .toUint();
 
-        require(amountOTOut >= minAmountOTOut, "insufficient ot");
-        _market.swap(recipient, amountOTOut.toInt(), abi.encode());
+        require(netOtOut >= minOtOut, "insufficient ot");
+
+        _market.swap(recipient, netOtOut.toInt(), abi.encode());
     }
 
-    function swapExactOTForRawToken(
-        uint256 amountOTIn,
+    function swapExactOtForRawToken(
+        uint256 exactOtIn,
         address recipient,
         address[] calldata path,
         address market,
@@ -60,16 +67,16 @@ contract PendleRouterRawTokenOT is
         address OT = _market.OT();
         address LYT = _market.LYT();
 
-        IERC20(OT).transferFrom(msg.sender, market, amountOTIn);
+        IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
 
-        _market.swap(LYT, amountOTIn.toInt().neg(), abi.encode());
+        _market.swap(LYT, exactOtIn.toInt().neg(), abi.encode());
         netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
     function swapCallback(
         int256,
         int256,
-        bytes calldata
+        bytes calldata //solhint-disable-next-line no-empty-blocks
     ) external {
         // empty body since all tokens has been transferred manually to correct addresses
     }

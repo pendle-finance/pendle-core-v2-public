@@ -10,7 +10,7 @@ import "./PendleMarket.sol";
 contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    mapping(address => EnumerableSet.AddressSet) internal OTmarkets;
+    mapping(address => EnumerableSet.AddressSet) internal otMarkets;
     address public immutable yieldContractFactory;
     address public treasury;
 
@@ -38,7 +38,7 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
         market = address(
             new PendleMarket(OT, feeRateRoot, scalarRoot, anchorRoot, reserveFeePercent)
         );
-        OTmarkets[address(OT)].add(market);
+        otMarkets[address(OT)].add(market);
     }
 
     function setTreasury(address newTreasury) external onlyGovernance {
@@ -47,8 +47,8 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
 
     function isValidMarket(address market) external view returns (bool) {
         address OT = IPMarket(market).OT();
-        return OTmarkets[OT].contains(market);
+        return otMarkets[OT].contains(market);
     }
 
-    // probably should have functions to allow reading from OTmarkets
+    // probably should have functions to allow reading from otMarkets
 }

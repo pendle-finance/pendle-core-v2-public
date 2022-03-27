@@ -22,7 +22,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         uint256 minLytOut,
         address recipient,
         address[] calldata path
-    ) public returns (uint256 netLYTOut) {
+    ) public returns (uint256 netLytOut) {
         if (path.length == 1) {
             IERC20(path[0]).transferFrom(msg.sender, LYT, netRawTokenIn);
         } else {
@@ -30,7 +30,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
             _swapExactIn(path, netRawTokenIn, LYT);
         }
 
-        netLYTOut = _mintLytFromRawToken(LYT, minLytOut, recipient, path);
+        netLytOut = _mintLytFromRawToken(LYT, minLytOut, recipient, path);
     }
 
     function redeemLytToRawToken(
@@ -41,6 +41,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address[] calldata path
     ) public returns (uint256 netRawTokenOut) {
         IERC20(LYT).safeTransferFrom(msg.sender, LYT, netLytIn);
+
         netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
@@ -52,7 +53,9 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address[] calldata path
     ) public returns (uint256 netYoOut) {
         address LYT = IPYieldToken(YT).LYT();
+
         mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path);
+
         netYoOut = IPYieldToken(YT).mintYO(recipient);
 
         require(netYoOut >= minYoOut, "insufficient YO out");
@@ -83,9 +86,9 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         uint256 minLytOut,
         address recipient,
         address[] calldata path
-    ) internal returns (uint256 netLYTOut) {
+    ) internal returns (uint256 netLytOut) {
         address baseToken = path[path.length - 1];
-        netLYTOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
+        netLytOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
     }
 
     function _redeemLytToRawToken(

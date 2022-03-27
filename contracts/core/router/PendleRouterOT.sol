@@ -15,7 +15,12 @@ contract PendleRouterOT is
     using FixedPoint for uint256;
     using FixedPoint for int256;
 
-    constructor(address _marketFactory) PendleRouterMarketBase(_marketFactory) {}
+    constructor(address _marketFactory)
+        PendleRouterMarketBase(_marketFactory)
+    //solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     function addLiquidity(
         address recipient,
@@ -50,13 +55,13 @@ contract PendleRouterOT is
         );
     }
 
-    function swapExactOTForLYT(
+    function swapExactOtForLyt(
         address recipient,
         address market,
-        uint256 netOtIn,
+        uint256 exactOtIn,
         uint256 minLytOut
     ) public returns (uint256 netLytOut) {
-        int256 otToAccount = netOtIn.toInt().neg();
+        int256 otToAccount = exactOtIn.toInt().neg();
         int256 lytToAccount = IPMarket(market).swap(
             recipient,
             otToAccount,
@@ -66,13 +71,13 @@ contract PendleRouterOT is
         require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
     }
 
-    function swapLYTForExactOT(
+    function swapLytForExactOt(
         address recipient,
         address market,
-        uint256 netOtOut,
+        uint256 exactOtOut,
         uint256 maxLytIn
     ) public returns (uint256 netLytIn) {
-        int256 otToAccount = netOtOut.toInt();
+        int256 otToAccount = exactOtOut.toInt();
         int256 lytToAccount = IPMarket(market).swap(
             recipient,
             otToAccount,
@@ -84,14 +89,14 @@ contract PendleRouterOT is
 
     function addLiquidityCallback(
         uint256,
-        uint256 lytNeed,
-        uint256 otNeed,
+        uint256 lytOwed,
+        uint256 otOwed,
         bytes calldata data
     ) external onlyPendleMarket(msg.sender) {
         IPMarket market = IPMarket(msg.sender);
         address payer = abi.decode(data, (address));
-        IERC20(market.OT()).transferFrom(payer, msg.sender, otNeed);
-        IERC20(market.LYT()).transferFrom(payer, msg.sender, lytNeed);
+        IERC20(market.OT()).transferFrom(payer, msg.sender, otOwed);
+        IERC20(market.LYT()).transferFrom(payer, msg.sender, lytOwed);
     }
 
     function removeLiquidityCallback(
@@ -100,9 +105,9 @@ contract PendleRouterOT is
         uint256,
         bytes calldata data
     ) external onlyPendleMarket(msg.sender) {
-        IPMarket _market = IPMarket(msg.sender);
+        IPMarket market = IPMarket(msg.sender);
         address payer = abi.decode(data, (address));
-        _market.transferFrom(payer, msg.sender, lpToRemove);
+        market.transferFrom(payer, msg.sender, lpToRemove);
     }
 
     function swapCallback(

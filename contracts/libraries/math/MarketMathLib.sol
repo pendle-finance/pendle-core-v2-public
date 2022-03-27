@@ -72,8 +72,8 @@ library MarketMathLib {
         returns (
             uint256 lpToReserve,
             uint256 lpToUser,
-            uint256 lytNeed,
-            uint256 otNeed
+            uint256 lytUsed,
+            uint256 otUsed
         )
     {
         require(lytDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
@@ -81,19 +81,19 @@ library MarketMathLib {
         if (market.totalLp == 0) {
             lpToUser = lytDesired.mulDown(market.lytRate) - MINIMUM_LIQUIDITY;
             lpToReserve = MINIMUM_LIQUIDITY;
-            lytNeed = lytDesired;
-            otNeed = otDesired;
+            lytUsed = lytDesired;
+            otUsed = otDesired;
         } else {
             lpToUser = FixedPoint.min(
                 (otDesired * market.totalLp) / market.totalOt,
                 (lytDesired * market.totalLp) / market.totalLyt
             );
-            lytNeed = (lytDesired * lpToUser) / market.totalLp;
-            otNeed = (otDesired * lpToUser) / market.totalLp;
+            lytUsed = (lytDesired * lpToUser) / market.totalLp;
+            otUsed = (otDesired * lpToUser) / market.totalLp;
         }
 
-        market.totalLyt += lytNeed;
-        market.totalOt += otNeed;
+        market.totalLyt += lytUsed;
+        market.totalOt += otUsed;
         market.totalLp += lpToUser + lpToReserve;
 
         require(lpToUser > 0, "INSUFFICIENT_LIQUIDITY_MINTED");

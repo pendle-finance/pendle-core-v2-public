@@ -69,14 +69,14 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         nonReentrant
         returns (
             uint256 lpToAccount,
-            uint256 lytNeed,
-            uint256 otNeed
+            uint256 lytUsed,
+            uint256 otUsed
         )
     {
         MarketParameters memory market = readState();
 
         uint256 lpToReserve;
-        (lpToReserve, lpToAccount, lytNeed, otNeed) = market.addLiquidity(lytDesired, otDesired);
+        (lpToReserve, lpToAccount, lytUsed, otUsed) = market.addLiquidity(lytDesired, otDesired);
 
         // initializing the market
         if (lpToReserve != 0) {
@@ -88,8 +88,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
             lpToAccount,
-            lytNeed,
-            otNeed,
+            lytUsed,
+            otUsed,
             data
         );
 
