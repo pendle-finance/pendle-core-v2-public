@@ -67,9 +67,9 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         // make sure payer, recipient same as when encode
         (address payer, address recipient) = abi.decode(data, (address, address));
         if (lytToAccount > 0) {
-            _swapExactYtForLyt_callback(msg.sender, lytToAccount, recipient);
-        } else {
             _swapLytForExactYt_callback(msg.sender, otToAccount, lytToAccount, payer, recipient);
+        } else {
+            _swapExactYtForLyt_callback(msg.sender, lytToAccount, recipient);
         }
     }
 
