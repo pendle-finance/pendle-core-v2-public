@@ -63,7 +63,7 @@ contract PendleRouterRawTokenOT is
         IERC20(OT).transferFrom(msg.sender, market, amountOTIn);
 
         _market.swap(LYT, amountOTIn.toInt().neg(), abi.encode());
-        netRawTokenOut = _redeemLYTToRawToken(LYT, minRawTokenOut, recipient, path);
+        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
     function swapCallback(

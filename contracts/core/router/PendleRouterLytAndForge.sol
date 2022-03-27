@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../misc/PendleJoeSwapHelper.sol";
 import "../../LiquidYieldToken/ILiquidYieldToken.sol";
+import "../../interfaces/IPYieldToken.sol";
 
 contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     using SafeERC20 for IERC20;
@@ -32,7 +33,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         netLYTOut = _mintLytFromRawToken(LYT, minLytOut, recipient, path);
     }
 
-    function redeemLYTToRawToken(
+    function redeemLytToRawToken(
         address LYT,
         uint256 netLytIn,
         uint256 minRawTokenOut,
@@ -40,7 +41,41 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address[] calldata path
     ) public returns (uint256 netRawTokenOut) {
         IERC20(LYT).safeTransferFrom(msg.sender, LYT, netLytIn);
-        netRawTokenOut = _redeemLYTToRawToken(LYT, minRawTokenOut, recipient, path);
+        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
+    }
+
+    function mintYoFromRawToken(
+        uint256 netRawTokenIn,
+        address YT,
+        uint256 minYoOut,
+        address recipient,
+        address[] calldata path
+    ) public returns (uint256 netYoOut) {
+        address LYT = IPYieldToken(YT).LYT();
+        mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path);
+        netYoOut = IPYieldToken(YT).mintYO(recipient);
+
+        require(netYoOut >= minYoOut, "insufficient YO out");
+    }
+
+    function redeemYoToRawToken(
+        address YT,
+        uint256 netYoIn,
+        uint256 minRawTokenOut,
+        address recipient,
+        address[] calldata path
+    ) public returns (uint256 netRawTokenOut) {
+        address OT = IPYieldToken(YT).OT();
+        address LYT = IPYieldToken(YT).LYT();
+
+        bool isNeedToBurnYt = (IPBaseToken(YT).isExpired() == false);
+
+        IERC20(OT).safeTransferFrom(msg.sender, YT, netYoIn);
+        if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netYoIn);
+
+        IPYieldToken(YT).redeemYO(LYT);
+
+        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
     function _mintLytFromRawToken(
@@ -53,7 +88,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         netLYTOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
     }
 
-    function _redeemLYTToRawToken(
+    function _redeemLytToRawToken(
         address LYT,
         uint256 minRawTokenOut,
         address recipient,
