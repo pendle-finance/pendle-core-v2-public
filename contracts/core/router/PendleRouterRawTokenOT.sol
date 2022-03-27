@@ -43,10 +43,10 @@ contract PendleRouterRawTokenOT is
 
         MarketParameters memory marketState = _market.readState();
         netOtOut = marketState
-            .getOtGivenLytAmount(
-                netLytUsedToBuyOT.toInt().neg(),
+            .getSwapExactLytForOt(
+                netLytUsedToBuyOT,
                 _market.timeToExpiry(),
-                guessOtOut.toInt(),
+                guessOtOut,
                 guessRange
             )
             .toUint();

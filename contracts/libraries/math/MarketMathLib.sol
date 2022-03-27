@@ -386,47 +386,53 @@ library MarketMathLib {
         extRate = LogExpMath.exp(rt.toInt()).toUint();
     }
 
-    function getOtGivenLytAmount(
+    function getSwapExactLytForOt(
         MarketParameters memory marketImmutable,
-        int256 netLytToAccount,
+        uint256 exactLytIn,
         uint256 timeToExpiry,
-        int256 netOtToAccountGuess,
+        uint256 netOtOutGuess,
         uint256 guessRange
     ) internal pure returns (int256 netOtToAccount) {
-        require((netLytToAccount > 0) != (netOtToAccountGuess > 0), "invalid guess");
-
-        bool swapLytForOt = (netLytToAccount < 0);
-
-        int256 maxDelta = netOtToAccount.abs().mulDown(guessRange);
-        int256 low = netOtToAccountGuess - maxDelta;
-        int256 high = netOtToAccountGuess + maxDelta;
+        uint256 maxDelta = netOtOutGuess.mulDown(guessRange);
+        uint256 low = netOtOutGuess.subMax0(maxDelta);
+        uint256 high = netOtOutGuess + maxDelta;
         while (low != high) {
-            int256 currentOtGuess = (low + high + 1) / 2;
+            uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (int256 lytToAccountOutput, ) = calculateTrade(market, currentOtGuess, timeToExpiry);
-            if (swapLytForOt) {
-                /*
-                * lytToAccount < 0 => lytToAccount increases means less lyt is used
-                * we simple checks if the amount of lyt being used to buy OT is less than the amount
-                of lyt allowed. If yes, we can buy at least the current amount of ot.
-                Else, need to reduce.
-                */
-                bool isResultAcceptable = (lytToAccountOutput >= netLytToAccount);
-                if (isResultAcceptable) low = currentOtGuess;
-                else high = currentOtGuess - 1;
-            } else {
-                /*
-                * lytToAccount > 0 => lytToAccount increases means more lyt is used
-                * currentOtGuess < 0 => currentOtGuess increases means less ot is sold
-                * we simple checks if the amount of lyt receiving is at least the amount of lyt desired.
-                If yes, we can sell at most the current amount of ot. Else, sell more
-                */
-                bool isResultAcceptable = (lytToAccountOutput >= netLytToAccount);
-                if (isResultAcceptable) low = currentOtGuess;
-                else high = currentOtGuess - 1;
-            }
+            (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.toInt(), timeToExpiry);
+            bool isResultAcceptable = (lytOwed.neg().toUint() <= exactLytIn);
+            if (isResultAcceptable) low = currentOtOutGuess;
+            else high = currentOtOutGuess - 1;
         }
+        netOtToAccount = low.toInt();
+    }
+
+    function getSwapExactLytForYt(
+        MarketParameters memory marketImmutable,
+        uint256 exactLytIn,
+        uint256 timeToExpiry,
+        uint256 netYtOutGuess,
+        uint256 guessRange
+    ) internal pure returns (int256 netYtToAccount) {
+        uint256 maxDelta = netYtOutGuess.mulDown(guessRange);
+        uint256 low = netYtOutGuess.subMax0(maxDelta);
+        uint256 high = netYtOutGuess + maxDelta;
+        while (low != high) {
+            uint256 currentYtOutGuess = (low + high + 1) / 2;
+            MarketParameters memory market = deepCloneMarket(marketImmutable);
+
+            int256 otToAccount = currentYtOutGuess.toInt().neg();
+            (int256 lytReceived, ) = calculateTrade(market, otToAccount, timeToExpiry);
+
+            uint256 totalLytToMintYo = lytReceived.toUint() + exactLytIn;
+
+            uint256 netYoFromLyt = totalLytToMintYo.mulDown(market.lytRate);
+            if (netYoFromLyt >= currentYtOutGuess) low = currentYtOutGuess;
+            else high = currentYtOutGuess - 1;
+        }
+
+        netYtToAccount = low.toInt();
     }
 
     function deepCloneMarket(MarketParameters memory marketImmutable)
