@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleRouterForge.sol";
+import "./PendleRouterLytAndForge.sol";
 import "./PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
 contract PendleRouterRawTokenOT is
-    PendleRouterForge,
+    PendleRouterLytAndForge,
     PendleRouterMarketBase,
     IPMarketSwapCallback
 {
@@ -19,7 +19,7 @@ contract PendleRouterRawTokenOT is
         address _joeRouter,
         address _joeFactory,
         address _marketFactory
-    ) PendleRouterForge(_joeRouter, _joeFactory) PendleRouterMarketBase(_marketFactory) {}
+    ) PendleRouterLytAndForge(_joeRouter, _joeFactory) PendleRouterMarketBase(_marketFactory) {}
 
     function swapExactRawTokenForOT(
         uint256 amountRawTokenIn,
@@ -33,13 +33,7 @@ contract PendleRouterRawTokenOT is
         IPMarket _market = IPMarket(market);
         address LYT = _market.LYT();
 
-        uint256 amountLYTUsedToBuyOT = swapExactRawTokenForLYT(
-            amountRawTokenIn,
-            LYT,
-            1,
-            market,
-            path
-        );
+        uint256 amountLYTUsedToBuyOT = mintLytFromRawToken(amountRawTokenIn, LYT, 1, market, path);
 
         MarketParameters memory marketState = _market.readState();
         amountOTOut = marketState
@@ -60,8 +54,8 @@ contract PendleRouterRawTokenOT is
         address recipient,
         address[] calldata path,
         address market,
-        uint256 minAmountRawTokenOut
-    ) external returns (uint256 amountRawTokenOut) {
+        uint256 minRawTokenOut
+    ) external returns (uint256 netRawTokenOut) {
         IPMarket _market = IPMarket(market);
         address OT = _market.OT();
         address LYT = _market.LYT();
@@ -69,7 +63,7 @@ contract PendleRouterRawTokenOT is
         IERC20(OT).transferFrom(msg.sender, market, amountOTIn);
 
         _market.swap(LYT, amountOTIn.toInt().neg(), abi.encode());
-        amountRawTokenOut = _swapExactLYTToRawToken(LYT, minAmountRawTokenOut, recipient, path);
+        netRawTokenOut = _redeemLYTToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
     function swapCallback(
