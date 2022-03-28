@@ -119,6 +119,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         );
 
         _burn(address(this), lpToRemove);
+
         _writeState(market);
     }
 
@@ -140,7 +141,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         IPMarketSwapCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
 
-        // verify the transfer here shall we?
+        require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
+
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
         _writeState(market);
     }
