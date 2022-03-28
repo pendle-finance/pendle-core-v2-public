@@ -28,6 +28,10 @@ contract PendleRouterRawTokenYT is
 
     }
 
+    /**
+     * @dev netYtOutGuessMin & Max can be used in the same way as RawTokenOT
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
         address recipient,
@@ -39,7 +43,7 @@ contract PendleRouterRawTokenYT is
     ) external returns (uint256 netYtOut) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        MarketParameters memory marketState = IPMarket(market).readState();
+        MarketParameters memory state = IPMarket(market).readState();
 
         uint256 netLytUsedToBuyYT = mintLytFromRawToken(
             exactRawTokenIn,
@@ -49,7 +53,7 @@ contract PendleRouterRawTokenYT is
             path
         );
 
-        netYtOut = marketState
+        netYtOut = state
             .getSwapExactLytForYt(
                 netLytUsedToBuyYT,
                 IPMarket(market).timeToExpiry(),
@@ -64,6 +68,11 @@ contract PendleRouterRawTokenYT is
         IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(recipient));
     }
 
+    /**
+     * @notice swap YT -> LYT -> baseToken -> rawToken
+     * @notice the algorithm to swap will guarantee to swap all the YT available
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
     function swapExactYtForRawToken(
         uint256 exactYtIn,
         address recipient,

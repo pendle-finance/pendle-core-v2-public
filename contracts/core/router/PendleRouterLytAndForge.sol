@@ -16,6 +16,10 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
 
     }
 
+    /**
+     * @notice swap rawToken to baseToken -> baseToken to mint LYT
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
     function mintLytFromRawToken(
         uint256 netRawTokenIn,
         address LYT,
@@ -33,6 +37,12 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         netLytOut = _mintLytFromRawToken(LYT, minLytOut, recipient, path);
     }
 
+    /**
+    * @notice redeem LYT to baseToken -> swap baseToken to rawToken
+    * @dev path[0] will be the baseToken that LYT is redeemed to, and path[path.length-1] is the
+    final rawToken output
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+    */
     function redeemLytToRawToken(
         address LYT,
         uint256 netLytIn,
@@ -45,6 +55,10 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
 
+    /**
+     * @notice swap rawToken to baseToken -> convert to LYT -> convert to OT + YT
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
     function mintYoFromRawToken(
         uint256 netRawTokenIn,
         address YT,
@@ -61,6 +75,10 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         require(netYoOut >= minYoOut, "insufficient YO out");
     }
 
+    /**
+     * @notice redeem OT + YT to LYT -> redeem LYT to baseToken -> swap baseToken to rawToken
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
     function redeemYoToRawToken(
         address YT,
         uint256 netYoIn,

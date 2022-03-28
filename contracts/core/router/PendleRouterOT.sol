@@ -46,13 +46,18 @@ contract PendleRouterOT is
     function removeLiquidity(
         address recipient,
         address market,
-        uint256 lpToRemove
-    ) external returns (uint256 otToAccount, uint256 lytToAccount) {
+        uint256 lpToRemove,
+        uint256 lytToAccountMin,
+        uint256 otToAccountMin
+    ) external returns (uint256 lytToAccount, uint256 otToAccount) {
         (lytToAccount, otToAccount) = IPMarket(market).removeLiquidity(
             recipient,
             lpToRemove,
             abi.encode(msg.sender)
         );
+
+        require(lytToAccount >= lytToAccountMin, "insufficient lyt out");
+        require(otToAccount >= otToAccountMin, "insufficient ot out");
     }
 
     function swapExactOtForLyt(
@@ -71,6 +76,8 @@ contract PendleRouterOT is
         require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
     }
 
+    // swapOtForExactLyt is also possible, but more gas-consuming
+
     function swapLytForExactOt(
         address recipient,
         address market,
@@ -86,6 +93,12 @@ contract PendleRouterOT is
         netLytIn = lytToAccount.neg().toUint();
         require(netLytIn <= maxLytIn, "LYT_IN_LIMIT_EXCEEDED");
     }
+
+    // swapExactLytForOt is also possible, but more gas-consuming
+
+    /*///////////////////////////////////////////////////////////////
+                CALLBACKS, ONLY ACCESSIBLE BY MARKETS
+    //////////////////////////////////////////////////////////////*/
 
     function addLiquidityCallback(
         uint256,
