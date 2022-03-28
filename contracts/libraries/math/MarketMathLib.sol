@@ -395,15 +395,21 @@ library MarketMathLib {
     ) internal pure returns (int256 netOtToAccount) {
         uint256 low = netOtOutGuessMin;
         uint256 high = netOtOutGuessMax;
+        bool isAcceptableAnswerExisted;
+
         while (low != high) {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
             (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.toInt(), timeToExpiry);
             bool isResultAcceptable = (lytOwed.neg().toUint() <= exactLytIn);
-            if (isResultAcceptable) low = currentOtOutGuess;
-            else high = currentOtOutGuess - 1;
+            if (isResultAcceptable) {
+                low = currentOtOutGuess;
+                isAcceptableAnswerExisted = true;
+            } else high = currentOtOutGuess - 1;
         }
+
+        require(isAcceptableAnswerExisted, "guess fail");
         netOtToAccount = low.toInt();
     }
 
@@ -416,6 +422,8 @@ library MarketMathLib {
     ) internal pure returns (int256 netYtToAccount) {
         uint256 low = netYtOutGuessMin;
         uint256 high = netYtOutGuessMax;
+        bool isAcceptableAnswerExisted;
+
         while (low != high) {
             uint256 currentYtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
@@ -426,10 +434,16 @@ library MarketMathLib {
             uint256 totalLytToMintYo = lytReceived.toUint() + exactLytIn;
 
             uint256 netYoFromLyt = totalLytToMintYo.mulDown(market.lytRate);
-            if (netYoFromLyt >= currentYtOutGuess) low = currentYtOutGuess;
-            else high = currentYtOutGuess - 1;
+
+            bool isResultAcceptable = (netYoFromLyt >= currentYtOutGuess);
+
+            if (isResultAcceptable) {
+                low = currentYtOutGuess;
+                isAcceptableAnswerExisted = true;
+            } else high = currentYtOutGuess - 1;
         }
 
+        require(isAcceptableAnswerExisted, "guess fail");
         netYtToAccount = low.toInt();
     }
 
