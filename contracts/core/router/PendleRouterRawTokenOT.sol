@@ -33,8 +33,8 @@ contract PendleRouterRawTokenOT is
         address[] calldata path,
         address market,
         uint256 minOtOut,
-        uint256 guessOtOut,
-        uint256 guessRange
+        uint256 netOtOutGuessMin,
+        uint256 netOtOutGuessMax
     ) external returns (uint256 netOtOut) {
         IPMarket _market = IPMarket(market);
         address LYT = _market.LYT();
@@ -46,8 +46,8 @@ contract PendleRouterRawTokenOT is
             .getSwapExactLytForOt(
                 netLytUsedToBuyOT,
                 _market.timeToExpiry(),
-                guessOtOut,
-                guessRange
+                netOtOutGuessMin,
+                netOtOutGuessMax
             )
             .toUint();
 

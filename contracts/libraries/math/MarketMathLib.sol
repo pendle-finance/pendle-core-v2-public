@@ -390,12 +390,11 @@ library MarketMathLib {
         MarketParameters memory marketImmutable,
         uint256 exactLytIn,
         uint256 timeToExpiry,
-        uint256 netOtOutGuess,
-        uint256 guessRange
+        uint256 netOtOutGuessMin,
+        uint256 netOtOutGuessMax
     ) internal pure returns (int256 netOtToAccount) {
-        uint256 maxDelta = netOtOutGuess.mulDown(guessRange);
-        uint256 low = netOtOutGuess.subMax0(maxDelta);
-        uint256 high = netOtOutGuess + maxDelta;
+        uint256 low = netOtOutGuessMin;
+        uint256 high = netOtOutGuessMax;
         while (low != high) {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
@@ -412,12 +411,11 @@ library MarketMathLib {
         MarketParameters memory marketImmutable,
         uint256 exactLytIn,
         uint256 timeToExpiry,
-        uint256 netYtOutGuess,
-        uint256 guessRange
+        uint256 netYtOutGuessMin,
+        uint256 netYtOutGuessMax
     ) internal pure returns (int256 netYtToAccount) {
-        uint256 maxDelta = netYtOutGuess.mulDown(guessRange);
-        uint256 low = netYtOutGuess.subMax0(maxDelta);
-        uint256 high = netYtOutGuess + maxDelta;
+        uint256 low = netYtOutGuessMin;
+        uint256 high = netYtOutGuessMax;
         while (low != high) {
             uint256 currentYtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);

@@ -34,8 +34,8 @@ contract PendleRouterRawTokenYT is
         address[] calldata path,
         address market,
         uint256 minYtOut,
-        uint256 guessYtOut,
-        uint256 guessRange
+        uint256 netYtOutGuessMin,
+        uint256 netYtOutGuessMax
     ) external returns (uint256 netYtOut) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
@@ -53,8 +53,8 @@ contract PendleRouterRawTokenYT is
             .getSwapExactLytForYt(
                 netLytUsedToBuyYT,
                 IPMarket(market).timeToExpiry(),
-                guessYtOut,
-                guessRange
+                netYtOutGuessMin,
+                netYtOutGuessMax
             )
             .toUint();
 
