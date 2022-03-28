@@ -7,6 +7,7 @@ import "../../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../../interfaces/IPMarket.sol";
 import "./FixedPoint.sol";
 import "./LogExpMath.sol";
+import "../../LiquidYieldToken/implementations/LYTUtils.sol";
 
 struct MarketParameters {
     uint256 expiry;
@@ -52,7 +53,7 @@ library MarketMathLib {
         internal
         pure
     {
-        uint256 totalCashUnderlying = market.totalLyt.mulDown(market.lytRate);
+        uint256 totalCashUnderlying = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
         market.lastImpliedRate = getImpliedRate(
             market.totalOt,
             totalCashUnderlying,
@@ -79,7 +80,7 @@ library MarketMathLib {
         require(lytDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
 
         if (market.totalLp == 0) {
-            lpToUser = lytDesired.mulDown(market.lytRate) - MINIMUM_LIQUIDITY;
+            lpToUser = LYTUtils.lytToAsset(lytDesired, market.lytRate) - MINIMUM_LIQUIDITY;
             lpToReserve = MINIMUM_LIQUIDITY;
             lytUsed = lytDesired;
             otUsed = otDesired;
@@ -194,7 +195,6 @@ library MarketMathLib {
     ///    the exchange rates for the trade
     /// @return anchor an offset from the x axis to maintain interest rate continuity over time
     // TODO: should we call the underlyingUnit to be accounting unit or cash?
-    // TODO: convert all market.totalLyt.mulDown to a function
 
     function getExchangeRateFactors(MarketParameters memory market, uint256 timeToExpiry)
         internal
@@ -308,12 +308,12 @@ library MarketMathLib {
         int256 netCashToMarket,
         uint256 netCashToReserve
     ) private pure returns (int256 netLytToAccount, uint256 netLytToReserve) {
-        int256 netLytToMarket = netCashToMarket.divDown(market.lytRate);
+        int256 netLytToMarket = LYTUtils.assetToLyt(market.lytRate, netCashToMarket);
         // Set storage checks that total asset cash is above zero
         market.totalLyt = (market.totalLyt.toInt() + netLytToMarket).toUint();
 
-        netLytToReserve = netCashToReserve.divDown(market.lytRate);
-        netLytToAccount = netCashToAccount.divDown(market.lytRate);
+        netLytToReserve = LYTUtils.assetToLyt(market.lytRate, netCashToReserve);
+        netLytToAccount = LYTUtils.assetToLyt(market.lytRate, netCashToAccount);
     }
 
     /// @notice Rate anchors update as the market gets closer to expiry. Rate anchors are not comparable
@@ -433,7 +433,7 @@ library MarketMathLib {
 
             uint256 totalLytToMintYo = lytReceived.toUint() + exactLytIn;
 
-            uint256 netYoFromLyt = totalLytToMintYo.mulDown(market.lytRate);
+            uint256 netYoFromLyt = LYTUtils.lytToAsset(market.lytRate, totalLytToMintYo);
 
             bool isResultAcceptable = (netYoFromLyt >= currentYtOutGuess);
 

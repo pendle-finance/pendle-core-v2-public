@@ -5,6 +5,7 @@ import "./RewardManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/FixedPoint.sol";
+import "./LYTUtils.sol";
 
 /**
 # CONDITIONS TO USE THIS PRESET:
@@ -83,11 +84,7 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
     /*///////////////////////////////////////////////////////////////
                                LYT-INDEX
     //////////////////////////////////////////////////////////////*/
-    function assetBalanceOf(address user) public virtual override returns (uint256) {
-        return balanceOf(user).mulDown(lytIndexCurrent());
-    }
 
-    /// lytIndexCurrent must be non-decreasing
     function lytIndexCurrent() public virtual override returns (uint256 res);
 
     function lytIndexStored() public view virtual override returns (uint256 res);

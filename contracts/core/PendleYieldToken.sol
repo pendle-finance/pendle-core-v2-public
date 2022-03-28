@@ -10,6 +10,7 @@ import "../libraries/helpers/ArrayLib.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "openzeppelin-solidity/contracts/utils/math/Math.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../LiquidYieldToken/implementations/LYTUtils.sol";
 
 // probably should abstract more math to libraries
 contract PendleYieldToken is PendleBaseToken, IPYieldToken {
@@ -201,11 +202,11 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
-        return amount.mulDown(getLytIndexBeforeExpiry());
+        return LYTUtils.lytToAsset(getLytIndexBeforeExpiry(), amount);
     }
 
     function _calcAmountRedeemable(uint256 amount) internal returns (uint256) {
-        return amount.divDown(getLytIndexBeforeExpiry());
+        return LYTUtils.assetToLyt(getLytIndexBeforeExpiry(), amount);
     }
 
     function _receiveLyt() internal returns (uint256 amount) {

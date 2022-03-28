@@ -7,6 +7,7 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../base/PendleRouterMarketBase.sol";
 import "../../libraries/helpers/MarketHelper.sol";
+import "../../LiquidYieldToken/implementations/LYTUtils.sol";
 
 contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     using FixedPoint for uint256;
@@ -85,9 +86,10 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         uint256 otOwed = otToAccount.neg().toUint();
         uint256 lytReceived = lytToAccount.toUint();
 
-        uint256 lytOwedTotal = otOwed.divDown(_market.LYT.lytIndexCurrent());
+        // otOwed = totalAsset
+        uint256 lytNeedTotal = LYTUtils.assetToLyt(_market.LYT, otOwed);
 
-        uint256 netLytToPull = lytOwedTotal.subMax0(lytReceived);
+        uint256 netLytToPull = lytNeedTotal.subMax0(lytReceived);
         _market.LYT.transferFrom(payer, address(_market.YT), netLytToPull);
 
         _market.YT.mintYO(market, recipient);

@@ -37,14 +37,20 @@ interface ILiquidYieldToken is IERC20Metadata {
         uint256 minAmountBaseOut
     ) external returns (uint256 amountBaseOut);
 
-    function assetBalanceOf(address user) external returns (uint256);
-
     function updateGlobalReward() external;
 
     function updateUserReward(address user) external;
 
     function redeemReward(address user) external returns (uint256[] memory outAmounts);
 
+    /**
+    * @notice lytIndexCurrent must be non-decreasing & lytIndexCurrent.mulDown(lytBalance) must return
+    the asset balance of the account
+    * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of lyt
+    he can mint must be X.divDown(lytIndexCurrent)
+    * @dev LYTUtils's assetToLyt & lytToAsset should be used instead of raw multiplication
+    & division
+    */
     function lytIndexCurrent() external returns (uint256);
 
     function lytIndexStored() external view returns (uint256);
