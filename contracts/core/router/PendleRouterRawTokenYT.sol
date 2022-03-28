@@ -102,11 +102,7 @@ contract PendleRouterRawTokenYT is
     function _swapExactRawTokenForYt_callback(address market, address recipient) internal {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        uint256 amountYO = _market.YT.mintYO(address(this));
-
-        _market.OT.transfer(market, amountYO);
-
-        _market.YT.transfer(recipient, amountYO);
+        _market.YT.mintYO(market, recipient);
     }
 
     function _swapExactYtForRawToken_callback(

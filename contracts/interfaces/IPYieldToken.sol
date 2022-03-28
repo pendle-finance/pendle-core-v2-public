@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 import "./IPBaseToken.sol";
 
 interface IPYieldToken is IPBaseToken {
-    function mintYO(address recipient) external returns (uint256 amountYOOut);
+    function mintYO(address recipientOT, address recipientYT)
+        external
+        returns (uint256 amountYOOut);
 
     function redeemYO(address recipient) external returns (uint256 amountLytOut);
 

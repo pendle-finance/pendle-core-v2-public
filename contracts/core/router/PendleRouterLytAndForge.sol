@@ -56,7 +56,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
 
         mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path);
 
-        netYoOut = IPYieldToken(YT).mintYO(recipient);
+        netYoOut = IPYieldToken(YT).mintYO(recipient, recipient);
 
         require(netYoOut >= minYoOut, "insufficient YO out");
     }

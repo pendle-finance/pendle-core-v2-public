@@ -90,11 +90,7 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         uint256 netLytToPull = lytOwedTotal.subMax0(lytReceived);
         _market.LYT.transferFrom(payer, address(_market.YT), netLytToPull);
 
-        uint256 netYoOut = _market.YT.mintYO(address(this));
-
-        _market.YT.transfer(recipient, netYoOut);
-
-        _market.OT.transfer(market, netYoOut);
+        _market.YT.mintYO(market, recipient);
     }
 
     /**

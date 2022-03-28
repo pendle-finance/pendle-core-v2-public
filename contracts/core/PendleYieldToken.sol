@@ -61,14 +61,17 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
      * @notice this function splits lyt into OT + YT of equal qty
      * @dev the lyt to tokenize has to be pre-transferred to this contract prior to the function call
      */
-    function mintYO(address recipient) public returns (uint256 amountYOOut) {
+    function mintYO(address recipientOT, address recipientYT)
+        public
+        returns (uint256 amountYOOut)
+    {
         uint256 amountToTokenize = _receiveLyt();
 
         amountYOOut = _calcAmountToMint(amountToTokenize);
 
-        _mint(recipient, amountYOOut);
+        _mint(recipientYT, amountYOOut);
 
-        IPOwnershipToken(OT).mintByYT(recipient, amountYOOut);
+        IPOwnershipToken(OT).mintByYT(recipientOT, amountYOOut);
     }
 
     /// this function converts YO tokens into lyt, but interests & rewards are not included
