@@ -63,8 +63,8 @@ library MarketMathLib {
             uint256 _otUsed
         )
     {
-        int256 lytDesired = _lytDesired.toInt();
-        int256 otDesired = _otDesired.toInt();
+        int256 lytDesired = _lytDesired.Int();
+        int256 otDesired = _otDesired.Int();
         int256 lpToReserve;
         int256 lpToUser;
         int256 lytUsed;
@@ -92,10 +92,10 @@ library MarketMathLib {
 
         require(lpToUser > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
 
-        _lpToReserve = lpToReserve.toUint();
-        _lpToUser = lpToUser.toUint();
-        _lytUsed = lytUsed.toUint();
-        _otUsed = otUsed.toUint();
+        _lpToReserve = lpToReserve.Uint();
+        _lpToUser = lpToUser.Uint();
+        _lytUsed = lytUsed.Uint();
+        _otUsed = otUsed.Uint();
     }
 
     function removeLiquidity(MarketParameters memory market, uint256 _lpToRemove)
@@ -103,7 +103,7 @@ library MarketMathLib {
         pure
         returns (uint256 _lytOut, uint256 _otOut)
     {
-        int256 lpToRemove = _lpToRemove.toInt();
+        int256 lpToRemove = _lpToRemove.Int();
         int256 lytOut;
         int256 otOut;
 
@@ -116,8 +116,8 @@ library MarketMathLib {
         market.totalOt = market.totalOt.subNoNeg(otOut);
         market.totalLyt = market.totalLyt.subNoNeg(lytOut);
 
-        _lytOut = lytOut.toUint();
-        _otOut = otOut.toUint();
+        _lytOut = lytOut.Uint();
+        _otOut = otOut.Uint();
     }
 
     /// @notice Calculates the asset cash amount the results from trading otToAccount with the market. A positive
@@ -373,7 +373,7 @@ library MarketMathLib {
             0
         );
 
-        uint256 lnRate = exchangeRate.ln().toUint();
+        uint256 lnRate = exchangeRate.ln().Uint();
 
         impliedRate = (lnRate * IMPLIED_RATE_TIME) / timeToExpiry;
 
@@ -391,7 +391,7 @@ library MarketMathLib {
         // TODO: Double check this part
         uint256 rt = (impliedRate * timeToExpiry) / IMPLIED_RATE_TIME;
 
-        extRate = LogExpMath.exp(rt.toInt());
+        extRate = LogExpMath.exp(rt.Int());
     }
 
     /// @notice Returns the exchange rate between ot and cash for the given market
@@ -458,8 +458,8 @@ library MarketMathLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.toInt(), timeToExpiry);
-            bool isResultAcceptable = (lytOwed.abs().toUint() <= exactLytIn);
+            (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.Int(), timeToExpiry);
+            bool isResultAcceptable = (lytOwed.abs() <= exactLytIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
                 isAcceptableAnswerExisted = true;
@@ -488,14 +488,14 @@ library MarketMathLib {
             uint256 currentYtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            int256 otToAccount = currentYtOutGuess.toInt().neg();
+            int256 otToAccount = currentYtOutGuess.neg();
             (int256 lytReceived, ) = calculateTrade(market, otToAccount, timeToExpiry);
 
-            int256 totalLytToMintYo = lytReceived + exactLytIn.toInt();
+            int256 totalLytToMintYo = lytReceived + exactLytIn.Int();
 
             int256 netYoFromLyt = LYTUtils.lytToAsset(market.lytRate, totalLytToMintYo);
 
-            bool isResultAcceptable = (netYoFromLyt.toUint() >= currentYtOutGuess);
+            bool isResultAcceptable = (netYoFromLyt.Uint() >= currentYtOutGuess);
 
             if (isResultAcceptable) {
                 low = currentYtOutGuess;
@@ -529,7 +529,7 @@ library MarketMathLib {
         pure
         returns (int256 rateScalar)
     {
-        rateScalar = (market.scalarRoot * IMPLIED_RATE_TIME.toInt()) / timeToExpiry.toInt();
+        rateScalar = (market.scalarRoot * IMPLIED_RATE_TIME.Int()) / timeToExpiry.Int();
         require(rateScalar > 0); // dev: rateScalar underflow
     }
 

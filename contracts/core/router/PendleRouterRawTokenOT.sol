@@ -48,7 +48,7 @@ contract PendleRouterRawTokenOT is
         MarketParameters memory state = _market.readState();
 
         if (netOtOutGuessMax == type(uint256).max) {
-            netOtOutGuessMax = state.totalOt.toUint();
+            netOtOutGuessMax = state.totalOt.Uint();
         }
 
         address LYT = _market.LYT();
@@ -63,7 +63,7 @@ contract PendleRouterRawTokenOT is
 
         require(netOtOut >= minOtOut, "insufficient ot");
 
-        _market.swap(recipient, netOtOut.toInt(), abi.encode());
+        _market.swap(recipient, netOtOut.Int(), abi.encode());
     }
 
     /**
@@ -83,7 +83,7 @@ contract PendleRouterRawTokenOT is
 
         IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
 
-        _market.swap(LYT, exactOtIn.toInt().neg(), abi.encode());
+        _market.swap(LYT, exactOtIn.neg(), abi.encode());
 
         netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }

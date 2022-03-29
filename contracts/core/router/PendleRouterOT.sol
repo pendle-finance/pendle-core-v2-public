@@ -66,13 +66,13 @@ contract PendleRouterOT is
         uint256 exactOtIn,
         uint256 minLytOut
     ) public returns (uint256 netLytOut) {
-        int256 otToAccount = exactOtIn.toInt().neg();
+        int256 otToAccount = exactOtIn.neg();
         int256 lytToAccount = IPMarket(market).swap(
             recipient,
             otToAccount,
             abi.encode(msg.sender)
         );
-        netLytOut = lytToAccount.toUint();
+        netLytOut = lytToAccount.Uint();
         require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
     }
 
@@ -84,13 +84,13 @@ contract PendleRouterOT is
         uint256 exactOtOut,
         uint256 maxLytIn
     ) public returns (uint256 netLytIn) {
-        int256 otToAccount = exactOtOut.toInt();
+        int256 otToAccount = exactOtOut.Int();
         int256 lytToAccount = IPMarket(market).swap(
             recipient,
             otToAccount,
             abi.encode(msg.sender)
         );
-        netLytIn = lytToAccount.neg().toUint();
+        netLytIn = lytToAccount.neg().Uint();
         require(netLytIn <= maxLytIn, "LYT_IN_LIMIT_EXCEEDED");
     }
 
@@ -131,8 +131,8 @@ contract PendleRouterOT is
         IPMarket market = IPMarket(msg.sender);
         address payer = abi.decode(data, (address));
         if (otToAccount < 0)
-            IERC20(market.OT()).transferFrom(payer, msg.sender, otToAccount.neg().toUint());
+            IERC20(market.OT()).transferFrom(payer, msg.sender, otToAccount.abs());
         if (lytToAccount < 0)
-            IERC20(market.LYT()).transferFrom(payer, msg.sender, lytToAccount.neg().toUint());
+            IERC20(market.LYT()).transferFrom(payer, msg.sender, lytToAccount.abs());
     }
 }

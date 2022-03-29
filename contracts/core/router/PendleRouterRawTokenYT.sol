@@ -62,7 +62,7 @@ contract PendleRouterRawTokenYT is
 
         require(netYtOut >= minYtOut, "insufficient out");
 
-        int256 otToAccount = netYtOut.toInt().neg();
+        int256 otToAccount = netYtOut.neg();
         IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(recipient));
     }
 
@@ -81,7 +81,7 @@ contract PendleRouterRawTokenYT is
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         _market.YT.transferFrom(msg.sender, address(_market.YT), exactYtIn);
-        int256 otToAccount = exactYtIn.toInt();
+        int256 otToAccount = exactYtIn.Int();
 
         address rawToken = path[path.length - 1];
         uint256 preBalanceRawToken = IERC20(rawToken).balanceOf(recipient);
@@ -102,7 +102,7 @@ contract PendleRouterRawTokenYT is
         if (lytToAccount > 0) {
             _swapExactRawTokenForYt_callback(msg.sender, recipient);
         } else {
-            _swapExactYtForRawToken_callback(msg.sender, recipient, lytToAccount.neg().toUint());
+            _swapExactYtForRawToken_callback(msg.sender, recipient, lytToAccount.neg().Uint());
         }
     }
 

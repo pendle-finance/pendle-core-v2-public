@@ -29,7 +29,7 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         // takes out the same amount of OT as exactYtIn, to pair together
-        int256 otToAccount = exactYtIn.toInt();
+        int256 otToAccount = exactYtIn.Int();
 
         uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
 
@@ -50,7 +50,7 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     ) external returns (uint256 netLytIn) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        int256 otToAccount = exactYtOut.toInt().neg();
+        int256 otToAccount = exactYtOut.neg();
         uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
 
         IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(msg.sender, recipient));
@@ -83,11 +83,11 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     ) internal {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        uint256 otOwed = otToAccount.neg().toUint();
-        uint256 lytReceived = lytToAccount.toUint();
+        uint256 otOwed = otToAccount.neg().Uint();
+        uint256 lytReceived = lytToAccount.Uint();
 
         // otOwed = totalAsset
-        uint256 lytNeedTotal = LYTUtils.assetToLyt(_market.LYT, otOwed);
+        uint256 lytNeedTotal = LYTUtils.assetToLyt(_market.LYT.lytIndexCurrent(), otOwed);
 
         uint256 netLytToPull = lytNeedTotal.subMax0(lytReceived);
         _market.LYT.transferFrom(payer, address(_market.YT), netLytToPull);
@@ -105,7 +105,7 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     ) internal {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        uint256 lytOwed = lytToAccount.neg().toUint();
+        uint256 lytOwed = lytToAccount.neg().Uint();
 
         _market.YT.redeemYO(recipient);
 

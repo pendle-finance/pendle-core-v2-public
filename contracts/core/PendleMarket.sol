@@ -96,8 +96,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
             data
         );
 
-        require(market.totalOt.toUint() <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt.toUint() <= IERC20(LYT).balanceOf(address(this)));
+        require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt.Uint() <= IERC20(LYT).balanceOf(address(this)));
 
         _writeState(market);
     }
@@ -139,15 +139,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         (netLytToAccount, netLytToReserve) = market.calculateTrade(otToAccount, timeToExpiry());
 
-        if (netLytToAccount > 0) IERC20(LYT).safeTransfer(recipient, netLytToAccount.toUint());
-        if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.neg().toUint());
+        if (netLytToAccount > 0) IERC20(LYT).safeTransfer(recipient, netLytToAccount.Uint());
+        if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.Uint());
 
         IPMarketSwapCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
 
-        require(market.totalOt.toUint() <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt.toUint() <= IERC20(LYT).balanceOf(address(this)));
+        require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt.Uint() <= IERC20(LYT).balanceOf(address(this)));
 
-        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve.toUint());
+        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve.Uint());
         _writeState(market);
     }
 
@@ -157,7 +157,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.expiry = expiry;
         market.totalOt = store.totalOt;
         market.totalLyt = store.totalLyt;
-        market.totalLp = totalSupply().toInt();
+        market.totalLp = totalSupply().Int();
         market.lastImpliedRate = store.lastImpliedRate;
         market.lytRate = ILiquidYieldToken(LYT).lytIndexCurrent();
         market.feeRateRoot = feeRateRoot;
@@ -174,9 +174,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         // shall we verify lp here?
         // hmm should we verify the sum right after callback instead?
 
-        store.totalOt = market.totalOt.toInt128();
-        store.totalLyt = market.totalLyt.toInt128();
-        store.lastImpliedRate = market.lastImpliedRate.toUint32();
+        store.totalOt = market.totalOt.Int128();
+        store.totalLyt = market.totalLyt.Int128();
+        store.lastImpliedRate = market.lastImpliedRate.Uint32();
     }
 
     function _selfBalance(address token) internal view returns (uint256) {
