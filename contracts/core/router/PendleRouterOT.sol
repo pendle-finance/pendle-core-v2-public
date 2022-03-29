@@ -22,6 +22,14 @@ contract PendleRouterOT is
 
     }
 
+    /**
+     * @notice addLiquidity to the market, using both LYT & OT, the recipient will receive LP before
+     msg.sender is required to pay LYT & OT
+     * @dev inner working of this function:
+     - market.addLiquidity is called
+     - LP is minted to the recipient, and this router's addLiquidityCallback is invoked
+     - the router will transfer the necessary lyt & ot from msg.sender to the market, and finish the callback
+     */
     function addLiquidity(
         address recipient,
         address market,
@@ -43,6 +51,14 @@ contract PendleRouterOT is
         );
     }
 
+    /**
+     * @notice removeLiquidity from the market to receive both LYT & OT. The recipient will receive
+     LYT & OT before msg.sender is required to transfer in the necessary LP
+     * @dev inner working of this function:
+     - market.removeLiquidity is called
+     - LYT & OT is transferred to the recipient, and the router's callback is invoked
+     - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
+     */
     function removeLiquidity(
         address recipient,
         address market,
@@ -60,6 +76,14 @@ contract PendleRouterOT is
         require(otToAccount >= otToAccountMin, "insufficient ot out");
     }
 
+    /**
+     * @notice swap exact OT for LYT, with recipient receiving LYT before msg.sender is required to
+     transfer the owed OT
+     * @dev inner working of this function:
+     - market.swap is called
+     - LYT is transferred to the recipient, and the router's callback is invoked
+     - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
+     */
     function swapExactOtForLyt(
         address recipient,
         address market,
@@ -78,6 +102,14 @@ contract PendleRouterOT is
 
     // swapOtForExactLyt is also possible, but more gas-consuming
 
+    /**
+     * @notice swap LYT for exact OT, with recipient receiving OT before msg.sender is required to
+     transfer the owed LYT
+     * @dev inner working of this function:
+     - market.swap is called
+     - OT is transferred to the recipient, and the router's callback is invoked
+     - the router will transfer the necessary LYT from msg.sender to the market, and finish the callback
+     */
     function swapLytForExactOt(
         address recipient,
         address market,

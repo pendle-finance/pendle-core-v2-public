@@ -19,6 +19,11 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     /**
      * @notice swap rawToken to baseToken -> baseToken to mint LYT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     * @dev inner working of this function:
+     - if [rawToken == baseToken], rawToken is transferred to LYT contract
+       else, it is transferred to the first pair of path, swap is called, and the output token is transferred
+            to LYT contract
+     - LYT.mint is called, minting LYT directly to recipient
      */
     function mintLytFromRawToken(
         uint256 netRawTokenIn,
@@ -41,8 +46,13 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     * @notice redeem LYT to baseToken -> swap baseToken to rawToken
     * @dev path[0] will be the baseToken that LYT is redeemed to, and path[path.length-1] is the
     final rawToken output
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-    */
+    * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+    * @dev inner working of this function:
+     - LYT is transferred to LYT contract
+     - if [rawToken == baseToken], LYT.redeem is called & directly redeem tokens to the recipient
+       else, LYT.redeem is called with recipient = first pair in the path,
+        and swap is called, and the output token is transferred to recipient
+     */
     function redeemLytToRawToken(
         address LYT,
         uint256 netLytIn,
@@ -58,6 +68,9 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     /**
      * @notice swap rawToken to baseToken -> convert to LYT -> convert to OT + YT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     * @dev inner working of this function:
+     - same as mintLytFromRawToken, except the recipient of LYT will be the YT contract, then mintYO
+     will be called, minting OT + YT directly to recipient
      */
     function mintYoFromRawToken(
         uint256 netRawTokenIn,
@@ -78,6 +91,10 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     /**
      * @notice redeem OT + YT to LYT -> redeem LYT to baseToken -> swap baseToken to rawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     * @dev inner working of this function:
+     - OT (+ YT if not expired) is transferred to the YT contract
+     - redeemYO is called, redeem all outcome LYT to the LYT contract
+     - The rest is the same as redeemLytToRawToken (except the first LYT transfer is skipped)
      */
     function redeemYoToRawToken(
         address YT,
@@ -103,7 +120,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address LYT,
         uint256 minLytOut,
         address recipient,
-        address[] calldata path
+        address[] memory path
     ) internal returns (uint256 netLytOut) {
         address baseToken = path[path.length - 1];
         netLytOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
@@ -113,18 +130,19 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address LYT,
         uint256 minRawTokenOut,
         address recipient,
-        address[] calldata path
+        address[] memory path
     ) internal returns (uint256 netRawTokenOut) {
         address baseToken = path[0];
         if (path.length == 1) {
             netRawTokenOut = ILiquidYieldToken(LYT).redeem(recipient, baseToken, minRawTokenOut);
         } else {
-            netRawTokenOut = ILiquidYieldToken(LYT).redeem(
+            uint256 netBaseTokenOut = ILiquidYieldToken(LYT).redeem(
                 _getFirstPair(path),
                 baseToken,
-                minRawTokenOut
+                1
             );
-            _swapExactIn(path, netRawTokenOut, recipient);
+            netRawTokenOut = _swapExactIn(path, netBaseTokenOut, recipient);
+            require(netRawTokenOut >= minRawTokenOut, "insufficient out");
         }
     }
 }

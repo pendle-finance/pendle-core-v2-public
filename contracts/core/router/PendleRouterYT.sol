@@ -20,6 +20,13 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
 
     }
 
+    /**
+    * @dev inner working of this function:
+     - YT is transferred to the YT contract
+     - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
+     - callback will call YT's redeemYO, which will redeem the outcome LYT to this router, then
+        all LYT owed to the market will be paid, the rest is transferred to the recipient
+     */
     function swapExactYtForLyt(
         address recipient,
         address market,
@@ -42,6 +49,11 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
     }
 
+    /**
+     * @dev inner working of this function:
+     - market.swap is called, which will transfer LYT directly to the YT contract, and callback is invoked
+     - callback will pull more LYT if necessary, do call YT's mintYO, which will mint OT to the market & YT to the recipient
+     */
     function swapLytForExactYt(
         address recipient,
         address market,
@@ -107,9 +119,9 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
 
         uint256 lytOwed = lytToAccount.neg().Uint();
 
-        _market.YT.redeemYO(recipient);
+        uint256 netLytReceived = _market.YT.redeemYO(address(this));
 
-        // this looks off tbh, why force recipient to approve?
-        _market.LYT.transferFrom(recipient, market, lytOwed);
+        _market.LYT.transfer(market, lytOwed);
+        _market.LYT.transfer(recipient, netLytReceived - lytOwed);
     }
 }

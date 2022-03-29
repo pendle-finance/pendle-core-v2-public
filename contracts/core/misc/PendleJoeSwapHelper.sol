@@ -37,7 +37,7 @@ abstract contract PendleJoeSwapHelper {
         joeFactory = _joeFactory;
     }
 
-    function _getFirstPair(address[] calldata path) internal view returns (address pair) {
+    function _getFirstPair(address[] memory path) internal view returns (address pair) {
         return JoeLibrary.pairFor(joeFactory, path[0], path[1]);
     }
 
@@ -46,7 +46,7 @@ abstract contract PendleJoeSwapHelper {
      * @dev TODO: haven't supported ETH yet
      */
     function _swapExactIn(
-        address[] calldata path,
+        address[] memory path,
         uint256 amountIn,
         address recipient
     ) internal virtual returns (uint256 amountOut) {

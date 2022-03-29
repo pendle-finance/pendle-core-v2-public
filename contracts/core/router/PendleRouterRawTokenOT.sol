@@ -34,6 +34,10 @@ contract PendleRouterRawTokenOT is
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
     guess range. After getting the result, min = result * (100-slippage) & max = result * (100+slippage)
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+    * @dev inner working of this function:
+     - mintLytFromRawToken is invoked, except the market will be the recipient of all outcome LYT
+     - market.swap is called, which will transfer out all the OT to the recipient, and callback is invoked
+     - callback will do nothing & return (since the required LYT was transferred to market in step 1)
     */
     function swapExactRawTokenForOt(
         uint256 exactRawTokenIn,
@@ -69,6 +73,11 @@ contract PendleRouterRawTokenOT is
     /**
      * @notice sell all Ot for RawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     * @dev inner working of this function:
+     - OT is transferred to the market
+     - market.swap is called, which will transfer LYT directly to the LYT contract, and callback is invoked
+     - callback will do nothing & return (since OT has been transferred to the market in step 1)
+     - redeemLytToRawToken is invoked
      */
     function swapExactOtForRawToken(
         uint256 exactOtIn,
