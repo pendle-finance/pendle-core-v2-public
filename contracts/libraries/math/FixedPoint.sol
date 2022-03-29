@@ -21,6 +21,8 @@ import "../helpers/PendleErrors.sol";
 
 library FixedPoint {
     uint256 internal constant ONE = 1e18; // 18 decimal places
+    int256 internal constant ONE_INT = 1e18; // 18 decimal places
+
     uint256 internal constant MAX_POW_RELATIVE_ERROR = 10000; // 10^(-14)
 
     // Minimum base for the power function when the exponent is 'free' (larger than ONE).
@@ -158,7 +160,15 @@ library FixedPoint {
         return (x > y ? x : y);
     }
 
+    function max(int256 x, int256 y) internal pure returns (int256) {
+        return (x > y ? x : y);
+    }
+
     function min(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x < y ? x : y);
+    }
+
+    function min(int256 x, int256 y) internal pure returns (int256) {
         return (x < y ? x : y);
     }
 
@@ -172,9 +182,9 @@ library FixedPoint {
         return int256(x);
     }
 
-    function toUint128(uint256 x) internal pure returns (uint128) {
-        require(0 <= x && x <= type(uint128).max, "INVALID_CAST");
-        return uint128(x);
+    function toInt128(int256 x) internal pure returns (int128) {
+        require(0 <= x && x <= type(int128).max, "INVALID_CAST");
+        return int128(x);
     }
 
     function toUint32(uint256 x) internal pure returns (uint32) {

@@ -13,7 +13,7 @@ interface IPMarket is IPBaseToken {
     )
         external
         returns (
-            uint256 lpToUser,
+            uint256 lpToAccount,
             uint256 lytUsed,
             uint256 otUsed
         );
@@ -22,7 +22,7 @@ interface IPMarket is IPBaseToken {
         address recipient,
         uint256 lpToRemove,
         bytes calldata data
-    ) external returns (uint256 lytOut, uint256 otOut);
+    ) external returns (uint256 lytToAccount, uint256 otToAccount);
 
     function swap(
         address recipient,

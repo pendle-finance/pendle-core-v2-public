@@ -38,4 +38,12 @@ library LYTUtils {
     function assetToLyt(uint256 lytIndex, int256 assetAmount) internal pure returns (int256) {
         return assetAmount.divDown(lytIndex);
     }
+
+    function lytToAsset(int256 lytIndex, int256 lytAmount) internal pure returns (int256) {
+        return lytAmount.mulDown(lytIndex);
+    }
+
+    function assetToLyt(int256 lytIndex, int256 assetAmount) internal pure returns (int256) {
+        return assetAmount.divDown(lytIndex);
+    }
 }

@@ -20,6 +20,7 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     using FixedPoint for uint256;
     using FixedPoint for int256;
+    using FixedPoint for uint128;
     using LogExpMath for uint256;
     using MarketMathLib for MarketParameters;
     using SafeERC20 for IERC20;
@@ -40,7 +41,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     uint256 public immutable scalarRoot;
     uint256 public immutable feeRateRoot; // allow fee to be changable?
     int256 public immutable anchorRoot;
-    uint8 public immutable reserveFeePercent;
+    int8 public immutable reserveFeePercent;
 
     MarketStorage public _marketState;
 
@@ -55,7 +56,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         LYT = IPOwnershipToken(_OT).LYT();
         feeRateRoot = _feeRateRoot;
         scalarRoot = _scalarRoot;
-        reserveFeePercent = _reserveFeePercent;
+
+        require(_reserveFeePercent <= 100, "invalid fee rate");
+        reserveFeePercent = int8(_reserveFeePercent);
         anchorRoot = _anchorRoot;
     }
 
@@ -93,8 +96,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
             data
         );
 
-        require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
+        require(market.totalOt.toUint() <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt.toUint() <= IERC20(LYT).balanceOf(address(this)));
 
         _writeState(market);
     }
@@ -132,7 +135,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        uint256 netLytToReserve;
+        int256 netLytToReserve;
 
         (netLytToAccount, netLytToReserve) = market.calculateTrade(otToAccount, timeToExpiry());
 
@@ -141,10 +144,10 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         IPMarketSwapCallback(recipient).swapCallback(otToAccount, netLytToAccount, data);
 
-        require(market.totalOt <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt <= IERC20(LYT).balanceOf(address(this)));
+        require(market.totalOt.toUint() <= IERC20(OT).balanceOf(address(this)));
+        require(market.totalLyt.toUint() <= IERC20(LYT).balanceOf(address(this)));
 
-        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
+        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve.toUint());
         _writeState(market);
     }
 
@@ -154,7 +157,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.expiry = expiry;
         market.totalOt = store.totalOt;
         market.totalLyt = store.totalLyt;
-        market.totalLp = totalSupply();
+        market.totalLp = totalSupply().toInt();
         market.lastImpliedRate = store.lastImpliedRate;
         market.lytRate = ILiquidYieldToken(LYT).lytIndexCurrent();
         market.feeRateRoot = feeRateRoot;
@@ -171,8 +174,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         // shall we verify lp here?
         // hmm should we verify the sum right after callback instead?
 
-        store.totalOt = market.totalOt.toUint128();
-        store.totalLyt = market.totalLyt.toUint128();
+        store.totalOt = market.totalOt.toInt128();
+        store.totalLyt = market.totalLyt.toInt128();
         store.lastImpliedRate = market.lastImpliedRate.toUint32();
     }
 

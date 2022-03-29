@@ -11,13 +11,13 @@ import "../../LiquidYieldToken/implementations/LYTUtils.sol";
 
 struct MarketParameters {
     uint256 expiry;
-    uint256 totalOt;
-    uint256 totalLyt;
-    uint256 totalLp;
+    int256 totalOt;
+    int256 totalLyt;
+    int256 totalLp;
     uint256 lastImpliedRate;
     uint256 lytRate;
-    uint256 reserveFeePercent; // base 100
-    uint256 scalarRoot;
+    int256 reserveFeePercent; // base 100
+    int256 scalarRoot;
     uint256 feeRateRoot;
     int256 anchorRoot;
     // if this is changed, change deepCloneMarket as well
@@ -25,8 +25,8 @@ struct MarketParameters {
 
 // make sure this struct use minimal number of slots
 struct MarketStorage {
-    uint128 totalOt;
-    uint128 totalLyt;
+    int128 totalOt;
+    int128 totalLyt;
     uint32 lastImpliedRate; // is 32 bit enough?
 }
 
@@ -38,49 +38,42 @@ library MarketMathLib {
     struct NetTo {
         int256 toAccount;
         int256 toMarket;
-        uint256 toReserve;
+        int256 toReserve;
     }
 
-    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
+    int256 internal constant MINIMUM_LIQUIDITY = 10**3;
+    int256 internal constant PERCENTAGE_DECIMALS = 100;
     uint256 internal constant DAY = 86400;
     uint256 internal constant IMPLIED_RATE_TIME = 360 * DAY;
-    uint256 internal constant PERCENTAGE_DECIMALS = 100;
 
     // TODO: make sure 1e18 == FixedPoint.ONE
-    uint256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
-
-    function setInitialImpliedRate(MarketParameters memory market, uint256 timeToExpiry)
-        internal
-        pure
-    {
-        uint256 totalCashUnderlying = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
-        market.lastImpliedRate = getImpliedRate(
-            market.totalOt,
-            totalCashUnderlying,
-            market.scalarRoot,
-            market.anchorRoot,
-            timeToExpiry
-        );
-    }
+    int256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
 
     function addLiquidity(
         MarketParameters memory market,
-        uint256 lytDesired,
-        uint256 otDesired
+        uint256 _lytDesired,
+        uint256 _otDesired
     )
         internal
         pure
         returns (
-            uint256 lpToReserve,
-            uint256 lpToUser,
-            uint256 lytUsed,
-            uint256 otUsed
+            uint256 _lpToReserve,
+            uint256 _lpToUser,
+            uint256 _lytUsed,
+            uint256 _otUsed
         )
     {
+        int256 lytDesired = _lytDesired.toInt();
+        int256 otDesired = _otDesired.toInt();
+        int256 lpToReserve;
+        int256 lpToUser;
+        int256 lytUsed;
+        int256 otUsed;
+
         require(lytDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
 
         if (market.totalLp == 0) {
-            lpToUser = LYTUtils.lytToAsset(lytDesired, market.lytRate) - MINIMUM_LIQUIDITY;
+            lpToUser = LYTUtils.lytToAsset(market.lytRate, lytDesired).subNoNeg(MINIMUM_LIQUIDITY);
             lpToReserve = MINIMUM_LIQUIDITY;
             lytUsed = lytDesired;
             otUsed = otDesired;
@@ -98,21 +91,33 @@ library MarketMathLib {
         market.totalLp += lpToUser + lpToReserve;
 
         require(lpToUser > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
+
+        _lpToReserve = lpToReserve.toUint();
+        _lpToUser = lpToUser.toUint();
+        _lytUsed = lytUsed.toUint();
+        _otUsed = otUsed.toUint();
     }
 
-    function removeLiquidity(MarketParameters memory market, uint256 lpToRemove)
+    function removeLiquidity(MarketParameters memory market, uint256 _lpToRemove)
         internal
         pure
-        returns (uint256 lytOut, uint256 otOut)
+        returns (uint256 _lytOut, uint256 _otOut)
     {
-        require(lpToRemove > 0, "ZERO_LP");
+        int256 lpToRemove = _lpToRemove.toInt();
+        int256 lytOut;
+        int256 otOut;
+
+        require(lpToRemove > 0, "invalid lp amount");
 
         lytOut = (market.totalLp * market.totalOt) / market.totalLp;
         otOut = (market.totalLp * market.totalLyt) / market.totalLp;
 
-        market.totalLp = market.totalLp - lpToRemove;
-        market.totalOt = market.totalOt - otOut;
-        market.totalLyt = market.totalLyt - lytOut;
+        market.totalLp = market.totalLp.subNoNeg(lpToRemove);
+        market.totalOt = market.totalOt.subNoNeg(otOut);
+        market.totalLyt = market.totalLyt.subNoNeg(lytOut);
+
+        _lytOut = lytOut.toUint();
+        _otOut = otOut.toUint();
     }
 
     /// @notice Calculates the asset cash amount the results from trading otToAccount with the market. A positive
@@ -126,28 +131,29 @@ library MarketMathLib {
         MarketParameters memory market,
         int256 otToAccount,
         uint256 timeToExpiry
-    ) internal pure returns (int256 netLytToAccount, uint256 netLytToReserve) {
+    ) internal pure returns (int256 netLytToAccount, int256 netLytToReserve) {
         require(timeToExpiry < market.expiry, "MARKET_EXPIRED");
         // We return false if there is not enough Ot to support this trade.
         // if otToAccount > 0 and totalOt - otToAccount <= 0 then the trade will fail
         // if otToAccount < 0 and totalOt > 0 then this will always pass
-        require(market.totalOt.toInt() > otToAccount);
+        require(market.totalOt > otToAccount);
 
         // Calculates initial rate factors for the trade
-        (uint256 scalar, uint256 totalCashUnderlying, int256 anchor) = getExchangeRateFactors(
-            market,
-            timeToExpiry
-        );
+        (
+            int256 rateScalar,
+            int256 totalCashUnderlying,
+            int256 rateAnchor
+        ) = getExchangeRateFactors(market, timeToExpiry);
 
         // Calculates the exchange rate from cash to Ot before any liquidity fees
         // are applied
-        uint256 preFeeExchangeRate;
+        int256 preFeeExchangeRate;
         {
             preFeeExchangeRate = _getExchangeRate(
                 market.totalOt,
                 totalCashUnderlying,
-                scalar,
-                anchor,
+                rateScalar,
+                rateAnchor,
                 otToAccount
             );
         }
@@ -166,12 +172,12 @@ library MarketMathLib {
         {
             // Set the new implied interest rate after the trade has taken effect, this
             // will be used to calculate the next trader's interest rate.
-            market.totalOt = (market.totalOt.toInt() - otToAccount).toUint();
+            market.totalOt = market.totalOt.subNoNeg(otToAccount);
             market.lastImpliedRate = getImpliedRate(
                 market.totalOt,
-                (totalCashUnderlying.toInt() + netCash.toMarket).toUint(),
-                scalar,
-                anchor,
+                totalCashUnderlying + netCash.toMarket,
+                rateScalar,
+                rateAnchor,
                 timeToExpiry
             );
 
@@ -190,35 +196,33 @@ library MarketMathLib {
     }
 
     /// @notice Returns factors for calculating exchange rates
-    /// @return scalar a scalar value in rate precision that defines the slope of the line
+    /// @return rateScalar a rateScalar value in rate precision that defines the slope of the line
     /// @return totalCashUnderlying the converted asset cash to underlying cash for calculating
     ///    the exchange rates for the trade
-    /// @return anchor an offset from the x axis to maintain interest rate continuity over time
-    // TODO: should we call the underlyingUnit to be accounting unit or cash?
-
+    /// @return rateAnchor an offset from the x axis to maintain interest rate continuity over time
     function getExchangeRateFactors(MarketParameters memory market, uint256 timeToExpiry)
         internal
         pure
         returns (
-            uint256 scalar,
-            uint256 totalCashUnderlying,
-            int256 anchor
+            int256 rateScalar,
+            int256 totalCashUnderlying,
+            int256 rateAnchor
         )
     {
-        scalar = getScalar(market, timeToExpiry);
-        totalCashUnderlying = market.totalLyt.mulDown(market.lytRate);
+        rateScalar = getRateScalar(market, timeToExpiry);
+        totalCashUnderlying = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
 
         require(market.totalOt != 0 && totalCashUnderlying != 0);
 
-        // Get the rate anchor given the market state, this will establish the baseline for where
+        // Get the rateAnchor given the market state, this will establish the baseline for where
         // the exchange rate is set.
-        anchor;
+        rateAnchor;
         {
-            anchor = _getAnchor(
+            rateAnchor = _getRateAnchor(
                 market.totalOt,
                 market.lastImpliedRate,
                 totalCashUnderlying,
-                scalar,
+                rateScalar,
                 timeToExpiry
             );
         }
@@ -230,17 +234,17 @@ library MarketMathLib {
     /// @return netCashToReserve this is always a positive amount of cash accrued to the reserve
     function _getNetCashAmountsUnderlying(
         uint256 feeRateRoot,
-        uint256 preFeeExchangeRate,
+        int256 preFeeExchangeRate,
         int256 otToAccount,
         uint256 timeToExpiry,
-        uint256 reserveFeePercent
+        int256 reserveFeePercent
     )
         private
         pure
         returns (
             int256 netCashToAccount,
             int256 netCashToMarket,
-            uint256 netCashToReserve
+            int256 netCashToReserve
         )
     {
         // Fees are specified in basis points which is an rate precision denomination. We convert this to
@@ -250,16 +254,16 @@ library MarketMathLib {
         // tradeExchangeRate = tradeExchangeRateNoFee (* or /) exp(fee * timeToExpiry)
         // cash = ot / exchangeRate, exchangeRate > 1
         int256 preFeeCashToAccount = otToAccount.divDown(preFeeExchangeRate).neg();
-        uint256 feeRate = getExchangeRateFromImpliedRate(feeRateRoot, timeToExpiry);
-        uint256 fee;
+        int256 feeRate = getExchangeRateFromImpliedRate(feeRateRoot, timeToExpiry);
+        int256 fee;
 
         if (otToAccount > 0) {
             // Lending
             // Dividing reduces exchange rate, lending should receive less ot for cash
-            uint256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
+            int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
             // It's possible that the fee pushes exchange rates into negative territory. This is not possible
             // when borrowing. If this happens then the trade has failed.
-            require(postFeeExchangeRate >= FixedPoint.ONE);
+            require(postFeeExchangeRate >= FixedPoint.ONE_INT);
 
             // cashToAccount = -(otToAccount / exchangeRate)
             // postFeeExchangeRate = preFeeExchangeRate / feeExchangeRate
@@ -272,7 +276,7 @@ library MarketMathLib {
             // netFee = -(preFeeCashToAccount) * (feeExchangeRate - 1)
             // netFee = preFeeCashToAccount * (1 - feeExchangeRate)
             // RATE_PRECISION - fee will be negative here, preFeeCashToAccount < 0, fee > 0
-            fee = preFeeCashToAccount.toUint().mulDown(FixedPoint.ONE - fee);
+            fee = preFeeCashToAccount.mulDown(FixedPoint.ONE_INT - fee);
         } else {
             // Borrowing
             // cashToAccount = -(otToAccount / exchangeRate)
@@ -286,16 +290,14 @@ library MarketMathLib {
             // NOTE: preFeeCashToAccount is negative in this branch so we negate it to ensure that fee is a positive number
             // preFee * (1 - fee) / fee will be negative, use neg() to flip to positive
             // RATE_PRECISION - fee will be negative
-            fee = ((preFeeCashToAccount * ((FixedPoint.ONE - fee).toInt())) / feeRate.toInt())
-                .neg()
-                .toUint();
+            fee = ((preFeeCashToAccount * (FixedPoint.ONE_INT - fee)) / feeRate).neg();
         }
 
         netCashToReserve = (fee * reserveFeePercent) / PERCENTAGE_DECIMALS;
 
         // postFeeCashToAccount = preFeeCashToAccount - fee
-        netCashToAccount = preFeeCashToAccount - fee.toInt();
-        netCashToMarket = (preFeeCashToAccount - fee.toInt() + netCashToReserve.toInt()).neg();
+        netCashToAccount = preFeeCashToAccount - fee;
+        netCashToMarket = (preFeeCashToAccount - fee + netCashToReserve).neg();
     }
 
     /// @notice Sets the new market state
@@ -306,11 +308,11 @@ library MarketMathLib {
         MarketParameters memory market,
         int256 netCashToAccount,
         int256 netCashToMarket,
-        uint256 netCashToReserve
-    ) private pure returns (int256 netLytToAccount, uint256 netLytToReserve) {
+        int256 netCashToReserve
+    ) private pure returns (int256 netLytToAccount, int256 netLytToReserve) {
         int256 netLytToMarket = LYTUtils.assetToLyt(market.lytRate, netCashToMarket);
         // Set storage checks that total asset cash is above zero
-        market.totalLyt = (market.totalLyt.toInt() + netLytToMarket).toUint();
+        market.totalLyt = market.totalLyt + netLytToMarket;
 
         netLytToReserve = LYTUtils.assetToLyt(market.lytRate, netCashToReserve);
         netLytToAccount = LYTUtils.assetToLyt(market.lytRate, netCashToAccount);
@@ -324,50 +326,55 @@ library MarketMathLib {
     ///
     /// The rate anchor will update as the market rolls down to expiry. The calculation is:
     /// newExchangeRate = e^(lastImpliedRate * timeToExpiry / Constants.IMPLIED_RATE_TIME)
-    /// newAnchor = newExchangeRate - ln((proportion / (1 - proportion)) / scalar
+    /// newAnchor = newExchangeRate - ln((proportion / (1 - proportion)) / rateScalar
     ///
     /// where:
     /// lastImpliedRate = ln(exchangeRate') * (Constants.IMPLIED_RATE_TIME / timeToExpiry')
     ///      (calculated when the last trade in the market was made)
-    /// @return anchor the new rate anchor and a boolean that signifies success
-    function _getAnchor(
-        uint256 totalOt,
+    /// @return rateAnchor the new rateAnchor
+    function _getRateAnchor(
+        int256 totalOt,
         uint256 lastImpliedRate,
-        uint256 totalCashUnderlying,
-        uint256 scalar,
+        int256 totalCashUnderlying,
+        int256 rateScalar,
         uint256 timeToExpiry
-    ) internal pure returns (int256 anchor) {
+    ) internal pure returns (int256 rateAnchor) {
         // This is the exchange rate at the new time to expiry
-        uint256 newExchangeRate = getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
+        int256 newExchangeRate = getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
 
-        require(newExchangeRate >= FixedPoint.ONE);
+        require(newExchangeRate >= FixedPoint.ONE_INT);
 
         {
             // totalOt / (totalOt + totalCashUnderlying)
-            uint256 proportion = totalOt.divDown(totalOt + totalCashUnderlying);
+            int256 proportion = totalOt.divDown(totalOt + totalCashUnderlying);
 
             int256 lnProportion = _logProportion(proportion);
 
-            // newExchangeRate - ln(proportion / (1 - proportion)) / scalar
-            anchor = newExchangeRate.toInt() - lnProportion.divDown(scalar);
+            // newExchangeRate - ln(proportion / (1 - proportion)) / rateScalar
+            rateAnchor = newExchangeRate - lnProportion.divDown(rateScalar);
         }
     }
 
     /// @notice Calculates the current market implied rate.
     /// @return impliedRate the implied rate and a bool that is true on success
     function getImpliedRate(
-        uint256 totalOt,
-        uint256 totalCashUnderlying,
-        uint256 scalar,
-        int256 anchor,
+        int256 totalOt,
+        int256 totalCashUnderlying,
+        int256 rateScalar,
+        int256 rateAnchor,
         uint256 timeToExpiry
     ) internal pure returns (uint256 impliedRate) {
-        // This will check for exchange rates < Constants.RATE_PRECISION
-        uint256 exchangeRate = _getExchangeRate(totalOt, totalCashUnderlying, scalar, anchor, 0);
+        // This will check for exchange rates < FixedPoint.ONE_INT
+        int256 exchangeRate = _getExchangeRate(
+            totalOt,
+            totalCashUnderlying,
+            rateScalar,
+            rateAnchor,
+            0
+        );
 
-        uint256 lnRate = exchangeRate.toInt().ln().toUint();
+        uint256 lnRate = exchangeRate.ln().toUint();
 
-        // lnRate * IMPLIED_RATE_TIME / ttm
         impliedRate = (lnRate * IMPLIED_RATE_TIME) / timeToExpiry;
 
         // TODO: Probably this is not necessary
@@ -379,11 +386,58 @@ library MarketMathLib {
     function getExchangeRateFromImpliedRate(uint256 impliedRate, uint256 timeToExpiry)
         internal
         pure
-        returns (uint256 extRate)
+        returns (int256 extRate)
     {
+        // TODO: Double check this part
         uint256 rt = (impliedRate * timeToExpiry) / IMPLIED_RATE_TIME;
 
-        extRate = LogExpMath.exp(rt.toInt()).toUint();
+        extRate = LogExpMath.exp(rt.toInt());
+    }
+
+    /// @notice Returns the exchange rate between ot and cash for the given market
+    /// Calculates the following exchange rate:
+    ///     (1 / rateScalar) * ln(proportion / (1 - proportion)) + rateAnchor
+    /// where:
+    ///     proportion = totalOt / (totalOt + totalUnderlyingCash)
+    /// @dev has an underscore to denote as private but is marked internal for the mock
+    function _getExchangeRate(
+        int256 totalOt,
+        int256 totalCashUnderlying,
+        int256 rateScalar,
+        int256 rateAnchor,
+        int256 otToAccount
+    ) internal pure returns (int256 extRate) {
+        int256 numerator = totalOt.subNoNeg(otToAccount);
+
+        // This is the proportion scaled by FixedPoint.ONE_INT
+        // (totalOt + ot) / (totalOt + totalCashUnderlying)
+        int256 proportion = (numerator.divDown(totalOt + totalCashUnderlying));
+
+        // This limit is here to prevent the market from reaching extremely high interest rates via an
+        // excessively large proportion (high amounts of ot relative to cash).
+        // Market proportion can only increase via borrowing (ot is added to the market and cash is
+        // removed). Over time, the returns from asset cash will slightly decrease the proportion (the
+        // value of cash underlying in the market must be monotonically increasing). Therefore it is not
+        // possible for the proportion to go over max market proportion unless borrowing occurs.
+        require(proportion <= MAX_MARKET_PROPORTION); // probably not applicable to Pendle
+
+        int256 lnProportion = _logProportion(proportion);
+
+        // lnProportion / rateScalar + rateAnchor
+        extRate = lnProportion.divDown(rateScalar) + rateAnchor;
+
+        // Do not succeed if interest rates fall below 1
+        require(extRate >= FixedPoint.ONE_INT);
+    }
+
+    function _logProportion(int256 proportion) internal pure returns (int256 res) {
+        // This will result in divide by zero, short circuit
+        require(proportion != FixedPoint.ONE_INT);
+
+        // Convert proportion to what is used inside the logit function (p / (1-p))
+        int256 logitP = proportion.divDown(FixedPoint.ONE_INT - proportion);
+
+        res = logitP.ln();
     }
 
     function getSwapExactLytForOt(
@@ -392,7 +446,10 @@ library MarketMathLib {
         uint256 timeToExpiry,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax
-    ) internal pure returns (int256 netOtToAccount) {
+    ) internal pure returns (uint256 netOtToAccount) {
+        require(exactLytIn > 0, "invalid lyt in");
+        require(netOtOutGuessMin >= 0 && netOtOutGuessMax >= 0, "invalid guess");
+
         uint256 low = netOtOutGuessMin;
         uint256 high = netOtOutGuessMax;
         bool isAcceptableAnswerExisted;
@@ -402,7 +459,7 @@ library MarketMathLib {
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
             (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.toInt(), timeToExpiry);
-            bool isResultAcceptable = (lytOwed.neg().toUint() <= exactLytIn);
+            bool isResultAcceptable = (lytOwed.abs().toUint() <= exactLytIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
                 isAcceptableAnswerExisted = true;
@@ -410,7 +467,7 @@ library MarketMathLib {
         }
 
         require(isAcceptableAnswerExisted, "guess fail");
-        netOtToAccount = low.toInt();
+        netOtToAccount = low;
     }
 
     function getSwapExactLytForYt(
@@ -419,7 +476,10 @@ library MarketMathLib {
         uint256 timeToExpiry,
         uint256 netYtOutGuessMin,
         uint256 netYtOutGuessMax
-    ) internal pure returns (int256 netYtToAccount) {
+    ) internal pure returns (uint256 netYtToAccount) {
+        require(exactLytIn > 0, "invalid lyt in");
+        require(netYtOutGuessMin >= 0 && netYtOutGuessMax >= 0, "invalid guess");
+
         uint256 low = netYtOutGuessMin;
         uint256 high = netYtOutGuessMax;
         bool isAcceptableAnswerExisted;
@@ -431,11 +491,11 @@ library MarketMathLib {
             int256 otToAccount = currentYtOutGuess.toInt().neg();
             (int256 lytReceived, ) = calculateTrade(market, otToAccount, timeToExpiry);
 
-            uint256 totalLytToMintYo = lytReceived.toUint() + exactLytIn;
+            int256 totalLytToMintYo = lytReceived + exactLytIn.toInt();
 
-            uint256 netYoFromLyt = LYTUtils.lytToAsset(market.lytRate, totalLytToMintYo);
+            int256 netYoFromLyt = LYTUtils.lytToAsset(market.lytRate, totalLytToMintYo);
 
-            bool isResultAcceptable = (netYoFromLyt >= currentYtOutGuess);
+            bool isResultAcceptable = (netYoFromLyt.toUint() >= currentYtOutGuess);
 
             if (isResultAcceptable) {
                 low = currentYtOutGuess;
@@ -444,7 +504,7 @@ library MarketMathLib {
         }
 
         require(isAcceptableAnswerExisted, "guess fail");
-        netYtToAccount = low.toInt();
+        netYtToAccount = low;
     }
 
     function deepCloneMarket(MarketParameters memory marketImmutable)
@@ -464,59 +524,26 @@ library MarketMathLib {
         market.anchorRoot = marketImmutable.anchorRoot;
     }
 
-    /// @notice Returns the exchange rate between ot and cash for the given market
-    /// Calculates the following exchange rate:
-    ///     (1 / scalar) * ln(proportion / (1 - proportion)) + anchor
-    /// where:
-    ///     proportion = totalOt / (totalOt + totalUnderlyingCash)
-    /// @dev has an underscore to denote as private but is marked internal for the mock
-    function _getExchangeRate(
-        uint256 totalOt,
-        uint256 totalCashUnderlying,
-        uint256 scalar,
-        int256 anchor,
-        int256 otToAccount
-    ) internal pure returns (uint256 extRate) {
-        int256 numerator = totalOt.toInt().subNoNeg(otToAccount);
-
-        // This is the proportion scaled by Constants.RATE_PRECISION
-        // (totalOt + ot) / (totalOt + totalCashUnderlying)
-        uint256 proportion = (numerator.divDown(totalOt + totalCashUnderlying)).toUint();
-
-        // This limit is here to prevent the market from reaching extremely high interest rates via an
-        // excessively large proportion (high amounts of ot relative to cash).
-        // Market proportion can only increase via borrowing (ot is added to the market and cash is
-        // removed). Over time, the returns from asset cash will slightly decrease the proportion (the
-        // value of cash underlying in the market must be monotonically increasing). Therefore it is not
-        // possible for the proportion to go over max market proportion unless borrowing occurs.
-        require(proportion <= MAX_MARKET_PROPORTION); // probably not applicable to Pendle
-
-        int256 lnProportion = _logProportion(proportion);
-
-        // lnProportion / scalar + anchor
-        // because eventually extRate must be >= 1, we can safely cast it toUint so in case of
-        // underflow, it would fail earlier
-        extRate = (lnProportion.divDown(scalar) + anchor).toUint();
-
-        // Do not succeed if interest rates fall below 1
-        require(extRate >= FixedPoint.ONE);
-    }
-
-    function _logProportion(uint256 proportion) internal pure returns (int256 res) {
-        // This will result in divide by zero, short circuit
-        require(proportion != FixedPoint.ONE);
-
-        // Convert proportion to what is used inside the logit function (p / (1-p))
-        uint256 logitP = proportion.divDown(FixedPoint.ONE - proportion);
-        res = logitP.toInt().ln();
-    }
-
-    function getScalar(MarketParameters memory market, uint256 timeToExpiry)
+    function getRateScalar(MarketParameters memory market, uint256 timeToExpiry)
         internal
         pure
-        returns (uint256 scalar)
+        returns (int256 rateScalar)
     {
-        scalar = (market.scalarRoot * IMPLIED_RATE_TIME) / timeToExpiry;
-        require(scalar > 0); // dev: rate scalar underflow
+        rateScalar = (market.scalarRoot * IMPLIED_RATE_TIME.toInt()) / timeToExpiry.toInt();
+        require(rateScalar > 0); // dev: rateScalar underflow
+    }
+
+    function setInitialImpliedRate(MarketParameters memory market, uint256 timeToExpiry)
+        internal
+        pure
+    {
+        int256 totalCashUnderlying = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
+        market.lastImpliedRate = getImpliedRate(
+            market.totalOt,
+            totalCashUnderlying,
+            market.scalarRoot,
+            market.anchorRoot,
+            timeToExpiry
+        );
     }
 }

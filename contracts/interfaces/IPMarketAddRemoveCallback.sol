@@ -10,7 +10,7 @@ interface IPMarketAddRemoveCallback {
     ) external;
 
     function removeLiquidityCallback(
-        uint256 lpToRemove,
+        uint256 lpOwed,
         uint256 lytToAccount,
         uint256 otToAccount,
         bytes calldata data

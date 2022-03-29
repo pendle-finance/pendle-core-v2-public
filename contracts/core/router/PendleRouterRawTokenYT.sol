@@ -53,14 +53,12 @@ contract PendleRouterRawTokenYT is
             path
         );
 
-        netYtOut = state
-            .getSwapExactLytForYt(
-                netLytUsedToBuyYT,
-                IPMarket(market).timeToExpiry(),
-                netYtOutGuessMin,
-                netYtOutGuessMax
-            )
-            .toUint();
+        netYtOut = state.getSwapExactLytForYt(
+            netLytUsedToBuyYT,
+            IPMarket(market).timeToExpiry(),
+            netYtOutGuessMin,
+            netYtOutGuessMax
+        );
 
         require(netYtOut >= minYtOut, "insufficient out");
 

@@ -48,20 +48,18 @@ contract PendleRouterRawTokenOT is
         MarketParameters memory state = _market.readState();
 
         if (netOtOutGuessMax == type(uint256).max) {
-            netOtOutGuessMax = state.totalOt;
+            netOtOutGuessMax = state.totalOt.toUint();
         }
 
         address LYT = _market.LYT();
         uint256 netLytUsedToBuyOT = mintLytFromRawToken(exactRawTokenIn, LYT, 1, market, path);
 
-        netOtOut = state
-            .getSwapExactLytForOt(
-                netLytUsedToBuyOT,
-                _market.timeToExpiry(),
-                netOtOutGuessMin,
-                netOtOutGuessMax
-            )
-            .toUint();
+        netOtOut = state.getSwapExactLytForOt(
+            netLytUsedToBuyOT,
+            _market.timeToExpiry(),
+            netOtOutGuessMin,
+            netOtOutGuessMax
+        );
 
         require(netOtOut >= minOtOut, "insufficient ot");
 
