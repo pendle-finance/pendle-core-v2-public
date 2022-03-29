@@ -44,8 +44,7 @@ interface ILiquidYieldToken is IERC20Metadata {
     function redeemReward(address user) external returns (uint256[] memory outAmounts);
 
     /**
-    * @notice lytIndexCurrent must be non-decreasing & lytIndexCurrent.mulDown(lytBalance) must return
-    the asset balance of the account
+    * @notice lytIndexCurrent.mulDown(lytBalance) must return the asset balance of the account
     * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of lyt
     he can mint must be X.divDown(lytIndexCurrent)
     * @dev LYTUtils's assetToLyt & lytToAsset should be used instead of raw multiplication
