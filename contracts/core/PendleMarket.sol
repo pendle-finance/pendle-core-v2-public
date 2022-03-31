@@ -86,7 +86,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(timeToExpiry());
+            market.setInitialImpliedRate(market.getTimeToExpiry());
             _mint(address(1), lpToReserve);
         }
 
@@ -143,7 +143,10 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netLytOut, netLytToReserve) = market.calcExactOtForLyt(exactOtIn, timeToExpiry());
+        (netLytOut, netLytToReserve) = market.calcExactOtForLyt(
+            exactOtIn,
+            market.getTimeToExpiry()
+        );
         require(netLytOut >= minLytOut, "insufficient lyt out");
         IERC20(LYT).safeTransfer(recipient, netLytOut);
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
@@ -165,7 +168,10 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netLytIn, netLytToReserve) = market.calcLytForExactOt(exactOtOut, timeToExpiry());
+        (netLytIn, netLytToReserve) = market.calcLytForExactOt(
+            exactOtOut,
+            market.getTimeToExpiry()
+        );
         require(netLytIn <= maxLytIn, "lyt in exceed limit");
         IERC20(OT).safeTransfer(recipient, exactOtOut);
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
@@ -189,10 +195,6 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.feeRateRoot = feeRateRoot;
         market.reserveFeePercent = reserveFeePercent;
         market.anchorRoot = anchorRoot;
-    }
-
-    function timeToExpiry() public view returns (uint256 res) {
-        res = (expiry >= block.timestamp) ? expiry - block.timestamp : 0;
     }
 
     function _writeState(MarketParameters memory market) internal {

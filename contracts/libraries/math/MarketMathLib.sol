@@ -612,4 +612,15 @@ library MarketMathLib {
             timeToExpiry
         );
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///                                    Metadata functions                                    ///
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function getTimeToExpiry(MarketParameters memory market) internal view returns (uint256) {
+        unchecked {
+            require(block.timestamp <= market.expiry, "market expired");
+            return block.timestamp - market.expiry;
+        }
+    }
 }

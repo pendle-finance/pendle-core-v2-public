@@ -43,6 +43,4 @@ interface IPMarket is IPBaseToken {
     function OT() external view returns (address);
 
     function LYT() external view returns (address);
-
-    function timeToExpiry() external view returns (uint256);
 }

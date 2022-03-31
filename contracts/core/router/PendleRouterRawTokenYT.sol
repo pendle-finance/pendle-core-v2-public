@@ -60,7 +60,7 @@ contract PendleRouterRawTokenYT is
 
             netYtOut = state.approxSwapExactLytForYt(
                 netLytUsedToBuyYT,
-                IPMarket(market).timeToExpiry(),
+                state.getTimeToExpiry(),
                 netYtOutGuessMin,
                 netYtOutGuessMax
             );

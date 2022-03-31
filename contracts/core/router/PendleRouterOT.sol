@@ -130,7 +130,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
 
         netOtIn = state.approxSwapOtForExactLyt(
             exactLytOut,
-            IPMarket(market).timeToExpiry(),
+            state.getTimeToExpiry(),
             netOtInGuessMin,
             netOtInGuessMax
         );
@@ -162,7 +162,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
     ) public returns (uint256 netLytIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (netLytIn, ) = state.calcLytForExactOt(exactOtOut, IPMarket(market).timeToExpiry());
+        (netLytIn, ) = state.calcLytForExactOt(exactOtOut, state.getTimeToExpiry());
         require(netLytIn <= maxLytIn, "exceed limit lyt in");
 
         if (doPull) {
@@ -195,7 +195,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
 
         netOtOut = state.approxSwapExactLytForOt(
             exactLytIn,
-            IPMarket(market).timeToExpiry(),
+            state.getTimeToExpiry(),
             netOtOutGuessMin,
             netOtOutGuessMax
         );
