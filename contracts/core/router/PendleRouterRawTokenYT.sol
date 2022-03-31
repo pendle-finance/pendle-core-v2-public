@@ -58,7 +58,7 @@ contract PendleRouterRawTokenYT is
                 true
             );
 
-            netYtOut = state.getSwapExactLytForYt(
+            netYtOut = state.approxSwapExactLytForYt(
                 netLytUsedToBuyYT,
                 IPMarket(market).timeToExpiry(),
                 netYtOutGuessMin,

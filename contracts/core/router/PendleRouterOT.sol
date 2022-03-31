@@ -32,17 +32,20 @@ contract PendleRouterOT is PendleRouterMarketBase {
         address market,
         uint256 lytDesired,
         uint256 otDesired,
+        uint256 minLpOut,
         bool doPull
     )
         external
         returns (
-            uint256 lpToAccount,
+            uint256 netLpOut,
             uint256 lytUsed,
             uint256 otUsed
         )
     {
         MarketParameters memory state = IPMarket(market).readState();
-        (, lpToAccount, lytUsed, otUsed) = state.addLiquidity(lytDesired, otDesired);
+        (, netLpOut, lytUsed, otUsed) = state.addLiquidity(lytDesired, otDesired);
+
+        require(netLpOut >= minLpOut, "insufficient lp out");
 
         if (doPull) {
             address LYT = IPMarket(market).LYT();
@@ -67,15 +70,15 @@ contract PendleRouterOT is PendleRouterMarketBase {
         address recipient,
         address market,
         uint256 lpToRemove,
-        uint256 lytToAccountMin,
-        uint256 otToAccountMin,
+        uint256 lytOutMin,
+        uint256 otOutMin,
         bool doPull
-    ) external returns (uint256 lytToAccount, uint256 otToAccount) {
+    ) external returns (uint256 netLytOut, uint256 netOtOut) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (lytToAccount, otToAccount) = state.removeLiquidity(lpToRemove);
-        require(lytToAccount >= lytToAccountMin, "insufficient lyt out");
-        require(otToAccount >= otToAccountMin, "insufficient ot out");
+        (netLytOut, netOtOut) = state.removeLiquidity(lpToRemove);
+        require(netLytOut >= lytOutMin, "insufficient lyt out");
+        require(netOtOut >= otOutMin, "insufficient ot out");
 
         if (doPull) {
             IPMarket(market).transferFrom(msg.sender, market, lpToRemove);
@@ -114,7 +117,33 @@ contract PendleRouterOT is PendleRouterMarketBase {
         require(netLytOut >= minLytOut, "insufficient lyt out");
     }
 
-    // swapOtForExactLyt is also possible, but more gas-consuming
+    function swapOtForExactLyt(
+        address recipient,
+        address market,
+        uint256 maxOtIn,
+        uint256 exactLytOut,
+        uint256 netOtInGuessMin,
+        uint256 netOtInGuessMax,
+        bool doPull
+    ) public returns (uint256 netOtIn) {
+        MarketParameters memory state = IPMarket(market).readState();
+
+        netOtIn = state.approxSwapOtForExactLyt(
+            exactLytOut,
+            IPMarket(market).timeToExpiry(),
+            netOtInGuessMin,
+            netOtInGuessMax
+        );
+
+        require(netOtIn <= maxOtIn, "ot in exceed limit");
+
+        if (doPull) {
+            address OT = IPMarket(market).OT();
+            IERC20(OT).transferFrom(msg.sender, market, netOtIn);
+        }
+
+        IPMarket(market).swapExactOtForLyt(recipient, netOtIn, exactLytOut, abi.encode());
+    }
 
     /**
      * @notice swap LYT for exact OT, with recipient receiving OT before msg.sender is required to
@@ -164,7 +193,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
             netOtOutGuessMax = state.totalOt.Uint();
         }
 
-        netOtOut = state.getSwapExactLytForOt(
+        netOtOut = state.approxSwapExactLytForOt(
             exactLytIn,
             IPMarket(market).timeToExpiry(),
             netOtOutGuessMin,

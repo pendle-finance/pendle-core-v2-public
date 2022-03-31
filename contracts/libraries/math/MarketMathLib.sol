@@ -468,15 +468,18 @@ library MarketMathLib {
         res = logitP.ln();
     }
 
-    function getSwapExactLytForOt(
+    function approxSwapExactLytForOt(
         MarketParameters memory marketImmutable,
         uint256 exactLytIn,
         uint256 timeToExpiry,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax
-    ) internal pure returns (uint256 netOtToAccount) {
+    ) internal pure returns (uint256 netOtOut) {
         require(exactLytIn > 0, "invalid lyt in");
-        require(netOtOutGuessMin >= 0 && netOtOutGuessMax >= 0, "invalid guess");
+        require(
+            netOtOutGuessMin >= 0 && netOtOutGuessMax >= 0 && netOtOutGuessMin <= netOtOutGuessMax,
+            "invalid guess"
+        );
 
         uint256 low = netOtOutGuessMin;
         uint256 high = netOtOutGuessMax;
@@ -486,8 +489,8 @@ library MarketMathLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (int256 lytOwed, ) = calcTrade(market, currentOtOutGuess.Int(), timeToExpiry);
-            bool isResultAcceptable = (lytOwed.abs() <= exactLytIn);
+            (uint256 netLytNeed, ) = calcLytForExactOt(market, currentOtOutGuess, timeToExpiry);
+            bool isResultAcceptable = (netLytNeed <= exactLytIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
                 isAcceptableAnswerExisted = true;
@@ -495,16 +498,51 @@ library MarketMathLib {
         }
 
         require(isAcceptableAnswerExisted, "guess fail");
-        netOtToAccount = low;
+        netOtOut = low;
     }
 
-    function getSwapExactLytForYt(
+    function approxSwapOtForExactLyt(
+        MarketParameters memory marketImmutable,
+        uint256 exactLytOut,
+        uint256 timeToExpiry,
+        uint256 netOtInGuessMin,
+        uint256 netOtInGuessMax
+    ) internal pure returns (uint256 netOtIn) {
+        require(exactLytOut > 0, "invalid lyt in");
+        require(
+            netOtInGuessMin >= 0 && netOtInGuessMax >= 0 && netOtInGuessMin <= netOtInGuessMax,
+            "invalid guess"
+        );
+
+        uint256 low = netOtInGuessMin;
+        uint256 high = netOtInGuessMax;
+        bool isAcceptableAnswerExisted;
+
+        while (low != high) {
+            uint256 currentOtInGuess = (low + high) / 2;
+            MarketParameters memory market = deepCloneMarket(marketImmutable);
+
+            (uint256 netLytOut, ) = calcExactOtForLyt(market, currentOtInGuess, timeToExpiry);
+            bool isResultAcceptable = (netLytOut >= exactLytOut);
+            if (isResultAcceptable) {
+                high = currentOtInGuess;
+                isAcceptableAnswerExisted = true;
+            } else {
+                low = currentOtInGuess + 1;
+            }
+        }
+
+        require(isAcceptableAnswerExisted, "guess fail");
+        netOtIn = high;
+    }
+
+    function approxSwapExactLytForYt(
         MarketParameters memory marketImmutable,
         uint256 exactLytIn,
         uint256 timeToExpiry,
         uint256 netYtOutGuessMin,
         uint256 netYtOutGuessMax
-    ) internal pure returns (uint256 netYtToAccount) {
+    ) internal pure returns (uint256 netYtOut) {
         require(exactLytIn > 0, "invalid lyt in");
         require(netYtOutGuessMin >= 0 && netYtOutGuessMax >= 0, "invalid guess");
 
@@ -532,7 +570,7 @@ library MarketMathLib {
         }
 
         require(isAcceptableAnswerExisted, "guess fail");
-        netYtToAccount = low;
+        netYtOut = low;
     }
 
     function deepCloneMarket(MarketParameters memory marketImmutable)
