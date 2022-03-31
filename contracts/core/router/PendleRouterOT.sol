@@ -90,14 +90,12 @@ contract PendleRouterOT is
         uint256 exactOtIn,
         uint256 minLytOut
     ) public returns (uint256 netLytOut) {
-        int256 otToAccount = exactOtIn.neg();
-        int256 lytToAccount = IPMarket(market).swap(
+        netLytOut = IPMarket(market).swapExactOtForLyt(
             recipient,
-            otToAccount,
+            exactOtIn,
+            minLytOut,
             abi.encode(msg.sender)
         );
-        netLytOut = lytToAccount.Uint();
-        require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
     }
 
     // swapOtForExactLyt is also possible, but more gas-consuming
@@ -116,14 +114,12 @@ contract PendleRouterOT is
         uint256 exactOtOut,
         uint256 maxLytIn
     ) public returns (uint256 netLytIn) {
-        int256 otToAccount = exactOtOut.Int();
-        int256 lytToAccount = IPMarket(market).swap(
+        netLytIn = IPMarket(market).swapLytForExactOt(
             recipient,
-            otToAccount,
+            exactOtOut,
+            maxLytIn,
             abi.encode(msg.sender)
         );
-        netLytIn = lytToAccount.neg().Uint();
-        require(netLytIn <= maxLytIn, "LYT_IN_LIMIT_EXCEEDED");
     }
 
     // swapExactLytForOt is also possible, but more gas-consuming

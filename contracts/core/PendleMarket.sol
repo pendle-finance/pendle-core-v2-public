@@ -126,11 +126,30 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function swap(
+    function swapExactOtForLyt(
+        address recipient,
+        uint256 exactOtIn,
+        uint256 minLytOut,
+        bytes calldata data
+    ) external nonReentrant returns (uint256 netLytOut) {
+        netLytOut = _swap(recipient, exactOtIn.neg(), minLytOut, data).Uint();
+    }
+
+    function swapLytForExactOt(
+        address recipient,
+        uint256 exactOtOut,
+        uint256 maxLytIn,
+        bytes calldata data
+    ) external nonReentrant returns (uint256 netLytIn) {
+        netLytIn = _swap(recipient, exactOtOut.Int(), maxLytIn, data).neg().Uint();
+    }
+
+    function _swap(
         address recipient,
         int256 otToAccount,
+        uint256 lytLimit,
         bytes calldata data
-    ) external nonReentrant returns (int256 netLytToAccount) {
+    ) internal returns (int256 netLytToAccount) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
@@ -138,6 +157,14 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         int256 netLytToReserve;
 
         (netLytToAccount, netLytToReserve) = market.calculateTrade(otToAccount, timeToExpiry());
+
+        if (otToAccount < 0) {
+            // exactOtForLyt -> lytLimit is minLytOut
+            require(netLytToAccount.Uint() >= lytLimit, "insufficient lyt out");
+        } else {
+            // lytForExactOt -> lytLimit is maxLytIn
+            require(netLytToAccount.neg().Uint() <= lytLimit, "lyt in exceed limit");
+        }
 
         if (netLytToAccount > 0) IERC20(LYT).safeTransfer(recipient, netLytToAccount.Uint());
         if (otToAccount > 0) IERC20(OT).safeTransfer(recipient, otToAccount.Uint());

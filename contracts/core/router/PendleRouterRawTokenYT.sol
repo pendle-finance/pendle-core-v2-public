@@ -33,7 +33,7 @@ contract PendleRouterRawTokenYT is
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - mintLytFromRawToken is invoked, except the YT contract will receive all the outcome LYT
-     - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
+     - market.swap is called, which will transfer LYT to the YT contract, and callback is invoked
      - callback will do call YT's mintYO, which will mint OT to the market & YT to the recipient
      */
     function swapExactRawTokenForYt(
@@ -47,27 +47,30 @@ contract PendleRouterRawTokenYT is
     ) external returns (uint256 netYtOut) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        MarketParameters memory state = IPMarket(market).readState();
+        {
+            MarketParameters memory state = IPMarket(market).readState();
+            uint256 netLytUsedToBuyYT = mintLytFromRawToken(
+                exactRawTokenIn,
+                address(_market.LYT),
+                1,
+                address(_market.YT),
+                path
+            );
 
-        uint256 netLytUsedToBuyYT = mintLytFromRawToken(
-            exactRawTokenIn,
-            address(_market.LYT),
-            1,
-            address(_market.YT),
-            path
-        );
-
-        netYtOut = state.getSwapExactLytForYt(
-            netLytUsedToBuyYT,
-            IPMarket(market).timeToExpiry(),
-            netYtOutGuessMin,
-            netYtOutGuessMax
-        );
+            netYtOut = state.getSwapExactLytForYt(
+                netLytUsedToBuyYT,
+                IPMarket(market).timeToExpiry(),
+                netYtOutGuessMin,
+                netYtOutGuessMax
+            );
+        }
 
         require(netYtOut >= minYtOut, "insufficient out");
-
-        int256 otToAccount = netYtOut.neg();
-        IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(recipient));
+        {
+            uint256 exactOtIn = netYtOut;
+            // TODO: the 1 below can be better enforced?
+            IPMarket(market).swapExactOtForLyt(recipient, exactOtIn, 1, abi.encode(recipient));
+        }
     }
 
     /**
@@ -90,11 +93,16 @@ contract PendleRouterRawTokenYT is
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         _market.YT.transferFrom(msg.sender, address(_market.YT), exactYtIn);
-        int256 otToAccount = exactYtIn.Int();
+        uint256 exactOtOut = exactYtIn;
 
         address rawToken = path[path.length - 1];
         uint256 preBalanceRawToken = IERC20(rawToken).balanceOf(recipient);
-        IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(recipient, path));
+        IPMarket(market).swapLytForExactOt(
+            recipient,
+            exactOtOut,
+            type(uint256).max,
+            abi.encode(recipient, path)
+        );
 
         netRawTokenOut = IERC20(rawToken).balanceOf(recipient) - preBalanceRawToken;
 

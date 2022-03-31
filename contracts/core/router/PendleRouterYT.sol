@@ -36,14 +36,19 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         // takes out the same amount of OT as exactYtIn, to pair together
-        int256 otToAccount = exactYtIn.Int();
+        uint256 exactOtOut = exactYtIn;
 
         uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
 
         _market.YT.transferFrom(msg.sender, address(_market.YT), exactYtIn);
 
         // because of LYT / YO conversion, the number may not be 100% accurate. TODO: find a better way
-        IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(msg.sender, recipient));
+        IPMarket(market).swapLytForExactOt(
+            recipient,
+            exactOtOut,
+            type(uint256).max,
+            abi.encode(msg.sender, recipient)
+        );
 
         netLytOut = _market.LYT.balanceOf(recipient) - preBalanceLyt;
         require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
@@ -62,10 +67,15 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     ) external returns (uint256 netLytIn) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        int256 otToAccount = exactYtOut.neg();
+        uint256 exactOtIn = exactYtOut;
         uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
 
-        IPMarket(market).swap(address(_market.YT), otToAccount, abi.encode(msg.sender, recipient));
+        IPMarket(market).swapExactOtForLyt(
+            recipient,
+            exactOtIn,
+            1,
+            abi.encode(msg.sender, recipient)
+        );
 
         netLytIn = preBalanceLyt - _market.LYT.balanceOf(recipient);
 

@@ -67,7 +67,7 @@ contract PendleRouterRawTokenOT is
 
         require(netOtOut >= minOtOut, "insufficient ot");
 
-        _market.swap(recipient, netOtOut.Int(), abi.encode());
+        _market.swapLytForExactOt(recipient, netOtOut, netLytUsedToBuyOT, abi.encode());
     }
 
     /**
@@ -92,7 +92,7 @@ contract PendleRouterRawTokenOT is
 
         IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
 
-        _market.swap(LYT, exactOtIn.neg(), abi.encode());
+        _market.swapExactOtForLyt(LYT, exactOtIn, 1, abi.encode());
 
         netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
     }
