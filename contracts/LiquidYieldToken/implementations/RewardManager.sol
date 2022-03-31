@@ -23,7 +23,7 @@ abstract contract RewardManager {
     mapping(address => GlobalReward) public globalReward;
     mapping(address => mapping(address => UserReward)) public userReward;
 
-    function _doTransferOutRewards(address user)
+    function _doTransferOutRewardsForUser(address user)
         internal
         virtual
         returns (uint256[] memory outAmounts)

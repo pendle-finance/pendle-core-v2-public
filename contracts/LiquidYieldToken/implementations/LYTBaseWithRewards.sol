@@ -41,7 +41,7 @@ abstract contract LYTBaseWithRewards is LYTBase, RewardManager {
         returns (uint256[] memory outAmounts)
     {
         _updateUserReward(user, balanceOf(user), totalSupply());
-        outAmounts = _doTransferOutRewards(user);
+        outAmounts = _doTransferOutRewardsForUser(user);
     }
 
     function updateGlobalReward() public virtual override {

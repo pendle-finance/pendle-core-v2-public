@@ -6,23 +6,20 @@ import "../LiquidYieldToken/ILiquidYieldToken.sol";
 import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
 import "../libraries/math/FixedPoint.sol";
-import "../libraries/helpers/ArrayLib.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "openzeppelin-solidity/contracts/utils/math/Math.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../LiquidYieldToken/implementations/LYTUtils.sol";
+import "../LiquidYieldToken/implementations/RewardManager.sol";
 
 // probably should abstract more math to libraries
-contract PendleYieldToken is PendleBaseToken, IPYieldToken {
+contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using FixedPoint for uint256;
-    using ArrayLib for uint256[];
     using SafeERC20 for IERC20;
 
     struct UserData {
         uint256 lastLytIndex;
         uint256 dueInterest;
-        uint256[] dueRewards;
-        uint256[] lastParamL;
     }
 
     address public immutable LYT;
@@ -34,7 +31,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     uint256[] public paramL;
 
     /// params to do fee accounting
-    uint256[] public totalRewardsPostExpiry;
+    mapping(address => uint256) public totalRewardsPostExpiry;
     uint256 public totalProtocolFee;
 
     mapping(address => UserData) public data;
@@ -49,13 +46,6 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
         LYT = _LYT;
         OT = _OT;
-
-        address[] memory rewards = ILiquidYieldToken(LYT).getRewardTokens();
-
-        paramL = new uint256[](rewards.length);
-        paramL.setValue(1);
-
-        totalRewardsPostExpiry = new uint256[](rewards.length);
     }
 
     /**
@@ -111,16 +101,57 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     }
 
     function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
-        _updateDueRewards(user);
+        _updateUserReward(user, balanceOf(user), totalSupply());
+        rewardsOut = _doTransferOutRewardsForUser(user);
+    }
 
-        address[] memory rewardTokens = ILiquidYieldToken(LYT).getRewardTokens();
+    function updateGlobalReward() public virtual {
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, totalSupply());
+    }
 
-        rewardsOut = data[user].dueRewards;
-        data[user].dueRewards.setValue(0);
+    function updateUserReward(address user) public virtual {
+        _updateUserReward(user, balanceOf(user), totalSupply());
+    }
 
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransfer(user, rewardsOut[i]);
+    function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
+        internal
+        virtual
+        override
+    {
+        _redeemExternalReward();
+
+        _initGlobalReward(rewardTokens);
+
+        bool _isExpired = isExpired();
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+            address token = rewardTokens[i];
+
+            uint256 currentRewardBalance = IERC20(token).balanceOf(address(this));
+            uint256 totalIncomeReward = currentRewardBalance - globalReward[token].lastBalance;
+
+            if (_isExpired) {
+                totalRewardsPostExpiry[token] += totalIncomeReward;
+            } else if (totalSupply != 0) {
+                globalReward[token].index += totalIncomeReward.divDown(totalSupply);
+            }
+
+            globalReward[token].lastBalance = currentRewardBalance;
         }
+    }
+
+    function _redeemExternalReward() internal virtual override {
+        ILiquidYieldToken(LYT).redeemReward(address(this));
+    }
+
+    function getRewardTokens()
+        public
+        view
+        virtual
+        override(RewardManager)
+        returns (address[] memory)
+    {
+        return ILiquidYieldToken(LYT).getRewardTokens();
     }
 
     function getLytIndexBeforeExpiry() public returns (uint256 res) {
@@ -135,10 +166,10 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
         address treasury = IPYieldContractFactory(factory).treasury();
 
         for (uint256 i = 0; i < length; i++) {
-            if (totalRewardsPostExpiry[i] > 0) {
-                IERC20(rewardTokens[i]).safeTransfer(treasury, totalRewardsPostExpiry[i]);
-                totalRewardsPostExpiry[i] = 0;
-            }
+            address token = rewardTokens[i];
+            uint256 outAmount = totalRewardsPostExpiry[token];
+            if (outAmount > 0) IERC20(rewardTokens[i]).safeTransfer(treasury, outAmount);
+            totalRewardsPostExpiry[token] = 0;
         }
 
         if (totalProtocolFee > 0) {
@@ -168,43 +199,6 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
         data[user].lastLytIndex = currentIndex;
     }
 
-    function _updateDueRewards(address user) internal {
-        _updateParamL();
-
-        if (data[user].lastParamL.length == 0) {
-            data[user].lastParamL = paramL;
-            data[user].dueRewards = new uint256[](2);
-            return;
-        }
-
-        uint256 principal = balanceOf(user);
-
-        uint256[] memory rewardsAmountPerYT = paramL.sub(data[user].lastParamL);
-
-        uint256[] memory rewardsFromYT = rewardsAmountPerYT.mulDown(principal);
-
-        data[user].dueRewards.addEq(rewardsFromYT);
-
-        data[user].lastParamL = paramL;
-    }
-
-    function _updateParamL() internal {
-        uint256[] memory incomeRewards = ILiquidYieldToken(LYT).redeemReward(address(this));
-
-        // if YT has already expired, all the rewards go to the governance
-        if (isExpired()) {
-            totalRewardsPostExpiry.addEq(incomeRewards);
-            return;
-        }
-
-        uint256 totalYT = totalSupply();
-
-        if (totalYT != 0) {
-            uint256[] memory incomePerYT = incomeRewards.divDown(totalYT);
-            paramL = paramL.add(incomePerYT);
-        }
-    }
-
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
         return LYTUtils.lytToAsset(getLytIndexBeforeExpiry(), amount);
     }
@@ -227,16 +221,17 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken {
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 amount
+        uint256
     ) internal override {
-        super._beforeTokenTransfer(from, to, amount);
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, totalSupply());
         if (from != address(0) && from != address(this)) {
             _updateDueInterest(from);
-            _updateDueRewards(from);
+            _updateUserRewardSkipGlobal(rewardTokens, from, balanceOf(from));
         }
         if (to != address(0) && to != address(this)) {
             _updateDueInterest(to);
-            _updateDueRewards(to);
+            _updateUserRewardSkipGlobal(rewardTokens, to, balanceOf(to));
         }
     }
 }
