@@ -30,16 +30,20 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address LYT,
         uint256 minLytOut,
         address recipient,
-        address[] calldata path
+        address[] calldata path,
+        bool doPull
     ) public returns (uint256 netLytOut) {
-        if (path.length == 1) {
-            IERC20(path[0]).transferFrom(msg.sender, LYT, netRawTokenIn);
-        } else {
-            IERC20(path[0]).transferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
-            _swapExactIn(path, netRawTokenIn, LYT);
+        if (doPull) {
+            if (path.length == 1) {
+                IERC20(path[0]).transferFrom(msg.sender, LYT, netRawTokenIn);
+            } else {
+                IERC20(path[0]).transferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
+                _swapExactIn(path, netRawTokenIn, LYT);
+            }
         }
 
-        netLytOut = _mintLytFromRawToken(LYT, minLytOut, recipient, path);
+        address baseToken = path[path.length - 1];
+        netLytOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
     }
 
     /**
@@ -58,11 +62,25 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         uint256 netLytIn,
         uint256 minRawTokenOut,
         address recipient,
-        address[] calldata path
+        address[] memory path,
+        bool doPull
     ) public returns (uint256 netRawTokenOut) {
-        IERC20(LYT).safeTransferFrom(msg.sender, LYT, netLytIn);
+        if (doPull) {
+            IERC20(LYT).safeTransferFrom(msg.sender, LYT, netLytIn);
+        }
 
-        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
+        address baseToken = path[0];
+        if (path.length == 1) {
+            netRawTokenOut = ILiquidYieldToken(LYT).redeem(recipient, baseToken, minRawTokenOut);
+        } else {
+            uint256 netBaseTokenOut = ILiquidYieldToken(LYT).redeem(
+                _getFirstPair(path),
+                baseToken,
+                1
+            );
+            netRawTokenOut = _swapExactIn(path, netBaseTokenOut, recipient);
+            require(netRawTokenOut >= minRawTokenOut, "insufficient out");
+        }
     }
 
     /**
@@ -77,14 +95,12 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address YT,
         uint256 minYoOut,
         address recipient,
-        address[] calldata path
+        address[] calldata path,
+        bool doPull
     ) public returns (uint256 netYoOut) {
         address LYT = IPYieldToken(YT).LYT();
-
-        mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path);
-
+        mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path, doPull);
         netYoOut = IPYieldToken(YT).mintYO(recipient, recipient);
-
         require(netYoOut >= minYoOut, "insufficient YO out");
     }
 
@@ -101,48 +117,20 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         uint256 netYoIn,
         uint256 minRawTokenOut,
         address recipient,
-        address[] calldata path
+        address[] memory path,
+        bool doPull
     ) public returns (uint256 netRawTokenOut) {
         address OT = IPYieldToken(YT).OT();
         address LYT = IPYieldToken(YT).LYT();
 
-        bool isNeedToBurnYt = (IPBaseToken(YT).isExpired() == false);
-
-        IERC20(OT).safeTransferFrom(msg.sender, YT, netYoIn);
-        if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netYoIn);
+        if (doPull) {
+            bool isNeedToBurnYt = (IPBaseToken(YT).isExpired() == false);
+            IERC20(OT).safeTransferFrom(msg.sender, YT, netYoIn);
+            if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netYoIn);
+        }
 
         IPYieldToken(YT).redeemYO(LYT);
 
-        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
-    }
-
-    function _mintLytFromRawToken(
-        address LYT,
-        uint256 minLytOut,
-        address recipient,
-        address[] memory path
-    ) internal returns (uint256 netLytOut) {
-        address baseToken = path[path.length - 1];
-        netLytOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
-    }
-
-    function _redeemLytToRawToken(
-        address LYT,
-        uint256 minRawTokenOut,
-        address recipient,
-        address[] memory path
-    ) internal returns (uint256 netRawTokenOut) {
-        address baseToken = path[0];
-        if (path.length == 1) {
-            netRawTokenOut = ILiquidYieldToken(LYT).redeem(recipient, baseToken, minRawTokenOut);
-        } else {
-            uint256 netBaseTokenOut = ILiquidYieldToken(LYT).redeem(
-                _getFirstPair(path),
-                baseToken,
-                1
-            );
-            netRawTokenOut = _swapExactIn(path, netBaseTokenOut, recipient);
-            require(netRawTokenOut >= minRawTokenOut, "insufficient out");
-        }
+        netRawTokenOut = redeemLytToRawToken(LYT, 0, minRawTokenOut, recipient, path, false);
     }
 }

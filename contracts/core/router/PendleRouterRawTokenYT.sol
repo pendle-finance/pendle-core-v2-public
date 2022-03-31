@@ -54,7 +54,8 @@ contract PendleRouterRawTokenYT is
                 address(_market.LYT),
                 1,
                 address(_market.YT),
-                path
+                path,
+                true
             );
 
             netYtOut = state.getSwapExactLytForYt(
@@ -148,6 +149,6 @@ contract PendleRouterRawTokenYT is
         _market.LYT.transfer(market, lytOwed);
         _market.LYT.transfer(address(_market.LYT), netLytReceived - lytOwed);
 
-        _redeemLytToRawToken(address(_market.LYT), 1, recipient, path);
+        redeemLytToRawToken(address(_market.LYT), 0, 1, recipient, path, false);
     }
 }

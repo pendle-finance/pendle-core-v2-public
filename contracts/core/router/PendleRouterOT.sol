@@ -7,13 +7,10 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../base/PendleRouterMarketBase.sol";
 
-contract PendleRouterOT is
-    PendleRouterMarketBase,
-    IPMarketAddRemoveCallback,
-    IPMarketSwapCallback
-{
+contract PendleRouterOT is PendleRouterMarketBase {
     using FixedPoint for uint256;
     using FixedPoint for int256;
+    using MarketMathLib for MarketParameters;
 
     constructor(address _marketFactory)
         PendleRouterMarketBase(_marketFactory)
@@ -34,7 +31,8 @@ contract PendleRouterOT is
         address recipient,
         address market,
         uint256 lytDesired,
-        uint256 otDesired
+        uint256 otDesired,
+        bool doPull
     )
         external
         returns (
@@ -43,12 +41,18 @@ contract PendleRouterOT is
             uint256 otUsed
         )
     {
-        (lpToAccount, lytUsed, otUsed) = IPMarket(market).addLiquidity(
-            recipient,
-            otDesired,
-            lytDesired,
-            abi.encode(msg.sender)
-        );
+        MarketParameters memory state = IPMarket(market).readState();
+        (, lpToAccount, lytUsed, otUsed) = state.addLiquidity(lytDesired, otDesired);
+
+        if (doPull) {
+            address LYT = IPMarket(market).LYT();
+            address OT = IPMarket(market).OT();
+
+            IERC20(LYT).transferFrom(msg.sender, market, lytUsed);
+            IERC20(OT).transferFrom(msg.sender, market, otUsed);
+        }
+
+        IPMarket(market).addLiquidity(recipient, otDesired, lytDesired, abi.encode());
     }
 
     /**
@@ -64,16 +68,20 @@ contract PendleRouterOT is
         address market,
         uint256 lpToRemove,
         uint256 lytToAccountMin,
-        uint256 otToAccountMin
+        uint256 otToAccountMin,
+        bool doPull
     ) external returns (uint256 lytToAccount, uint256 otToAccount) {
-        (lytToAccount, otToAccount) = IPMarket(market).removeLiquidity(
-            recipient,
-            lpToRemove,
-            abi.encode(msg.sender)
-        );
+        MarketParameters memory state = IPMarket(market).readState();
 
+        (lytToAccount, otToAccount) = state.removeLiquidity(lpToRemove);
         require(lytToAccount >= lytToAccountMin, "insufficient lyt out");
         require(otToAccount >= otToAccountMin, "insufficient ot out");
+
+        if (doPull) {
+            IPMarket(market).transferFrom(msg.sender, market, lpToRemove);
+        }
+
+        IPMarket(market).removeLiquidity(recipient, lpToRemove, abi.encode());
     }
 
     /**
@@ -88,14 +96,22 @@ contract PendleRouterOT is
         address recipient,
         address market,
         uint256 exactOtIn,
-        uint256 minLytOut
+        uint256 minLytOut,
+        bool doPull
     ) public returns (uint256 netLytOut) {
-        netLytOut = IPMarket(market).swapExactOtForLyt(
+        if (doPull) {
+            address OT = IPMarket(market).OT();
+            IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
+        }
+
+        (netLytOut, ) = IPMarket(market).swapExactOtForLyt(
             recipient,
             exactOtIn,
             minLytOut,
-            abi.encode(msg.sender)
+            abi.encode()
         );
+
+        require(netLytOut >= minLytOut, "insufficient lyt out");
     }
 
     // swapOtForExactLyt is also possible, but more gas-consuming
@@ -112,9 +128,20 @@ contract PendleRouterOT is
         address recipient,
         address market,
         uint256 exactOtOut,
-        uint256 maxLytIn
+        uint256 maxLytIn,
+        bool doPull
     ) public returns (uint256 netLytIn) {
-        netLytIn = IPMarket(market).swapLytForExactOt(
+        MarketParameters memory state = IPMarket(market).readState();
+
+        (netLytIn, ) = state.calcLytForExactOt(exactOtOut, IPMarket(market).timeToExpiry());
+        require(netLytIn <= maxLytIn, "exceed limit lyt in");
+
+        if (doPull) {
+            address LYT = IPMarket(market).LYT();
+            IERC20(LYT).transferFrom(msg.sender, market, netLytIn);
+        }
+
+        IPMarket(market).swapLytForExactOt(
             recipient,
             exactOtOut,
             maxLytIn,
@@ -122,45 +149,40 @@ contract PendleRouterOT is
         );
     }
 
-    // swapExactLytForOt is also possible, but more gas-consuming
+    function swapExactLytForOt(
+        address recipient,
+        address market,
+        uint256 exactLytIn,
+        uint256 minOtOut,
+        uint256 netOtOutGuessMin,
+        uint256 netOtOutGuessMax,
+        bool doPull
+    ) public returns (uint256 netOtOut) {
+        MarketParameters memory state = IPMarket(market).readState();
 
-    /*///////////////////////////////////////////////////////////////
-                CALLBACKS, ONLY ACCESSIBLE BY MARKETS
-    //////////////////////////////////////////////////////////////*/
+        if (netOtOutGuessMax == type(uint256).max) {
+            netOtOutGuessMax = state.totalOt.Uint();
+        }
 
-    function addLiquidityCallback(
-        uint256,
-        uint256 lytOwed,
-        uint256 otOwed,
-        bytes calldata data
-    ) external onlyPendleMarket(msg.sender) {
-        IPMarket market = IPMarket(msg.sender);
-        address payer = abi.decode(data, (address));
-        IERC20(market.OT()).transferFrom(payer, msg.sender, otOwed);
-        IERC20(market.LYT()).transferFrom(payer, msg.sender, lytOwed);
-    }
+        netOtOut = state.getSwapExactLytForOt(
+            exactLytIn,
+            IPMarket(market).timeToExpiry(),
+            netOtOutGuessMin,
+            netOtOutGuessMax
+        );
 
-    function removeLiquidityCallback(
-        uint256 lpToRemove,
-        uint256,
-        uint256,
-        bytes calldata data
-    ) external onlyPendleMarket(msg.sender) {
-        IPMarket market = IPMarket(msg.sender);
-        address payer = abi.decode(data, (address));
-        market.transferFrom(payer, msg.sender, lpToRemove);
-    }
+        require(netOtOut >= minOtOut, "insufficient out");
 
-    function swapCallback(
-        int256 otToAccount,
-        int256 lytToAccount,
-        bytes calldata data
-    ) external override onlyPendleMarket(msg.sender) {
-        IPMarket market = IPMarket(msg.sender);
-        address payer = abi.decode(data, (address));
-        if (otToAccount < 0)
-            IERC20(market.OT()).transferFrom(payer, msg.sender, otToAccount.abs());
-        if (lytToAccount < 0)
-            IERC20(market.LYT()).transferFrom(payer, msg.sender, lytToAccount.abs());
+        if (doPull) {
+            address LYT = IPMarket(market).LYT();
+            IERC20(LYT).transferFrom(msg.sender, market, exactLytIn);
+        }
+
+        IPMarket(market).swapLytForExactOt(
+            recipient,
+            netOtOut,
+            exactLytIn,
+            abi.encode(msg.sender)
+        );
     }
 }

@@ -120,6 +120,34 @@ library MarketMathLib {
         _otOut = otOut.Uint();
     }
 
+    function calcExactOtForLyt(
+        MarketParameters memory market,
+        uint256 exactOtIn,
+        uint256 timeToExpiry
+    ) internal pure returns (uint256 netLytOut, uint256 netLytToReserve) {
+        (int256 _netLytToAccount, int256 _netLytToReserve) = calcTrade(
+            market,
+            exactOtIn.neg(),
+            timeToExpiry
+        );
+        netLytOut = _netLytToAccount.Uint();
+        netLytToReserve = _netLytToReserve.Uint();
+    }
+
+    function calcLytForExactOt(
+        MarketParameters memory market,
+        uint256 exactOtOut,
+        uint256 timeToExpiry
+    ) internal pure returns (uint256 netLytIn, uint256 netLytToReserve) {
+        (int256 _netLytToAccount, int256 _netLytToReserve) = calcTrade(
+            market,
+            exactOtOut.Int(),
+            timeToExpiry
+        );
+        netLytIn = _netLytToAccount.neg().Uint();
+        netLytToReserve = _netLytToReserve.Uint();
+    }
+
     /// @notice Calculates the asset cash amount the results from trading otToAccount with the market. A positive
     /// otToAccount is equivalent of lending, a negative is borrowing. Updates the market state in memory.
     /// @param market the current market state
@@ -127,7 +155,7 @@ library MarketMathLib {
     /// to the market is in the opposite direction.
     /// @param timeToExpiry number of seconds until expiry
     /// @return netLytToAccount netLytToReserve
-    function calculateTrade(
+    function calcTrade(
         MarketParameters memory market,
         int256 otToAccount,
         uint256 timeToExpiry
@@ -458,7 +486,7 @@ library MarketMathLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (int256 lytOwed, ) = calculateTrade(market, currentOtOutGuess.Int(), timeToExpiry);
+            (int256 lytOwed, ) = calcTrade(market, currentOtOutGuess.Int(), timeToExpiry);
             bool isResultAcceptable = (lytOwed.abs() <= exactLytIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
@@ -489,7 +517,7 @@ library MarketMathLib {
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
             int256 otToAccount = currentYtOutGuess.neg();
-            (int256 lytReceived, ) = calculateTrade(market, otToAccount, timeToExpiry);
+            (int256 lytReceived, ) = calcTrade(market, otToAccount, timeToExpiry);
 
             int256 totalLytToMintYo = lytReceived + exactLytIn.Int();
 

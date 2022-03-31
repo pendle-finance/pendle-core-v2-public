@@ -6,11 +6,7 @@ import "./PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-contract PendleRouterRawTokenOT is
-    PendleRouterLytAndForge,
-    PendleRouterMarketBase,
-    IPMarketSwapCallback
-{
+contract PendleRouterRawTokenOT is PendleRouterLytAndForge, PendleRouterOT {
     using MarketMathLib for MarketParameters;
     using FixedPoint for uint256;
     using FixedPoint for int256;
@@ -21,7 +17,7 @@ contract PendleRouterRawTokenOT is
         address _marketFactory
     )
         PendleRouterLytAndForge(_joeRouter, _joeFactory)
-        PendleRouterMarketBase(_marketFactory)
+        PendleRouterOT(_marketFactory)
     //solhint-disable-next-line no-empty-blocks
     {
 
@@ -34,10 +30,6 @@ contract PendleRouterRawTokenOT is
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
     guess range. After getting the result, min = result * (100-slippage) & max = result * (100+slippage)
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-    * @dev inner working of this function:
-     - mintLytFromRawToken is invoked, except the market will be the recipient of all outcome LYT
-     - market.swap is called, which will transfer out all the OT to the recipient, and callback is invoked
-     - callback will do nothing & return (since the required LYT was transferred to market in step 1)
     */
     function swapExactRawTokenForOt(
         uint256 exactRawTokenIn,
@@ -46,62 +38,43 @@ contract PendleRouterRawTokenOT is
         address market,
         uint256 minOtOut,
         uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
+        uint256 netOtOutGuessMax,
+        bool doPull
     ) external returns (uint256 netOtOut) {
-        IPMarket _market = IPMarket(market);
-        MarketParameters memory state = _market.readState();
-
-        if (netOtOutGuessMax == type(uint256).max) {
-            netOtOutGuessMax = state.totalOt.Uint();
-        }
-
-        address LYT = _market.LYT();
-        uint256 netLytUsedToBuyOT = mintLytFromRawToken(exactRawTokenIn, LYT, 1, market, path);
-
-        netOtOut = state.getSwapExactLytForOt(
-            netLytUsedToBuyOT,
-            _market.timeToExpiry(),
-            netOtOutGuessMin,
-            netOtOutGuessMax
+        address LYT = IPMarket(market).LYT();
+        uint256 netLytUseToBuyOt = mintLytFromRawToken(
+            exactRawTokenIn,
+            LYT,
+            1,
+            market,
+            path,
+            doPull
         );
-
-        require(netOtOut >= minOtOut, "insufficient ot");
-
-        _market.swapLytForExactOt(recipient, netOtOut, netLytUsedToBuyOT, abi.encode());
+        netOtOut = swapExactLytForOt(
+            recipient,
+            market,
+            netLytUseToBuyOt,
+            minOtOut,
+            netOtOutGuessMin,
+            netOtOutGuessMax,
+            false
+        );
     }
 
     /**
      * @notice sell all Ot for RawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - OT is transferred to the market
-     - market.swap is called, which will transfer LYT directly to the LYT contract, and callback is invoked
-     - callback will do nothing & return (since OT has been transferred to the market in step 1)
-     - redeemLytToRawToken is invoked
      */
     function swapExactOtForRawToken(
         uint256 exactOtIn,
         address recipient,
         address[] calldata path,
         address market,
-        uint256 minRawTokenOut
+        uint256 minRawTokenOut,
+        bool doPull
     ) external returns (uint256 netRawTokenOut) {
-        IPMarket _market = IPMarket(market);
-        address OT = _market.OT();
-        address LYT = _market.LYT();
-
-        IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
-
-        _market.swapExactOtForLyt(LYT, exactOtIn, 1, abi.encode());
-
-        netRawTokenOut = _redeemLytToRawToken(LYT, minRawTokenOut, recipient, path);
-    }
-
-    function swapCallback(
-        int256,
-        int256,
-        bytes calldata //solhint-disable-next-line no-empty-blocks
-    ) external {
-        // empty body since all tokens has been transferred manually to correct addresses
+        address LYT = IPMarket(market).LYT();
+        swapExactOtForLyt(LYT, market, exactOtIn, 1, doPull);
+        netRawTokenOut = redeemLytToRawToken(LYT, 0, minRawTokenOut, recipient, path, false);
     }
 }
