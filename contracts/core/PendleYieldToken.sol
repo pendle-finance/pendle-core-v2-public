@@ -68,16 +68,12 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     /// this function converts YO tokens into lyt, but interests & rewards are not included
     function redeemYO(address recipient) public returns (uint256 amountLytOut) {
         // minimum of OT & YT balance
-        uint256 amountYOToRedeem = Math.min(
-            IERC20(OT).balanceOf(address(this)),
-            balanceOf(address(this))
-        );
-
+        uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
+        if (!isExpired()) {
+            amountYOToRedeem = Math.min(amountYOToRedeem, balanceOf(address(this)));
+            _burn(address(this), amountYOToRedeem);
+        }
         IPOwnershipToken(OT).burnByYT(address(this), amountYOToRedeem);
-
-        uint256 amountYtToBurn = isExpired() ? 0 : amountYOToRedeem;
-
-        _burn(address(this), amountYtToBurn);
 
         amountLytOut = _calcAmountRedeemable(amountYOToRedeem);
 
