@@ -11,12 +11,12 @@ contract PendleAaveV3LYT is LYTBaseWithRewards {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
-    address internal immutable underlying;
-    address internal immutable pool;
-    address internal immutable rewardsController;
-    address internal immutable aToken;
+    address public immutable underlying;
+    address public immutable pool;
+    address public immutable rewardsController;
+    address public immutable aToken;
 
-    uint256 internal lastLytIndex;
+    uint256 public lastLytIndex;
 
     // WIP: Aave reward controller can config to have more rewardsToken,
     // hence rewardsLength should not be immutable

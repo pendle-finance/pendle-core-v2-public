@@ -9,13 +9,13 @@ import "../../interfaces/IWETH.sol";
 contract PendleBenQiErc20LYT is LYTBaseWithRewards {
     using SafeERC20 for IERC20;
 
-    address internal immutable underlying;
-    address internal immutable QI;
-    address internal immutable WAVAX;
-    address internal immutable comptroller;
-    address internal immutable qiToken;
+    address public immutable underlying;
+    address public immutable QI;
+    address public immutable WAVAX;
+    address public immutable comptroller;
+    address public immutable qiToken;
 
-    uint256 internal lastLytIndex;
+    uint256 public lastLytIndex;
 
     constructor(
         string memory _name,

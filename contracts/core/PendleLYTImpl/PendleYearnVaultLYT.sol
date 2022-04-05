@@ -7,10 +7,10 @@ import "../../interfaces/IYearnVault.sol";
 contract PendleYearnVaultLYT is LYTBase {
     using SafeERC20 for IERC20;
 
-    address internal immutable underlying;
-    address internal immutable yvToken;
+    address public immutable underlying;
+    address public immutable yvToken;
 
-    uint256 internal lastLytIndex;
+    uint256 public lastLytIndex;
 
     constructor(
         string memory _name,
