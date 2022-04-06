@@ -151,7 +151,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         IERC20(LYT).safeTransfer(recipient, netLytOut);
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
 
-        IPMarketSwapCallback(recipient).swapCallback(exactOtIn.neg(), netLytOut.Int(), data);
+        if (data.length > 0) {
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netLytOut.Int(), data);
+        }
 
         // have received enough OT
         require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
@@ -176,7 +178,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         IERC20(OT).safeTransfer(recipient, exactOtOut);
         IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
 
-        IPMarketSwapCallback(recipient).swapCallback(exactOtOut.Int(), netLytIn.neg(), data);
+        if (data.length > 0) {
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netLytIn.neg(), data);
+        }
 
         // have received enough LYT
         require(market.totalLyt.Uint() <= IERC20(LYT).balanceOf(address(this)));
