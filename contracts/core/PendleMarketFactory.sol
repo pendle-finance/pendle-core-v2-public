@@ -23,9 +23,10 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
     function createNewMarket(
         address OT,
         uint256 feeRateRoot,
-        uint256 scalarRoot,
+        int256 scalarRoot,
         int256 anchorRoot,
-        uint8 reserveFeePercent
+        uint8 reserveFeePercent,
+        uint256 rateOracleTimeWindow
     ) external returns (address market) {
         address SCY = IPOwnershipToken(OT).SCY();
         uint256 expiry = IPOwnershipToken(OT).expiry();
@@ -36,7 +37,14 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
         );
 
         market = address(
-            new PendleMarket(OT, feeRateRoot, scalarRoot, anchorRoot, reserveFeePercent)
+            new PendleMarket(
+                OT,
+                rateOracleTimeWindow,
+                feeRateRoot,
+                scalarRoot,
+                anchorRoot,
+                reserveFeePercent
+            )
         );
         otMarkets[address(OT)].add(market);
     }

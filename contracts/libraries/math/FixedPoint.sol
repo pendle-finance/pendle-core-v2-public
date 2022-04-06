@@ -17,7 +17,7 @@ pragma solidity ^0.8.0;
 import "./LogExpMath.sol";
 import "../helpers/PendleErrors.sol";
 
-/* solhint-disable private-vars-leading-underscore */
+/* solhint-disable private-vars-leading-underscore, reason-string */
 
 library FixedPoint {
     uint256 internal constant ONE = 1e18; // 18 decimal places
@@ -177,22 +177,27 @@ library FixedPoint {
     }
 
     function Uint(int256 x) internal pure returns (uint256) {
-        require(x >= 0, "INVALID_CAST");
+        require(x >= 0);
         return uint256(x);
     }
 
     function Int(uint256 x) internal pure returns (int256) {
-        require(x <= uint256(type(int256).max), "INVALID_CAST");
+        require(x <= uint256(type(int256).max));
         return int256(x);
     }
 
     function Int128(int256 x) internal pure returns (int128) {
-        require(0 <= x && x <= type(int128).max, "INVALID_CAST");
+        require(0 <= x && x <= type(int128).max);
         return int128(x);
     }
 
     function Uint32(uint256 x) internal pure returns (uint32) {
-        require(0 <= x && x <= type(uint32).max, "INVALID_CAST");
+        require(0 <= x && x <= type(uint32).max);
         return uint32(x);
+    }
+
+    function Uint112(uint256 x) internal pure returns (uint112) {
+        require(0 <= x && x <= type(uint112).max);
+        return uint112(x);
     }
 }

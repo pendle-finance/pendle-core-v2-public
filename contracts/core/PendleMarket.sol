@@ -38,17 +38,20 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     address public immutable OT;
     address public immutable SCY;
 
-    uint256 public immutable scalarRoot;
+    int256 public immutable scalarRoot;
     uint256 public immutable feeRateRoot; // allow fee to be changable?
     int256 public immutable anchorRoot;
+
+    uint256 public immutable rateOracleTimeWindow;
     int8 public immutable reserveFeePercent;
 
-    MarketStorage public _marketState;
+    MarketStorage public marketStorage;
 
     constructor(
         address _OT,
+        uint256 _rateOracleTimeWindow,
         uint256 _feeRateRoot,
-        uint256 _scalarRoot,
+        int256 _scalarRoot,
         int256 _anchorRoot,
         uint8 _reserveFeePercent
     ) PendleBaseToken(NAME, SYMBOL, 18, IPOwnershipToken(_OT).expiry()) {
@@ -56,15 +59,13 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         SCY = IPOwnershipToken(_OT).SCY();
         feeRateRoot = _feeRateRoot;
         scalarRoot = _scalarRoot;
+        rateOracleTimeWindow = _rateOracleTimeWindow;
 
         require(_reserveFeePercent <= 100, "invalid fee rate");
         reserveFeePercent = int8(_reserveFeePercent);
         anchorRoot = _anchorRoot;
     }
 
-    /**
-     * @notice callback is only done when data.length > 0
-     */
     function addLiquidity(
         address recipient,
         uint256 scyDesired,
@@ -102,7 +103,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         }
 
         require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalSCY.Uint() <= IERC20(SCY).balanceOf(address(this)));
+        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
 
         _writeState(market);
     }
@@ -143,10 +144,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netSCYOut, netSCYToReserve) = market.calcExactOtForSCY(
-            exactOtIn,
-            market.getTimeToExpiry()
-        );
+        (netSCYOut, netSCYToReserve) = market.calcExactOtForSCY(exactOtIn, block.timestamp);
         require(netSCYOut >= minSCYOut, "insufficient scy out");
         IERC20(SCY).safeTransfer(recipient, netSCYOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
@@ -170,10 +168,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netSCYIn, netSCYToReserve) = market.calcSCYForExactOt(
-            exactOtOut,
-            market.getTimeToExpiry()
-        );
+        (netSCYIn, netSCYToReserve) = market.calcSCYForExactOt(exactOtOut, block.timestamp);
         require(netSCYIn <= maxSCYIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(recipient, exactOtOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
@@ -183,35 +178,39 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         }
 
         // have received enough SCY
-        require(market.totalSCY.Uint() <= IERC20(SCY).balanceOf(address(this)));
+        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
         _writeState(market);
     }
 
     /// the only non-view part in this function is the ISuperComposableYield(SCY).scyIndexCurrent()
     function readState() public returns (MarketParameters memory market) {
-        MarketStorage storage store = _marketState;
-        market.expiry = expiry;
+        MarketStorage storage store = marketStorage;
         market.totalOt = store.totalOt;
-        market.totalSCY = store.totalSCY;
+        market.totalScy = store.totalScy;
         market.totalLp = totalSupply().Int();
-        market.lastImpliedRate = store.lastImpliedRate;
         market.scyRate = ISuperComposableYield(SCY).scyIndexCurrent();
-        market.feeRateRoot = feeRateRoot;
+        market.oracleRate = store.oracleRate;
         market.reserveFeePercent = reserveFeePercent;
+
+        market.scalarRoot = scalarRoot;
+        market.feeRateRoot = feeRateRoot;
         market.anchorRoot = anchorRoot;
+        market.rateOracleTimeWindow = rateOracleTimeWindow;
+        market.expiry = expiry;
+
+        market.lastImpliedRate = store.lastImpliedRate;
+        market.lastTradeTime = store.lastTradeTime;
+
+        market.updateNewRateOracle(block.timestamp);
     }
 
     function _writeState(MarketParameters memory market) internal {
-        MarketStorage storage store = _marketState;
-        // shall we verify lp here?
-        // hmm should we verify the sum right after callback instead?
+        MarketStorage storage store = marketStorage;
 
         store.totalOt = market.totalOt.Int128();
-        store.totalSCY = market.totalSCY.Int128();
+        store.totalScy = market.totalScy.Int128();
         store.lastImpliedRate = market.lastImpliedRate.Uint32();
-    }
-
-    function _selfBalance(address token) internal view returns (uint256) {
-        return IERC20(token).balanceOf(address(this));
+        store.oracleRate = market.oracleRate.Uint112();
+        store.lastTradeTime = market.lastTradeTime.Uint32();
     }
 }
