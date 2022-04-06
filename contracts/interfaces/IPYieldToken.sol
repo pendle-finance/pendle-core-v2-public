@@ -7,13 +7,13 @@ interface IPYieldToken is IPBaseToken {
         external
         returns (uint256 amountYOOut);
 
-    function redeemYO(address recipient) external returns (uint256 amountLytOut);
+    function redeemYO(address recipient) external returns (uint256 amountSCYOut);
 
     function redeemDueInterest(address user) external returns (uint256 interestOut);
 
     function redeemDueRewards(address user) external returns (uint256[] memory rewardsOut);
 
-    function LYT() external view returns (address);
+    function SCY() external view returns (address);
 
     function OT() external view returns (address);
 }

@@ -5,7 +5,7 @@ import "./base/PendleBaseToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
 
 contract PendleOwnershipToken is PendleBaseToken, IPOwnershipToken {
-    address public immutable LYT;
+    address public immutable SCY;
     address public YT;
 
     modifier onlyYT() {
@@ -19,13 +19,13 @@ contract PendleOwnershipToken is PendleBaseToken, IPOwnershipToken {
     }
 
     constructor(
-        address _LYT,
+        address _SCY,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
-        LYT = _LYT;
+        SCY = _SCY;
     }
 
     function initialize(address _YT) external onlyFactory {

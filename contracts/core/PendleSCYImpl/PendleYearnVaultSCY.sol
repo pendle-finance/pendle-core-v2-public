@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTBase.sol";
+import "../../SuperComposableYield/implementations/SCYBase.sol";
 import "../../interfaces/IYearnVault.sol";
 
-contract PendleYearnVaultLYT is LYTBase {
+contract PendleYearnVaultSCY is SCYBase {
     using SafeERC20 for IERC20;
 
     address public immutable underlying;
     address public immutable yvToken;
 
-    uint256 public lastLytIndex;
+    uint256 public lastSCYIndex;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __lytdecimals,
+        uint8 __scydecimals,
         uint8 __assetDecimals,
         address _underlying,
         address _yvToken
-    ) LYTBase(_name, _symbol, __lytdecimals, __assetDecimals) {
+    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
         yvToken = _yvToken;
         underlying = _underlying;
         IERC20(underlying).safeIncreaseAllowance(yvToken, type(uint256).max);
@@ -33,46 +33,46 @@ contract PendleYearnVaultLYT is LYTBase {
         internal
         virtual
         override
-        returns (uint256 amountLytOut)
+        returns (uint256 amountSCYOut)
     {
         if (token == yvToken) {
-            amountLytOut = amountBase;
+            amountSCYOut = amountBase;
         } else {
             // must be underlying
             IYearnVault(yvToken).deposit(amountBase);
             _afterSendToken(underlying);
-            amountLytOut = _afterReceiveToken(yvToken);
+            amountSCYOut = _afterReceiveToken(yvToken);
         }
     }
 
-    function _redeem(address token, uint256 amountLyt)
+    function _redeem(address token, uint256 amountSCY)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == yvToken) {
-            amountBaseOut = amountLyt;
+            amountBaseOut = amountSCY;
         } else {
             // must be underlying
-            IYearnVault(yvToken).withdraw(amountLyt);
+            IYearnVault(yvToken).withdraw(amountSCY);
             _afterSendToken(yvToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }
     }
 
     /*///////////////////////////////////////////////////////////////
-                               LYT-INDEX
+                               SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function lytIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastLytIndex, IYearnVault(yvToken).pricePerShare());
-        lastLytIndex = res;
+    function scyIndexCurrent() public virtual override returns (uint256 res) {
+        res = FixedPoint.max(lastSCYIndex, IYearnVault(yvToken).pricePerShare());
+        lastSCYIndex = res;
         return res;
     }
 
-    function lytIndexStored() public view override returns (uint256 res) {
-        res = lastLytIndex;
+    function scyIndexStored() public view override returns (uint256 res) {
+        res = lastSCYIndex;
     }
 
     /*///////////////////////////////////////////////////////////////

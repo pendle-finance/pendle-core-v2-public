@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "../ILiquidYieldToken.sol";
+import "../ISuperComposableYield.sol";
 import "./RewardManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/FixedPoint.sol";
-import "./LYTUtils.sol";
+import "./SCYUtils.sol";
 
 /**
 # CONDITIONS TO USE THIS PRESET:
@@ -13,11 +13,11 @@ import "./LYTUtils.sol";
 satisfy this restriction is AaveV2's aToken
 
 */
-abstract contract LYTBase is ERC20, ILiquidYieldToken {
+abstract contract SCYBase is ERC20, ISuperComposableYield {
     using SafeERC20 for IERC20;
     using FixedPoint for uint256;
 
-    uint8 private immutable _lytdecimals;
+    uint8 private immutable _scydecimals;
     uint8 private immutable _assetDecimals;
 
     mapping(address => uint256) internal lastBalanceOf;
@@ -25,10 +25,10 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __lytdecimals,
+        uint8 __scydecimals,
         uint8 __assetDecimals
     ) ERC20(_name, _symbol) {
-        _lytdecimals = __lytdecimals;
+        _scydecimals = __scydecimals;
         _assetDecimals = __assetDecimals;
     }
 
@@ -39,17 +39,17 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
     function mint(
         address recipient,
         address baseTokenIn,
-        uint256 minAmountLytOut
-    ) public virtual override returns (uint256 amountLytOut) {
+        uint256 minAmountSCYOut
+    ) public virtual override returns (uint256 amountSCYOut) {
         require(isValidBaseToken(baseTokenIn), "invalid base token");
 
         uint256 amountBaseIn = _afterReceiveToken(baseTokenIn);
 
-        amountLytOut = _deposit(baseTokenIn, amountBaseIn);
+        amountSCYOut = _deposit(baseTokenIn, amountBaseIn);
 
-        require(amountLytOut >= minAmountLytOut, "insufficient out");
+        require(amountSCYOut >= minAmountSCYOut, "insufficient out");
 
-        _mint(recipient, amountLytOut);
+        _mint(recipient, amountSCYOut);
     }
 
     function redeem(
@@ -59,11 +59,11 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
     ) public virtual override returns (uint256 amountBaseOut) {
         require(isValidBaseToken(baseTokenOut), "invalid base token");
 
-        uint256 amountLytRedeem = balanceOf(address(this));
+        uint256 amountSCYRedeem = balanceOf(address(this));
 
-        _burn(address(this), amountLytRedeem);
+        _burn(address(this), amountSCYRedeem);
 
-        amountBaseOut = _redeem(baseTokenOut, amountLytRedeem);
+        amountBaseOut = _redeem(baseTokenOut, amountSCYRedeem);
 
         require(amountBaseOut >= minAmountBaseOut, "insufficient out");
 
@@ -74,27 +74,27 @@ abstract contract LYTBase is ERC20, ILiquidYieldToken {
     function _deposit(address token, uint256 amountBase)
         internal
         virtual
-        returns (uint256 amountLytOut);
+        returns (uint256 amountSCYOut);
 
-    function _redeem(address token, uint256 amountLyt)
+    function _redeem(address token, uint256 amountSCY)
         internal
         virtual
         returns (uint256 amountBaseOut);
 
     /*///////////////////////////////////////////////////////////////
-                               LYT-INDEX
+                               SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function lytIndexCurrent() public virtual override returns (uint256 res);
+    function scyIndexCurrent() public virtual override returns (uint256 res);
 
-    function lytIndexStored() public view virtual override returns (uint256 res);
+    function scyIndexStored() public view virtual override returns (uint256 res);
 
     /*///////////////////////////////////////////////////////////////
                 MISC METADATA FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function decimals() public view virtual override(ERC20, IERC20Metadata) returns (uint8) {
-        return _lytdecimals;
+        return _scydecimals;
     }
 
     function assetDecimals() public view virtual returns (uint8) {

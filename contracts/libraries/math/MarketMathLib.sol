@@ -3,19 +3,19 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../LiquidYieldToken/ILiquidYieldToken.sol";
+import "../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../interfaces/IPMarket.sol";
 import "./FixedPoint.sol";
 import "./LogExpMath.sol";
-import "../../LiquidYieldToken/implementations/LYTUtils.sol";
+import "../../SuperComposableYield/implementations/SCYUtils.sol";
 
 struct MarketParameters {
     uint256 expiry;
     int256 totalOt;
-    int256 totalLyt;
+    int256 totalSCY;
     int256 totalLp;
     uint256 lastImpliedRate;
-    uint256 lytRate;
+    uint256 scyRate;
     int256 reserveFeePercent; // base 100
     int256 scalarRoot;
     uint256 feeRateRoot;
@@ -26,7 +26,7 @@ struct MarketParameters {
 // make sure this struct use minimal number of slots
 struct MarketStorage {
     int128 totalOt;
-    int128 totalLyt;
+    int128 totalSCY;
     uint32 lastImpliedRate; // is 32 bit enough?
 }
 
@@ -51,7 +51,7 @@ library MarketMathLib {
 
     function addLiquidity(
         MarketParameters memory market,
-        uint256 _lytDesired,
+        uint256 _scyDesired,
         uint256 _otDesired
     )
         internal
@@ -59,36 +59,36 @@ library MarketMathLib {
         returns (
             uint256 _lpToReserve,
             uint256 _lpToAccount,
-            uint256 _lytUsed,
+            uint256 _scyUsed,
             uint256 _otUsed
         )
     {
-        int256 lytDesired = _lytDesired.Int();
+        int256 scyDesired = _scyDesired.Int();
         int256 otDesired = _otDesired.Int();
         int256 lpToReserve;
         int256 lpToAccount;
-        int256 lytUsed;
+        int256 scyUsed;
         int256 otUsed;
 
-        require(lytDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
+        require(scyDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
 
         if (market.totalLp == 0) {
-            lpToAccount = LYTUtils.lytToAsset(market.lytRate, lytDesired).subNoNeg(
+            lpToAccount = SCYUtils.scyToAsset(market.scyRate, scyDesired).subNoNeg(
                 MINIMUM_LIQUIDITY
             );
             lpToReserve = MINIMUM_LIQUIDITY;
-            lytUsed = lytDesired;
+            scyUsed = scyDesired;
             otUsed = otDesired;
         } else {
             lpToAccount = FixedPoint.min(
                 (otDesired * market.totalLp) / market.totalOt,
-                (lytDesired * market.totalLp) / market.totalLyt
+                (scyDesired * market.totalLp) / market.totalSCY
             );
-            lytUsed = (lytDesired * lpToAccount) / market.totalLp;
+            scyUsed = (scyDesired * lpToAccount) / market.totalLp;
             otUsed = (otDesired * lpToAccount) / market.totalLp;
         }
 
-        market.totalLyt += lytUsed;
+        market.totalSCY += scyUsed;
         market.totalOt += otUsed;
         market.totalLp += lpToAccount + lpToReserve;
 
@@ -96,58 +96,58 @@ library MarketMathLib {
 
         _lpToReserve = lpToReserve.Uint();
         _lpToAccount = lpToAccount.Uint();
-        _lytUsed = lytUsed.Uint();
+        _scyUsed = scyUsed.Uint();
         _otUsed = otUsed.Uint();
     }
 
     function removeLiquidity(MarketParameters memory market, uint256 _lpToRemove)
         internal
         pure
-        returns (uint256 _lytToAccount, uint256 _otToAccount)
+        returns (uint256 _scyToAccount, uint256 _otToAccount)
     {
         int256 lpToRemove = _lpToRemove.Int();
-        int256 lytToAccount;
+        int256 scyToAccount;
         int256 otToAccount;
 
         require(lpToRemove > 0, "invalid lp amount");
 
-        lytToAccount = (market.totalLp * market.totalOt) / market.totalLp;
-        otToAccount = (market.totalLp * market.totalLyt) / market.totalLp;
+        scyToAccount = (market.totalLp * market.totalOt) / market.totalLp;
+        otToAccount = (market.totalLp * market.totalSCY) / market.totalLp;
 
         market.totalLp = market.totalLp.subNoNeg(lpToRemove);
         market.totalOt = market.totalOt.subNoNeg(otToAccount);
-        market.totalLyt = market.totalLyt.subNoNeg(lytToAccount);
+        market.totalSCY = market.totalSCY.subNoNeg(scyToAccount);
 
-        _lytToAccount = lytToAccount.Uint();
+        _scyToAccount = scyToAccount.Uint();
         _otToAccount = otToAccount.Uint();
     }
 
-    function calcExactOtForLyt(
+    function calcExactOtForSCY(
         MarketParameters memory market,
         uint256 exactOtToMarket,
         uint256 timeToExpiry
-    ) internal pure returns (uint256 netLytToAccount, uint256 netLytToReserve) {
-        (int256 _netLytToAccount, int256 _netLytToReserve) = calcTrade(
+    ) internal pure returns (uint256 netSCYToAccount, uint256 netSCYToReserve) {
+        (int256 _netSCYToAccount, int256 _netSCYToReserve) = calcTrade(
             market,
             exactOtToMarket.neg(),
             timeToExpiry
         );
-        netLytToAccount = _netLytToAccount.Uint();
-        netLytToReserve = _netLytToReserve.Uint();
+        netSCYToAccount = _netSCYToAccount.Uint();
+        netSCYToReserve = _netSCYToReserve.Uint();
     }
 
-    function calcLytForExactOt(
+    function calcSCYForExactOt(
         MarketParameters memory market,
         uint256 exactOtToAccount,
         uint256 timeToExpiry
-    ) internal pure returns (uint256 netLytToMarket, uint256 netLytToReserve) {
-        (int256 _netLytToAccount, int256 _netLytToReserve) = calcTrade(
+    ) internal pure returns (uint256 netSCYToMarket, uint256 netSCYToReserve) {
+        (int256 _netSCYToAccount, int256 _netSCYToReserve) = calcTrade(
             market,
             exactOtToAccount.Int(),
             timeToExpiry
         );
-        netLytToMarket = _netLytToAccount.neg().Uint();
-        netLytToReserve = _netLytToReserve.Uint();
+        netSCYToMarket = _netSCYToAccount.neg().Uint();
+        netSCYToReserve = _netSCYToReserve.Uint();
     }
 
     /// @notice Calculates the asset amount the results from trading otToAccount with the market. A positive
@@ -157,12 +157,12 @@ library MarketMathLib {
     /// @param otToAccount the OT amount that will be deposited into the user's portfolio. The net change
     /// to the market is in the opposite direction.
     /// @param timeToExpiry number of seconds until expiry
-    /// @return netLytToAccount netLytToReserve
+    /// @return netSCYToAccount netSCYToReserve
     function calcTrade(
         MarketParameters memory market,
         int256 otToAccount,
         uint256 timeToExpiry
-    ) internal pure returns (int256 netLytToAccount, int256 netLytToReserve) {
+    ) internal pure returns (int256 netSCYToAccount, int256 netSCYToReserve) {
         require(timeToExpiry < market.expiry, "MARKET_EXPIRED");
         // We return false if there is not enough Ot to support this trade.
         // if otToAccount > 0 and totalOt - otToAccount <= 0 then the trade will fail
@@ -224,7 +224,7 @@ library MarketMathLib {
             require(market.lastImpliedRate != 0);
         }
 
-        (netLytToAccount, netLytToReserve) = _setNewMarketState(
+        (netSCYToAccount, netSCYToReserve) = _setNewMarketState(
             market,
             netAsset.toAccount,
             netAsset.toMarket,
@@ -234,7 +234,7 @@ library MarketMathLib {
 
     /// @notice Returns factors for calculating exchange rates
     /// @return rateScalar a value in rate precision that defines the slope of the line
-    /// @return totalAsset the converted LYT to Asset for calculatin the exchange rates for the trade
+    /// @return totalAsset the converted SCY to Asset for calculatin the exchange rates for the trade
     /// @return rateAnchor an offset from the x axis to maintain interest rate continuity over time
     function getExchangeRateFactors(MarketParameters memory market, uint256 timeToExpiry)
         internal
@@ -246,7 +246,7 @@ library MarketMathLib {
         )
     {
         rateScalar = getRateScalar(market, timeToExpiry);
-        totalAsset = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
+        totalAsset = SCYUtils.scyToAsset(market.scyRate, market.totalSCY);
 
         require(market.totalOt != 0 && totalAsset != 0);
 
@@ -293,12 +293,12 @@ library MarketMathLib {
         int256 fee = getExchangeRateFromImpliedRate(feeRateRoot, timeToExpiry);
 
         if (otToAccount > 0) {
-            // swapping LYT for OT
+            // swapping SCY for OT
 
-            // Dividing reduces exchange rate, swapping LYT to OT means account should receive less OT
+            // Dividing reduces exchange rate, swapping SCY to OT means account should receive less OT
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
             // It's possible that the fee pushes exchange rates into negative territory. This is not possible
-            // when swapping OT to LYT. If this happens then the trade has failed.
+            // when swapping OT to SCY. If this happens then the trade has failed.
             require(postFeeExchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
 
             // assetToAccount = -(otToAccount / exchangeRate)
@@ -314,7 +314,7 @@ library MarketMathLib {
             // RATE_PRECISION - fee will be negative here, preFeeAssetToAccount < 0, fee > 0
             fee = preFeeAssetToAccount.mulDown(FixedPoint.ONE_INT - fee);
         } else {
-            // swapping OT for LYT
+            // swapping OT for SCY
 
             // assetToAccount = -(otToAccount / exchangeRate)
             // postFeeExchangeRate = preFeeExchangeRate * feeExchangeRate
@@ -338,20 +338,20 @@ library MarketMathLib {
     }
 
     /// @notice Sets the new market state
-    /// @return netLytToAccount the positive or negative change in asset lyt to the account
-    /// @return netLytToReserve the positive amount of lyt that accrues to the reserve
+    /// @return netSCYToAccount the positive or negative change in asset scy to the account
+    /// @return netSCYToReserve the positive amount of scy that accrues to the reserve
     function _setNewMarketState(
         MarketParameters memory market,
         int256 netAssetToAccount,
         int256 netAssetToMarket,
         int256 netAssetToReserve
-    ) private pure returns (int256 netLytToAccount, int256 netLytToReserve) {
-        int256 netLytToMarket = LYTUtils.assetToLyt(market.lytRate, netAssetToMarket);
-        // Set storage checks that total asset lyt is above zero
-        market.totalLyt = market.totalLyt + netLytToMarket;
+    ) private pure returns (int256 netSCYToAccount, int256 netSCYToReserve) {
+        int256 netSCYToMarket = SCYUtils.assetToSCY(market.scyRate, netAssetToMarket);
+        // Set storage checks that total asset scy is above zero
+        market.totalSCY = market.totalSCY + netSCYToMarket;
 
-        netLytToReserve = LYTUtils.assetToLyt(market.lytRate, netAssetToReserve);
-        netLytToAccount = LYTUtils.assetToLyt(market.lytRate, netAssetToAccount);
+        netSCYToReserve = SCYUtils.assetToSCY(market.scyRate, netAssetToReserve);
+        netSCYToAccount = SCYUtils.assetToSCY(market.scyRate, netAssetToAccount);
     }
 
     /// @notice Rate anchors update as the market gets closer to expiry. Rate anchors are not comparable
@@ -445,8 +445,8 @@ library MarketMathLib {
 
         // This limit is here to prevent the market from reaching extremely high interest rates via an
         // excessively large proportion (high amounts of OT relative to Asset).
-        // Market proportion can only increase via swapping OT to LYT (OT is added to the market and LYT is
-        // removed). Over time, the yield from LYT will slightly decrease the proportion (the
+        // Market proportion can only increase via swapping OT to SCY (OT is added to the market and SCY is
+        // removed). Over time, the yield from SCY will slightly decrease the proportion (the
         // amount of Asset in the market must be monotonically increasing). Therefore it is not
         // possible for the proportion to go over max market proportion unless borrowing occurs.
         require(proportion <= MAX_MARKET_PROPORTION); // TODO: probably not applicable to Pendle
@@ -483,7 +483,7 @@ library MarketMathLib {
         internal
         pure
     {
-        int256 totalAsset = LYTUtils.lytToAsset(market.lytRate, market.totalLyt);
+        int256 totalAsset = SCYUtils.scyToAsset(market.scyRate, market.totalSCY);
         market.lastImpliedRate = getImpliedRate(
             market.totalOt,
             totalAsset,
@@ -511,10 +511,10 @@ library MarketMathLib {
     {
         market.expiry = marketImmutable.expiry;
         market.totalOt = marketImmutable.totalOt;
-        market.totalLyt = marketImmutable.totalLyt;
+        market.totalSCY = marketImmutable.totalSCY;
         market.totalLp = marketImmutable.totalLp;
         market.lastImpliedRate = marketImmutable.lastImpliedRate;
-        market.lytRate = marketImmutable.lytRate;
+        market.scyRate = marketImmutable.scyRate;
         market.reserveFeePercent = marketImmutable.reserveFeePercent;
         market.scalarRoot = marketImmutable.scalarRoot;
         market.feeRateRoot = marketImmutable.feeRateRoot;
@@ -525,14 +525,14 @@ library MarketMathLib {
     ///                                Approx functions                                ///
     //////////////////////////////////////////////////////////////////////////////////////
 
-    function approxSwapExactLytForOt(
+    function approxSwapExactSCYForOt(
         MarketParameters memory marketImmutable,
-        uint256 exactLytIn,
+        uint256 exactSCYIn,
         uint256 timeToExpiry,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax
     ) internal pure returns (uint256 netOtOut) {
-        require(exactLytIn > 0, "invalid lyt in");
+        require(exactSCYIn > 0, "invalid scy in");
         require(
             netOtOutGuessMin >= 0 && netOtOutGuessMax >= 0 && netOtOutGuessMin <= netOtOutGuessMax,
             "invalid guess"
@@ -546,8 +546,8 @@ library MarketMathLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (uint256 netLytNeed, ) = calcLytForExactOt(market, currentOtOutGuess, timeToExpiry);
-            bool isResultAcceptable = (netLytNeed <= exactLytIn);
+            (uint256 netSCYNeed, ) = calcSCYForExactOt(market, currentOtOutGuess, timeToExpiry);
+            bool isResultAcceptable = (netSCYNeed <= exactSCYIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
                 isAcceptableAnswerExisted = true;
@@ -558,14 +558,14 @@ library MarketMathLib {
         netOtOut = low;
     }
 
-    function approxSwapOtForExactLyt(
+    function approxSwapOtForExactSCY(
         MarketParameters memory marketImmutable,
-        uint256 exactLytOut,
+        uint256 exactSCYOut,
         uint256 timeToExpiry,
         uint256 netOtInGuessMin,
         uint256 netOtInGuessMax
     ) internal pure returns (uint256 netOtIn) {
-        require(exactLytOut > 0, "invalid lyt in");
+        require(exactSCYOut > 0, "invalid scy in");
         require(
             netOtInGuessMin >= 0 && netOtInGuessMax >= 0 && netOtInGuessMin <= netOtInGuessMax,
             "invalid guess"
@@ -579,12 +579,12 @@ library MarketMathLib {
             uint256 currentOtInGuess = (low + high) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (uint256 netLytToAccount, ) = calcExactOtForLyt(
+            (uint256 netSCYToAccount, ) = calcExactOtForSCY(
                 market,
                 currentOtInGuess,
                 timeToExpiry
             );
-            bool isResultAcceptable = (netLytToAccount >= exactLytOut);
+            bool isResultAcceptable = (netSCYToAccount >= exactSCYOut);
             if (isResultAcceptable) {
                 high = currentOtInGuess;
                 isAcceptableAnswerExisted = true;
@@ -597,14 +597,14 @@ library MarketMathLib {
         netOtIn = high;
     }
 
-    function approxSwapExactLytForYt(
+    function approxSwapExactSCYForYt(
         MarketParameters memory marketImmutable,
-        uint256 exactLytIn,
+        uint256 exactSCYIn,
         uint256 timeToExpiry,
         uint256 netYtOutGuessMin,
         uint256 netYtOutGuessMax
     ) internal pure returns (uint256 netYtOut) {
-        require(exactLytIn > 0, "invalid lyt in");
+        require(exactSCYIn > 0, "invalid scy in");
         require(netYtOutGuessMin >= 0 && netYtOutGuessMax >= 0, "invalid guess");
 
         uint256 low = netYtOutGuessMin;
@@ -616,13 +616,13 @@ library MarketMathLib {
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
             int256 otToAccount = currentYtOutGuess.neg();
-            (int256 lytReceived, ) = calcTrade(market, otToAccount, timeToExpiry);
+            (int256 scyReceived, ) = calcTrade(market, otToAccount, timeToExpiry);
 
-            int256 totalLytToMintYo = lytReceived + exactLytIn.Int();
+            int256 totalSCYToMintYo = scyReceived + exactSCYIn.Int();
 
-            int256 netYoFromLyt = LYTUtils.lytToAsset(market.lytRate, totalLytToMintYo);
+            int256 netYoFromSCY = SCYUtils.scyToAsset(market.scyRate, totalSCYToMintYo);
 
-            bool isResultAcceptable = (netYoFromLyt.Uint() >= currentYtOutGuess);
+            bool isResultAcceptable = (netYoFromSCY.Uint() >= currentYtOutGuess);
 
             if (isResultAcceptable) {
                 low = currentYtOutGuess;

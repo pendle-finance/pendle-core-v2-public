@@ -24,12 +24,12 @@
 pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-interface ILiquidYieldToken is IERC20Metadata {
+interface ISuperComposableYield is IERC20Metadata {
     function mint(
         address recipient,
         address baseTokenIn,
-        uint256 minAmountLytOut
-    ) external returns (uint256 amountLytOut);
+        uint256 minAmountSCYOut
+    ) external returns (uint256 amountSCYOut);
 
     function redeem(
         address recipient,
@@ -44,15 +44,15 @@ interface ILiquidYieldToken is IERC20Metadata {
     function redeemReward(address user) external returns (uint256[] memory outAmounts);
 
     /**
-    * @notice lytIndexCurrent.mulDown(lytBalance) must return the asset balance of the account
-    * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of lyt
-    he can mint must be X.divDown(lytIndexCurrent)
-    * @dev LYTUtils's assetToLyt & lytToAsset should be used instead of raw multiplication
+    * @notice scyIndexCurrent.mulDown(scyBalance) must return the asset balance of the account
+    * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of scy
+    he can mint must be X.divDown(scyIndexCurrent)
+    * @dev SCYUtils's assetToSCY & scyToAsset should be used instead of raw multiplication
     & division
     */
-    function lytIndexCurrent() external returns (uint256);
+    function scyIndexCurrent() external returns (uint256);
 
-    function lytIndexStored() external view returns (uint256);
+    function scyIndexStored() external view returns (uint256);
 
     function getBaseTokens() external view returns (address[] memory);
 

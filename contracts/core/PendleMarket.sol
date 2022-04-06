@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./base/PendleBaseToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
-import "../LiquidYieldToken/ILiquidYieldToken.sol";
+import "../SuperComposableYield/ISuperComposableYield.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
@@ -36,7 +36,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     int256 internal constant RATE_PRECISION = 1e9;
 
     address public immutable OT;
-    address public immutable LYT;
+    address public immutable SCY;
 
     uint256 public immutable scalarRoot;
     uint256 public immutable feeRateRoot; // allow fee to be changable?
@@ -53,7 +53,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         uint8 _reserveFeePercent
     ) PendleBaseToken(NAME, SYMBOL, 18, IPOwnershipToken(_OT).expiry()) {
         OT = _OT;
-        LYT = IPOwnershipToken(_OT).LYT();
+        SCY = IPOwnershipToken(_OT).SCY();
         feeRateRoot = _feeRateRoot;
         scalarRoot = _scalarRoot;
 
@@ -67,7 +67,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
      */
     function addLiquidity(
         address recipient,
-        uint256 lytDesired,
+        uint256 scyDesired,
         uint256 otDesired,
         bytes calldata data
     )
@@ -75,14 +75,14 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         nonReentrant
         returns (
             uint256 lpToAccount,
-            uint256 lytUsed,
+            uint256 scyUsed,
             uint256 otUsed
         )
     {
         MarketParameters memory market = readState();
 
         uint256 lpToReserve;
-        (lpToReserve, lpToAccount, lytUsed, otUsed) = market.addLiquidity(lytDesired, otDesired);
+        (lpToReserve, lpToAccount, scyUsed, otUsed) = market.addLiquidity(scyDesired, otDesired);
 
         // initializing the market
         if (lpToReserve != 0) {
@@ -95,14 +95,14 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
                 lpToAccount,
-                lytUsed,
+                scyUsed,
                 otUsed,
                 data
             );
         }
 
         require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
-        require(market.totalLyt.Uint() <= IERC20(LYT).balanceOf(address(this)));
+        require(market.totalSCY.Uint() <= IERC20(SCY).balanceOf(address(this)));
 
         _writeState(market);
     }
@@ -111,18 +111,18 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         address recipient,
         uint256 lpToRemove,
         bytes calldata data
-    ) external nonReentrant returns (uint256 lytToAccount, uint256 otToAccount) {
+    ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
         MarketParameters memory market = readState();
 
-        (lytToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
+        (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
 
-        IERC20(LYT).safeTransfer(recipient, lytToAccount);
+        IERC20(SCY).safeTransfer(recipient, scyToAccount);
         IERC20(OT).safeTransfer(recipient, otToAccount);
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
                 lpToRemove,
-                lytToAccount,
+                scyToAccount,
                 otToAccount,
                 data
             );
@@ -133,26 +133,26 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function swapExactOtForLyt(
+    function swapExactOtForSCY(
         address recipient,
         uint256 exactOtIn,
-        uint256 minLytOut,
+        uint256 minSCYOut,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netLytOut, uint256 netLytToReserve) {
+    ) external nonReentrant returns (uint256 netSCYOut, uint256 netSCYToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
 
-        (netLytOut, netLytToReserve) = market.calcExactOtForLyt(
+        (netSCYOut, netSCYToReserve) = market.calcExactOtForSCY(
             exactOtIn,
             market.getTimeToExpiry()
         );
-        require(netLytOut >= minLytOut, "insufficient lyt out");
-        IERC20(LYT).safeTransfer(recipient, netLytOut);
-        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
+        require(netSCYOut >= minSCYOut, "insufficient scy out");
+        IERC20(SCY).safeTransfer(recipient, netSCYOut);
+        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
 
         if (data.length > 0) {
-            IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netLytOut.Int(), data);
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netSCYOut.Int(), data);
         }
 
         // have received enough OT
@@ -160,42 +160,42 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function swapLytForExactOt(
+    function swapSCYForExactOt(
         address recipient,
         uint256 exactOtOut,
-        uint256 maxLytIn,
+        uint256 maxSCYIn,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netLytIn, uint256 netLytToReserve) {
+    ) external nonReentrant returns (uint256 netSCYIn, uint256 netSCYToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
 
-        (netLytIn, netLytToReserve) = market.calcLytForExactOt(
+        (netSCYIn, netSCYToReserve) = market.calcSCYForExactOt(
             exactOtOut,
             market.getTimeToExpiry()
         );
-        require(netLytIn <= maxLytIn, "lyt in exceed limit");
+        require(netSCYIn <= maxSCYIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(recipient, exactOtOut);
-        IERC20(LYT).safeTransfer(IPMarketFactory(factory).treasury(), netLytToReserve);
+        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
 
         if (data.length > 0) {
-            IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netLytIn.neg(), data);
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netSCYIn.neg(), data);
         }
 
-        // have received enough LYT
-        require(market.totalLyt.Uint() <= IERC20(LYT).balanceOf(address(this)));
+        // have received enough SCY
+        require(market.totalSCY.Uint() <= IERC20(SCY).balanceOf(address(this)));
         _writeState(market);
     }
 
-    /// the only non-view part in this function is the ILiquidYieldToken(LYT).lytIndexCurrent()
+    /// the only non-view part in this function is the ISuperComposableYield(SCY).scyIndexCurrent()
     function readState() public returns (MarketParameters memory market) {
         MarketStorage storage store = _marketState;
         market.expiry = expiry;
         market.totalOt = store.totalOt;
-        market.totalLyt = store.totalLyt;
+        market.totalSCY = store.totalSCY;
         market.totalLp = totalSupply().Int();
         market.lastImpliedRate = store.lastImpliedRate;
-        market.lytRate = ILiquidYieldToken(LYT).lytIndexCurrent();
+        market.scyRate = ISuperComposableYield(SCY).scyIndexCurrent();
         market.feeRateRoot = feeRateRoot;
         market.reserveFeePercent = reserveFeePercent;
         market.anchorRoot = anchorRoot;
@@ -207,7 +207,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         // hmm should we verify the sum right after callback instead?
 
         store.totalOt = market.totalOt.Int128();
-        store.totalLyt = market.totalLyt.Int128();
+        store.totalSCY = market.totalSCY.Int128();
         store.lastImpliedRate = market.lastImpliedRate.Uint32();
     }
 

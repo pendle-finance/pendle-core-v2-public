@@ -7,7 +7,7 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../base/PendleRouterMarketBase.sol";
 import "../../libraries/helpers/MarketHelper.sol";
-import "../../LiquidYieldToken/implementations/LYTUtils.sol";
+import "../../SuperComposableYield/implementations/SCYUtils.sol";
 
 contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     using FixedPoint for uint256;
@@ -24,114 +24,114 @@ contract PendleRouterYT is PendleRouterMarketBase, IPMarketSwapCallback {
     * @dev inner working of this function:
      - YT is transferred to the YT contract
      - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
-     - callback will call YT's redeemYO, which will redeem the outcome LYT to this router, then
-        all LYT owed to the market will be paid, the rest is transferred to the recipient
+     - callback will call YT's redeemYO, which will redeem the outcome SCY to this router, then
+        all SCY owed to the market will be paid, the rest is transferred to the recipient
      */
-    function swapExactYtForLyt(
+    function swapExactYtForSCY(
         address recipient,
         address market,
         uint256 exactYtIn,
-        uint256 minLytOut
-    ) external returns (uint256 netLytOut) {
+        uint256 minSCYOut
+    ) external returns (uint256 netSCYOut) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         // takes out the same amount of OT as exactYtIn, to pair together
         uint256 exactOtOut = exactYtIn;
 
-        uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
+        uint256 preBalanceSCY = _market.SCY.balanceOf(recipient);
 
         _market.YT.transferFrom(msg.sender, address(_market.YT), exactYtIn);
 
-        // because of LYT / YO conversion, the number may not be 100% accurate. TODO: find a better way
-        IPMarket(market).swapLytForExactOt(
+        // because of SCY / YO conversion, the number may not be 100% accurate. TODO: find a better way
+        IPMarket(market).swapSCYForExactOt(
             recipient,
             exactOtOut,
             type(uint256).max,
             abi.encode(msg.sender, recipient)
         );
 
-        netLytOut = _market.LYT.balanceOf(recipient) - preBalanceLyt;
-        require(netLytOut >= minLytOut, "INSUFFICIENT_LYT_OUT");
+        netSCYOut = _market.SCY.balanceOf(recipient) - preBalanceSCY;
+        require(netSCYOut >= minSCYOut, "INSUFFICIENT_SCY_OUT");
     }
 
     /**
      * @dev inner working of this function:
-     - market.swap is called, which will transfer LYT directly to the YT contract, and callback is invoked
-     - callback will pull more LYT if necessary, do call YT's mintYO, which will mint OT to the market & YT to the recipient
+     - market.swap is called, which will transfer SCY directly to the YT contract, and callback is invoked
+     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint OT to the market & YT to the recipient
      */
-    function swapLytForExactYt(
+    function swapSCYForExactYt(
         address recipient,
         address market,
         uint256 exactYtOut,
-        uint256 maxLytIn
-    ) external returns (uint256 netLytIn) {
+        uint256 maxSCYIn
+    ) external returns (uint256 netSCYIn) {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         uint256 exactOtIn = exactYtOut;
-        uint256 preBalanceLyt = _market.LYT.balanceOf(recipient);
+        uint256 preBalanceSCY = _market.SCY.balanceOf(recipient);
 
-        IPMarket(market).swapExactOtForLyt(
+        IPMarket(market).swapExactOtForSCY(
             recipient,
             exactOtIn,
             1,
             abi.encode(msg.sender, recipient)
         );
 
-        netLytIn = preBalanceLyt - _market.LYT.balanceOf(recipient);
+        netSCYIn = preBalanceSCY - _market.SCY.balanceOf(recipient);
 
-        require(netLytIn <= maxLytIn, "exceed out limit");
+        require(netSCYIn <= maxSCYIn, "exceed out limit");
     }
 
     function swapCallback(
         int256 otToAccount,
-        int256 lytToAccount,
+        int256 scyToAccount,
         bytes calldata data
     ) external override onlyPendleMarket(msg.sender) {
         // make sure payer, recipient same as when encode
         (address payer, address recipient) = abi.decode(data, (address, address));
-        if (lytToAccount > 0) {
-            _swapLytForExactYt_callback(msg.sender, otToAccount, lytToAccount, payer, recipient);
+        if (scyToAccount > 0) {
+            _swapSCYForExactYt_callback(msg.sender, otToAccount, scyToAccount, payer, recipient);
         } else {
-            _swapExactYtForLyt_callback(msg.sender, lytToAccount, recipient);
+            _swapExactYtForSCY_callback(msg.sender, scyToAccount, recipient);
         }
     }
 
-    function _swapLytForExactYt_callback(
+    function _swapSCYForExactYt_callback(
         address market,
         int256 otToAccount,
-        int256 lytToAccount,
+        int256 scyToAccount,
         address payer,
         address recipient
     ) internal {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
         uint256 otOwed = otToAccount.neg().Uint();
-        uint256 lytReceived = lytToAccount.Uint();
+        uint256 scyReceived = scyToAccount.Uint();
 
         // otOwed = totalAsset
-        uint256 lytNeedTotal = LYTUtils.assetToLyt(_market.LYT.lytIndexCurrent(), otOwed);
+        uint256 scyNeedTotal = SCYUtils.assetToSCY(_market.SCY.scyIndexCurrent(), otOwed);
 
-        uint256 netLytToPull = lytNeedTotal.subMax0(lytReceived);
-        _market.LYT.transferFrom(payer, address(_market.YT), netLytToPull);
+        uint256 netSCYToPull = scyNeedTotal.subMax0(scyReceived);
+        _market.SCY.transferFrom(payer, address(_market.YT), netSCYToPull);
 
         _market.YT.mintYO(market, recipient);
     }
 
     /**
-    @dev receive OT -> pair with YT to redeem LYT -> payback LYT
+    @dev receive OT -> pair with YT to redeem SCY -> payback SCY
     */
-    function _swapExactYtForLyt_callback(
+    function _swapExactYtForSCY_callback(
         address market,
-        int256 lytToAccount,
+        int256 scyToAccount,
         address recipient
     ) internal {
         MarketHelper.MarketStruct memory _market = MarketHelper.readMarketInfo(market);
 
-        uint256 lytOwed = lytToAccount.neg().Uint();
+        uint256 scyOwed = scyToAccount.neg().Uint();
 
-        uint256 netLytReceived = _market.YT.redeemYO(address(this));
+        uint256 netSCYReceived = _market.YT.redeemYO(address(this));
 
-        _market.LYT.transfer(market, lytOwed);
-        _market.LYT.transfer(recipient, netLytReceived - lytOwed);
+        _market.SCY.transfer(market, scyOwed);
+        _market.SCY.transfer(recipient, netSCYReceived - scyOwed);
     }
 }

@@ -27,11 +27,11 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
         int256 anchorRoot,
         uint8 reserveFeePercent
     ) external returns (address market) {
-        address LYT = IPOwnershipToken(OT).LYT();
+        address SCY = IPOwnershipToken(OT).SCY();
         uint256 expiry = IPOwnershipToken(OT).expiry();
 
         require(
-            IPYieldContractFactory(yieldContractFactory).getOT(LYT, expiry) == OT,
+            IPYieldContractFactory(yieldContractFactory).getOT(SCY, expiry) == OT,
             "INVALID_OT"
         );
 

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTBaseWithRewards.sol";
+import "../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
 import "../../interfaces/IQiErc20.sol";
 import "../../interfaces/IBenQiComptroller.sol";
 import "../../interfaces/IWETH.sol";
 
-contract PendleBenQiErc20LYT is LYTBaseWithRewards {
+contract PendleBenQiErc20SCY is SCYBaseWithRewards {
     using SafeERC20 for IERC20;
 
     address public immutable underlying;
@@ -15,19 +15,19 @@ contract PendleBenQiErc20LYT is LYTBaseWithRewards {
     address public immutable comptroller;
     address public immutable qiToken;
 
-    uint256 public lastLytIndex;
+    uint256 public lastSCYIndex;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __lytdecimals,
+        uint8 __scydecimals,
         uint8 __assetDecimals,
         address _underlying,
         address _qiToken,
         address _comptroller,
         address _QI,
         address _WAVAX
-    ) LYTBaseWithRewards(_name, _symbol, __lytdecimals, __assetDecimals) {
+    ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals) {
         underlying = _underlying;
         qiToken = _qiToken;
         QI = _QI;
@@ -47,46 +47,46 @@ contract PendleBenQiErc20LYT is LYTBaseWithRewards {
         internal
         virtual
         override
-        returns (uint256 amountLytOut)
+        returns (uint256 amountSCYOut)
     {
-        // qiToken -> lyt is 1:1
+        // qiToken -> scy is 1:1
         if (token == qiToken) {
-            amountLytOut = amountBase;
+            amountSCYOut = amountBase;
         } else {
             IQiErc20(qiToken).mint(amountBase);
             _afterSendToken(underlying);
-            amountLytOut = _afterReceiveToken(qiToken);
+            amountSCYOut = _afterReceiveToken(qiToken);
         }
     }
 
-    function _redeem(address token, uint256 amountLyt)
+    function _redeem(address token, uint256 amountSCY)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == qiToken) {
-            amountBaseOut = amountLyt;
+            amountBaseOut = amountSCY;
         } else {
             // must be underlying
-            IQiErc20(qiToken).redeem(amountLyt);
+            IQiErc20(qiToken).redeem(amountSCY);
             _afterSendToken(qiToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }
     }
 
     /*///////////////////////////////////////////////////////////////
-                               LYT-INDEX
+                               SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function lytIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastLytIndex, IQiToken(qiToken).exchangeRateCurrent());
-        lastLytIndex = res;
+    function scyIndexCurrent() public virtual override returns (uint256 res) {
+        res = FixedPoint.max(lastSCYIndex, IQiToken(qiToken).exchangeRateCurrent());
+        lastSCYIndex = res;
         return res;
     }
 
-    function lytIndexStored() public view override returns (uint256 res) {
-        res = lastLytIndex;
+    function scyIndexStored() public view override returns (uint256 res) {
+        res = lastSCYIndex;
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {

@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 import "./base/PendleBaseToken.sol";
-import "../LiquidYieldToken/ILiquidYieldToken.sol";
+import "../SuperComposableYield/ISuperComposableYield.sol";
 import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
 import "../libraries/math/FixedPoint.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "openzeppelin-solidity/contracts/utils/math/Math.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../LiquidYieldToken/implementations/LYTUtils.sol";
-import "../LiquidYieldToken/implementations/RewardManager.sol";
+import "../SuperComposableYield/implementations/SCYUtils.sol";
+import "../SuperComposableYield/implementations/RewardManager.sol";
 
 // probably should abstract more math to libraries
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
@@ -18,16 +18,16 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using SafeERC20 for IERC20;
 
     struct UserData {
-        uint256 lastLytIndex;
+        uint256 lastSCYIndex;
         uint256 dueInterest;
     }
 
-    address public immutable LYT;
+    address public immutable SCY;
     address public immutable OT;
 
     /// params to do interests & rewards accounting
-    uint256 public lastLytBalance;
-    uint256 public lastLytIndexBeforeExpiry;
+    uint256 public lastSCYBalance;
+    uint256 public lastSCYIndexBeforeExpiry;
     uint256[] public paramL;
 
     /// params to do fee accounting
@@ -37,26 +37,26 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     mapping(address => UserData) public data;
 
     constructor(
-        address _LYT,
+        address _SCY,
         address _OT,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
-        LYT = _LYT;
+        SCY = _SCY;
         OT = _OT;
     }
 
     /**
-     * @notice this function splits lyt into OT + YT of equal qty
-     * @dev the lyt to tokenize has to be pre-transferred to this contract prior to the function call
+     * @notice this function splits scy into OT + YT of equal qty
+     * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
      */
     function mintYO(address recipientOT, address recipientYT)
         public
         returns (uint256 amountYOOut)
     {
-        uint256 amountToTokenize = _receiveLyt();
+        uint256 amountToTokenize = _receiveSCY();
 
         amountYOOut = _calcAmountToMint(amountToTokenize);
 
@@ -65,8 +65,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         IPOwnershipToken(OT).mintByYT(recipientOT, amountYOOut);
     }
 
-    /// this function converts YO tokens into lyt, but interests & rewards are not included
-    function redeemYO(address recipient) public returns (uint256 amountLytOut) {
+    /// this function converts YO tokens into scy, but interests & rewards are not included
+    function redeemYO(address recipient) public returns (uint256 amountSCYOut) {
         // minimum of OT & YT balance
         uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
         if (!isExpired()) {
@@ -75,10 +75,10 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         }
         IPOwnershipToken(OT).burnByYT(address(this), amountYOToRedeem);
 
-        amountLytOut = _calcAmountRedeemable(amountYOToRedeem);
+        amountSCYOut = _calcAmountRedeemable(amountYOToRedeem);
 
-        IERC20(LYT).safeTransfer(recipient, amountLytOut);
-        _afterTransferOutLYT();
+        IERC20(SCY).safeTransfer(recipient, amountSCYOut);
+        _afterTransferOutSCY();
     }
 
     function redeemDueInterest(address user) public returns (uint256 interestOut) {
@@ -92,8 +92,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         totalProtocolFee += feeAmount;
 
         interestOut = interestPreFee - feeAmount;
-        IERC20(LYT).safeTransfer(user, interestOut);
-        _afterTransferOutLYT();
+        IERC20(SCY).safeTransfer(user, interestOut);
+        _afterTransferOutSCY();
     }
 
     function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
@@ -137,7 +137,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function _redeemExternalReward() internal virtual override {
-        ILiquidYieldToken(LYT).redeemReward(address(this));
+        ISuperComposableYield(SCY).redeemReward(address(this));
     }
 
     function getRewardTokens()
@@ -147,17 +147,17 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         override(RewardManager)
         returns (address[] memory)
     {
-        return ILiquidYieldToken(LYT).getRewardTokens();
+        return ISuperComposableYield(SCY).getRewardTokens();
     }
 
-    function getLytIndexBeforeExpiry() public returns (uint256 res) {
-        if (isExpired()) return res = lastLytIndexBeforeExpiry;
-        res = ILiquidYieldToken(LYT).lytIndexCurrent();
-        lastLytIndexBeforeExpiry = res;
+    function getSCYIndexBeforeExpiry() public returns (uint256 res) {
+        if (isExpired()) return res = lastSCYIndexBeforeExpiry;
+        res = ISuperComposableYield(SCY).scyIndexCurrent();
+        lastSCYIndexBeforeExpiry = res;
     }
 
     function withdrawFeeToTreasury() public {
-        address[] memory rewardTokens = ILiquidYieldToken(LYT).getRewardTokens();
+        address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
         uint256 length = rewardTokens.length;
         address treasury = IPYieldContractFactory(factory).treasury();
 
@@ -169,19 +169,19 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         }
 
         if (totalProtocolFee > 0) {
-            IERC20(LYT).safeTransfer(treasury, totalProtocolFee);
-            _afterTransferOutLYT();
+            IERC20(SCY).safeTransfer(treasury, totalProtocolFee);
+            _afterTransferOutSCY();
             totalProtocolFee = 0;
         }
     }
 
     function _updateDueInterest(address user) internal {
-        uint256 prevIndex = data[user].lastLytIndex;
+        uint256 prevIndex = data[user].lastSCYIndex;
 
-        uint256 currentIndex = getLytIndexBeforeExpiry();
+        uint256 currentIndex = getSCYIndexBeforeExpiry();
 
         if (prevIndex == 0 || prevIndex == currentIndex) {
-            data[user].lastLytIndex = currentIndex;
+            data[user].lastSCYIndex = currentIndex;
             return;
         }
 
@@ -192,26 +192,26 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         );
 
         data[user].dueInterest += interestFromYT;
-        data[user].lastLytIndex = currentIndex;
+        data[user].lastSCYIndex = currentIndex;
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
-        return LYTUtils.lytToAsset(getLytIndexBeforeExpiry(), amount);
+        return SCYUtils.scyToAsset(getSCYIndexBeforeExpiry(), amount);
     }
 
     function _calcAmountRedeemable(uint256 amount) internal returns (uint256) {
-        return LYTUtils.assetToLyt(getLytIndexBeforeExpiry(), amount);
+        return SCYUtils.assetToSCY(getSCYIndexBeforeExpiry(), amount);
     }
 
-    function _receiveLyt() internal returns (uint256 amount) {
-        uint256 balanceLYT = IERC20(LYT).balanceOf(address(this));
-        amount = balanceLYT - lastLytBalance;
-        lastLytBalance = balanceLYT;
+    function _receiveSCY() internal returns (uint256 amount) {
+        uint256 balanceSCY = IERC20(SCY).balanceOf(address(this));
+        amount = balanceSCY - lastSCYBalance;
+        lastSCYBalance = balanceSCY;
         require(amount > 0, "RECEIVE_ZERO");
     }
 
-    function _afterTransferOutLYT() internal {
-        lastLytBalance = IERC20(LYT).balanceOf(address(this));
+    function _afterTransferOutSCY() internal {
+        lastSCYBalance = IERC20(SCY).balanceOf(address(this));
     }
 
     function _beforeTokenTransfer(

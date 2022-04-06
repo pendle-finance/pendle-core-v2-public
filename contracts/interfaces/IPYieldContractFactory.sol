@@ -24,9 +24,9 @@
 pragma solidity ^0.8.0;
 
 interface IPYieldContractFactory {
-    function getOT(address LYT, uint256 expiry) external view returns (address);
+    function getOT(address SCY, uint256 expiry) external view returns (address);
 
-    function getYT(address LYT, uint256 expiry) external view returns (address);
+    function getYT(address SCY, uint256 expiry) external view returns (address);
 
     function expiryDivisor() external view returns (uint256);
 

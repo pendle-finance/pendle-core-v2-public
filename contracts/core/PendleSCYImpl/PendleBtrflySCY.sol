@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTBase.sol";
+import "../../SuperComposableYield/implementations/SCYBase.sol";
 import "../../interfaces/IWXBTRFLY.sol";
 import "../../interfaces/IREDACTEDStaking.sol";
 
-contract PendleBtrflyLYT is LYTBase {
+contract PendleBtrflySCY is SCYBase {
     using SafeERC20 for IERC20;
 
     address public immutable BTRFLY;
     address public immutable xBTRFLY;
     address public immutable wxBTRFLY;
 
-    uint256 public lastLytIndex;
+    uint256 public lastSCYIndex;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __lytdecimals,
+        uint8 __scydecimals,
         uint8 __assetDecimals,
         address _BTRFLY,
         address _xBTRFLY,
         address _wxBTRFLY
-    ) LYTBase(_name, _symbol, __lytdecimals, __assetDecimals) {
+    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
         BTRFLY = _BTRFLY;
         xBTRFLY = _xBTRFLY;
         wxBTRFLY = _wxBTRFLY;
@@ -37,50 +37,50 @@ contract PendleBtrflyLYT is LYTBase {
         internal
         virtual
         override
-        returns (uint256 amountLytOut)
+        returns (uint256 amountSCYOut)
     {
         if (token == BTRFLY) {
-            amountLytOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
+            amountSCYOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
             _afterSendToken(BTRFLY);
         } else if (token == xBTRFLY) {
-            amountLytOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
+            amountSCYOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
             _afterSendToken(xBTRFLY);
         } else {
-            // 1 wxBTRFLY = 1 LYT
-            amountLytOut = amountBase;
+            // 1 wxBTRFLY = 1 SCY
+            amountSCYOut = amountBase;
         }
     }
 
-    function _redeem(address token, uint256 amountLyt)
+    function _redeem(address token, uint256 amountSCY)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == BTRFLY) {
-            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToBTRFLY(amountLyt);
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToBTRFLY(amountSCY);
             _afterSendToken(wxBTRFLY);
         } else if (token == xBTRFLY) {
-            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountLyt);
+            amountBaseOut = IWXBTRFLY(wxBTRFLY).unwrapToxBTRFLY(amountSCY);
             _afterSendToken(wxBTRFLY);
         } else {
-            // 1 wxBTRFLY = 1 LYT
-            amountBaseOut = amountLyt;
+            // 1 wxBTRFLY = 1 SCY
+            amountBaseOut = amountSCY;
         }
     }
 
     /*///////////////////////////////////////////////////////////////
-                               LYT-INDEX
+                               SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function lytIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastLytIndex, IWXBTRFLY(wxBTRFLY).xBTRFLYValue(FixedPoint.ONE));
-        lastLytIndex = res;
+    function scyIndexCurrent() public virtual override returns (uint256 res) {
+        res = FixedPoint.max(lastSCYIndex, IWXBTRFLY(wxBTRFLY).xBTRFLYValue(FixedPoint.ONE));
+        lastSCYIndex = res;
         return res;
     }
 
-    function lytIndexStored() public view override returns (uint256 res) {
-        res = lastLytIndex;
+    function scyIndexStored() public view override returns (uint256 res) {
+        res = lastSCYIndex;
     }
 
     /*///////////////////////////////////////////////////////////////

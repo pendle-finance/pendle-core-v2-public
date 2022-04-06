@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleRouterLytAndForge.sol";
+import "./PendleRouterSCYAndForge.sol";
 import "./PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-contract PendleRouterRawTokenOT is PendleRouterLytAndForge, PendleRouterOT {
+contract PendleRouterRawTokenOT is PendleRouterSCYAndForge, PendleRouterOT {
     using MarketMathLib for MarketParameters;
     using FixedPoint for uint256;
     using FixedPoint for int256;
@@ -16,7 +16,7 @@ contract PendleRouterRawTokenOT is PendleRouterLytAndForge, PendleRouterOT {
         address _joeFactory,
         address _marketFactory
     )
-        PendleRouterLytAndForge(_joeRouter, _joeFactory)
+        PendleRouterSCYAndForge(_joeRouter, _joeFactory)
         PendleRouterOT(_marketFactory)
     //solhint-disable-next-line no-empty-blocks
     {
@@ -41,19 +41,19 @@ contract PendleRouterRawTokenOT is PendleRouterLytAndForge, PendleRouterOT {
         uint256 netOtOutGuessMax,
         bool doPull
     ) external returns (uint256 netOtOut) {
-        address LYT = IPMarket(market).LYT();
-        uint256 netLytUseToBuyOt = mintLytFromRawToken(
+        address SCY = IPMarket(market).SCY();
+        uint256 netSCYUseToBuyOt = mintSCYFromRawToken(
             exactRawTokenIn,
-            LYT,
+            SCY,
             1,
             market,
             path,
             doPull
         );
-        netOtOut = swapExactLytForOt(
+        netOtOut = swapExactSCYForOt(
             recipient,
             market,
-            netLytUseToBuyOt,
+            netSCYUseToBuyOt,
             minOtOut,
             netOtOutGuessMin,
             netOtOutGuessMax,
@@ -73,8 +73,8 @@ contract PendleRouterRawTokenOT is PendleRouterLytAndForge, PendleRouterOT {
         uint256 minRawTokenOut,
         bool doPull
     ) external returns (uint256 netRawTokenOut) {
-        address LYT = IPMarket(market).LYT();
-        swapExactOtForLyt(LYT, market, exactOtIn, 1, doPull);
-        netRawTokenOut = redeemLytToRawToken(LYT, 0, minRawTokenOut, recipient, path, false);
+        address SCY = IPMarket(market).SCY();
+        swapExactOtForSCY(SCY, market, exactOtIn, 1, doPull);
+        netRawTokenOut = redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
     }
 }

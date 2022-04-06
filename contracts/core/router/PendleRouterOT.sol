@@ -20,17 +20,17 @@ contract PendleRouterOT is PendleRouterMarketBase {
     }
 
     /**
-     * @notice addLiquidity to the market, using both LYT & OT, the recipient will receive LP before
-     msg.sender is required to pay LYT & OT
+     * @notice addLiquidity to the market, using both SCY & OT, the recipient will receive LP before
+     msg.sender is required to pay SCY & OT
      * @dev inner working of this function:
      - market.addLiquidity is called
      - LP is minted to the recipient, and this router's addLiquidityCallback is invoked
-     - the router will transfer the necessary lyt & ot from msg.sender to the market, and finish the callback
+     - the router will transfer the necessary scy & ot from msg.sender to the market, and finish the callback
      */
     function addLiquidity(
         address recipient,
         address market,
-        uint256 lytDesired,
+        uint256 scyDesired,
         uint256 otDesired,
         uint256 minLpOut,
         bool doPull
@@ -38,46 +38,46 @@ contract PendleRouterOT is PendleRouterMarketBase {
         external
         returns (
             uint256 netLpOut,
-            uint256 lytUsed,
+            uint256 scyUsed,
             uint256 otUsed
         )
     {
         MarketParameters memory state = IPMarket(market).readState();
-        (, netLpOut, lytUsed, otUsed) = state.addLiquidity(lytDesired, otDesired);
+        (, netLpOut, scyUsed, otUsed) = state.addLiquidity(scyDesired, otDesired);
 
         require(netLpOut >= minLpOut, "insufficient lp out");
 
         if (doPull) {
-            address LYT = IPMarket(market).LYT();
+            address SCY = IPMarket(market).SCY();
             address OT = IPMarket(market).OT();
 
-            IERC20(LYT).transferFrom(msg.sender, market, lytUsed);
+            IERC20(SCY).transferFrom(msg.sender, market, scyUsed);
             IERC20(OT).transferFrom(msg.sender, market, otUsed);
         }
 
-        IPMarket(market).addLiquidity(recipient, otDesired, lytDesired, abi.encode());
+        IPMarket(market).addLiquidity(recipient, otDesired, scyDesired, abi.encode());
     }
 
     /**
-     * @notice removeLiquidity from the market to receive both LYT & OT. The recipient will receive
-     LYT & OT before msg.sender is required to transfer in the necessary LP
+     * @notice removeLiquidity from the market to receive both SCY & OT. The recipient will receive
+     SCY & OT before msg.sender is required to transfer in the necessary LP
      * @dev inner working of this function:
      - market.removeLiquidity is called
-     - LYT & OT is transferred to the recipient, and the router's callback is invoked
+     - SCY & OT is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
      */
     function removeLiquidity(
         address recipient,
         address market,
         uint256 lpToRemove,
-        uint256 lytOutMin,
+        uint256 scyOutMin,
         uint256 otOutMin,
         bool doPull
-    ) external returns (uint256 netLytOut, uint256 netOtOut) {
+    ) external returns (uint256 netSCYOut, uint256 netOtOut) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (netLytOut, netOtOut) = state.removeLiquidity(lpToRemove);
-        require(netLytOut >= lytOutMin, "insufficient lyt out");
+        (netSCYOut, netOtOut) = state.removeLiquidity(lpToRemove);
+        require(netSCYOut >= scyOutMin, "insufficient scy out");
         require(netOtOut >= otOutMin, "insufficient ot out");
 
         if (doPull) {
@@ -88,48 +88,48 @@ contract PendleRouterOT is PendleRouterMarketBase {
     }
 
     /**
-     * @notice swap exact OT for LYT, with recipient receiving LYT before msg.sender is required to
+     * @notice swap exact OT for SCY, with recipient receiving SCY before msg.sender is required to
      transfer the owed OT
      * @dev inner working of this function:
      - market.swap is called
-     - LYT is transferred to the recipient, and the router's callback is invoked
+     - SCY is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
      */
-    function swapExactOtForLyt(
+    function swapExactOtForSCY(
         address recipient,
         address market,
         uint256 exactOtIn,
-        uint256 minLytOut,
+        uint256 minSCYOut,
         bool doPull
-    ) public returns (uint256 netLytOut) {
+    ) public returns (uint256 netSCYOut) {
         if (doPull) {
             address OT = IPMarket(market).OT();
             IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
         }
 
-        (netLytOut, ) = IPMarket(market).swapExactOtForLyt(
+        (netSCYOut, ) = IPMarket(market).swapExactOtForSCY(
             recipient,
             exactOtIn,
-            minLytOut,
+            minSCYOut,
             abi.encode()
         );
 
-        require(netLytOut >= minLytOut, "insufficient lyt out");
+        require(netSCYOut >= minSCYOut, "insufficient scy out");
     }
 
-    function swapOtForExactLyt(
+    function swapOtForExactSCY(
         address recipient,
         address market,
         uint256 maxOtIn,
-        uint256 exactLytOut,
+        uint256 exactSCYOut,
         uint256 netOtInGuessMin,
         uint256 netOtInGuessMax,
         bool doPull
     ) public returns (uint256 netOtIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        netOtIn = state.approxSwapOtForExactLyt(
-            exactLytOut,
+        netOtIn = state.approxSwapOtForExactSCY(
+            exactSCYOut,
             state.getTimeToExpiry(),
             netOtInGuessMin,
             netOtInGuessMax
@@ -142,46 +142,46 @@ contract PendleRouterOT is PendleRouterMarketBase {
             IERC20(OT).transferFrom(msg.sender, market, netOtIn);
         }
 
-        IPMarket(market).swapExactOtForLyt(recipient, netOtIn, exactLytOut, abi.encode());
+        IPMarket(market).swapExactOtForSCY(recipient, netOtIn, exactSCYOut, abi.encode());
     }
 
     /**
-     * @notice swap LYT for exact OT, with recipient receiving OT before msg.sender is required to
-     transfer the owed LYT
+     * @notice swap SCY for exact OT, with recipient receiving OT before msg.sender is required to
+     transfer the owed SCY
      * @dev inner working of this function:
      - market.swap is called
      - OT is transferred to the recipient, and the router's callback is invoked
-     - the router will transfer the necessary LYT from msg.sender to the market, and finish the callback
+     - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
      */
-    function swapLytForExactOt(
+    function swapSCYForExactOt(
         address recipient,
         address market,
         uint256 exactOtOut,
-        uint256 maxLytIn,
+        uint256 maxSCYIn,
         bool doPull
-    ) public returns (uint256 netLytIn) {
+    ) public returns (uint256 netSCYIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (netLytIn, ) = state.calcLytForExactOt(exactOtOut, state.getTimeToExpiry());
-        require(netLytIn <= maxLytIn, "exceed limit lyt in");
+        (netSCYIn, ) = state.calcSCYForExactOt(exactOtOut, state.getTimeToExpiry());
+        require(netSCYIn <= maxSCYIn, "exceed limit scy in");
 
         if (doPull) {
-            address LYT = IPMarket(market).LYT();
-            IERC20(LYT).transferFrom(msg.sender, market, netLytIn);
+            address SCY = IPMarket(market).SCY();
+            IERC20(SCY).transferFrom(msg.sender, market, netSCYIn);
         }
 
-        IPMarket(market).swapLytForExactOt(
+        IPMarket(market).swapSCYForExactOt(
             recipient,
             exactOtOut,
-            maxLytIn,
+            maxSCYIn,
             abi.encode(msg.sender)
         );
     }
 
-    function swapExactLytForOt(
+    function swapExactSCYForOt(
         address recipient,
         address market,
-        uint256 exactLytIn,
+        uint256 exactSCYIn,
         uint256 minOtOut,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax,
@@ -193,8 +193,8 @@ contract PendleRouterOT is PendleRouterMarketBase {
             netOtOutGuessMax = state.totalOt.Uint();
         }
 
-        netOtOut = state.approxSwapExactLytForOt(
-            exactLytIn,
+        netOtOut = state.approxSwapExactSCYForOt(
+            exactSCYIn,
             state.getTimeToExpiry(),
             netOtOutGuessMin,
             netOtOutGuessMax
@@ -203,14 +203,14 @@ contract PendleRouterOT is PendleRouterMarketBase {
         require(netOtOut >= minOtOut, "insufficient out");
 
         if (doPull) {
-            address LYT = IPMarket(market).LYT();
-            IERC20(LYT).transferFrom(msg.sender, market, exactLytIn);
+            address SCY = IPMarket(market).SCY();
+            IERC20(SCY).transferFrom(msg.sender, market, exactSCYIn);
         }
 
-        IPMarket(market).swapLytForExactOt(
+        IPMarket(market).swapSCYForExactOt(
             recipient,
             netOtOut,
-            exactLytIn,
+            exactSCYIn,
             abi.encode(msg.sender)
         );
     }

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../LiquidYieldToken/implementations/LYTBaseWithRewards.sol";
+import "../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
 import "../../interfaces/IAToken.sol";
 import "../../interfaces/IAavePool.sol";
 import "../../interfaces/IAaveRewardsController.sol";
 import "../../libraries/math/WadRayMath.sol";
 
-contract PendleAaveV3LYT is LYTBaseWithRewards {
+contract PendleAaveV3SCY is SCYBaseWithRewards {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -16,20 +16,20 @@ contract PendleAaveV3LYT is LYTBaseWithRewards {
     address public immutable rewardsController;
     address public immutable aToken;
 
-    uint256 public lastLytIndex;
+    uint256 public lastSCYIndex;
 
     // WIP: Aave reward controller can config to have more rewardsToken,
     // hence rewardsLength should not be immutable
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __lytdecimals,
+        uint8 __scydecimals,
         uint8 __assetDecimals,
         address _aavePool,
         address _underlying,
         address _aToken,
         address _rewardsController
-    ) LYTBaseWithRewards(_name, _symbol, __lytdecimals, __assetDecimals) {
+    ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals) {
         aToken = _aToken;
         pool = _aavePool;
         underlying = _underlying;
@@ -45,28 +45,28 @@ contract PendleAaveV3LYT is LYTBaseWithRewards {
         internal
         virtual
         override
-        returns (uint256 amountLytOut)
+        returns (uint256 amountSCYOut)
     {
-        // aTokenScaled -> lyt is 1:1
+        // aTokenScaled -> scy is 1:1
         if (token == aToken) {
-            amountLytOut = amountBase.rayDiv(lytIndexCurrent());
+            amountSCYOut = amountBase.rayDiv(scyIndexCurrent());
         } else {
             IAavePool(pool).supply(underlying, amountBase, address(this), 0);
             _afterSendToken(underlying);
-            amountLytOut = _afterReceiveToken(aToken);
+            amountSCYOut = _afterReceiveToken(aToken);
         }
     }
 
-    function _redeem(address token, uint256 amountLyt)
+    function _redeem(address token, uint256 amountSCY)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == aToken) {
-            amountBaseOut = amountLyt.rayMul(lytIndexCurrent());
+            amountBaseOut = amountSCY.rayMul(scyIndexCurrent());
         } else {
-            uint256 amountBaseExpected = amountLyt.rayMul(lytIndexCurrent());
+            uint256 amountBaseExpected = amountSCY.rayMul(scyIndexCurrent());
             IAavePool(pool).withdraw(underlying, amountBaseExpected, address(this));
             _afterSendToken(aToken);
             amountBaseOut = _afterReceiveToken(token);
@@ -74,17 +74,17 @@ contract PendleAaveV3LYT is LYTBaseWithRewards {
     }
 
     /*///////////////////////////////////////////////////////////////
-                               LYT-INDEX
+                               SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function lytIndexCurrent() public virtual override returns (uint256 res) {
+    function scyIndexCurrent() public virtual override returns (uint256 res) {
         res = IAavePool(pool).getReserveNormalizedIncome(underlying);
-        lastLytIndex = res;
+        lastSCYIndex = res;
         return res;
     }
 
-    function lytIndexStored() public view override returns (uint256 res) {
-        res = lastLytIndex;
+    function scyIndexStored() public view override returns (uint256 res) {
+        res = lastSCYIndex;
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {
@@ -120,7 +120,7 @@ contract PendleAaveV3LYT is LYTBaseWithRewards {
     function _afterReceiveToken(address token) internal virtual override returns (uint256 res) {
         if (token == aToken) {
             uint256 curBalance = IAToken(aToken).scaledBalanceOf(address(this));
-            res = (curBalance - lastBalanceOf[token]).rayMul(lytIndexCurrent());
+            res = (curBalance - lastBalanceOf[token]).rayMul(scyIndexCurrent());
             lastBalanceOf[token] = curBalance;
         } else {
             uint256 curBalance = IERC20(token).balanceOf(address(this));

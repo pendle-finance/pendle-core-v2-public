@@ -42,7 +42,7 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
     uint256 public interestFeeRate;
     address public treasury;
 
-    // LYT => expiry => address
+    // SCY => expiry => address
     mapping(address => mapping(uint256 => address)) public getOT;
     mapping(address => mapping(uint256 => address)) public getYT;
 
@@ -56,23 +56,23 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
         treasury = _treasury;
     }
 
-    function createYieldContract(address LYT, uint256 expiry)
+    function createYieldContract(address SCY, uint256 expiry)
         external
         returns (address OT, address YT)
     {
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 
-        require(getOT[LYT][expiry] == address(0), "OT_EXISTED");
+        require(getOT[SCY][expiry] == address(0), "OT_EXISTED");
 
-        ILiquidYieldToken _LYT = ILiquidYieldToken(LYT);
+        ISuperComposableYield _SCY = ISuperComposableYield(SCY);
 
-        uint8 assetDecimals = _LYT.assetDecimals();
+        uint8 assetDecimals = _SCY.assetDecimals();
 
         OT = address(
             new PendleOwnershipToken(
-                LYT,
-                OT_PREFIX.concat(_LYT.name(), expiry, " "),
-                OT_PREFIX.concat(_LYT.symbol(), expiry, "-"),
+                SCY,
+                OT_PREFIX.concat(_SCY.name(), expiry, " "),
+                OT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
                 expiry
             )
@@ -80,10 +80,10 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
 
         YT = address(
             new PendleYieldToken(
-                LYT,
+                SCY,
                 OT,
-                YT_PREFIX.concat(_LYT.name(), expiry, " "),
-                YT_PREFIX.concat(_LYT.symbol(), expiry, "-"),
+                YT_PREFIX.concat(_SCY.name(), expiry, " "),
+                YT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
                 expiry
             )
@@ -91,8 +91,8 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
 
         IPOwnershipToken(OT).initialize(YT);
 
-        getOT[LYT][expiry] = OT;
-        getYT[LYT][expiry] = YT;
+        getOT[SCY][expiry] = OT;
+        getYT[SCY][expiry] = YT;
     }
 
     function setExpiryDivisor(uint256 newExpiryDivisor) external onlyOwner {

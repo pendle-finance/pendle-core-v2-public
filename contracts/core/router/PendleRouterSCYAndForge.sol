@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../misc/PendleJoeSwapHelper.sol";
-import "../../LiquidYieldToken/ILiquidYieldToken.sol";
+import "../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-contract PendleRouterLytAndForge is PendleJoeSwapHelper {
+contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
     using SafeERC20 for IERC20;
 
     constructor(address _joeRouter, address _joeFactory)
@@ -17,63 +17,67 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     }
 
     /**
-     * @notice swap rawToken to baseToken -> baseToken to mint LYT
+     * @notice swap rawToken to baseToken -> baseToken to mint SCY
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - if [rawToken == baseToken], rawToken is transferred to LYT contract
+     - if [rawToken == baseToken], rawToken is transferred to SCY contract
        else, it is transferred to the first pair of path, swap is called, and the output token is transferred
-            to LYT contract
-     - LYT.mint is called, minting LYT directly to recipient
+            to SCY contract
+     - SCY.mint is called, minting SCY directly to recipient
      */
-    function mintLytFromRawToken(
+    function mintSCYFromRawToken(
         uint256 netRawTokenIn,
-        address LYT,
-        uint256 minLytOut,
+        address SCY,
+        uint256 minSCYOut,
         address recipient,
         address[] calldata path,
         bool doPull
-    ) public returns (uint256 netLytOut) {
+    ) public returns (uint256 netSCYOut) {
         if (doPull) {
             if (path.length == 1) {
-                IERC20(path[0]).transferFrom(msg.sender, LYT, netRawTokenIn);
+                IERC20(path[0]).transferFrom(msg.sender, SCY, netRawTokenIn);
             } else {
                 IERC20(path[0]).transferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
-                _swapExactIn(path, netRawTokenIn, LYT);
+                _swapExactIn(path, netRawTokenIn, SCY);
             }
         }
 
         address baseToken = path[path.length - 1];
-        netLytOut = ILiquidYieldToken(LYT).mint(recipient, baseToken, minLytOut);
+        netSCYOut = ISuperComposableYield(SCY).mint(recipient, baseToken, minSCYOut);
     }
 
     /**
-    * @notice redeem LYT to baseToken -> swap baseToken to rawToken
-    * @dev path[0] will be the baseToken that LYT is redeemed to, and path[path.length-1] is the
+    * @notice redeem SCY to baseToken -> swap baseToken to rawToken
+    * @dev path[0] will be the baseToken that SCY is redeemed to, and path[path.length-1] is the
     final rawToken output
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
     * @dev inner working of this function:
-     - LYT is transferred to LYT contract
-     - if [rawToken == baseToken], LYT.redeem is called & directly redeem tokens to the recipient
-       else, LYT.redeem is called with recipient = first pair in the path,
+     - SCY is transferred to SCY contract
+     - if [rawToken == baseToken], SCY.redeem is called & directly redeem tokens to the recipient
+       else, SCY.redeem is called with recipient = first pair in the path,
         and swap is called, and the output token is transferred to recipient
      */
-    function redeemLytToRawToken(
-        address LYT,
-        uint256 netLytIn,
+    function redeemSCYToRawToken(
+        address SCY,
+        uint256 netSCYIn,
         uint256 minRawTokenOut,
         address recipient,
         address[] memory path,
         bool doPull
     ) public returns (uint256 netRawTokenOut) {
         if (doPull) {
-            IERC20(LYT).safeTransferFrom(msg.sender, LYT, netLytIn);
+            IERC20(SCY).safeTransferFrom(msg.sender, SCY, netSCYIn);
         }
 
         address baseToken = path[0];
         if (path.length == 1) {
-            netRawTokenOut = ILiquidYieldToken(LYT).redeem(recipient, baseToken, minRawTokenOut);
+            netRawTokenOut = ISuperComposableYield(SCY).redeem(
+                recipient,
+                baseToken,
+                minRawTokenOut
+            );
         } else {
-            uint256 netBaseTokenOut = ILiquidYieldToken(LYT).redeem(
+            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeem(
                 _getFirstPair(path),
                 baseToken,
                 1
@@ -84,10 +88,10 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
     }
 
     /**
-     * @notice swap rawToken to baseToken -> convert to LYT -> convert to OT + YT
+     * @notice swap rawToken to baseToken -> convert to SCY -> convert to OT + YT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - same as mintLytFromRawToken, except the recipient of LYT will be the YT contract, then mintYO
+     - same as mintSCYFromRawToken, except the recipient of SCY will be the YT contract, then mintYO
      will be called, minting OT + YT directly to recipient
      */
     function mintYoFromRawToken(
@@ -98,19 +102,19 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         address[] calldata path,
         bool doPull
     ) public returns (uint256 netYoOut) {
-        address LYT = IPYieldToken(YT).LYT();
-        mintLytFromRawToken(netRawTokenIn, LYT, 1, YT, path, doPull);
+        address SCY = IPYieldToken(YT).SCY();
+        mintSCYFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
         netYoOut = IPYieldToken(YT).mintYO(recipient, recipient);
         require(netYoOut >= minYoOut, "insufficient YO out");
     }
 
     /**
-     * @notice redeem OT + YT to LYT -> redeem LYT to baseToken -> swap baseToken to rawToken
+     * @notice redeem OT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to rawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - OT (+ YT if not expired) is transferred to the YT contract
-     - redeemYO is called, redeem all outcome LYT to the LYT contract
-     - The rest is the same as redeemLytToRawToken (except the first LYT transfer is skipped)
+     - redeemYO is called, redeem all outcome SCY to the SCY contract
+     - The rest is the same as redeemSCYToRawToken (except the first SCY transfer is skipped)
      */
     function redeemYoToRawToken(
         address YT,
@@ -121,7 +125,7 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
         bool doPull
     ) public returns (uint256 netRawTokenOut) {
         address OT = IPYieldToken(YT).OT();
-        address LYT = IPYieldToken(YT).LYT();
+        address SCY = IPYieldToken(YT).SCY();
 
         if (doPull) {
             bool isNeedToBurnYt = (IPBaseToken(YT).isExpired() == false);
@@ -129,8 +133,8 @@ contract PendleRouterLytAndForge is PendleJoeSwapHelper {
             if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netYoIn);
         }
 
-        IPYieldToken(YT).redeemYO(LYT);
+        IPYieldToken(YT).redeemYO(SCY);
 
-        netRawTokenOut = redeemLytToRawToken(LYT, 0, minRawTokenOut, recipient, path, false);
+        netRawTokenOut = redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
     }
 }

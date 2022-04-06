@@ -7,14 +7,14 @@ import "../libraries/math/MarketMathLib.sol";
 interface IPMarket is IPBaseToken {
     function addLiquidity(
         address recipient,
-        uint256 lytDesired,
+        uint256 scyDesired,
         uint256 otDesired,
         bytes calldata data
     )
         external
         returns (
             uint256 lpToAccount,
-            uint256 lytUsed,
+            uint256 scyUsed,
             uint256 otUsed
         );
 
@@ -22,25 +22,25 @@ interface IPMarket is IPBaseToken {
         address recipient,
         uint256 lpToRemove,
         bytes calldata data
-    ) external returns (uint256 lytToAccount, uint256 otToAccount);
+    ) external returns (uint256 scyToAccount, uint256 otToAccount);
 
-    function swapExactOtForLyt(
+    function swapExactOtForSCY(
         address recipient,
         uint256 exactOtIn,
-        uint256 minLytOut,
+        uint256 minSCYOut,
         bytes calldata data
-    ) external returns (uint256 netLytOut, uint256 netLytToReserve);
+    ) external returns (uint256 netSCYOut, uint256 netSCYToReserve);
 
-    function swapLytForExactOt(
+    function swapSCYForExactOt(
         address recipient,
         uint256 exactOtOut,
-        uint256 maxLytIn,
+        uint256 maxSCYIn,
         bytes calldata data
-    ) external returns (uint256 netLytIn, uint256 netLytToReserve);
+    ) external returns (uint256 netSCYIn, uint256 netSCYToReserve);
 
     function readState() external returns (MarketParameters memory market);
 
     function OT() external view returns (address);
 
-    function LYT() external view returns (address);
+    function SCY() external view returns (address);
 }
