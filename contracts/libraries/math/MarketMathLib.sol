@@ -195,7 +195,7 @@ library MarketMathLib {
             netAsset.toAccount,
             netAsset.toMarket,
             netAsset.toReserve
-        ) = _getNetAssetAmountsUnderlying(
+        ) = _getNetAssetAmountsToAddresses(
             market.feeRateRoot,
             preFeeExchangeRate,
             otToAccount,
@@ -203,6 +203,9 @@ library MarketMathLib {
             market.reserveFeePercent
         );
 
+        //////////////////////////////////
+        /// Update params in the market///
+        //////////////////////////////////
         {
             // Set the new implied interest rate after the trade has taken effect, this
             // will be used to calculate the next trader's interest rate.
@@ -260,11 +263,12 @@ library MarketMathLib {
         }
     }
 
-    /// @dev Returns net Asset amounts to the account, the market and the reserve
+    /// @dev Returns net Asset amounts to the account, the market and the reserve. netAssetToReserve
+    /// is actually the fee portion of the trade
     /// @return netAssetToAccount this is a positive or negative amount of Asset change to the account
     /// @return netAssetToMarket this is a positive or negative amount of Asset change in the market
     /// @return netAssetToReserve this is always a positive amount of Asset accrued to the reserve
-    function _getNetAssetAmountsUnderlying(
+    function _getNetAssetAmountsToAddresses(
         uint256 feeRateRoot,
         int256 preFeeExchangeRate,
         int256 otToAccount,
@@ -291,10 +295,10 @@ library MarketMathLib {
         if (otToAccount > 0) {
             // swapping LYT for OT
 
-            // Dividing reduces exchange rate, lending should receive less OT for Asset
+            // Dividing reduces exchange rate, swapping LYT to OT means account should receive less OT
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
             // It's possible that the fee pushes exchange rates into negative territory. This is not possible
-            // when borrowing. If this happens then the trade has failed.
+            // when swapping OT to LYT. If this happens then the trade has failed.
             require(postFeeExchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
 
             // assetToAccount = -(otToAccount / exchangeRate)
@@ -466,23 +470,6 @@ library MarketMathLib {
         res = logitP.ln();
     }
 
-    function deepCloneMarket(MarketParameters memory marketImmutable)
-        internal
-        pure
-        returns (MarketParameters memory market)
-    {
-        market.expiry = marketImmutable.expiry;
-        market.totalOt = marketImmutable.totalOt;
-        market.totalLyt = marketImmutable.totalLyt;
-        market.totalLp = marketImmutable.totalLp;
-        market.lastImpliedRate = marketImmutable.lastImpliedRate;
-        market.lytRate = marketImmutable.lytRate;
-        market.reserveFeePercent = marketImmutable.reserveFeePercent;
-        market.scalarRoot = marketImmutable.scalarRoot;
-        market.feeRateRoot = marketImmutable.feeRateRoot;
-        market.anchorRoot = marketImmutable.anchorRoot;
-    }
-
     function getRateScalar(MarketParameters memory market, uint256 timeToExpiry)
         internal
         pure
@@ -507,7 +494,7 @@ library MarketMathLib {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    ///                                    Metadata functions                                    ///
+    ///                                    Utility functions                                    ////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     function getTimeToExpiry(MarketParameters memory market) internal view returns (uint256) {
@@ -517,8 +504,25 @@ library MarketMathLib {
         }
     }
 
+    function deepCloneMarket(MarketParameters memory marketImmutable)
+        internal
+        pure
+        returns (MarketParameters memory market)
+    {
+        market.expiry = marketImmutable.expiry;
+        market.totalOt = marketImmutable.totalOt;
+        market.totalLyt = marketImmutable.totalLyt;
+        market.totalLp = marketImmutable.totalLp;
+        market.lastImpliedRate = marketImmutable.lastImpliedRate;
+        market.lytRate = marketImmutable.lytRate;
+        market.reserveFeePercent = marketImmutable.reserveFeePercent;
+        market.scalarRoot = marketImmutable.scalarRoot;
+        market.feeRateRoot = marketImmutable.feeRateRoot;
+        market.anchorRoot = marketImmutable.anchorRoot;
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////
-    ///                                approx functions                                ///
+    ///                                Approx functions                                ///
     //////////////////////////////////////////////////////////////////////////////////////
 
     function approxSwapExactLytForOt(
