@@ -15,7 +15,6 @@
 pragma solidity ^0.8.0;
 
 import "./LogExpMath.sol";
-import "../helpers/PendleErrors.sol";
 
 /* solhint-disable private-vars-leading-underscore, reason-string */
 
