@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleRouterSCYAndForge.sol";
-import "./PendleRouterOT.sol";
+import "./base/PendleRouterSCYAndForge.sol";
+import "./base/PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
+import "../../interfaces/IPRouterRouterCore.sol";
 
-contract PendleRouterRawTokenOT is PendleRouterSCYAndForge, PendleRouterOT {
+contract PendleRouterCore is IPRouterRouterCore, PendleRouterSCYAndForge, PendleRouterOT {
     using MarketMathLib for MarketParameters;
     using FixedPoint for uint256;
     using FixedPoint for int256;
@@ -38,19 +39,18 @@ contract PendleRouterRawTokenOT is PendleRouterSCYAndForge, PendleRouterOT {
         address market,
         uint256 minOtOut,
         uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax,
-        bool doPull
+        uint256 netOtOutGuessMax
     ) external returns (uint256 netOtOut) {
         address SCY = IPMarket(market).SCY();
-        uint256 netSCYUseToBuyOt = mintSCYFromRawToken(
+        uint256 netSCYUseToBuyOt = _mintSCYFromRawToken(
             exactRawTokenIn,
             SCY,
             1,
             market,
             path,
-            doPull
+            true
         );
-        netOtOut = swapExactSCYForOt(
+        netOtOut = _swapExactSCYForOt(
             recipient,
             market,
             netSCYUseToBuyOt,
@@ -70,11 +70,10 @@ contract PendleRouterRawTokenOT is PendleRouterSCYAndForge, PendleRouterOT {
         address recipient,
         address[] calldata path,
         address market,
-        uint256 minRawTokenOut,
-        bool doPull
+        uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut) {
         address SCY = IPMarket(market).SCY();
-        swapExactOtForSCY(SCY, market, exactOtIn, 1, doPull);
-        netRawTokenOut = redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
+        _swapExactOtForSCY(SCY, market, exactOtIn, 1, true);
+        netRawTokenOut = _redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
     }
 }

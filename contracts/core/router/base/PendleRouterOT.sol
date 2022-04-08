@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IPMarketFactory.sol";
-import "../../interfaces/IPMarket.sol";
-import "../../interfaces/IPMarketAddRemoveCallback.sol";
-import "../../interfaces/IPMarketSwapCallback.sol";
+import "../../../interfaces/IPMarketFactory.sol";
+import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPMarketAddRemoveCallback.sol";
+import "../../../interfaces/IPMarketSwapCallback.sol";
+import "../../../interfaces/IPRouterOT.sol";
 import "../base/PendleRouterMarketBase.sol";
 
-contract PendleRouterOT is PendleRouterMarketBase {
+abstract contract PendleRouterOT is PendleRouterMarketBase, IPRouterOT {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
@@ -19,6 +20,91 @@ contract PendleRouterOT is PendleRouterMarketBase {
 
     }
 
+    function addLiquidity(
+        address recipient,
+        address market,
+        uint256 scyDesired,
+        uint256 otDesired,
+        uint256 minLpOut
+    )
+        external
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return _addLiquidity(recipient, market, scyDesired, otDesired, minLpOut, true);
+    }
+
+    function removeLiquidity(
+        address recipient,
+        address market,
+        uint256 lpToRemove,
+        uint256 scyOutMin,
+        uint256 otOutMin
+    ) external returns (uint256, uint256) {
+        return _removeLiquidity(recipient, market, lpToRemove, scyOutMin, otOutMin, true);
+    }
+
+    function swapExactOtForSCY(
+        address recipient,
+        address market,
+        uint256 exactOtIn,
+        uint256 minSCYOut
+    ) external returns (uint256) {
+        return _swapExactOtForSCY(recipient, market, exactOtIn, minSCYOut, true);
+    }
+
+    function swapOtForExactSCY(
+        address recipient,
+        address market,
+        uint256 maxOtIn,
+        uint256 exactSCYOut,
+        uint256 netOtInGuessMin,
+        uint256 netOtInGuessMax
+    ) external returns (uint256) {
+        return
+            _swapOtForExactSCY(
+                recipient,
+                market,
+                maxOtIn,
+                exactSCYOut,
+                netOtInGuessMin,
+                netOtInGuessMax,
+                true
+            );
+    }
+
+    function swapSCYForExactOt(
+        address recipient,
+        address market,
+        uint256 exactOtOut,
+        uint256 maxSCYIn
+    ) external returns (uint256) {
+        return _swapSCYForExactOt(recipient, market, exactOtOut, maxSCYIn, true);
+    }
+
+    function swapExactSCYForOt(
+        address recipient,
+        address market,
+        uint256 exactSCYIn,
+        uint256 minOtOut,
+        uint256 netOtOutGuessMin,
+        uint256 netOtOutGuessMax
+    ) external returns (uint256) {
+        return
+            _swapExactSCYForOt(
+                recipient,
+                market,
+                exactSCYIn,
+                minOtOut,
+                netOtOutGuessMin,
+                netOtOutGuessMax,
+                true
+            );
+    }
+
     /**
      * @notice addLiquidity to the market, using both SCY & OT, the recipient will receive LP before
      msg.sender is required to pay SCY & OT
@@ -27,7 +113,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
      - LP is minted to the recipient, and this router's addLiquidityCallback is invoked
      - the router will transfer the necessary scy & ot from msg.sender to the market, and finish the callback
      */
-    function addLiquidity(
+    function _addLiquidity(
         address recipient,
         address market,
         uint256 scyDesired,
@@ -35,7 +121,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
         uint256 minLpOut,
         bool doPull
     )
-        external
+        internal
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
@@ -66,14 +152,14 @@ contract PendleRouterOT is PendleRouterMarketBase {
      - SCY & OT is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
      */
-    function removeLiquidity(
+    function _removeLiquidity(
         address recipient,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
         uint256 otOutMin,
         bool doPull
-    ) external returns (uint256 netSCYOut, uint256 netOtOut) {
+    ) internal returns (uint256 netSCYOut, uint256 netOtOut) {
         MarketParameters memory state = IPMarket(market).readState();
 
         (netSCYOut, netOtOut) = state.removeLiquidity(lpToRemove);
@@ -95,13 +181,13 @@ contract PendleRouterOT is PendleRouterMarketBase {
      - SCY is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
      */
-    function swapExactOtForSCY(
+    function _swapExactOtForSCY(
         address recipient,
         address market,
         uint256 exactOtIn,
         uint256 minSCYOut,
         bool doPull
-    ) public returns (uint256 netSCYOut) {
+    ) internal returns (uint256 netSCYOut) {
         if (doPull) {
             address OT = IPMarket(market).OT();
             IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
@@ -117,7 +203,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
         require(netSCYOut >= minSCYOut, "insufficient scy out");
     }
 
-    function swapOtForExactSCY(
+    function _swapOtForExactSCY(
         address recipient,
         address market,
         uint256 maxOtIn,
@@ -125,7 +211,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
         uint256 netOtInGuessMin,
         uint256 netOtInGuessMax,
         bool doPull
-    ) public returns (uint256 netOtIn) {
+    ) internal returns (uint256 netOtIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
         netOtIn = state.approxSwapOtForExactSCY(
@@ -153,13 +239,13 @@ contract PendleRouterOT is PendleRouterMarketBase {
      - OT is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
      */
-    function swapSCYForExactOt(
+    function _swapSCYForExactOt(
         address recipient,
         address market,
         uint256 exactOtOut,
         uint256 maxSCYIn,
         bool doPull
-    ) public returns (uint256 netSCYIn) {
+    ) internal returns (uint256 netSCYIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
         (netSCYIn, ) = state.calcSCYForExactOt(exactOtOut, state.getTimeToExpiry());
@@ -178,7 +264,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
         );
     }
 
-    function swapExactSCYForOt(
+    function _swapExactSCYForOt(
         address recipient,
         address market,
         uint256 exactSCYIn,
@@ -186,7 +272,7 @@ contract PendleRouterOT is PendleRouterMarketBase {
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax,
         bool doPull
-    ) public returns (uint256 netOtOut) {
+    ) internal returns (uint256 netOtOut) {
         MarketParameters memory state = IPMarket(market).readState();
 
         if (netOtOutGuessMax == type(uint256).max) {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleRouterSCYAndForge.sol";
-import "./PendleRouterOT.sol";
+import "./base/PendleRouterSCYAndForge.sol";
+import "./base/PendleRouterOT.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../libraries/helpers/MarketHelper.sol";
@@ -49,7 +49,7 @@ contract PendleRouterRawTokenYT is
 
         {
             MarketParameters memory state = IPMarket(market).readState();
-            uint256 netSCYUsedToBuyYT = mintSCYFromRawToken(
+            uint256 netSCYUsedToBuyYT = _mintSCYFromRawToken(
                 exactRawTokenIn,
                 address(_market.SCY),
                 1,
@@ -149,6 +149,6 @@ contract PendleRouterRawTokenYT is
         _market.SCY.transfer(market, scyOwed);
         _market.SCY.transfer(address(_market.SCY), netSCYReceived - scyOwed);
 
-        redeemSCYToRawToken(address(_market.SCY), 0, 1, recipient, path, false);
+        _redeemSCYToRawToken(address(_market.SCY), 0, 1, recipient, path, false);
     }
 }

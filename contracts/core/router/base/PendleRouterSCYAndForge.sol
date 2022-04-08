@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../misc/PendleJoeSwapHelper.sol";
-import "../../SuperComposableYield/ISuperComposableYield.sol";
-import "../../interfaces/IPYieldToken.sol";
+import "../../misc/PendleJoeSwapHelper.sol";
+import "../../../SuperComposableYield/ISuperComposableYield.sol";
+import "../../../interfaces/IPYieldToken.sol";
+import "../../../interfaces/IPRouterSCYAndForge.sol";
 
-contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
+abstract contract PendleRouterSCYAndForge is PendleJoeSwapHelper, IPRouterSCYAndForge {
     using SafeERC20 for IERC20;
 
     constructor(address _joeRouter, address _joeFactory)
@@ -14,6 +15,46 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
     // solhint-disable-next-line no-empty-blocks
     {
 
+    }
+
+    function mintSCYFromRawToken(
+        uint256 netRawTokenIn,
+        address SCY,
+        uint256 minSCYOut,
+        address recipient,
+        address[] calldata path
+    ) external returns (uint256) {
+        return _mintSCYFromRawToken(netRawTokenIn, SCY, minSCYOut, recipient, path, true);
+    }
+
+    function redeemSCYToRawToken(
+        address SCY,
+        uint256 netSCYIn,
+        uint256 minRawTokenOut,
+        address recipient,
+        address[] memory path
+    ) external returns (uint256) {
+        return _redeemSCYToRawToken(SCY, netSCYIn, minRawTokenOut, recipient, path, true);
+    }
+
+    function mintYoFromRawToken(
+        uint256 netRawTokenIn,
+        address YT,
+        uint256 minYoOut,
+        address recipient,
+        address[] calldata path
+    ) external returns (uint256) {
+        return _mintYoFromRawToken(netRawTokenIn, YT, minYoOut, recipient, path, true);
+    }
+
+    function redeemYoToRawToken(
+        address YT,
+        uint256 netYoIn,
+        uint256 minRawTokenOut,
+        address recipient,
+        address[] memory path
+    ) external returns (uint256) {
+        return _redeemYoToRawToken(YT, netYoIn, minRawTokenOut, recipient, path, true);
     }
 
     /**
@@ -25,14 +66,14 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
             to SCY contract
      - SCY.mint is called, minting SCY directly to recipient
      */
-    function mintSCYFromRawToken(
+    function _mintSCYFromRawToken(
         uint256 netRawTokenIn,
         address SCY,
         uint256 minSCYOut,
         address recipient,
         address[] calldata path,
         bool doPull
-    ) public returns (uint256 netSCYOut) {
+    ) internal returns (uint256 netSCYOut) {
         if (doPull) {
             if (path.length == 1) {
                 IERC20(path[0]).transferFrom(msg.sender, SCY, netRawTokenIn);
@@ -57,14 +98,14 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
        else, SCY.redeem is called with recipient = first pair in the path,
         and swap is called, and the output token is transferred to recipient
      */
-    function redeemSCYToRawToken(
+    function _redeemSCYToRawToken(
         address SCY,
         uint256 netSCYIn,
         uint256 minRawTokenOut,
         address recipient,
         address[] memory path,
         bool doPull
-    ) public returns (uint256 netRawTokenOut) {
+    ) internal returns (uint256 netRawTokenOut) {
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, SCY, netSCYIn);
         }
@@ -94,16 +135,16 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
      - same as mintSCYFromRawToken, except the recipient of SCY will be the YT contract, then mintYO
      will be called, minting OT + YT directly to recipient
      */
-    function mintYoFromRawToken(
+    function _mintYoFromRawToken(
         uint256 netRawTokenIn,
         address YT,
         uint256 minYoOut,
         address recipient,
         address[] calldata path,
         bool doPull
-    ) public returns (uint256 netYoOut) {
+    ) internal returns (uint256 netYoOut) {
         address SCY = IPYieldToken(YT).SCY();
-        mintSCYFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
+        _mintSCYFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
         netYoOut = IPYieldToken(YT).mintYO(recipient, recipient);
         require(netYoOut >= minYoOut, "insufficient YO out");
     }
@@ -116,14 +157,14 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
      - redeemYO is called, redeem all outcome SCY to the SCY contract
      - The rest is the same as redeemSCYToRawToken (except the first SCY transfer is skipped)
      */
-    function redeemYoToRawToken(
+    function _redeemYoToRawToken(
         address YT,
         uint256 netYoIn,
         uint256 minRawTokenOut,
         address recipient,
         address[] memory path,
         bool doPull
-    ) public returns (uint256 netRawTokenOut) {
+    ) internal returns (uint256 netRawTokenOut) {
         address OT = IPYieldToken(YT).OT();
         address SCY = IPYieldToken(YT).SCY();
 
@@ -135,6 +176,6 @@ contract PendleRouterSCYAndForge is PendleJoeSwapHelper {
 
         IPYieldToken(YT).redeemYO(SCY);
 
-        netRawTokenOut = redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
+        netRawTokenOut = _redeemSCYToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
     }
 }
