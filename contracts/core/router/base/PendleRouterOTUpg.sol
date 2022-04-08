@@ -6,15 +6,16 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../interfaces/IPRouterOT.sol";
-import "../base/PendleRouterMarketBase.sol";
+import "../base/PendleRouterMarketBaseUpg.sol";
 
-abstract contract PendleRouterOT is PendleRouterMarketBase, IPRouterOT {
+abstract contract PendleRouterOTUpg is PendleRouterMarketBaseUpg, IPRouterOT {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
 
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _marketFactory)
-        PendleRouterMarketBase(_marketFactory)
+        PendleRouterMarketBaseUpg(_marketFactory)
     //solhint-disable-next-line no-empty-blocks
     {
 

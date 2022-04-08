@@ -27,11 +27,12 @@ import "../../libraries/JoeLibrary.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract PendleJoeSwapHelper {
+abstract contract PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;
     address public immutable joeRouter;
     address public immutable joeFactory;
 
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _joeRouter, address _joeFactory) {
         joeRouter = _joeRouter;
         joeFactory = _joeFactory;

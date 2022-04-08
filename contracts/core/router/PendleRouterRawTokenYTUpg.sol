@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./base/PendleRouterSCYAndForge.sol";
-import "./base/PendleRouterOT.sol";
+import "./base/PendleRouterSCYAndForgeUpg.sol";
+import "./base/PendleRouterOTUpg.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../libraries/helpers/MarketHelper.sol";
 
-contract PendleRouterRawTokenYT is
-    PendleRouterSCYAndForge,
-    PendleRouterMarketBase,
+contract PendleRouterRawTokenYTUpg is
+    PendleRouterSCYAndForgeUpg,
+    PendleRouterMarketBaseUpg,
     IPMarketSwapCallback
 {
     using MarketMathLib for MarketParameters;
     using FixedPoint for uint256;
     using FixedPoint for int256;
 
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(
         address _joeRouter,
         address _joeFactory,
         address _marketFactory
     )
-        PendleRouterSCYAndForge(_joeRouter, _joeFactory)
-        PendleRouterMarketBase(_marketFactory)
+        PendleRouterSCYAndForgeUpg(_joeRouter, _joeFactory)
+        PendleRouterMarketBaseUpg(_marketFactory)
     //solhint-disable-next-line no-empty-blocks
     {
 

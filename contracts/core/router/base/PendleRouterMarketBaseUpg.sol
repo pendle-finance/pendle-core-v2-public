@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../../interfaces/IPMarketFactory.sol";
 
-abstract contract PendleRouterMarketBase {
+abstract contract PendleRouterMarketBaseUpg {
     address public immutable marketFactory;
 
     modifier onlyPendleMarket(address market) {
@@ -11,6 +11,7 @@ abstract contract PendleRouterMarketBase {
         _;
     }
 
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _marketFactory) {
         marketFactory = _marketFactory;
     }

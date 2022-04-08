@@ -2,16 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../misc/PendleJoeSwapHelper.sol";
+import "../../misc/PendleJoeSwapHelperUpg.sol";
 import "../../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 import "../../../interfaces/IPRouterSCYAndForge.sol";
 
-abstract contract PendleRouterSCYAndForge is PendleJoeSwapHelper, IPRouterSCYAndForge {
+abstract contract PendleRouterSCYAndForgeUpg is PendleJoeSwapHelperUpg, IPRouterSCYAndForge {
     using SafeERC20 for IERC20;
 
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _joeRouter, address _joeFactory)
-        PendleJoeSwapHelper(_joeRouter, _joeFactory)
+        PendleJoeSwapHelperUpg(_joeRouter, _joeFactory)
     // solhint-disable-next-line no-empty-blocks
     {
 
