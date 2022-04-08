@@ -42,5 +42,16 @@ interface IPMarket is IPBaseToken {
 
     function OT() external view returns (address);
 
+    function YT() external view returns (address);
+
     function SCY() external view returns (address);
+
+    function readTokens()
+        external
+        view
+        returns (
+            ISuperComposableYield _SCY,
+            IPOwnershipToken _OT,
+            IPYieldToken _YT
+        );
 }

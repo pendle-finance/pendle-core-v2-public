@@ -1537,6 +1537,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openzeppelin/contracts-upgradeable@npm:^4.5.2":
+  version: 4.5.2
+  resolution: "@openzeppelin/contracts-upgradeable@npm:4.5.2"
+  checksum: bd6a12eb83d8e3194e0847ffb248a1063668e2bf723afd21066316090de9b02e95af6057086a95fa21b0d09a2ef0ea057459bb5f5645dfff298e59e8c3267692
+  languageName: node
+  linkType: hard
+
 "@openzeppelin/contracts@npm:^4.5.0":
   version: 4.5.0
   resolution: "@openzeppelin/contracts@npm:4.5.0"
@@ -1582,6 +1589,7 @@ __metadata:
     "@nomiclabs/hardhat-waffle": ^2.0.1
     "@nomiclabs/hardhat-web3": ^2.0.0
     "@openzeppelin/contracts": ^4.5.0
+    "@openzeppelin/contracts-upgradeable": ^4.5.2
     "@openzeppelin/test-helpers": 0.5.12
     "@pendle/constants": "https://github.com/pendle-finance/pendle-constants.git#66143b5f7a2d1b4ddd2acc6d3ea8e5a6884b398d"
     "@rari-capital/solmate": ^6.2.0

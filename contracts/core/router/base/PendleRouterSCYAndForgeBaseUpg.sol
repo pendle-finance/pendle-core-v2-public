@@ -5,9 +5,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../misc/PendleJoeSwapHelperUpg.sol";
 import "../../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
-import "../../../interfaces/IPRouterSCYAndForge.sol";
 
-abstract contract PendleRouterSCYAndForgeUpg is PendleJoeSwapHelperUpg, IPRouterSCYAndForge {
+abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
@@ -16,46 +15,6 @@ abstract contract PendleRouterSCYAndForgeUpg is PendleJoeSwapHelperUpg, IPRouter
     // solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function mintSCYFromRawToken(
-        uint256 netRawTokenIn,
-        address SCY,
-        uint256 minSCYOut,
-        address recipient,
-        address[] calldata path
-    ) external returns (uint256) {
-        return _mintSCYFromRawToken(netRawTokenIn, SCY, minSCYOut, recipient, path, true);
-    }
-
-    function redeemSCYToRawToken(
-        address SCY,
-        uint256 netSCYIn,
-        uint256 minRawTokenOut,
-        address recipient,
-        address[] memory path
-    ) external returns (uint256) {
-        return _redeemSCYToRawToken(SCY, netSCYIn, minRawTokenOut, recipient, path, true);
-    }
-
-    function mintYoFromRawToken(
-        uint256 netRawTokenIn,
-        address YT,
-        uint256 minYoOut,
-        address recipient,
-        address[] calldata path
-    ) external returns (uint256) {
-        return _mintYoFromRawToken(netRawTokenIn, YT, minYoOut, recipient, path, true);
-    }
-
-    function redeemYoToRawToken(
-        address YT,
-        uint256 netYoIn,
-        uint256 minRawTokenOut,
-        address recipient,
-        address[] memory path
-    ) external returns (uint256) {
-        return _redeemYoToRawToken(YT, netYoIn, minRawTokenOut, recipient, path, true);
     }
 
     /**

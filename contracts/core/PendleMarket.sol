@@ -37,6 +37,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
     address public immutable OT;
     address public immutable SCY;
+    address public immutable YT;
 
     int256 public immutable scalarRoot;
     uint256 public immutable feeRateRoot; // allow fee to be changable?
@@ -57,6 +58,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) PendleBaseToken(NAME, SYMBOL, 18, IPOwnershipToken(_OT).expiry()) {
         OT = _OT;
         SCY = IPOwnershipToken(_OT).SCY();
+        YT = IPOwnershipToken(_OT).YT();
         feeRateRoot = _feeRateRoot;
         scalarRoot = _scalarRoot;
         rateOracleTimeWindow = _rateOracleTimeWindow;
@@ -212,5 +214,19 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         store.lastImpliedRate = market.lastImpliedRate.Uint32();
         store.oracleRate = market.oracleRate.Uint112();
         store.lastTradeTime = market.lastTradeTime.Uint32();
+    }
+
+    function readTokens()
+        external
+        view
+        returns (
+            ISuperComposableYield _SCY,
+            IPOwnershipToken _OT,
+            IPYieldToken _YT
+        )
+    {
+        _SCY = ISuperComposableYield(SCY);
+        _OT = IPOwnershipToken(OT);
+        _YT = IPYieldToken(YT);
     }
 }

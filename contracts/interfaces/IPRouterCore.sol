@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-interface IPRouterOT {
+interface IPRouterCore {
     function addLiquidity(
         address recipient,
         address market,
@@ -55,4 +55,54 @@ interface IPRouterOT {
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax
     ) external returns (uint256 netOtOut);
+
+    function mintSCYFromRawToken(
+        uint256 netRawTokenIn,
+        address SCY,
+        uint256 minSCYOut,
+        address recipient,
+        address[] calldata path
+    ) external returns (uint256 netSCYOut);
+
+    function redeemSCYToRawToken(
+        address SCY,
+        uint256 netSCYIn,
+        uint256 minRawTokenOut,
+        address recipient,
+        address[] memory path
+    ) external returns (uint256 netRawTokenOut);
+
+    function mintYoFromRawToken(
+        uint256 netRawTokenIn,
+        address YT,
+        uint256 minYoOut,
+        address recipient,
+        address[] calldata path
+    ) external returns (uint256 netYoOut);
+
+    function redeemYoToRawToken(
+        address YT,
+        uint256 netYoIn,
+        uint256 minRawTokenOut,
+        address recipient,
+        address[] memory path
+    ) external returns (uint256 netRawTokenOut);
+
+    function swapExactRawTokenForOt(
+        uint256 exactRawTokenIn,
+        address recipient,
+        address[] calldata path,
+        address market,
+        uint256 minOtOut,
+        uint256 netOtOutGuessMin,
+        uint256 netOtOutGuessMax
+    ) external returns (uint256 netOtOut);
+
+    function swapExactOtForRawToken(
+        uint256 exactOtIn,
+        address recipient,
+        address[] calldata path,
+        address market,
+        uint256 minRawTokenOut
+    ) external returns (uint256 netRawTokenOut);
 }

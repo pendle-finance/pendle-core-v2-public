@@ -5,105 +5,16 @@ import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
-import "../../../interfaces/IPRouterOT.sol";
-import "../base/PendleRouterMarketBaseUpg.sol";
 
-abstract contract PendleRouterOTUpg is PendleRouterMarketBaseUpg, IPRouterOT {
+abstract contract PendleRouterOTBaseUpg {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _marketFactory)
-        PendleRouterMarketBaseUpg(_marketFactory)
-    //solhint-disable-next-line no-empty-blocks
+    constructor() //solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function addLiquidity(
-        address recipient,
-        address market,
-        uint256 scyDesired,
-        uint256 otDesired,
-        uint256 minLpOut
-    )
-        external
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        return _addLiquidity(recipient, market, scyDesired, otDesired, minLpOut, true);
-    }
-
-    function removeLiquidity(
-        address recipient,
-        address market,
-        uint256 lpToRemove,
-        uint256 scyOutMin,
-        uint256 otOutMin
-    ) external returns (uint256, uint256) {
-        return _removeLiquidity(recipient, market, lpToRemove, scyOutMin, otOutMin, true);
-    }
-
-    function swapExactOtForSCY(
-        address recipient,
-        address market,
-        uint256 exactOtIn,
-        uint256 minSCYOut
-    ) external returns (uint256) {
-        return _swapExactOtForSCY(recipient, market, exactOtIn, minSCYOut, true);
-    }
-
-    function swapOtForExactSCY(
-        address recipient,
-        address market,
-        uint256 maxOtIn,
-        uint256 exactSCYOut,
-        uint256 netOtInGuessMin,
-        uint256 netOtInGuessMax
-    ) external returns (uint256) {
-        return
-            _swapOtForExactSCY(
-                recipient,
-                market,
-                maxOtIn,
-                exactSCYOut,
-                netOtInGuessMin,
-                netOtInGuessMax,
-                true
-            );
-    }
-
-    function swapSCYForExactOt(
-        address recipient,
-        address market,
-        uint256 exactOtOut,
-        uint256 maxSCYIn
-    ) external returns (uint256) {
-        return _swapSCYForExactOt(recipient, market, exactOtOut, maxSCYIn, true);
-    }
-
-    function swapExactSCYForOt(
-        address recipient,
-        address market,
-        uint256 exactSCYIn,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
-    ) external returns (uint256) {
-        return
-            _swapExactSCYForOt(
-                recipient,
-                market,
-                exactSCYIn,
-                minOtOut,
-                netOtOutGuessMin,
-                netOtOutGuessMax,
-                true
-            );
     }
 
     /**
