@@ -118,8 +118,8 @@ library MarketMathLib {
 
         require(lpToRemove > 0, "invalid lp amount");
 
-        scyToAccount = (lpToRemove * market.totalOt) / market.totalLp;
-        otToAccount = (lpToRemove * market.totalScy) / market.totalLp;
+        scyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
+        otToAccount = (lpToRemove * market.totalOt) / market.totalLp;
 
         market.totalLp = market.totalLp.subNoNeg(lpToRemove);
         market.totalOt = market.totalOt.subNoNeg(otToAccount);
