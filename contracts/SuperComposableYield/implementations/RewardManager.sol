@@ -15,7 +15,7 @@ abstract contract RewardManager {
 
     struct UserReward {
         uint256 lastIndex;
-        uint256 accuredReward;
+        uint256 accruedReward;
     }
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
@@ -34,8 +34,8 @@ abstract contract RewardManager {
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
 
-            outAmounts[i] = userReward[user][token].accuredReward;
-            userReward[user][token].accuredReward = 0;
+            outAmounts[i] = userReward[user][token].accruedReward;
+            userReward[user][token].accruedReward = 0;
 
             globalReward[token].lastBalance -= outAmounts[i];
 
@@ -86,17 +86,19 @@ abstract contract RewardManager {
             address token = rewardTokens[i];
 
             uint256 userLastIndex = userReward[user][token].lastIndex;
+
+            if (userLastIndex == globalReward[token].index) continue;
+
             if (userLastIndex == 0) {
                 // first time receiving this reward
                 userReward[user][token].lastIndex = globalReward[token].index;
                 continue;
             }
-            if (userLastIndex == globalReward[token].index) continue;
 
             uint256 rewardAmountPerUnit = globalReward[token].index - userLastIndex;
             uint256 rewardFromUnit = balanceOfUser.mulDown(rewardAmountPerUnit);
 
-            userReward[user][token].accuredReward += rewardFromUnit;
+            userReward[user][token].accruedReward += rewardFromUnit;
             userReward[user][token].lastIndex = globalReward[token].index;
         }
     }

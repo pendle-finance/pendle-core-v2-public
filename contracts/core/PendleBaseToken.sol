@@ -34,6 +34,6 @@ abstract contract PendleBaseToken is ERC20, IPBaseToken {
     }
 
     function isExpired() public view virtual returns (bool res) {
-        res = (block.timestamp > expiry);
+        res = (block.timestamp >= expiry);
     }
 }

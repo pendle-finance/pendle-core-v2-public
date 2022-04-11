@@ -17,7 +17,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     using SafeERC20 for IERC20;
     using FixedPoint for uint256;
 
-    uint8 private immutable _scydecimals;
+    uint8 private immutable _scyDecimals;
     uint8 private immutable _assetDecimals;
 
     mapping(address => uint256) internal lastBalanceOf;
@@ -25,10 +25,10 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 __scydecimals,
+        uint8 __scyDecimals,
         uint8 __assetDecimals
     ) ERC20(_name, _symbol) {
-        _scydecimals = __scydecimals;
+        _scyDecimals = __scyDecimals;
         _assetDecimals = __assetDecimals;
     }
 
@@ -94,7 +94,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     //////////////////////////////////////////////////////////////*/
 
     function decimals() public view virtual override(ERC20, IERC20Metadata) returns (uint8) {
-        return _scydecimals;
+        return _scyDecimals;
     }
 
     function assetDecimals() public view virtual returns (uint8) {
@@ -105,8 +105,10 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
 
     function isValidBaseToken(address token) public view virtual override returns (bool);
 
-    /// @dev token should not be address(this)
+    /// @dev token should not be address(this) since it's expected that all scy in this contract
+    /// are for redemption, so updating the mapping is redundant
     function _afterReceiveToken(address token) internal virtual returns (uint256 res) {
+        assert(token != address(this));
         uint256 curBalance = IERC20(token).balanceOf(address(this));
         res = curBalance - lastBalanceOf[token];
         lastBalanceOf[token] = curBalance;
@@ -114,6 +116,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
 
     /// @dev token should not be address(this)
     function _afterSendToken(address token) internal virtual {
+        assert(token != address(this));
         lastBalanceOf[token] = IERC20(token).balanceOf(address(this));
     }
 

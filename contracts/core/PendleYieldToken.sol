@@ -182,7 +182,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
 
         uint256 currentIndex = getScyIndexBeforeExpiry();
 
-        if (prevIndex == 0 || prevIndex == currentIndex) {
+        if (prevIndex == currentIndex) return;
+        if (prevIndex == 0) {
             data[user].lastScyIndex = currentIndex;
             return;
         }
@@ -208,8 +209,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     function _receiveSCY() internal returns (uint256 amount) {
         uint256 balanceScy = IERC20(SCY).balanceOf(address(this));
         amount = balanceScy - lastScyBalance;
-        lastScyBalance = balanceScy;
         require(amount > 0, "RECEIVE_ZERO");
+        lastScyBalance = balanceScy;
     }
 
     function _afterTransferOutSCY() internal {
