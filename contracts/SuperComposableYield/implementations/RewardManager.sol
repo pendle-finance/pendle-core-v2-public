@@ -23,7 +23,7 @@ abstract contract RewardManager {
     mapping(address => GlobalReward) public globalReward;
     mapping(address => mapping(address => UserReward)) public userReward;
 
-    function _doTransferOutRewardsForUser(address user)
+    function _doTransferOutRewardsForUser(address user, address receiver)
         internal
         virtual
         returns (uint256[] memory outAmounts)
@@ -40,7 +40,7 @@ abstract contract RewardManager {
             globalReward[token].lastBalance -= outAmounts[i];
 
             if (outAmounts[i] != 0) {
-                IERC20(token).safeTransfer(user, outAmounts[i]);
+                IERC20(token).safeTransfer(receiver, outAmounts[i]);
             }
         }
     }

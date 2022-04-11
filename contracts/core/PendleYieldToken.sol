@@ -92,9 +92,15 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _afterTransferOutSCY();
     }
 
-    function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
+    function redeemDueRewards(address user, address receiver)
+        public
+        returns (uint256[] memory rewardsOut)
+    {
+        if (user != msg.sender) require(receiver == user, "invalid receiver");
+        else require(receiver != address(0), "zero address");
+
         _updateUserReward(user, balanceOf(user), totalSupply());
-        rewardsOut = _doTransferOutRewardsForUser(user);
+        rewardsOut = _doTransferOutRewardsForUser(user, receiver);
     }
 
     function updateGlobalReward() public virtual {
@@ -133,7 +139,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).redeemReward(address(this));
+        ISuperComposableYield(SCY).redeemReward(address(this), address(this));
     }
 
     function getRewardTokens()

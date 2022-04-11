@@ -41,7 +41,11 @@ interface ISuperComposableYield is IERC20Metadata {
 
     function updateUserReward(address user) external;
 
-    function redeemReward(address user) external returns (uint256[] memory outAmounts);
+    /// @notice if user == msg.sender, receiver can be any addresses
+    /// else, receiver must be msg.sender
+    function redeemReward(address user, address receiver)
+        external
+        returns (uint256[] memory outAmounts);
 
     /**
     * @notice scyIndexCurrent.mulDown(scyBalance) must return the asset balance of the account

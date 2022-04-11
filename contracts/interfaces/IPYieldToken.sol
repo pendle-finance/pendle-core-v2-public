@@ -9,7 +9,9 @@ interface IPYieldToken is IPBaseToken {
 
     function redeemDueInterest(address user) external returns (uint256 interestOut);
 
-    function redeemDueRewards(address user) external returns (uint256[] memory rewardsOut);
+    function redeemDueRewards(address user, address receiver)
+        external
+        returns (uint256[] memory rewardsOut);
 
     function SCY() external view returns (address);
 

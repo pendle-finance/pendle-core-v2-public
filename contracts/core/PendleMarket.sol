@@ -193,6 +193,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
+    /// @dev this function is just a place holder. Later on the rewards will be transferred to the liquidity minining
+    /// instead
+    function redeemScyReward() external returns (uint256[] memory outAmounts) {
+        outAmounts = ISuperComposableYield(SCY).redeemReward(
+            address(this),
+            IPMarketFactory(factory).treasury()
+        );
+    }
+
     /// the only non-view part in this function is the ISuperComposableYield(SCY).scyIndexCurrent()
     function readState() public view returns (MarketParameters memory market) {
         MarketStorage storage store = marketStorage;
