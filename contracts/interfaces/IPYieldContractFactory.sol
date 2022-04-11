@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
 
 interface IPYieldContractFactory {
     function getOT(address SCY, uint256 expiry) external view returns (address);

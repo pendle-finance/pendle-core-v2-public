@@ -21,10 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
 
 interface IYearnVault {
     function deposit(uint256 amount) external returns (uint256);
+
     function withdraw(uint256 maxShares) external returns (uint256);
+
     function pricePerShare() external view returns (uint256);
 }

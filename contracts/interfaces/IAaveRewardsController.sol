@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.9;
 
 interface IAaveRewardsController {
     function claimAllRewards(address[] calldata assets, address to)
         external
         returns (address[] memory rewardsList, uint256[] memory claimedAmounts);
-    
+
     function getRewardsByAsset(address asset) external view returns (address[] memory);
 }
