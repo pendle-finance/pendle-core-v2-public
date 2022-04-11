@@ -24,13 +24,13 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
      - if [rawToken == baseToken], rawToken is transferred to SCY contract
        else, it is transferred to the first pair of path, swap is called, and the output token is transferred
             to SCY contract
-     - SCY.mint is called, minting SCY directly to recipient
+     - SCY.mint is called, minting SCY directly to receiver
      */
     function _mintScyFromRawToken(
         uint256 netRawTokenIn,
         address SCY,
         uint256 minScyOut,
-        address recipient,
+        address receiver,
         address[] calldata path,
         bool doPull
     ) internal returns (uint256 netScyOut) {
@@ -44,7 +44,7 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
         }
 
         address baseToken = path[path.length - 1];
-        netScyOut = ISuperComposableYield(SCY).mint(recipient, baseToken, minScyOut);
+        netScyOut = ISuperComposableYield(SCY).mint(receiver, baseToken, minScyOut);
     }
 
     /**
@@ -54,15 +54,15 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
     * @dev inner working of this function:
      - SCY is transferred to SCY contract
-     - if [rawToken == baseToken], SCY.redeem is called & directly redeem tokens to the recipient
-       else, SCY.redeem is called with recipient = first pair in the path,
-        and swap is called, and the output token is transferred to recipient
+     - if [rawToken == baseToken], SCY.redeem is called & directly redeem tokens to the receiver
+       else, SCY.redeem is called with receiver = first pair in the path,
+        and swap is called, and the output token is transferred to receiver
      */
     function _redeemScyToRawToken(
         address SCY,
         uint256 netScyIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
@@ -73,7 +73,7 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
         address baseToken = path[0];
         if (path.length == 1) {
             netRawTokenOut = ISuperComposableYield(SCY).redeem(
-                recipient,
+                receiver,
                 baseToken,
                 minRawTokenOut
             );
@@ -83,7 +83,7 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
                 baseToken,
                 1
             );
-            netRawTokenOut = _swapExactIn(path, netBaseTokenOut, recipient);
+            netRawTokenOut = _swapExactIn(path, netBaseTokenOut, receiver);
             require(netRawTokenOut >= minRawTokenOut, "insufficient out");
         }
     }
@@ -92,20 +92,20 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
      * @notice swap rawToken to baseToken -> convert to SCY -> convert to OT + YT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - same as mintScyFromRawToken, except the recipient of SCY will be the YT contract, then mintYO
-     will be called, minting OT + YT directly to recipient
+     - same as mintScyFromRawToken, except the receiver of SCY will be the YT contract, then mintYO
+     will be called, minting OT + YT directly to receiver
      */
     function _mintYoFromRawToken(
         uint256 netRawTokenIn,
         address YT,
         uint256 minYoOut,
-        address recipient,
+        address receiver,
         address[] calldata path,
         bool doPull
     ) internal returns (uint256 netYoOut) {
         address SCY = IPYieldToken(YT).SCY();
         _mintScyFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
-        netYoOut = IPYieldToken(YT).mintYO(recipient, recipient);
+        netYoOut = IPYieldToken(YT).mintYO(receiver, receiver);
         require(netYoOut >= minYoOut, "insufficient YO out");
     }
 
@@ -121,7 +121,7 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
         address YT,
         uint256 netYoIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
@@ -136,6 +136,6 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
 
         IPYieldToken(YT).redeemYO(SCY);
 
-        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
+        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
     }
 }

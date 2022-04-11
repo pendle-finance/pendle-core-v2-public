@@ -34,7 +34,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     }
 
     function _swapExactScyForYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
@@ -66,10 +66,10 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
             uint256 exactOtIn = netYtOut;
             // TODO: the 1 below can be better enforced?
             IPMarket(market).swapExactOtForScy(
-                recipient,
+                receiver,
                 exactOtIn,
                 1,
-                abi.encode(YT_SWAP_TYPE.ExactScyForYt, recipient)
+                abi.encode(YT_SWAP_TYPE.ExactScyForYt, receiver)
             );
         }
     }
@@ -79,10 +79,10 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
      - YT is transferred to the YT contract
      - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
      - callback will call YT's redeemYO, which will redeem the outcome SCY to this router, then
-        all SCY owed to the market will be paid, the rest is transferred to the recipient
+        all SCY owed to the market will be paid, the rest is transferred to the receiver
      */
     function _swapExactYtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtIn,
         uint256 minScyOut,
@@ -93,7 +93,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         // takes out the same amount of OT as exactYtIn, to pair together
         uint256 exactOtOut = exactYtIn;
 
-        uint256 preBalanceScy = SCY.balanceOf(recipient);
+        uint256 preBalanceScy = SCY.balanceOf(receiver);
 
         if (doPull) {
             YT.transferFrom(msg.sender, address(YT), exactYtIn);
@@ -101,23 +101,23 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
 
         // because of SCY / YO conversion, the number may not be 100% accurate. TODO: find a better way
         IPMarket(market).swapScyForExactOt(
-            recipient,
+            receiver,
             exactOtOut,
             type(uint256).max,
-            abi.encode(YT_SWAP_TYPE.ExactYtForScy, recipient)
+            abi.encode(YT_SWAP_TYPE.ExactYtForScy, receiver)
         );
 
-        netScyOut = SCY.balanceOf(recipient) - preBalanceScy;
+        netScyOut = SCY.balanceOf(receiver) - preBalanceScy;
         require(netScyOut >= minScyOut, "INSUFFICIENT_SCY_OUT");
     }
 
     /**
      * @dev inner working of this function:
      - market.swap is called, which will transfer SCY directly to the YT contract, and callback is invoked
-     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint OT to the market & YT to the recipient
+     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint OT to the market & YT to the receiver
      */
     function _swapScyForExactYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
@@ -125,16 +125,16 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         uint256 exactOtIn = exactYtOut;
-        uint256 preBalanceScy = SCY.balanceOf(recipient);
+        uint256 preBalanceScy = SCY.balanceOf(receiver);
 
         IPMarket(market).swapExactOtForScy(
-            recipient,
+            receiver,
             exactOtIn,
             1,
-            abi.encode(YT_SWAP_TYPE.SCYForExactYt, msg.sender, recipient)
+            abi.encode(YT_SWAP_TYPE.SCYForExactYt, msg.sender, receiver)
         );
 
-        netScyIn = preBalanceScy - SCY.balanceOf(recipient);
+        netScyIn = preBalanceScy - SCY.balanceOf(receiver);
 
         require(netScyIn <= maxScyIn, "exceed out limit");
     }
@@ -159,9 +159,9 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
 
     function _swapExactScyForYt_callback(address market, bytes calldata data) internal {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        (, address recipient) = abi.decode(data, (YT_SWAP_TYPE, address));
+        (, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address));
 
-        YT.mintYO(market, recipient);
+        YT.mintYO(market, receiver);
     }
 
     function _swapScyForExactYt_callback(
@@ -170,7 +170,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         int256 scyToAccount,
         bytes calldata data
     ) internal {
-        (, address payer, address recipient) = abi.decode(data, (YT_SWAP_TYPE, address, address));
+        (, address payer, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address, address));
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 otOwed = otToAccount.neg().Uint();
@@ -182,7 +182,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
         SCY.transferFrom(payer, address(YT), netScyToPull);
 
-        YT.mintYO(market, recipient);
+        YT.mintYO(market, receiver);
     }
 
     /**
@@ -193,7 +193,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         int256 scyToAccount,
         bytes calldata data
     ) internal {
-        (, address recipient) = abi.decode(data, (YT_SWAP_TYPE, address));
+        (, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address));
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 scyOwed = scyToAccount.neg().Uint();
@@ -202,8 +202,8 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
 
         SCY.transfer(market, scyOwed);
 
-        if (recipient != address(this)) {
-            SCY.transfer(recipient, netScyReceived - scyOwed);
+        if (receiver != address(this)) {
+            SCY.transfer(receiver, netScyReceived - scyOwed);
         }
     }
 }

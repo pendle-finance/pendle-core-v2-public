@@ -25,25 +25,25 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
     }
 
     function swapExactYtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtIn,
         uint256 minScyOut
     ) external returns (uint256) {
-        return _swapExactYtForScy(recipient, market, exactYtIn, minScyOut, true);
+        return _swapExactYtForScy(receiver, market, exactYtIn, minScyOut, true);
     }
 
     function swapScyForExactYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
     ) external returns (uint256) {
-        return _swapScyForExactYt(recipient, market, exactYtOut, maxScyIn);
+        return _swapScyForExactYt(receiver, market, exactYtOut, maxScyIn);
     }
 
     function swapExactScyForYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
@@ -52,7 +52,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
     ) external returns (uint256) {
         return
             _swapExactScyForYt(
-                recipient,
+                receiver,
                 market,
                 exactScyIn,
                 minYtOut,
@@ -68,11 +68,11 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
      * @dev inner working of this function:
      - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
      - market.swap is called, which will transfer SCY to the YT contract, and callback is invoked
-     - callback will do call YT's mintYO, which will mint OT to the market & YT to the recipient
+     - callback will do call YT's mintYO, which will mint OT to the market & YT to the receiver
      */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minYtOut,
@@ -91,7 +91,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
         );
 
         netYtOut = _swapExactScyForYt(
-            recipient,
+            receiver,
             market,
             netScyUsedToBuyYT,
             minYtOut,
@@ -113,7 +113,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
      */
     function swapExactYtForRawToken(
         uint256 exactYtIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut
@@ -126,7 +126,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
             address(SCY),
             netScyOut,
             minRawTokenOut,
-            recipient,
+            receiver,
             path,
             false
         );

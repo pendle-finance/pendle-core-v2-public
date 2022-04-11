@@ -69,7 +69,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     function addLiquidity(
-        address recipient,
+        address receiver,
         uint256 scyDesired,
         uint256 otDesired,
         bytes calldata data
@@ -93,7 +93,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
             _mint(address(1), lpToReserve);
         }
 
-        _mint(recipient, lpToAccount);
+        _mint(receiver, lpToAccount);
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
@@ -111,7 +111,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     function removeLiquidity(
-        address recipient,
+        address receiver,
         uint256 lpToRemove,
         bytes calldata data
     ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
@@ -119,8 +119,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
 
-        IERC20(SCY).safeTransfer(recipient, scyToAccount);
-        IERC20(OT).safeTransfer(recipient, otToAccount);
+        IERC20(SCY).safeTransfer(receiver, scyToAccount);
+        IERC20(OT).safeTransfer(receiver, otToAccount);
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
@@ -137,7 +137,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     function swapExactOtForScy(
-        address recipient,
+        address receiver,
         uint256 exactOtIn,
         uint256 minScyOut,
         bytes calldata data
@@ -148,7 +148,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         (netScyOut, netScyToReserve) = market.calcExactOtForScy(exactOtIn, block.timestamp);
         require(netScyOut >= minScyOut, "insufficient scy out");
-        IERC20(SCY).safeTransfer(recipient, netScyOut);
+        IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
 
         if (data.length > 0) {
@@ -161,7 +161,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     function swapScyForExactOt(
-        address recipient,
+        address receiver,
         uint256 exactOtOut,
         uint256 maxScyIn,
         bytes calldata data
@@ -172,7 +172,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         (netScyIn, netScyToReserve) = market.calcScyForExactOt(exactOtOut, block.timestamp);
         require(netScyIn <= maxScyIn, "scy in exceed limit");
-        IERC20(OT).safeTransfer(recipient, exactOtOut);
+        IERC20(OT).safeTransfer(receiver, exactOtOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
 
         if (data.length > 0) {

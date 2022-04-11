@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 interface IPRouterCore {
     function addLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 scyDesired,
         uint256 otDesired,
@@ -17,7 +17,7 @@ interface IPRouterCore {
         );
 
     function removeLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
@@ -25,14 +25,14 @@ interface IPRouterCore {
     ) external returns (uint256 netScyOut, uint256 netOtOut);
 
     function swapExactOtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtIn,
         uint256 minScyOut
     ) external returns (uint256 netScyOut);
 
     function swapOtForExactScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 maxOtIn,
         uint256 exactScyOut,
@@ -41,14 +41,14 @@ interface IPRouterCore {
     ) external returns (uint256 netOtIn);
 
     function swapScyForExactOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtOut,
         uint256 maxScyIn
     ) external returns (uint256 netScyIn);
 
     function swapExactScyForOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minOtOut,
@@ -60,7 +60,7 @@ interface IPRouterCore {
         uint256 netRawTokenIn,
         address SCY,
         uint256 minScyOut,
-        address recipient,
+        address receiver,
         address[] calldata path
     ) external returns (uint256 netScyOut);
 
@@ -68,7 +68,7 @@ interface IPRouterCore {
         address SCY,
         uint256 netScyIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path
     ) external returns (uint256 netRawTokenOut);
 
@@ -76,7 +76,7 @@ interface IPRouterCore {
         uint256 netRawTokenIn,
         address YT,
         uint256 minYoOut,
-        address recipient,
+        address receiver,
         address[] calldata path
     ) external returns (uint256 netYoOut);
 
@@ -84,13 +84,13 @@ interface IPRouterCore {
         address YT,
         uint256 netYoIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path
     ) external returns (uint256 netRawTokenOut);
 
     function swapExactRawTokenForOt(
         uint256 exactRawTokenIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minOtOut,
@@ -100,7 +100,7 @@ interface IPRouterCore {
 
     function swapExactOtForRawToken(
         uint256 exactOtIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut

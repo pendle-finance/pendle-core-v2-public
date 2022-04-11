@@ -5,21 +5,21 @@ import "./IPMarketSwapCallback.sol";
 
 interface IPRouterYT is IPMarketSwapCallback {
     function swapExactYtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtIn,
         uint256 minScyOut
     ) external returns (uint256 netScyOut);
 
     function swapScyForExactYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
     ) external returns (uint256 netScyIn);
 
     function swapExactScyForYt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
@@ -29,7 +29,7 @@ interface IPRouterYT is IPMarketSwapCallback {
 
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minYtOut,
@@ -39,7 +39,7 @@ interface IPRouterYT is IPMarketSwapCallback {
 
     function swapExactYtForRawToken(
         uint256 exactYtIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut

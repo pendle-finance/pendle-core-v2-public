@@ -52,21 +52,18 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
      * @notice this function splits scy into OT + YT of equal qty
      * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
      */
-    function mintYO(address recipientOT, address recipientYT)
-        public
-        returns (uint256 amountYOOut)
-    {
+    function mintYO(address receiverOT, address receiverYT) public returns (uint256 amountYOOut) {
         uint256 amountToTokenize = _receiveSCY();
 
         amountYOOut = _calcAmountToMint(amountToTokenize);
 
-        _mint(recipientYT, amountYOOut);
+        _mint(receiverYT, amountYOOut);
 
-        IPOwnershipToken(OT).mintByYT(recipientOT, amountYOOut);
+        IPOwnershipToken(OT).mintByYT(receiverOT, amountYOOut);
     }
 
     /// this function converts YO tokens into scy, but interests & rewards are not included
-    function redeemYO(address recipient) public returns (uint256 amountScyOut) {
+    function redeemYO(address receiver) public returns (uint256 amountScyOut) {
         // minimum of OT & YT balance
         uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
         if (!isExpired()) {
@@ -77,7 +74,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
 
         amountScyOut = _calcAmountRedeemable(amountYOToRedeem);
 
-        IERC20(SCY).safeTransfer(recipient, amountScyOut);
+        IERC20(SCY).safeTransfer(receiver, amountScyOut);
         _afterTransferOutSCY();
     }
 

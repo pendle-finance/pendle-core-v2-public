@@ -18,15 +18,15 @@ abstract contract PendleRouterOTBaseUpg {
     }
 
     /**
-     * @notice addLiquidity to the market, using both SCY & OT, the recipient will receive LP before
+     * @notice addLiquidity to the market, using both SCY & OT, the receiver will receive LP before
      msg.sender is required to pay SCY & OT
      * @dev inner working of this function:
      - market.addLiquidity is called
-     - LP is minted to the recipient, and this router's addLiquidityCallback is invoked
+     - LP is minted to the receiver, and this router's addLiquidityCallback is invoked
      - the router will transfer the necessary scy & ot from msg.sender to the market, and finish the callback
      */
     function _addLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 scyDesired,
         uint256 otDesired,
@@ -53,19 +53,19 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(OT).transferFrom(msg.sender, market, otUsed);
         }
 
-        IPMarket(market).addLiquidity(recipient, otDesired, scyDesired, abi.encode());
+        IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode());
     }
 
     /**
-     * @notice removeLiquidity from the market to receive both SCY & OT. The recipient will receive
+     * @notice removeLiquidity from the market to receive both SCY & OT. The receiver will receive
      SCY & OT before msg.sender is required to transfer in the necessary LP
      * @dev inner working of this function:
      - market.removeLiquidity is called
-     - SCY & OT is transferred to the recipient, and the router's callback is invoked
+     - SCY & OT is transferred to the receiver, and the router's callback is invoked
      - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
      */
     function _removeLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
@@ -82,19 +82,19 @@ abstract contract PendleRouterOTBaseUpg {
             IPMarket(market).transferFrom(msg.sender, market, lpToRemove);
         }
 
-        IPMarket(market).removeLiquidity(recipient, lpToRemove, abi.encode());
+        IPMarket(market).removeLiquidity(receiver, lpToRemove, abi.encode());
     }
 
     /**
-     * @notice swap exact OT for SCY, with recipient receiving SCY before msg.sender is required to
+     * @notice swap exact OT for SCY, with receiver receiving SCY before msg.sender is required to
      transfer the owed OT
      * @dev inner working of this function:
      - market.swap is called
-     - SCY is transferred to the recipient, and the router's callback is invoked
+     - SCY is transferred to the receiver, and the router's callback is invoked
      - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
      */
     function _swapExactOtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtIn,
         uint256 minScyOut,
@@ -106,7 +106,7 @@ abstract contract PendleRouterOTBaseUpg {
         }
 
         (netScyOut, ) = IPMarket(market).swapExactOtForScy(
-            recipient,
+            receiver,
             exactOtIn,
             minScyOut,
             abi.encode()
@@ -116,7 +116,7 @@ abstract contract PendleRouterOTBaseUpg {
     }
 
     function _swapOtForExactScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 maxOtIn,
         uint256 exactScyOut,
@@ -140,19 +140,19 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(OT).transferFrom(msg.sender, market, netOtIn);
         }
 
-        IPMarket(market).swapExactOtForScy(recipient, netOtIn, exactScyOut, abi.encode());
+        IPMarket(market).swapExactOtForScy(receiver, netOtIn, exactScyOut, abi.encode());
     }
 
     /**
-     * @notice swap SCY for exact OT, with recipient receiving OT before msg.sender is required to
+     * @notice swap SCY for exact OT, with receiver receiving OT before msg.sender is required to
      transfer the owed SCY
      * @dev inner working of this function:
      - market.swap is called
-     - OT is transferred to the recipient, and the router's callback is invoked
+     - OT is transferred to the receiver, and the router's callback is invoked
      - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
      */
     function _swapScyForExactOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtOut,
         uint256 maxScyIn,
@@ -168,16 +168,11 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(SCY).transferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(
-            recipient,
-            exactOtOut,
-            maxScyIn,
-            abi.encode(msg.sender)
-        );
+        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode(msg.sender));
     }
 
     function _swapExactScyForOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minOtOut,
@@ -205,11 +200,6 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(SCY).transferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(
-            recipient,
-            netOtOut,
-            exactScyIn,
-            abi.encode(msg.sender)
-        );
+        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode(msg.sender));
     }
 }

@@ -37,7 +37,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     //////////////////////////////////////////////////////////////*/
 
     function mint(
-        address recipient,
+        address receiver,
         address baseTokenIn,
         uint256 minAmountScyOut
     ) public virtual override returns (uint256 amountScyOut) {
@@ -49,11 +49,11 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
 
         require(amountScyOut >= minAmountScyOut, "insufficient out");
 
-        _mint(recipient, amountScyOut);
+        _mint(receiver, amountScyOut);
     }
 
     function redeem(
-        address recipient,
+        address receiver,
         address baseTokenOut,
         uint256 minAmountBaseOut
     ) public virtual override returns (uint256 amountBaseOut) {
@@ -67,7 +67,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
 
         require(amountBaseOut >= minAmountBaseOut, "insufficient out");
 
-        IERC20(baseTokenOut).safeTransfer(recipient, amountBaseOut);
+        IERC20(baseTokenOut).safeTransfer(receiver, amountBaseOut);
         _afterSendToken(baseTokenOut);
     }
 

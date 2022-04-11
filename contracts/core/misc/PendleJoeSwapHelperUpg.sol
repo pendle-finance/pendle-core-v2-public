@@ -49,10 +49,10 @@ abstract contract PendleJoeSwapHelperUpg {
     function _swapExactIn(
         address[] memory path,
         uint256 amountIn,
-        address recipient
+        address receiver
     ) internal virtual returns (uint256 amountOut) {
         uint256[] memory amounts = JoeLibrary.getAmountsOut(joeFactory, amountIn, path);
-        _low_level_swap(amounts, path, recipient);
+        _low_level_swap(amounts, path, receiver);
         amountOut = amounts[amounts.length - 1];
     }
 

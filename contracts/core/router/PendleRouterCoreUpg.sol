@@ -31,7 +31,7 @@ contract PendleRouterCoreUpg is
 
     /// @dev docs can be found in the internal function
     function addLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 scyDesired,
         uint256 otDesired,
@@ -44,33 +44,33 @@ contract PendleRouterCoreUpg is
             uint256
         )
     {
-        return _addLiquidity(recipient, market, scyDesired, otDesired, minLpOut, true);
+        return _addLiquidity(receiver, market, scyDesired, otDesired, minLpOut, true);
     }
 
     /// @dev docs can be found in the internal function
     function removeLiquidity(
-        address recipient,
+        address receiver,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
         uint256 otOutMin
     ) external returns (uint256, uint256) {
-        return _removeLiquidity(recipient, market, lpToRemove, scyOutMin, otOutMin, true);
+        return _removeLiquidity(receiver, market, lpToRemove, scyOutMin, otOutMin, true);
     }
 
     /// @dev docs can be found in the internal function
     function swapExactOtForScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtIn,
         uint256 minScyOut
     ) external returns (uint256) {
-        return _swapExactOtForScy(recipient, market, exactOtIn, minScyOut, true);
+        return _swapExactOtForScy(receiver, market, exactOtIn, minScyOut, true);
     }
 
     /// @dev docs can be found in the internal function
     function swapOtForExactScy(
-        address recipient,
+        address receiver,
         address market,
         uint256 maxOtIn,
         uint256 exactScyOut,
@@ -79,7 +79,7 @@ contract PendleRouterCoreUpg is
     ) external returns (uint256) {
         return
             _swapOtForExactScy(
-                recipient,
+                receiver,
                 market,
                 maxOtIn,
                 exactScyOut,
@@ -91,17 +91,17 @@ contract PendleRouterCoreUpg is
 
     /// @dev docs can be found in the internal function
     function swapScyForExactOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactOtOut,
         uint256 maxScyIn
     ) external returns (uint256) {
-        return _swapScyForExactOt(recipient, market, exactOtOut, maxScyIn, true);
+        return _swapScyForExactOt(receiver, market, exactOtOut, maxScyIn, true);
     }
 
     /// @dev docs can be found in the internal function
     function swapExactScyForOt(
-        address recipient,
+        address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minOtOut,
@@ -110,7 +110,7 @@ contract PendleRouterCoreUpg is
     ) external returns (uint256) {
         return
             _swapExactScyForOt(
-                recipient,
+                receiver,
                 market,
                 exactScyIn,
                 minOtOut,
@@ -125,10 +125,10 @@ contract PendleRouterCoreUpg is
         uint256 netRawTokenIn,
         address SCY,
         uint256 minScyOut,
-        address recipient,
+        address receiver,
         address[] calldata path
     ) external returns (uint256) {
-        return _mintScyFromRawToken(netRawTokenIn, SCY, minScyOut, recipient, path, true);
+        return _mintScyFromRawToken(netRawTokenIn, SCY, minScyOut, receiver, path, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -136,10 +136,10 @@ contract PendleRouterCoreUpg is
         address SCY,
         uint256 netScyIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path
     ) external returns (uint256) {
-        return _redeemScyToRawToken(SCY, netScyIn, minRawTokenOut, recipient, path, true);
+        return _redeemScyToRawToken(SCY, netScyIn, minRawTokenOut, receiver, path, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -147,10 +147,10 @@ contract PendleRouterCoreUpg is
         uint256 netRawTokenIn,
         address YT,
         uint256 minYoOut,
-        address recipient,
+        address receiver,
         address[] calldata path
     ) external returns (uint256) {
-        return _mintYoFromRawToken(netRawTokenIn, YT, minYoOut, recipient, path, true);
+        return _mintYoFromRawToken(netRawTokenIn, YT, minYoOut, receiver, path, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -158,10 +158,10 @@ contract PendleRouterCoreUpg is
         address YT,
         uint256 netYoIn,
         uint256 minRawTokenOut,
-        address recipient,
+        address receiver,
         address[] memory path
     ) external returns (uint256) {
-        return _redeemYoToRawToken(YT, netYoIn, minRawTokenOut, recipient, path, true);
+        return _redeemYoToRawToken(YT, netYoIn, minRawTokenOut, receiver, path, true);
     }
 
     /**
@@ -174,7 +174,7 @@ contract PendleRouterCoreUpg is
     */
     function swapExactRawTokenForOt(
         uint256 exactRawTokenIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minOtOut,
@@ -191,7 +191,7 @@ contract PendleRouterCoreUpg is
             true
         );
         netOtOut = _swapExactScyForOt(
-            recipient,
+            receiver,
             market,
             netScyUseToBuyOt,
             minOtOut,
@@ -207,13 +207,13 @@ contract PendleRouterCoreUpg is
      */
     function swapExactOtForRawToken(
         uint256 exactOtIn,
-        address recipient,
+        address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut) {
         address SCY = IPMarket(market).SCY();
         _swapExactOtForScy(SCY, market, exactOtIn, 1, true);
-        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, recipient, path, false);
+        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
     }
 }
