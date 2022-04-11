@@ -64,7 +64,6 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
 
         {
             uint256 exactOtIn = netYtOut;
-            // TODO: the 1 below can be better enforced?
             IPMarket(market).swapExactOtForScy(
                 receiver,
                 exactOtIn,
@@ -99,7 +98,6 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
             YT.transferFrom(msg.sender, address(YT), exactYtIn);
         }
 
-        // because of SCY / YO conversion, the number may not be 100% accurate. TODO: find a better way
         IPMarket(market).swapScyForExactOt(
             receiver,
             exactOtOut,

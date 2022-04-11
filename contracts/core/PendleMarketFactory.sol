@@ -57,6 +57,4 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
         address OT = IPMarket(market).OT();
         return otMarkets[OT].contains(market);
     }
-
-    // probably should have functions to allow reading from otMarkets
 }

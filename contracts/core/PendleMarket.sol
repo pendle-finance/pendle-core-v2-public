@@ -24,11 +24,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     using LogExpMath for uint256;
     using MarketMathLib for MarketParameters;
     using SafeERC20 for IERC20;
-    // make it ultra simple
 
-    // careful, the reserve of the market shouldn't be interferred by external factors
-    // maybe convert all time to uint32?
-    // do the stateful & view stuff?
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
     uint256 private constant MINIMUM_LIQUIDITY = 10**3;

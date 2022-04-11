@@ -28,7 +28,6 @@ struct MarketParameters {
     uint256 lastTradeTime;
 }
 
-// TODO: Is 112 enough for rate?
 struct MarketStorage {
     int128 totalOt;
     int128 totalScy;
@@ -53,7 +52,6 @@ library MarketMathLib {
     uint256 internal constant DAY = 86400;
     uint256 internal constant IMPLIED_RATE_TIME = 360 * DAY;
 
-    // TODO: make sure 1e18 == FixedPoint.ONE
     int256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
 
     function addLiquidity(

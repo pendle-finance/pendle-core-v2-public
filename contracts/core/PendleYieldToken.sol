@@ -12,7 +12,6 @@ import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../SuperComposableYield/implementations/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
 
-// probably should abstract more math to libraries
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using FixedPoint for uint256;
     using SafeERC20 for IERC20;

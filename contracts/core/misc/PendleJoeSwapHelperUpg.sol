@@ -44,7 +44,6 @@ abstract contract PendleJoeSwapHelperUpg {
 
     /**
      * @notice swap tokens with no limit on amountOut. Tokens must have been transferred to the first pair
-     * @dev TODO: haven't supported ETH yet
      */
     function _swapExactIn(
         address[] memory path,
