@@ -6,11 +6,13 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
+import "../../../libraries/math/MarketApproxLib.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
+    using MarketApproxLib for MarketParameters;
 
     // solhint-disable-next-line
     enum YT_SWAP_TYPE {

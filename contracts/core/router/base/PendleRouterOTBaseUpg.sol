@@ -5,11 +5,13 @@ import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
+import "../../../libraries/math/MarketApproxLib.sol";
 
 abstract contract PendleRouterOTBaseUpg {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
+    using MarketApproxLib for MarketParameters;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor() //solhint-disable-next-line no-empty-blocks
@@ -167,7 +169,7 @@ abstract contract PendleRouterOTBaseUpg {
         MarketParameters memory state = IPMarket(market).readState();
         address SCY = IPMarket(market).SCY();
 
-        (netScyIn, ) = state.calcScyForExactOt(
+        (netScyIn, ) = state.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
             exactOtOut,
             state.getTimeToExpiry()

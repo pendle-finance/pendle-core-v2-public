@@ -147,7 +147,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netScyOut, netScyToReserve) = market.calcExactOtForScy(
+        (netScyOut, netScyToReserve) = market.swapExactOtForScy(
             SCYIndexLib.newIndex(SCY),
             exactOtIn,
             block.timestamp
@@ -175,7 +175,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netScyIn, netScyToReserve) = market.calcScyForExactOt(
+        (netScyIn, netScyToReserve) = market.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
             exactOtOut,
             block.timestamp
