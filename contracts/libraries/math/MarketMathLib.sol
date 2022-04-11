@@ -582,7 +582,7 @@ library MarketMathLib {
     function getTimeToExpiry(MarketParameters memory market) internal view returns (uint256) {
         unchecked {
             require(block.timestamp <= market.expiry, "market expired");
-            return block.timestamp - market.expiry;
+            return market.expiry - block.timestamp;
         }
     }
 

@@ -228,7 +228,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         store.totalOt = market.totalOt.Int128();
         store.totalScy = market.totalScy.Int128();
-        store.lastImpliedRate = market.lastImpliedRate.Uint32();
+        store.lastImpliedRate = market.lastImpliedRate.Uint112();
         store.oracleRate = market.oracleRate.Uint112();
         store.lastTradeTime = market.lastTradeTime.Uint32();
     }

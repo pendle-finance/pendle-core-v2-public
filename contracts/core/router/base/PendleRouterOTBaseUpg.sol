@@ -182,7 +182,7 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode(msg.sender));
+        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode());
     }
 
     function _swapExactScyForOt(
@@ -215,6 +215,6 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode(msg.sender));
+        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode());
     }
 }
