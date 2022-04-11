@@ -38,7 +38,7 @@ interface IPMarket is IPBaseToken {
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
-    function readState() external returns (MarketParameters memory market);
+    function readState() external view returns (MarketParameters memory market);
 
     function OT() external view returns (address);
 

@@ -9,7 +9,7 @@ import "../libraries/math/FixedPoint.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "openzeppelin-solidity/contracts/utils/math/Math.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../SuperComposableYield/implementations/SCYUtils.sol";
+import "../SuperComposableYield/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
 
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {

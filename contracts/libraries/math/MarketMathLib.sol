@@ -7,14 +7,13 @@ import "../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../interfaces/IPMarket.sol";
 import "./FixedPoint.sol";
 import "./LogExpMath.sol";
-import "../../SuperComposableYield/implementations/SCYUtils.sol";
+import "../SCYIndex.sol";
 
 // if this is changed, change deepCloneMarket as well
 struct MarketParameters {
     int256 totalOt;
     int256 totalScy;
     int256 totalLp;
-    uint256 scyRate;
     uint256 oracleRate;
     /// immutable variables ///
     int256 scalarRoot;
@@ -41,10 +40,32 @@ library MarketMathLib {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using LogExpMath for int256;
+    using SCYIndexLib for SCYIndex;
+
     struct NetTo {
         int256 toAccount;
         int256 toMarket;
         int256 toReserve;
+    }
+
+    struct CalcTradeSlot {
+        uint256 timeToExpiry;
+        int256 rateScalar;
+        int256 totalAsset;
+        int256 rateAnchor;
+        int256 preFeeExchangeRate;
+    }
+
+    struct ApproxSwapExactScyForYtSlot {
+        uint256 low;
+        uint256 high;
+        bool isAcceptableAnswerExisted;
+        uint256 currentYtOutGuess;
+        int256 otToAccount;
+        int256 scyReceived;
+        int256 totalScyToMintYo;
+        int256 netYoFromScy;
+        bool isResultAcceptable;
     }
 
     int256 internal constant MINIMUM_LIQUIDITY = 10**3;
@@ -56,31 +77,96 @@ library MarketMathLib {
 
     function addLiquidity(
         MarketParameters memory market,
-        uint256 _scyDesired,
-        uint256 _otDesired
+        SCYIndex index,
+        uint256 scyDesired,
+        uint256 otDesired
     )
         internal
         pure
         returns (
-            uint256 _lpToReserve,
-            uint256 _lpToAccount,
-            uint256 _scyUsed,
-            uint256 _otUsed
+            uint256 lpToReserve,
+            uint256 lpToAccount,
+            uint256 scyUsed,
+            uint256 otUsed
         )
     {
-        int256 scyDesired = _scyDesired.Int();
-        int256 otDesired = _otDesired.Int();
-        int256 lpToReserve;
-        int256 lpToAccount;
-        int256 scyUsed;
-        int256 otUsed;
+        (
+            int256 _lpToReserve,
+            int256 _lpToAccount,
+            int256 _scyUsed,
+            int256 _otUsed
+        ) = _addLiquidity(market, index, scyDesired.Int(), otDesired.Int());
 
+        lpToReserve = _lpToReserve.Uint();
+        lpToAccount = _lpToAccount.Uint();
+        scyUsed = _scyUsed.Uint();
+        otUsed = _otUsed.Uint();
+    }
+
+    function removeLiquidity(MarketParameters memory market, uint256 lpToRemove)
+        internal
+        pure
+        returns (uint256 scyToAccount, uint256 otToAccount)
+    {
+        (int256 _scyToAccount, int256 _otToAccount) = _removeLiquidity(market, lpToRemove.Int());
+
+        scyToAccount = _scyToAccount.Uint();
+        otToAccount = _otToAccount.Uint();
+    }
+
+    function calcExactOtForScy(
+        MarketParameters memory market,
+        SCYIndex index,
+        uint256 exactOtToMarket,
+        uint256 blockTime
+    ) internal pure returns (uint256 netScyToAccount, uint256 netScyToReserve) {
+        (int256 _netScyToAccount, int256 _netScyToReserve) = calcTrade(
+            market,
+            index,
+            exactOtToMarket.neg(),
+            blockTime
+        );
+
+        netScyToAccount = _netScyToAccount.Uint();
+        netScyToReserve = _netScyToReserve.Uint();
+    }
+
+    function calcScyForExactOt(
+        MarketParameters memory market,
+        SCYIndex index,
+        uint256 exactOtToAccount,
+        uint256 blockTime
+    ) internal pure returns (uint256 netScyToMarket, uint256 netScyToReserve) {
+        (int256 _netScyToAccount, int256 _netScyToReserve) = calcTrade(
+            market,
+            index,
+            exactOtToAccount.Int(),
+            blockTime
+        );
+
+        netScyToMarket = _netScyToAccount.neg().Uint();
+        netScyToReserve = _netScyToReserve.Uint();
+    }
+
+    function _addLiquidity(
+        MarketParameters memory market,
+        SCYIndex index,
+        int256 scyDesired,
+        int256 otDesired
+    )
+        private
+        pure
+        returns (
+            int256 lpToReserve,
+            int256 lpToAccount,
+            int256 scyUsed,
+            int256 otUsed
+        )
+    {
         require(scyDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
 
         if (market.totalLp == 0) {
-            lpToAccount = SCYUtils.scyToAsset(market.scyRate, scyDesired).subNoNeg(
-                MINIMUM_LIQUIDITY
-            );
+            lpToAccount = index.scyToAsset(scyDesired).subNoNeg(MINIMUM_LIQUIDITY);
             lpToReserve = MINIMUM_LIQUIDITY;
             scyUsed = scyDesired;
             otUsed = otDesired;
@@ -98,22 +184,13 @@ library MarketMathLib {
         market.totalLp += lpToAccount + lpToReserve;
 
         require(lpToAccount > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
-
-        _lpToReserve = lpToReserve.Uint();
-        _lpToAccount = lpToAccount.Uint();
-        _scyUsed = scyUsed.Uint();
-        _otUsed = otUsed.Uint();
     }
 
-    function removeLiquidity(MarketParameters memory market, uint256 _lpToRemove)
-        internal
+    function _removeLiquidity(MarketParameters memory market, int256 lpToRemove)
+        private
         pure
-        returns (uint256 _scyToAccount, uint256 _otToAccount)
+        returns (int256 scyToAccount, int256 otToAccount)
     {
-        int256 lpToRemove = _lpToRemove.Int();
-        int256 scyToAccount;
-        int256 otToAccount;
-
         require(lpToRemove > 0, "invalid lp amount");
 
         scyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
@@ -122,37 +199,6 @@ library MarketMathLib {
         market.totalLp = market.totalLp.subNoNeg(lpToRemove);
         market.totalOt = market.totalOt.subNoNeg(otToAccount);
         market.totalScy = market.totalScy.subNoNeg(scyToAccount);
-
-        _scyToAccount = scyToAccount.Uint();
-        _otToAccount = otToAccount.Uint();
-    }
-
-    function calcExactOtForScy(
-        MarketParameters memory market,
-        uint256 exactOtToMarket,
-        uint256 blockTime
-    ) internal pure returns (uint256 netScyToAccount, uint256 netScyToReserve) {
-        (int256 _netScyToAccount, int256 _netScyToReserve) = calcTrade(
-            market,
-            exactOtToMarket.neg(),
-            blockTime
-        );
-        netScyToAccount = _netScyToAccount.Uint();
-        netScyToReserve = _netScyToReserve.Uint();
-    }
-
-    function calcScyForExactOt(
-        MarketParameters memory market,
-        uint256 exactOtToAccount,
-        uint256 blockTime
-    ) internal pure returns (uint256 netScyToMarket, uint256 netScyToReserve) {
-        (int256 _netScyToAccount, int256 _netScyToReserve) = calcTrade(
-            market,
-            exactOtToAccount.Int(),
-            blockTime
-        );
-        netScyToMarket = _netScyToAccount.neg().Uint();
-        netScyToReserve = _netScyToReserve.Uint();
     }
 
     /// @notice Calculates the asset amount the results from trading otToAccount with the market. A positive
@@ -164,11 +210,14 @@ library MarketMathLib {
     /// @return netScyToAccount netScyToReserve
     function calcTrade(
         MarketParameters memory market,
+        SCYIndex index,
         int256 otToAccount,
         uint256 blockTime
     ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         require(blockTime < market.expiry, "MARKET_EXPIRED");
-        uint256 timeToExpiry = market.expiry - blockTime;
+
+        CalcTradeSlot memory slot;
+        slot.timeToExpiry = market.expiry - blockTime;
 
         // We return false if there is not enough Ot to support this trade.
         // if otToAccount > 0 and totalOt - otToAccount <= 0 then the trade will fail
@@ -176,23 +225,21 @@ library MarketMathLib {
         require(market.totalOt > otToAccount, "insufficient liquidity");
 
         // Calculates initial rate factors for the trade
-        (int256 rateScalar, int256 totalAsset, int256 rateAnchor) = getExchangeRateFactors(
+        (slot.rateScalar, slot.totalAsset, slot.rateAnchor) = getExchangeRateFactors(
             market,
-            timeToExpiry
+            index,
+            slot.timeToExpiry
         );
 
         // Calculates the exchange rate from Asset to OT before any liquidity fees
         // are applied
-        int256 preFeeExchangeRate;
-        {
-            preFeeExchangeRate = getExchangeRate(
-                market.totalOt,
-                totalAsset,
-                rateScalar,
-                rateAnchor,
-                otToAccount
-            );
-        }
+        slot.preFeeExchangeRate = getExchangeRate(
+            market.totalOt,
+            slot.totalAsset,
+            slot.rateScalar,
+            slot.rateAnchor,
+            otToAccount
+        );
 
         NetTo memory netAsset;
         // Given the exchange rate, returns the netAsset amounts to apply to each of the
@@ -203,35 +250,34 @@ library MarketMathLib {
             netAsset.toReserve
         ) = _getNetAssetAmountsToAddresses(
             market.feeRateRoot,
-            preFeeExchangeRate,
+            slot.preFeeExchangeRate,
             otToAccount,
-            timeToExpiry,
+            slot.timeToExpiry,
             market.reserveFeePercent
         );
 
         //////////////////////////////////
         /// Update params in the market///
-        //////////////////////////////////
-        {
-            // Set the new implied interest rate after the trade has taken effect, this
-            // will be used to calculate the next trader's interest rate.
-            market.totalOt = market.totalOt.subNoNeg(otToAccount);
-            market.lastImpliedRate = getImpliedRate(
-                market.totalOt,
-                totalAsset + netAsset.toMarket,
-                rateScalar,
-                rateAnchor,
-                timeToExpiry
-            );
+        ///////////////////////////////x///
+        // Set the new implied interest rate after the trade has taken effect, this
+        // will be used to calculate the next trader's interest rate.
+        market.totalOt = market.totalOt.subNoNeg(otToAccount);
+        market.lastImpliedRate = getImpliedRate(
+            market.totalOt,
+            slot.totalAsset + netAsset.toMarket,
+            slot.rateScalar,
+            slot.rateAnchor,
+            slot.timeToExpiry
+        );
 
-            // It's technically possible that the implied rate is actually exactly zero (or
-            // more accurately the natural log rounds down to zero) but we will still fail
-            // in this case. If this does happen we may assume that markets are not initialized.
-            require(market.lastImpliedRate != 0);
-        }
+        // It's technically possible that the implied rate is actually exactly zero (or
+        // more accurately the natural log rounds down to zero) but we will still fail
+        // in this case. If this does happen we may assume that markets are not initialized.
+        require(market.lastImpliedRate != 0);
 
         (netScyToAccount, netScyToReserve) = _setNewMarketState(
             market,
+            index,
             netAsset.toAccount,
             netAsset.toMarket,
             netAsset.toReserve,
@@ -243,7 +289,11 @@ library MarketMathLib {
     /// @return rateScalar a value in rate precision that defines the slope of the line
     /// @return totalAsset the converted SCY to Asset for calculatin the exchange rates for the trade
     /// @return rateAnchor an offset from the x axis to maintain interest rate continuity over time
-    function getExchangeRateFactors(MarketParameters memory market, uint256 timeToExpiry)
+    function getExchangeRateFactors(
+        MarketParameters memory market,
+        SCYIndex index,
+        uint256 timeToExpiry
+    )
         internal
         pure
         returns (
@@ -253,7 +303,7 @@ library MarketMathLib {
         )
     {
         rateScalar = getRateScalar(market, timeToExpiry);
-        totalAsset = SCYUtils.scyToAsset(market.scyRate, market.totalScy);
+        totalAsset = index.scyToAsset(market.totalScy);
 
         require(market.totalOt != 0 && totalAsset != 0);
 
@@ -349,18 +399,19 @@ library MarketMathLib {
     /// @return netScyToReserve the positive amount of scy that accrues to the reserve
     function _setNewMarketState(
         MarketParameters memory market,
+        SCYIndex index,
         int256 netAssetToAccount,
         int256 netAssetToMarket,
         int256 netAssetToReserve,
         uint256 blockTime
     ) private pure returns (int256 netScyToAccount, int256 netScyToReserve) {
-        int256 netScyToMarket = SCYUtils.assetToScy(market.scyRate, netAssetToMarket);
+        int256 netScyToMarket = index.assetToScy(netAssetToMarket);
         // Set storage checks that total asset scy is above zero
         market.totalScy = market.totalScy + netScyToMarket;
 
         market.lastTradeTime = blockTime;
-        netScyToReserve = SCYUtils.assetToScy(market.scyRate, netAssetToReserve);
-        netScyToAccount = SCYUtils.assetToScy(market.scyRate, netAssetToAccount);
+        netScyToReserve = index.assetToScy(netAssetToReserve);
+        netScyToAccount = index.assetToScy(netAssetToAccount);
     }
 
     /// @notice Rate anchors update as the market gets closer to expiry. Rate anchors are not comparable
@@ -484,11 +535,12 @@ library MarketMathLib {
         require(rateScalar > 0, "rateScalar underflow");
     }
 
-    function setInitialImpliedRate(MarketParameters memory market, uint256 timeToExpiry)
-        internal
-        pure
-    {
-        int256 totalAsset = SCYUtils.scyToAsset(market.scyRate, market.totalScy);
+    function setInitialImpliedRate(
+        MarketParameters memory market,
+        SCYIndex index,
+        uint256 timeToExpiry
+    ) internal pure {
+        int256 totalAsset = index.scyToAsset(market.totalScy);
         market.lastImpliedRate = getImpliedRate(
             market.totalOt,
             totalAsset,
@@ -550,7 +602,6 @@ library MarketMathLib {
         market.totalOt = marketImmutable.totalOt;
         market.totalScy = marketImmutable.totalScy;
         market.totalLp = marketImmutable.totalLp;
-        market.scyRate = marketImmutable.scyRate;
         market.oracleRate = marketImmutable.oracleRate;
         market.scalarRoot = marketImmutable.scalarRoot;
         market.feeRateRoot = marketImmutable.feeRateRoot;
@@ -568,6 +619,7 @@ library MarketMathLib {
 
     function approxSwapExactScyForOt(
         MarketParameters memory marketImmutable,
+        SCYIndex index,
         uint256 exactScyIn,
         uint256 timeToExpiry,
         uint256 netOtOutGuessMin,
@@ -587,7 +639,12 @@ library MarketMathLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            (uint256 netScyNeed, ) = calcScyForExactOt(market, currentOtOutGuess, timeToExpiry);
+            (uint256 netScyNeed, ) = calcScyForExactOt(
+                market,
+                index,
+                currentOtOutGuess,
+                timeToExpiry
+            );
             bool isResultAcceptable = (netScyNeed <= exactScyIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
@@ -601,6 +658,7 @@ library MarketMathLib {
 
     function approxSwapOtForExactScy(
         MarketParameters memory marketImmutable,
+        SCYIndex index,
         uint256 exactScyOut,
         uint256 timeToExpiry,
         uint256 netOtInGuessMin,
@@ -622,6 +680,7 @@ library MarketMathLib {
 
             (uint256 netScyToAccount, ) = calcExactOtForScy(
                 market,
+                index,
                 currentOtInGuess,
                 timeToExpiry
             );
@@ -640,6 +699,7 @@ library MarketMathLib {
 
     function approxSwapExactScyForYt(
         MarketParameters memory marketImmutable,
+        SCYIndex index,
         uint256 exactScyIn,
         uint256 timeToExpiry,
         uint256 netYtOutGuessMin,
@@ -648,30 +708,32 @@ library MarketMathLib {
         require(exactScyIn > 0, "invalid scy in");
         require(netYtOutGuessMin >= 0 && netYtOutGuessMax >= 0, "invalid guess");
 
-        uint256 low = netYtOutGuessMin;
-        uint256 high = netYtOutGuessMax;
-        bool isAcceptableAnswerExisted;
+        ApproxSwapExactScyForYtSlot memory slot;
 
-        while (low != high) {
-            uint256 currentYtOutGuess = (low + high + 1) / 2;
+        slot.low = netYtOutGuessMin;
+        slot.high = netYtOutGuessMax;
+
+        while (slot.low != slot.high) {
+            slot.currentYtOutGuess = (slot.low + slot.high + 1) / 2;
             MarketParameters memory market = deepCloneMarket(marketImmutable);
 
-            int256 otToAccount = currentYtOutGuess.neg();
-            (int256 scyReceived, ) = calcTrade(market, otToAccount, timeToExpiry);
+            slot.otToAccount = slot.currentYtOutGuess.neg();
 
-            int256 totalScyToMintYo = scyReceived + exactScyIn.Int();
+            (slot.scyReceived, ) = calcTrade(market, index, slot.otToAccount, timeToExpiry);
 
-            int256 netYoFromScy = SCYUtils.scyToAsset(market.scyRate, totalScyToMintYo);
+            slot.totalScyToMintYo = slot.scyReceived + exactScyIn.Int();
 
-            bool isResultAcceptable = (netYoFromScy.Uint() >= currentYtOutGuess);
+            slot.netYoFromScy = index.scyToAsset(slot.totalScyToMintYo);
+
+            bool isResultAcceptable = (slot.netYoFromScy.Uint() >= slot.currentYtOutGuess);
 
             if (isResultAcceptable) {
-                low = currentYtOutGuess;
-                isAcceptableAnswerExisted = true;
-            } else high = currentYtOutGuess - 1;
+                slot.low = slot.currentYtOutGuess;
+                slot.isAcceptableAnswerExisted = true;
+            } else slot.high = slot.currentYtOutGuess - 1;
         }
 
-        require(isAcceptableAnswerExisted, "guess fail");
-        netYtOut = low;
+        require(slot.isAcceptableAnswerExisted, "guess fail");
+        netYtOut = slot.low;
     }
 }

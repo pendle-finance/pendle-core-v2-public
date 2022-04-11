@@ -5,7 +5,7 @@ import "./RewardManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/FixedPoint.sol";
-import "./SCYUtils.sol";
+import "../SCYUtils.sol";
 
 /**
 # CONDITIONS TO USE THIS PRESET:

@@ -5,7 +5,7 @@ import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
-import "../../../SuperComposableYield/implementations/SCYUtils.sol";
+import "../../../SuperComposableYield/SCYUtils.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;
@@ -43,19 +43,19 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         bool doPull
     ) internal returns (uint256 netYtOut) {
         {
-            MarketParameters memory state = IPMarket(market).readState();
-
-            netYtOut = state.approxSwapExactScyForYt(
-                exactScyIn,
-                state.getTimeToExpiry(),
-                netYtOutGuessMin,
-                netYtOutGuessMax
-            );
-            require(netYtOut >= minYtOut, "insufficient out");
-        }
-
-        {
             (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+            {
+                MarketParameters memory state = IPMarket(market).readState();
+
+                netYtOut = state.approxSwapExactScyForYt(
+                    SCYIndexLib.newIndex(SCY),
+                    exactScyIn,
+                    state.getTimeToExpiry(),
+                    netYtOutGuessMin,
+                    netYtOutGuessMax
+                );
+                require(netYtOut >= minYtOut, "insufficient out");
+            }
 
             if (doPull) {
                 SCY.transferFrom(msg.sender, address(YT), exactScyIn);

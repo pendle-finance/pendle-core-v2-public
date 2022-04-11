@@ -79,13 +79,18 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         )
     {
         MarketParameters memory market = readState();
+        SCYIndex index = SCYIndexLib.newIndex(SCY);
 
         uint256 lpToReserve;
-        (lpToReserve, lpToAccount, scyUsed, otUsed) = market.addLiquidity(scyDesired, otDesired);
+        (lpToReserve, lpToAccount, scyUsed, otUsed) = market.addLiquidity(
+            index,
+            scyDesired,
+            otDesired
+        );
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(market.getTimeToExpiry());
+            market.setInitialImpliedRate(index, market.getTimeToExpiry());
             _mint(address(1), lpToReserve);
         }
 
@@ -142,7 +147,11 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netScyOut, netScyToReserve) = market.calcExactOtForScy(exactOtIn, block.timestamp);
+        (netScyOut, netScyToReserve) = market.calcExactOtForScy(
+            SCYIndexLib.newIndex(SCY),
+            exactOtIn,
+            block.timestamp
+        );
         require(netScyOut >= minScyOut, "insufficient scy out");
         IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
@@ -166,7 +175,11 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         MarketParameters memory market = readState();
 
-        (netScyIn, netScyToReserve) = market.calcScyForExactOt(exactOtOut, block.timestamp);
+        (netScyIn, netScyToReserve) = market.calcScyForExactOt(
+            SCYIndexLib.newIndex(SCY),
+            exactOtOut,
+            block.timestamp
+        );
         require(netScyIn <= maxScyIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(receiver, exactOtOut);
         IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
@@ -181,12 +194,11 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     /// the only non-view part in this function is the ISuperComposableYield(SCY).scyIndexCurrent()
-    function readState() public returns (MarketParameters memory market) {
+    function readState() public view returns (MarketParameters memory market) {
         MarketStorage storage store = marketStorage;
         market.totalOt = store.totalOt;
         market.totalScy = store.totalScy;
         market.totalLp = totalSupply().Int();
-        market.scyRate = ISuperComposableYield(SCY).scyIndexCurrent();
         market.oracleRate = store.oracleRate;
         market.reserveFeePercent = reserveFeePercent;
 

@@ -36,6 +36,12 @@ library FixedPoint {
         return a - b;
     }
 
+    function subNoNeg(int256 a, uint256 b) internal pure returns (int256) {
+        int256 _b = Int(b);
+        require(a >= _b, "NEGATIVE");
+        return a - _b;
+    }
+
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 product = a * b;
         return product / ONE;
