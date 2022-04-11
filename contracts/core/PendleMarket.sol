@@ -90,7 +90,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(index, market.getTimeToExpiry());
+            market.setInitialImpliedRate(index, anchorRoot, block.timestamp);
             _mint(address(1), lpToReserve);
         }
 
@@ -213,7 +213,6 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         market.scalarRoot = scalarRoot;
         market.feeRateRoot = feeRateRoot;
-        market.anchorRoot = anchorRoot;
         market.rateOracleTimeWindow = rateOracleTimeWindow;
         market.expiry = expiry;
 

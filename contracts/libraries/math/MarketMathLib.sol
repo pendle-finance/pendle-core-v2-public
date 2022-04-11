@@ -18,7 +18,6 @@ struct MarketParameters {
     /// immutable variables ///
     int256 scalarRoot;
     uint256 feeRateRoot;
-    int256 anchorRoot;
     uint256 rateOracleTimeWindow;
     uint256 expiry;
     int256 reserveFeePercent; // base 100
@@ -108,7 +107,7 @@ library MarketMathLib {
         uint256 exactOtToMarket,
         uint256 blockTime
     ) internal pure returns (uint256 netScyToAccount, uint256 netScyToReserve) {
-        (int256 _netScyToAccount, int256 _netScyToReserve) = executeTrade(
+        (int256 _netScyToAccount, int256 _netScyToReserve) = _executeTrade(
             market,
             index,
             exactOtToMarket.neg(),
@@ -125,7 +124,7 @@ library MarketMathLib {
         uint256 exactOtToAccount,
         uint256 blockTime
     ) internal pure returns (uint256 netScyToMarket, uint256 netScyToReserve) {
-        (int256 _netScyToAccount, int256 _netScyToReserve) = executeTrade(
+        (int256 _netScyToAccount, int256 _netScyToReserve) = _executeTrade(
             market,
             index,
             exactOtToAccount.Int(),
@@ -139,15 +138,16 @@ library MarketMathLib {
     function setInitialImpliedRate(
         MarketParameters memory market,
         SCYIndex index,
-        uint256 timeToExpiry
+        int256 anchorRoot,
+        uint256 blockTime
     ) internal pure {
         int256 totalAsset = index.scyToAsset(market.totalScy);
-        market.lastImpliedRate = getImpliedRate(
+        market.lastImpliedRate = _getImpliedRate(
             market.totalOt,
             totalAsset,
             market.scalarRoot,
-            market.anchorRoot,
-            timeToExpiry
+            anchorRoot,
+            market.expiry - blockTime
         );
     }
 
@@ -248,12 +248,12 @@ library MarketMathLib {
     /// @param otToAccount the OT amount that will be deposited into the user's portfolio. The net change
     /// to the market is in the opposite direction.
     /// @return netScyToAccount netScyToReserve
-    function executeTrade(
+    function _executeTrade(
         MarketParameters memory market,
         SCYIndex index,
         int256 otToAccount,
         uint256 blockTime
-    ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
+    ) private pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         require(blockTime < market.expiry, "MARKET_EXPIRED");
 
         ExecuteTradeSlot memory slot;
@@ -265,7 +265,7 @@ library MarketMathLib {
         require(market.totalOt > otToAccount, "insufficient liquidity");
 
         // Calculates initial rate factors for the trade
-        (slot.rateScalar, slot.totalAsset, slot.rateAnchor) = getExchangeRateFactors(
+        (slot.rateScalar, slot.totalAsset, slot.rateAnchor) = _getExchangeRateFactors(
             market,
             index,
             slot.timeToExpiry
@@ -273,7 +273,7 @@ library MarketMathLib {
 
         // Calculates the exchange rate from Asset to OT before any liquidity fees
         // are applied
-        slot.preFeeExchangeRate = getExchangeRate(
+        slot.preFeeExchangeRate = _getExchangeRate(
             market.totalOt,
             slot.totalAsset,
             slot.rateScalar,
@@ -288,7 +288,7 @@ library MarketMathLib {
             netAsset.toAccount,
             netAsset.toMarket,
             netAsset.toReserve
-        ) = getNetAssetAmountsToAddresses(
+        ) = _getNetAssetAmountsToAddresses(
             market.feeRateRoot,
             slot.preFeeExchangeRate,
             otToAccount,
@@ -302,7 +302,7 @@ library MarketMathLib {
         // Set the new implied interest rate after the trade has taken effect, this
         // will be used to calculate the next trader's interest rate.
         market.totalOt = market.totalOt.subNoNeg(otToAccount);
-        market.lastImpliedRate = getImpliedRate(
+        market.lastImpliedRate = _getImpliedRate(
             market.totalOt,
             slot.totalAsset + netAsset.toMarket,
             slot.rateScalar,
@@ -315,7 +315,7 @@ library MarketMathLib {
         // in this case. If this does happen we may assume that markets are not initialized.
         require(market.lastImpliedRate != 0);
 
-        (netScyToAccount, netScyToReserve) = setNewMarketState(
+        (netScyToAccount, netScyToReserve) = _setNewMarketState(
             market,
             index,
             netAsset.toAccount,
@@ -329,12 +329,12 @@ library MarketMathLib {
     /// @return rateScalar a value in rate precision that defines the slope of the line
     /// @return totalAsset the converted SCY to Asset for calculatin the exchange rates for the trade
     /// @return rateAnchor an offset from the x axis to maintain interest rate continuity over time
-    function getExchangeRateFactors(
+    function _getExchangeRateFactors(
         MarketParameters memory market,
         SCYIndex index,
         uint256 timeToExpiry
     )
-        internal
+        private
         pure
         returns (
             int256 rateScalar,
@@ -342,7 +342,7 @@ library MarketMathLib {
             int256 rateAnchor
         )
     {
-        rateScalar = getRateScalar(market, timeToExpiry);
+        rateScalar = _getRateScalar(market, timeToExpiry);
         totalAsset = index.scyToAsset(market.totalScy);
 
         require(market.totalOt != 0 && totalAsset != 0);
@@ -350,7 +350,7 @@ library MarketMathLib {
         // Get the rateAnchor given the market state, this will establish the baseline for where
         // the exchange rate is set.
         {
-            rateAnchor = getRateAnchor(
+            rateAnchor = _getRateAnchor(
                 market.totalOt,
                 market.lastImpliedRate,
                 totalAsset,
@@ -365,14 +365,14 @@ library MarketMathLib {
     /// @return netAssetToAccount this is a positive or negative amount of Asset change to the account
     /// @return netAssetToMarket this is a positive or negative amount of Asset change in the market
     /// @return netAssetToReserve this is always a positive amount of Asset accrued to the reserve
-    function getNetAssetAmountsToAddresses(
+    function _getNetAssetAmountsToAddresses(
         uint256 feeRateRoot,
         int256 preFeeExchangeRate,
         int256 otToAccount,
         uint256 timeToExpiry,
         int256 reserveFeePercent
     )
-        internal
+        private
         pure
         returns (
             int256 netAssetToAccount,
@@ -387,7 +387,7 @@ library MarketMathLib {
         // tradeExchangeRate = tradeExchangeRateNoFee (* or /) exp(fee * timeToExpiry)
         // Asset = OT / exchangeRate, exchangeRate > 1
         int256 preFeeAssetToAccount = otToAccount.divDown(preFeeExchangeRate).neg();
-        int256 fee = getExchangeRateFromImpliedRate(feeRateRoot, timeToExpiry);
+        int256 fee = _getExchangeRateFromImpliedRate(feeRateRoot, timeToExpiry);
 
         if (otToAccount > 0) {
             // swapping SCY for OT
@@ -437,14 +437,14 @@ library MarketMathLib {
     /// @notice Sets the new market state
     /// @return netScyToAccount the positive or negative change in asset scy to the account
     /// @return netScyToReserve the positive amount of scy that accrues to the reserve
-    function setNewMarketState(
+    function _setNewMarketState(
         MarketParameters memory market,
         SCYIndex index,
         int256 netAssetToAccount,
         int256 netAssetToMarket,
         int256 netAssetToReserve,
         uint256 blockTime
-    ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
+    ) private pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         int256 netScyToMarket = index.assetToScy(netAssetToMarket);
         // Set storage checks that total asset scy is above zero
         market.totalScy = market.totalScy + netScyToMarket;
@@ -468,15 +468,15 @@ library MarketMathLib {
     /// lastImpliedRate = ln(exchangeRate') * (Constants.IMPLIED_RATE_TIME / timeToExpiry')
     ///      (calculated when the last trade in the market was made)
     /// @return rateAnchor the new rateAnchor
-    function getRateAnchor(
+    function _getRateAnchor(
         int256 totalOt,
         uint256 lastImpliedRate,
         int256 totalAsset,
         int256 rateScalar,
         uint256 timeToExpiry
-    ) internal pure returns (int256 rateAnchor) {
+    ) private pure returns (int256 rateAnchor) {
         // This is the exchange rate at the new time to expiry
-        int256 newExchangeRate = getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
+        int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
 
         require(newExchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
 
@@ -484,7 +484,7 @@ library MarketMathLib {
             // totalOt / (totalOt + totalAsset)
             int256 proportion = totalOt.divDown(totalOt + totalAsset);
 
-            int256 lnProportion = logProportion(proportion);
+            int256 lnProportion = _logProportion(proportion);
 
             // newExchangeRate - ln(proportion / (1 - proportion)) / rateScalar
             rateAnchor = newExchangeRate - lnProportion.divDown(rateScalar);
@@ -493,15 +493,15 @@ library MarketMathLib {
 
     /// @notice Calculates the current market implied rate.
     /// @return impliedRate the implied rate
-    function getImpliedRate(
+    function _getImpliedRate(
         int256 totalOt,
         int256 totalAsset,
         int256 rateScalar,
         int256 rateAnchor,
         uint256 timeToExpiry
-    ) internal pure returns (uint256 impliedRate) {
+    ) private pure returns (uint256 impliedRate) {
         // This will check for exchange rates < FixedPoint.ONE_INT
-        int256 exchangeRate = getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
+        int256 exchangeRate = _getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
         uint256 lnRate = exchangeRate.ln().Uint();
@@ -511,8 +511,8 @@ library MarketMathLib {
 
     /// @notice Converts an implied rate to an exchange rate given a time to expiry. The
     /// formula is E = e^rt
-    function getExchangeRateFromImpliedRate(uint256 impliedRate, uint256 timeToExpiry)
-        internal
+    function _getExchangeRateFromImpliedRate(uint256 impliedRate, uint256 timeToExpiry)
+        private
         pure
         returns (int256 exchangeRate)
     {
@@ -526,13 +526,13 @@ library MarketMathLib {
     ///     (1 / rateScalar) * ln(proportion / (1 - proportion)) + rateAnchor
     /// where:
     ///     proportion = totalOt / (totalOt + totalUnderlyingAsset)
-    function getExchangeRate(
+    function _getExchangeRate(
         int256 totalOt,
         int256 totalAsset,
         int256 rateScalar,
         int256 rateAnchor,
         int256 otToAccount
-    ) internal pure returns (int256 exchangeRate) {
+    ) private pure returns (int256 exchangeRate) {
         int256 numerator = totalOt.subNoNeg(otToAccount);
 
         // This is the proportion scaled by FixedPoint.ONE_INT
@@ -547,7 +547,7 @@ library MarketMathLib {
         // possible for the proportion to go over max market proportion unless borrowing occurs.
         require(proportion <= MAX_MARKET_PROPORTION); // TODO: probably not applicable to Pendle
 
-        int256 lnProportion = logProportion(proportion);
+        int256 lnProportion = _logProportion(proportion);
 
         // lnProportion / rateScalar + rateAnchor
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
@@ -556,7 +556,7 @@ library MarketMathLib {
         require(exchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
     }
 
-    function logProportion(int256 proportion) internal pure returns (int256 res) {
+    function _logProportion(int256 proportion) private pure returns (int256 res) {
         // This will result in divide by zero, short circuit
         require(proportion != FixedPoint.ONE_INT);
 
@@ -566,8 +566,8 @@ library MarketMathLib {
         res = logitP.ln();
     }
 
-    function getRateScalar(MarketParameters memory market, uint256 timeToExpiry)
-        internal
+    function _getRateScalar(MarketParameters memory market, uint256 timeToExpiry)
+        private
         pure
         returns (int256 rateScalar)
     {
@@ -579,12 +579,12 @@ library MarketMathLib {
     ///                                    Utility functions                                    ////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function getTimeToExpiry(MarketParameters memory market) internal view returns (uint256) {
-        unchecked {
-            require(block.timestamp <= market.expiry, "market expired");
-            return market.expiry - block.timestamp;
-        }
-    }
+    // function timeToExpiry(MarketParameters memory market) internal view returns (uint256) {
+    //     unchecked {
+    //         require(block.timestamp <= market.expiry, "market expired");
+    //         return market.expiry - block.timestamp;
+    //     }
+    // }
 
     function deepCloneMarket(MarketParameters memory marketImmutable)
         internal
@@ -597,7 +597,6 @@ library MarketMathLib {
         market.oracleRate = marketImmutable.oracleRate;
         market.scalarRoot = marketImmutable.scalarRoot;
         market.feeRateRoot = marketImmutable.feeRateRoot;
-        market.anchorRoot = marketImmutable.anchorRoot;
         market.rateOracleTimeWindow = marketImmutable.rateOracleTimeWindow;
         market.expiry = marketImmutable.expiry;
         market.reserveFeePercent = marketImmutable.reserveFeePercent;

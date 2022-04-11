@@ -49,7 +49,7 @@ interface ISuperComposableYield is IERC20Metadata {
 
     /**
     * @notice scyIndexCurrent.mulDown(scyBalance) must return the asset balance of the account
-    * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of scy
+    * @notice vice-versa, if a user uses some amount of tokens equivalent to X asset, the amount of scy
     he can mint must be X.divDown(scyIndexCurrent)
     * @dev SCYUtils's assetToScy & scyToAsset should be used instead of raw multiplication
     & division

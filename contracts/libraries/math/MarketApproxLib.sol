@@ -17,10 +17,10 @@ library MarketApproxLib {
         uint256 high;
         bool isAcceptableAnswerExisted;
         uint256 currentYtOutGuess;
-        int256 otToAccount;
-        int256 scyReceived;
-        int256 totalScyToMintYo;
-        int256 netYoFromScy;
+        uint256 otToMarket;
+        uint256 scyReceived;
+        uint256 totalScyToMintYo;
+        uint256 netYoFromScy;
         bool isResultAcceptable;
     }
 
@@ -28,7 +28,7 @@ library MarketApproxLib {
         MarketParameters memory marketImmutable,
         SCYIndex index,
         uint256 exactScyIn,
-        uint256 timeToExpiry,
+        uint256 blockTime,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax
     ) internal pure returns (uint256 netOtOut) {
@@ -46,11 +46,7 @@ library MarketApproxLib {
             uint256 currentOtOutGuess = (low + high + 1) / 2;
             MarketParameters memory market = MarketMathLib.deepCloneMarket(marketImmutable);
 
-            (uint256 netScyNeed, ) = market.swapScyForExactOt(
-                index,
-                currentOtOutGuess,
-                timeToExpiry
-            );
+            (uint256 netScyNeed, ) = market.swapScyForExactOt(index, currentOtOutGuess, blockTime);
             bool isResultAcceptable = (netScyNeed <= exactScyIn);
             if (isResultAcceptable) {
                 low = currentOtOutGuess;
@@ -66,7 +62,7 @@ library MarketApproxLib {
         MarketParameters memory marketImmutable,
         SCYIndex index,
         uint256 exactScyOut,
-        uint256 timeToExpiry,
+        uint256 blockTime,
         uint256 netOtInGuessMin,
         uint256 netOtInGuessMax
     ) internal pure returns (uint256 netOtIn) {
@@ -87,7 +83,7 @@ library MarketApproxLib {
             (uint256 netScyToAccount, ) = market.swapExactOtForScy(
                 index,
                 currentOtInGuess,
-                timeToExpiry
+                blockTime
             );
             bool isResultAcceptable = (netScyToAccount >= exactScyOut);
             if (isResultAcceptable) {
@@ -106,7 +102,7 @@ library MarketApproxLib {
         MarketParameters memory marketImmutable,
         SCYIndex index,
         uint256 exactScyIn,
-        uint256 timeToExpiry,
+        uint256 blockTime,
         uint256 netYtOutGuessMin,
         uint256 netYtOutGuessMax
     ) internal pure returns (uint256 netYtOut) {
@@ -122,15 +118,15 @@ library MarketApproxLib {
             slot.currentYtOutGuess = (slot.low + slot.high + 1) / 2;
             MarketParameters memory market = MarketMathLib.deepCloneMarket(marketImmutable);
 
-            slot.otToAccount = slot.currentYtOutGuess.neg();
+            slot.otToMarket = slot.currentYtOutGuess;
 
-            (slot.scyReceived, ) = market.executeTrade(index, slot.otToAccount, timeToExpiry);
+            (slot.scyReceived, ) = market.swapExactOtForScy(index, slot.otToMarket, blockTime);
 
-            slot.totalScyToMintYo = slot.scyReceived + exactScyIn.Int();
+            slot.totalScyToMintYo = slot.scyReceived + exactScyIn;
 
             slot.netYoFromScy = index.scyToAsset(slot.totalScyToMintYo);
 
-            bool isResultAcceptable = (slot.netYoFromScy.Uint() >= slot.currentYtOutGuess);
+            bool isResultAcceptable = (slot.netYoFromScy >= slot.currentYtOutGuess);
 
             if (isResultAcceptable) {
                 slot.low = slot.currentYtOutGuess;

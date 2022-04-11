@@ -44,8 +44,7 @@ abstract contract PendleRouterOTBaseUpg {
             uint256 otUsed
         )
     {
-        address SCY = IPMarket(market).SCY();
-        address OT = IPMarket(market).OT();
+        (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
         MarketParameters memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
@@ -133,13 +132,12 @@ abstract contract PendleRouterOTBaseUpg {
         bool doPull
     ) internal returns (uint256 netOtIn) {
         MarketParameters memory state = IPMarket(market).readState();
-        address SCY = IPMarket(market).SCY();
-        address OT = IPMarket(market).OT();
+        (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
         netOtIn = state.approxSwapOtForExactScy(
             SCYIndexLib.newIndex(SCY),
             exactScyOut,
-            state.getTimeToExpiry(),
+            block.timestamp,
             netOtInGuessMin,
             netOtInGuessMax
         );
@@ -174,7 +172,7 @@ abstract contract PendleRouterOTBaseUpg {
         (netScyIn, ) = state.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
             exactOtOut,
-            state.getTimeToExpiry()
+            block.timestamp
         );
         require(netScyIn <= maxScyIn, "exceed limit scy in");
 
@@ -204,7 +202,7 @@ abstract contract PendleRouterOTBaseUpg {
         netOtOut = state.approxSwapExactScyForOt(
             SCYIndexLib.newIndex(SCY),
             exactScyIn,
-            state.getTimeToExpiry(),
+            block.timestamp,
             netOtOutGuessMin,
             netOtOutGuessMax
         );

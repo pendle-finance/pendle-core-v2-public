@@ -55,7 +55,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
                 netYtOut = state.approxSwapExactScyForYt(
                     SCYIndexLib.newIndex(SCY),
                     exactScyIn,
-                    state.getTimeToExpiry(),
+                    block.timestamp,
                     netYtOutGuessMin,
                     netYtOutGuessMax
                 );
