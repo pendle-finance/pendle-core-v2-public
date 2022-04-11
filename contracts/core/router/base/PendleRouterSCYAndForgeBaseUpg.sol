@@ -36,9 +36,9 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
     ) internal returns (uint256 netScyOut) {
         if (doPull) {
             if (path.length == 1) {
-                IERC20(path[0]).transferFrom(msg.sender, SCY, netRawTokenIn);
+                IERC20(path[0]).safeTransferFrom(msg.sender, SCY, netRawTokenIn);
             } else {
-                IERC20(path[0]).transferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
+                IERC20(path[0]).safeTransferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
                 _swapExactIn(path, netRawTokenIn, SCY);
             }
         }

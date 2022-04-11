@@ -7,12 +7,15 @@ import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
     using MarketApproxLib for MarketParameters;
+    using SafeERC20 for ISuperComposableYield;
+    using SafeERC20 for IPYieldToken;
 
     // solhint-disable-next-line
     enum YT_SWAP_TYPE {
@@ -60,7 +63,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
             }
 
             if (doPull) {
-                SCY.transferFrom(msg.sender, address(YT), exactScyIn);
+                SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
             }
         }
 
@@ -97,7 +100,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         uint256 preBalanceScy = SCY.balanceOf(receiver);
 
         if (doPull) {
-            YT.transferFrom(msg.sender, address(YT), exactYtIn);
+            YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
         }
 
         IPMarket(market).swapScyForExactOt(
@@ -180,7 +183,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         uint256 scyNeedTotal = SCYUtils.assetToScy(SCY.scyIndexCurrent(), otOwed);
 
         uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
-        SCY.transferFrom(payer, address(YT), netScyToPull);
+        SCY.safeTransferFrom(payer, address(YT), netScyToPull);
 
         YT.mintYO(market, receiver);
     }
@@ -200,10 +203,10 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
 
         uint256 netScyReceived = YT.redeemYO(address(this));
 
-        SCY.transfer(market, scyOwed);
+        SCY.safeTransfer(market, scyOwed);
 
         if (receiver != address(this)) {
-            SCY.transfer(receiver, netScyReceived - scyOwed);
+            SCY.safeTransfer(receiver, netScyReceived - scyOwed);
         }
     }
 }

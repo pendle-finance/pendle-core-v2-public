@@ -6,12 +6,14 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterOTBaseUpg {
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using MarketMathLib for MarketParameters;
     using MarketApproxLib for MarketParameters;
+    using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor() //solhint-disable-next-line no-empty-blocks
@@ -55,8 +57,8 @@ abstract contract PendleRouterOTBaseUpg {
         require(netLpOut >= minLpOut, "insufficient lp out");
 
         if (doPull) {
-            IERC20(SCY).transferFrom(msg.sender, market, scyUsed);
-            IERC20(OT).transferFrom(msg.sender, market, otUsed);
+            IERC20(SCY).safeTransferFrom(msg.sender, market, scyUsed);
+            IERC20(OT).safeTransferFrom(msg.sender, market, otUsed);
         }
 
         IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode());
@@ -85,7 +87,7 @@ abstract contract PendleRouterOTBaseUpg {
         require(netOtOut >= otOutMin, "insufficient ot out");
 
         if (doPull) {
-            IPMarket(market).transferFrom(msg.sender, market, lpToRemove);
+            IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
 
         IPMarket(market).removeLiquidity(receiver, lpToRemove, abi.encode());
@@ -108,7 +110,7 @@ abstract contract PendleRouterOTBaseUpg {
     ) internal returns (uint256 netScyOut) {
         if (doPull) {
             address OT = IPMarket(market).OT();
-            IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
+            IERC20(OT).safeTransferFrom(msg.sender, market, exactOtIn);
         }
 
         (netScyOut, ) = IPMarket(market).swapExactOtForScy(
@@ -145,7 +147,7 @@ abstract contract PendleRouterOTBaseUpg {
         require(netOtIn <= maxOtIn, "ot in exceed limit");
 
         if (doPull) {
-            IERC20(OT).transferFrom(msg.sender, market, netOtIn);
+            IERC20(OT).safeTransferFrom(msg.sender, market, netOtIn);
         }
 
         IPMarket(market).swapExactOtForScy(receiver, netOtIn, exactScyOut, abi.encode());
@@ -177,7 +179,7 @@ abstract contract PendleRouterOTBaseUpg {
         require(netScyIn <= maxScyIn, "exceed limit scy in");
 
         if (doPull) {
-            IERC20(SCY).transferFrom(msg.sender, market, netScyIn);
+            IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
         IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode(msg.sender));
@@ -210,7 +212,7 @@ abstract contract PendleRouterOTBaseUpg {
         require(netOtOut >= minOtOut, "insufficient out");
 
         if (doPull) {
-            IERC20(SCY).transferFrom(msg.sender, market, exactScyIn);
+            IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
         IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode(msg.sender));
