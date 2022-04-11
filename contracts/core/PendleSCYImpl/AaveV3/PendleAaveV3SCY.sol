@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 pragma abicoder v2;
-import "../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
-import "../../interfaces/IAToken.sol";
-import "../../interfaces/IAavePool.sol";
-import "../../interfaces/IAaveRewardsController.sol";
-import "../../libraries/math/WadRayMath.sol";
+import "../../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
+import "../../../interfaces/IAToken.sol";
+import "../../../interfaces/IAavePool.sol";
+import "../../../interfaces/IAaveRewardsController.sol";
+import "./WadRayMath.sol";
 
 contract PendleAaveV3SCY is SCYBaseWithRewards {
     using WadRayMath for uint256;
