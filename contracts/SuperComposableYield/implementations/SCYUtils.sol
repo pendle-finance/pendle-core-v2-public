@@ -11,7 +11,7 @@ library SCYUtils {
         return scyAmount.mulDown(scyIndex);
     }
 
-    function assetToSCY(uint256 scyIndex, uint256 assetAmount) internal pure returns (uint256) {
+    function assetToScy(uint256 scyIndex, uint256 assetAmount) internal pure returns (uint256) {
         return assetAmount.divDown(scyIndex);
     }
 
@@ -19,7 +19,7 @@ library SCYUtils {
         return scyAmount.mulDown(scyIndex);
     }
 
-    function assetToSCY(uint256 scyIndex, int256 assetAmount) internal pure returns (int256) {
+    function assetToScy(uint256 scyIndex, int256 assetAmount) internal pure returns (int256) {
         return assetAmount.divDown(scyIndex);
     }
 
@@ -27,7 +27,7 @@ library SCYUtils {
         return scyAmount.mulDown(scyIndex);
     }
 
-    function assetToSCY(int256 scyIndex, int256 assetAmount) internal pure returns (int256) {
+    function assetToScy(int256 scyIndex, int256 assetAmount) internal pure returns (int256) {
         return assetAmount.divDown(scyIndex);
     }
 }

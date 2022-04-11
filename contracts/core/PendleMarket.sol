@@ -136,23 +136,23 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function swapExactOtForSCY(
+    function swapExactOtForScy(
         address recipient,
         uint256 exactOtIn,
-        uint256 minSCYOut,
+        uint256 minScyOut,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netSCYOut, uint256 netSCYToReserve) {
+    ) external nonReentrant returns (uint256 netScyOut, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
 
-        (netSCYOut, netSCYToReserve) = market.calcExactOtForSCY(exactOtIn, block.timestamp);
-        require(netSCYOut >= minSCYOut, "insufficient scy out");
-        IERC20(SCY).safeTransfer(recipient, netSCYOut);
-        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
+        (netScyOut, netScyToReserve) = market.calcExactOtForScy(exactOtIn, block.timestamp);
+        require(netScyOut >= minScyOut, "insufficient scy out");
+        IERC20(SCY).safeTransfer(recipient, netScyOut);
+        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
 
         if (data.length > 0) {
-            IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netSCYOut.Int(), data);
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netScyOut.Int(), data);
         }
 
         // have received enough OT
@@ -160,23 +160,23 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _writeState(market);
     }
 
-    function swapSCYForExactOt(
+    function swapScyForExactOt(
         address recipient,
         uint256 exactOtOut,
-        uint256 maxSCYIn,
+        uint256 maxScyIn,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netSCYIn, uint256 netSCYToReserve) {
+    ) external nonReentrant returns (uint256 netScyIn, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
         MarketParameters memory market = readState();
 
-        (netSCYIn, netSCYToReserve) = market.calcSCYForExactOt(exactOtOut, block.timestamp);
-        require(netSCYIn <= maxSCYIn, "scy in exceed limit");
+        (netScyIn, netScyToReserve) = market.calcScyForExactOt(exactOtOut, block.timestamp);
+        require(netScyIn <= maxScyIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(recipient, exactOtOut);
-        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netSCYToReserve);
+        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
 
         if (data.length > 0) {
-            IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netSCYIn.neg(), data);
+            IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netScyIn.neg(), data);
         }
 
         // have received enough SCY

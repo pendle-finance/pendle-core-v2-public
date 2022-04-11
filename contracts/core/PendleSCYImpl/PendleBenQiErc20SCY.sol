@@ -15,7 +15,7 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
     address public immutable comptroller;
     address public immutable qiToken;
 
-    uint256 public lastSCYIndex;
+    uint256 public lastScyIndex;
 
     constructor(
         string memory _name,
@@ -47,29 +47,29 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
         internal
         virtual
         override
-        returns (uint256 amountSCYOut)
+        returns (uint256 amountScyOut)
     {
         // qiToken -> scy is 1:1
         if (token == qiToken) {
-            amountSCYOut = amountBase;
+            amountScyOut = amountBase;
         } else {
             IQiErc20(qiToken).mint(amountBase);
             _afterSendToken(underlying);
-            amountSCYOut = _afterReceiveToken(qiToken);
+            amountScyOut = _afterReceiveToken(qiToken);
         }
     }
 
-    function _redeem(address token, uint256 amountSCY)
+    function _redeem(address token, uint256 amountScy)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == qiToken) {
-            amountBaseOut = amountSCY;
+            amountBaseOut = amountScy;
         } else {
             // must be underlying
-            IQiErc20(qiToken).redeem(amountSCY);
+            IQiErc20(qiToken).redeem(amountScy);
             _afterSendToken(qiToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }
@@ -80,13 +80,13 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastSCYIndex, IQiToken(qiToken).exchangeRateCurrent());
-        lastSCYIndex = res;
+        res = FixedPoint.max(lastScyIndex, IQiToken(qiToken).exchangeRateCurrent());
+        lastScyIndex = res;
         return res;
     }
 
     function scyIndexStored() public view override returns (uint256 res) {
-        res = lastSCYIndex;
+        res = lastScyIndex;
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {

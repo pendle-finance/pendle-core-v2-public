@@ -39,17 +39,17 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     function mint(
         address recipient,
         address baseTokenIn,
-        uint256 minAmountSCYOut
-    ) public virtual override returns (uint256 amountSCYOut) {
+        uint256 minAmountScyOut
+    ) public virtual override returns (uint256 amountScyOut) {
         require(isValidBaseToken(baseTokenIn), "invalid base token");
 
         uint256 amountBaseIn = _afterReceiveToken(baseTokenIn);
 
-        amountSCYOut = _deposit(baseTokenIn, amountBaseIn);
+        amountScyOut = _deposit(baseTokenIn, amountBaseIn);
 
-        require(amountSCYOut >= minAmountSCYOut, "insufficient out");
+        require(amountScyOut >= minAmountScyOut, "insufficient out");
 
-        _mint(recipient, amountSCYOut);
+        _mint(recipient, amountScyOut);
     }
 
     function redeem(
@@ -59,11 +59,11 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     ) public virtual override returns (uint256 amountBaseOut) {
         require(isValidBaseToken(baseTokenOut), "invalid base token");
 
-        uint256 amountSCYRedeem = balanceOf(address(this));
+        uint256 amountScyRedeem = balanceOf(address(this));
 
-        _burn(address(this), amountSCYRedeem);
+        _burn(address(this), amountScyRedeem);
 
-        amountBaseOut = _redeem(baseTokenOut, amountSCYRedeem);
+        amountBaseOut = _redeem(baseTokenOut, amountScyRedeem);
 
         require(amountBaseOut >= minAmountBaseOut, "insufficient out");
 
@@ -74,9 +74,9 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     function _deposit(address token, uint256 amountBase)
         internal
         virtual
-        returns (uint256 amountSCYOut);
+        returns (uint256 amountScyOut);
 
-    function _redeem(address token, uint256 amountSCY)
+    function _redeem(address token, uint256 amountScy)
         internal
         virtual
         returns (uint256 amountBaseOut);

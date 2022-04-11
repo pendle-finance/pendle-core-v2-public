@@ -24,37 +24,37 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
 
     }
 
-    function swapExactYtForSCY(
+    function swapExactYtForScy(
         address recipient,
         address market,
         uint256 exactYtIn,
-        uint256 minSCYOut
+        uint256 minScyOut
     ) external returns (uint256) {
-        return _swapExactYtForSCY(recipient, market, exactYtIn, minSCYOut, true);
+        return _swapExactYtForScy(recipient, market, exactYtIn, minScyOut, true);
     }
 
-    function swapSCYForExactYt(
+    function swapScyForExactYt(
         address recipient,
         address market,
         uint256 exactYtOut,
-        uint256 maxSCYIn
+        uint256 maxScyIn
     ) external returns (uint256) {
-        return _swapSCYForExactYt(recipient, market, exactYtOut, maxSCYIn);
+        return _swapScyForExactYt(recipient, market, exactYtOut, maxScyIn);
     }
 
-    function swapExactSCYForYt(
+    function swapExactScyForYt(
         address recipient,
         address market,
-        uint256 exactSCYIn,
+        uint256 exactScyIn,
         uint256 minYtOut,
         uint256 netYtOutGuessMin,
         uint256 netYtOutGuessMax
     ) external returns (uint256) {
         return
-            _swapExactSCYForYt(
+            _swapExactScyForYt(
                 recipient,
                 market,
-                exactSCYIn,
+                exactScyIn,
                 minYtOut,
                 netYtOutGuessMin,
                 netYtOutGuessMax,
@@ -66,7 +66,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
      * @dev netYtOutGuessMin & Max can be used in the same way as RawTokenOT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - mintSCYFromRawToken is invoked, except the YT contract will receive all the outcome SCY
+     - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
      - market.swap is called, which will transfer SCY to the YT contract, and callback is invoked
      - callback will do call YT's mintYO, which will mint OT to the market & YT to the recipient
      */
@@ -81,7 +81,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
     ) external returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        uint256 netSCYUsedToBuyYT = _mintSCYFromRawToken(
+        uint256 netScyUsedToBuyYT = _mintScyFromRawToken(
             exactRawTokenIn,
             address(SCY),
             1,
@@ -90,10 +90,10 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
             true
         );
 
-        netYtOut = _swapExactSCYForYt(
+        netYtOut = _swapExactScyForYt(
             recipient,
             market,
-            netSCYUsedToBuyYT,
+            netScyUsedToBuyYT,
             minYtOut,
             netYtOutGuessMin,
             netYtOutGuessMax,
@@ -109,7 +109,7 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
      - YT is transferred to the YT contract
      - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
      - callback will do call YT's redeemYO, which will redeem the outcome SCY to this router, then
-        all SCY owed to the market will be paid, the rest is used to feed redeemSCYToRawToken
+        all SCY owed to the market will be paid, the rest is used to feed redeemScyToRawToken
      */
     function swapExactYtForRawToken(
         uint256 exactYtIn,
@@ -120,11 +120,11 @@ contract PendleRouterYTUpg is PendleRouterSCYAndForgeBaseUpg, PendleRouterYTBase
     ) external returns (uint256 netRawTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        uint256 netSCYOut = _swapExactYtForSCY(address(SCY), market, exactYtIn, 1, true);
+        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, exactYtIn, 1, true);
 
-        netRawTokenOut = _redeemSCYToRawToken(
+        netRawTokenOut = _redeemScyToRawToken(
             address(SCY),
-            netSCYOut,
+            netScyOut,
             minRawTokenOut,
             recipient,
             path,

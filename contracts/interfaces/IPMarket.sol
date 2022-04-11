@@ -24,19 +24,19 @@ interface IPMarket is IPBaseToken {
         bytes calldata data
     ) external returns (uint256 scyToAccount, uint256 otToAccount);
 
-    function swapExactOtForSCY(
+    function swapExactOtForScy(
         address recipient,
         uint256 exactOtIn,
-        uint256 minSCYOut,
+        uint256 minScyOut,
         bytes calldata data
-    ) external returns (uint256 netSCYOut, uint256 netSCYToReserve);
+    ) external returns (uint256 netScyOut, uint256 netScyToReserve);
 
-    function swapSCYForExactOt(
+    function swapScyForExactOt(
         address recipient,
         uint256 exactOtOut,
-        uint256 maxSCYIn,
+        uint256 maxScyIn,
         bytes calldata data
-    ) external returns (uint256 netSCYIn, uint256 netSCYToReserve);
+    ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
     function readState() external returns (MarketParameters memory market);
 

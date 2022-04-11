@@ -16,7 +16,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     address public immutable rewardsController;
     address public immutable aToken;
 
-    uint256 public lastSCYIndex;
+    uint256 public lastScyIndex;
 
     // WIP: Aave reward controller can config to have more rewardsToken,
     // hence rewardsLength should not be immutable
@@ -45,28 +45,28 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         internal
         virtual
         override
-        returns (uint256 amountSCYOut)
+        returns (uint256 amountScyOut)
     {
         // aTokenScaled -> scy is 1:1
         if (token == aToken) {
-            amountSCYOut = amountBase.rayDiv(scyIndexCurrent());
+            amountScyOut = amountBase.rayDiv(scyIndexCurrent());
         } else {
             IAavePool(pool).supply(underlying, amountBase, address(this), 0);
             _afterSendToken(underlying);
-            amountSCYOut = _afterReceiveToken(aToken);
+            amountScyOut = _afterReceiveToken(aToken);
         }
     }
 
-    function _redeem(address token, uint256 amountSCY)
+    function _redeem(address token, uint256 amountScy)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == aToken) {
-            amountBaseOut = amountSCY.rayMul(scyIndexCurrent());
+            amountBaseOut = amountScy.rayMul(scyIndexCurrent());
         } else {
-            uint256 amountBaseExpected = amountSCY.rayMul(scyIndexCurrent());
+            uint256 amountBaseExpected = amountScy.rayMul(scyIndexCurrent());
             IAavePool(pool).withdraw(underlying, amountBaseExpected, address(this));
             _afterSendToken(aToken);
             amountBaseOut = _afterReceiveToken(token);
@@ -79,12 +79,12 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
         res = IAavePool(pool).getReserveNormalizedIncome(underlying);
-        lastSCYIndex = res;
+        lastScyIndex = res;
         return res;
     }
 
     function scyIndexStored() public view override returns (uint256 res) {
-        res = lastSCYIndex;
+        res = lastScyIndex;
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {

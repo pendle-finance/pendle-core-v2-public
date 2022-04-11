@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -26,24 +27,24 @@ contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnab
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
         if (
-            sig == IPRouterCore.mintSCYFromRawToken.selector ||
-            sig == IPRouterCore.redeemSCYToRawToken.selector ||
+            sig == IPRouterCore.mintScyFromRawToken.selector ||
+            sig == IPRouterCore.redeemScyToRawToken.selector ||
             sig == IPRouterCore.mintYoFromRawToken.selector ||
             sig == IPRouterCore.redeemYoToRawToken.selector ||
             sig == IPRouterCore.addLiquidity.selector ||
             sig == IPRouterCore.removeLiquidity.selector ||
-            sig == IPRouterCore.swapExactOtForSCY.selector ||
-            sig == IPRouterCore.swapOtForExactSCY.selector ||
-            sig == IPRouterCore.swapSCYForExactOt.selector ||
-            sig == IPRouterCore.swapExactSCYForOt.selector ||
+            sig == IPRouterCore.swapExactOtForScy.selector ||
+            sig == IPRouterCore.swapOtForExactScy.selector ||
+            sig == IPRouterCore.swapScyForExactOt.selector ||
+            sig == IPRouterCore.swapExactScyForOt.selector ||
             sig == IPRouterCore.swapExactRawTokenForOt.selector ||
             sig == IPRouterCore.swapExactOtForRawToken.selector
         ) {
             return PENDLE_ROUTER_CORE;
         } else if (
-            sig == IPRouterYT.swapExactYtForSCY.selector ||
-            sig == IPRouterYT.swapSCYForExactYt.selector ||
-            sig == IPRouterYT.swapExactSCYForYt.selector ||
+            sig == IPRouterYT.swapExactYtForScy.selector ||
+            sig == IPRouterYT.swapScyForExactYt.selector ||
+            sig == IPRouterYT.swapExactScyForYt.selector ||
             sig == IPRouterYT.swapExactRawTokenForYt.selector ||
             sig == IPRouterYT.swapExactYtForRawToken.selector
         ) {

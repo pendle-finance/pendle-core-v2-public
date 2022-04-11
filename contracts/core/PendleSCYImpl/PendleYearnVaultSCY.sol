@@ -4,13 +4,13 @@ pragma abicoder v2;
 import "../../SuperComposableYield/implementations/SCYBase.sol";
 import "../../interfaces/IYearnVault.sol";
 
-contract PendleYearnVaultSCY is SCYBase {
+contract PendleYearnVaultScy is SCYBase {
     using SafeERC20 for IERC20;
 
     address public immutable underlying;
     address public immutable yvToken;
 
-    uint256 public lastSCYIndex;
+    uint256 public lastScyIndex;
 
     constructor(
         string memory _name,
@@ -33,29 +33,29 @@ contract PendleYearnVaultSCY is SCYBase {
         internal
         virtual
         override
-        returns (uint256 amountSCYOut)
+        returns (uint256 amountScyOut)
     {
         if (token == yvToken) {
-            amountSCYOut = amountBase;
+            amountScyOut = amountBase;
         } else {
             // must be underlying
             IYearnVault(yvToken).deposit(amountBase);
             _afterSendToken(underlying);
-            amountSCYOut = _afterReceiveToken(yvToken);
+            amountScyOut = _afterReceiveToken(yvToken);
         }
     }
 
-    function _redeem(address token, uint256 amountSCY)
+    function _redeem(address token, uint256 amountScy)
         internal
         virtual
         override
         returns (uint256 amountBaseOut)
     {
         if (token == yvToken) {
-            amountBaseOut = amountSCY;
+            amountBaseOut = amountScy;
         } else {
             // must be underlying
-            IYearnVault(yvToken).withdraw(amountSCY);
+            IYearnVault(yvToken).withdraw(amountScy);
             _afterSendToken(yvToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }
@@ -66,13 +66,13 @@ contract PendleYearnVaultSCY is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastSCYIndex, IYearnVault(yvToken).pricePerShare());
-        lastSCYIndex = res;
+        res = FixedPoint.max(lastScyIndex, IYearnVault(yvToken).pricePerShare());
+        lastScyIndex = res;
         return res;
     }
 
     function scyIndexStored() public view override returns (uint256 res) {
-        res = lastSCYIndex;
+        res = lastScyIndex;
     }
 
     /*///////////////////////////////////////////////////////////////

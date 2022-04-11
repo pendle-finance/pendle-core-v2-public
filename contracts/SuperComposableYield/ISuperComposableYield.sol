@@ -28,8 +28,8 @@ interface ISuperComposableYield is IERC20Metadata {
     function mint(
         address recipient,
         address baseTokenIn,
-        uint256 minAmountSCYOut
-    ) external returns (uint256 amountSCYOut);
+        uint256 minAmountScyOut
+    ) external returns (uint256 amountScyOut);
 
     function redeem(
         address recipient,
@@ -47,7 +47,7 @@ interface ISuperComposableYield is IERC20Metadata {
     * @notice scyIndexCurrent.mulDown(scyBalance) must return the asset balance of the account
     * @notice vice-versa, if an user uses some amount of tokens equivalent to X asset, the amount of scy
     he can mint must be X.divDown(scyIndexCurrent)
-    * @dev SCYUtils's assetToSCY & scyToAsset should be used instead of raw multiplication
+    * @dev SCYUtils's assetToScy & scyToAsset should be used instead of raw multiplication
     & division
     */
     function scyIndexCurrent() external returns (uint256);

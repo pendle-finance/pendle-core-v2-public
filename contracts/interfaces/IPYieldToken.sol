@@ -7,7 +7,7 @@ interface IPYieldToken is IPBaseToken {
         external
         returns (uint256 amountYOOut);
 
-    function redeemYO(address recipient) external returns (uint256 amountSCYOut);
+    function redeemYO(address recipient) external returns (uint256 amountScyOut);
 
     function redeemDueInterest(address user) external returns (uint256 interestOut);
 

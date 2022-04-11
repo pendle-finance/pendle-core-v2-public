@@ -18,7 +18,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using SafeERC20 for IERC20;
 
     struct UserData {
-        uint256 lastSCYIndex;
+        uint256 lastScyIndex;
         uint256 dueInterest;
     }
 
@@ -26,8 +26,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     address public immutable OT;
 
     /// params to do interests & rewards accounting
-    uint256 public lastSCYBalance;
-    uint256 public lastSCYIndexBeforeExpiry;
+    uint256 public lastScyBalance;
+    uint256 public lastScyIndexBeforeExpiry;
     uint256[] public paramL;
 
     /// params to do fee accounting
@@ -66,7 +66,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     /// this function converts YO tokens into scy, but interests & rewards are not included
-    function redeemYO(address recipient) public returns (uint256 amountSCYOut) {
+    function redeemYO(address recipient) public returns (uint256 amountScyOut) {
         // minimum of OT & YT balance
         uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
         if (!isExpired()) {
@@ -75,9 +75,9 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         }
         IPOwnershipToken(OT).burnByYT(address(this), amountYOToRedeem);
 
-        amountSCYOut = _calcAmountRedeemable(amountYOToRedeem);
+        amountScyOut = _calcAmountRedeemable(amountYOToRedeem);
 
-        IERC20(SCY).safeTransfer(recipient, amountSCYOut);
+        IERC20(SCY).safeTransfer(recipient, amountScyOut);
         _afterTransferOutSCY();
     }
 
@@ -150,10 +150,10 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         return ISuperComposableYield(SCY).getRewardTokens();
     }
 
-    function getSCYIndexBeforeExpiry() public returns (uint256 res) {
-        if (isExpired()) return res = lastSCYIndexBeforeExpiry;
+    function getScyIndexBeforeExpiry() public returns (uint256 res) {
+        if (isExpired()) return res = lastScyIndexBeforeExpiry;
         res = ISuperComposableYield(SCY).scyIndexCurrent();
-        lastSCYIndexBeforeExpiry = res;
+        lastScyIndexBeforeExpiry = res;
     }
 
     function withdrawFeeToTreasury() public {
@@ -176,12 +176,12 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function _updateDueInterest(address user) internal {
-        uint256 prevIndex = data[user].lastSCYIndex;
+        uint256 prevIndex = data[user].lastScyIndex;
 
-        uint256 currentIndex = getSCYIndexBeforeExpiry();
+        uint256 currentIndex = getScyIndexBeforeExpiry();
 
         if (prevIndex == 0 || prevIndex == currentIndex) {
-            data[user].lastSCYIndex = currentIndex;
+            data[user].lastScyIndex = currentIndex;
             return;
         }
 
@@ -192,26 +192,26 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         );
 
         data[user].dueInterest += interestFromYT;
-        data[user].lastSCYIndex = currentIndex;
+        data[user].lastScyIndex = currentIndex;
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
-        return SCYUtils.scyToAsset(getSCYIndexBeforeExpiry(), amount);
+        return SCYUtils.scyToAsset(getScyIndexBeforeExpiry(), amount);
     }
 
     function _calcAmountRedeemable(uint256 amount) internal returns (uint256) {
-        return SCYUtils.assetToSCY(getSCYIndexBeforeExpiry(), amount);
+        return SCYUtils.assetToScy(getScyIndexBeforeExpiry(), amount);
     }
 
     function _receiveSCY() internal returns (uint256 amount) {
-        uint256 balanceSCY = IERC20(SCY).balanceOf(address(this));
-        amount = balanceSCY - lastSCYBalance;
-        lastSCYBalance = balanceSCY;
+        uint256 balanceScy = IERC20(SCY).balanceOf(address(this));
+        amount = balanceScy - lastScyBalance;
+        lastScyBalance = balanceScy;
         require(amount > 0, "RECEIVE_ZERO");
     }
 
     function _afterTransferOutSCY() internal {
-        lastSCYBalance = IERC20(SCY).balanceOf(address(this));
+        lastScyBalance = IERC20(SCY).balanceOf(address(this));
     }
 
     function _beforeTokenTransfer(

@@ -71,11 +71,11 @@ abstract contract PendleRouterOTBaseUpg {
         uint256 scyOutMin,
         uint256 otOutMin,
         bool doPull
-    ) internal returns (uint256 netSCYOut, uint256 netOtOut) {
+    ) internal returns (uint256 netScyOut, uint256 netOtOut) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (netSCYOut, netOtOut) = state.removeLiquidity(lpToRemove);
-        require(netSCYOut >= scyOutMin, "insufficient scy out");
+        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
+        require(netScyOut >= scyOutMin, "insufficient scy out");
         require(netOtOut >= otOutMin, "insufficient ot out");
 
         if (doPull) {
@@ -93,41 +93,41 @@ abstract contract PendleRouterOTBaseUpg {
      - SCY is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
      */
-    function _swapExactOtForSCY(
+    function _swapExactOtForScy(
         address recipient,
         address market,
         uint256 exactOtIn,
-        uint256 minSCYOut,
+        uint256 minScyOut,
         bool doPull
-    ) internal returns (uint256 netSCYOut) {
+    ) internal returns (uint256 netScyOut) {
         if (doPull) {
             address OT = IPMarket(market).OT();
             IERC20(OT).transferFrom(msg.sender, market, exactOtIn);
         }
 
-        (netSCYOut, ) = IPMarket(market).swapExactOtForSCY(
+        (netScyOut, ) = IPMarket(market).swapExactOtForScy(
             recipient,
             exactOtIn,
-            minSCYOut,
+            minScyOut,
             abi.encode()
         );
 
-        require(netSCYOut >= minSCYOut, "insufficient scy out");
+        require(netScyOut >= minScyOut, "insufficient scy out");
     }
 
-    function _swapOtForExactSCY(
+    function _swapOtForExactScy(
         address recipient,
         address market,
         uint256 maxOtIn,
-        uint256 exactSCYOut,
+        uint256 exactScyOut,
         uint256 netOtInGuessMin,
         uint256 netOtInGuessMax,
         bool doPull
     ) internal returns (uint256 netOtIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        netOtIn = state.approxSwapOtForExactSCY(
-            exactSCYOut,
+        netOtIn = state.approxSwapOtForExactScy(
+            exactScyOut,
             state.getTimeToExpiry(),
             netOtInGuessMin,
             netOtInGuessMax
@@ -140,7 +140,7 @@ abstract contract PendleRouterOTBaseUpg {
             IERC20(OT).transferFrom(msg.sender, market, netOtIn);
         }
 
-        IPMarket(market).swapExactOtForSCY(recipient, netOtIn, exactSCYOut, abi.encode());
+        IPMarket(market).swapExactOtForScy(recipient, netOtIn, exactScyOut, abi.encode());
     }
 
     /**
@@ -151,35 +151,35 @@ abstract contract PendleRouterOTBaseUpg {
      - OT is transferred to the recipient, and the router's callback is invoked
      - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
      */
-    function _swapSCYForExactOt(
+    function _swapScyForExactOt(
         address recipient,
         address market,
         uint256 exactOtOut,
-        uint256 maxSCYIn,
+        uint256 maxScyIn,
         bool doPull
-    ) internal returns (uint256 netSCYIn) {
+    ) internal returns (uint256 netScyIn) {
         MarketParameters memory state = IPMarket(market).readState();
 
-        (netSCYIn, ) = state.calcSCYForExactOt(exactOtOut, state.getTimeToExpiry());
-        require(netSCYIn <= maxSCYIn, "exceed limit scy in");
+        (netScyIn, ) = state.calcScyForExactOt(exactOtOut, state.getTimeToExpiry());
+        require(netScyIn <= maxScyIn, "exceed limit scy in");
 
         if (doPull) {
             address SCY = IPMarket(market).SCY();
-            IERC20(SCY).transferFrom(msg.sender, market, netSCYIn);
+            IERC20(SCY).transferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapSCYForExactOt(
+        IPMarket(market).swapScyForExactOt(
             recipient,
             exactOtOut,
-            maxSCYIn,
+            maxScyIn,
             abi.encode(msg.sender)
         );
     }
 
-    function _swapExactSCYForOt(
+    function _swapExactScyForOt(
         address recipient,
         address market,
-        uint256 exactSCYIn,
+        uint256 exactScyIn,
         uint256 minOtOut,
         uint256 netOtOutGuessMin,
         uint256 netOtOutGuessMax,
@@ -191,8 +191,8 @@ abstract contract PendleRouterOTBaseUpg {
             netOtOutGuessMax = state.totalOt.Uint();
         }
 
-        netOtOut = state.approxSwapExactSCYForOt(
-            exactSCYIn,
+        netOtOut = state.approxSwapExactScyForOt(
+            exactScyIn,
             state.getTimeToExpiry(),
             netOtOutGuessMin,
             netOtOutGuessMax
@@ -202,13 +202,13 @@ abstract contract PendleRouterOTBaseUpg {
 
         if (doPull) {
             address SCY = IPMarket(market).SCY();
-            IERC20(SCY).transferFrom(msg.sender, market, exactSCYIn);
+            IERC20(SCY).transferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapSCYForExactOt(
+        IPMarket(market).swapScyForExactOt(
             recipient,
             netOtOut,
-            exactSCYIn,
+            exactScyIn,
             abi.encode(msg.sender)
         );
     }
