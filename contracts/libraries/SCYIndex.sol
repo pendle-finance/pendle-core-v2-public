@@ -39,7 +39,8 @@ library SCYIndexLib {
         pure
         returns (int256)
     {
-        return (SCYUtils.scyToAsset(SCYIndex.unwrap(index), scyAmount.Uint())).Int();
+        int256 sign = scyAmount < 0 ? int256(-1) : int256(1);
+        return sign * (SCYUtils.scyToAsset(SCYIndex.unwrap(index), scyAmount.abs())).Int();
     }
 
     function assetToScy(SCYIndex index, int256 assetAmount)
@@ -47,7 +48,8 @@ library SCYIndexLib {
         pure
         returns (int256)
     {
-        return (SCYUtils.assetToScy(SCYIndex.unwrap(index), assetAmount.Uint())).Int();
+        int256 sign = assetAmount < 0 ? int256(-1) : int256(1);
+        return sign * (SCYUtils.assetToScy(SCYIndex.unwrap(index), assetAmount.abs())).Int();
     }
 
 }
