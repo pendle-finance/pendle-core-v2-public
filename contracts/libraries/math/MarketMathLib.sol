@@ -545,7 +545,7 @@ library MarketMathLib {
         // removed). Over time, the yield from SCY will slightly decrease the proportion (the
         // amount of Asset in the market must be monotonically increasing). Therefore it is not
         // possible for the proportion to go over max market proportion unless borrowing occurs.
-        require(proportion <= MAX_MARKET_PROPORTION); // TODO: probably not applicable to Pendle
+        require(proportion <= MAX_MARKET_PROPORTION);
 
         int256 lnProportion = _logProportion(proportion);
 
