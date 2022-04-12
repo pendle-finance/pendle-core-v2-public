@@ -24,8 +24,8 @@
 pragma solidity 0.8.9;
 import "../../interfaces/IJoeRouter01.sol";
 import "../../libraries/JoeLibrary.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;

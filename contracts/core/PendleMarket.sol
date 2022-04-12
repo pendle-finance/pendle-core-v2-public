@@ -13,8 +13,8 @@ import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/FixedPoint.sol";
 import "../libraries/math/MarketMathLib.sol";
 
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
-import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // solhint-disable reason-string
 contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {

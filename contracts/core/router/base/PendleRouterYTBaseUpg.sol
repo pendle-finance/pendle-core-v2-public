@@ -7,7 +7,7 @@ import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;

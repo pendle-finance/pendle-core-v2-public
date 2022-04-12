@@ -23,8 +23,8 @@
 
 pragma solidity 0.8.9;
 
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../libraries/helpers/ExpiryUtilsLib.sol";
 import "./misc/BoringOwnable.sol";
 import "../interfaces/IPYieldContractFactory.sol";
