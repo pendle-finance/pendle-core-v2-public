@@ -12,10 +12,6 @@ abstract contract PendleBaseToken is ERC20, IPBaseToken {
     uint256 public immutable expiry;
     address public immutable factory;
 
-    event Burn(address indexed user, uint256 amount);
-
-    event Mint(address indexed user, uint256 amount);
-
     constructor(
         string memory _name,
         string memory _symbol,

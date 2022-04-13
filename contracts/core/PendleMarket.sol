@@ -27,9 +27,6 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
-    uint256 private constant MINIMUM_LIQUIDITY = 10**3;
-    uint8 private constant DECIMALS = 18;
-    int256 internal constant RATE_PRECISION = 1e9;
 
     address public immutable OT;
     address public immutable SCY;

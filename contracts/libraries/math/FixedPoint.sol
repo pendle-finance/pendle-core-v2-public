@@ -24,9 +24,6 @@ library FixedPoint {
 
     uint256 internal constant MAX_POW_RELATIVE_ERROR = 10000; // 10^(-14)
 
-    // Minimum base for the power function when the exponent is 'free' (larger than ONE).
-    uint256 internal constant MIN_POW_BASE_FREE_EXPONENT = 0.7e18;
-
     function subMax0(uint256 a, uint256 b) internal pure returns (uint256) {
         return (a >= b ? a - b : 0);
     }
@@ -49,7 +46,7 @@ library FixedPoint {
 
     function mulDown(int256 a, int256 b) internal pure returns (int256) {
         int256 product = a * b;
-        return product / Int(ONE);
+        return product / ONE_INT;
     }
 
     function mulDown(int256 a, uint256 b) internal pure returns (int256) {
@@ -89,7 +86,7 @@ library FixedPoint {
         if (a == 0) {
             return 0;
         } else {
-            int256 aInflated = a * Int(ONE);
+            int256 aInflated = a * ONE_INT;
             return aInflated / b;
         }
     }
@@ -192,12 +189,12 @@ library FixedPoint {
     }
 
     function Int128(int256 x) internal pure returns (int128) {
-        require(0 <= x && x <= type(int128).max);
+        require(x <= type(int128).max);
         return int128(x);
     }
 
     function Uint32(uint256 x) internal pure returns (uint32) {
-        require(0 <= x && x <= type(uint32).max);
+        require(x <= type(uint32).max);
         return uint32(x);
     }
 
