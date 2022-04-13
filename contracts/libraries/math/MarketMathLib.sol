@@ -141,11 +141,14 @@ library MarketMathLib {
         int256 anchorRoot,
         uint256 blockTime
     ) internal pure {
+        require(blockTime < market.expiry, "market expired");
         int256 totalAsset = index.scyToAsset(market.totalScy);
+        uint256 timeToExpiry = market.expiry - blockTime;
+        int256 rateScalar = _getRateScalar(market, timeToExpiry);
         market.lastImpliedRate = _getImpliedRate(
             market.totalOt,
             totalAsset,
-            market.scalarRoot,
+            rateScalar,
             anchorRoot,
             market.expiry - blockTime
         );
@@ -259,7 +262,7 @@ library MarketMathLib {
         int256 otToAccount,
         uint256 blockTime
     ) private pure returns (int256 netScyToAccount, int256 netScyToReserve) {
-        require(blockTime < market.expiry, "MARKET_EXPIRED");
+        require(blockTime < market.expiry, "market expired");
 
         ExecuteTradeSlot memory slot;
         slot.timeToExpiry = market.expiry - blockTime;
