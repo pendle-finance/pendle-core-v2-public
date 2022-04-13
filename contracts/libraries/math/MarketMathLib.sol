@@ -211,19 +211,24 @@ library MarketMathLib {
             scyUsed = scyDesired;
             otUsed = otDesired;
         } else {
-            lpToAccount = FixedPoint.min(
-                (otDesired * market.totalLp) / market.totalOt,
-                (scyDesired * market.totalLp) / market.totalScy
-            );
-            scyUsed = (market.totalScy * lpToAccount) / market.totalLp;
-            otUsed = (market.totalOt * lpToAccount) / market.totalLp;
+            int256 netLpByOt = (otDesired * market.totalLp) / market.totalOt;
+            int256 netLpByScy = (scyDesired * market.totalLp) / market.totalScy;
+            if (netLpByOt < netLpByScy) {
+                lpToAccount = netLpByOt;
+                otUsed = otDesired;
+                scyUsed = (market.totalScy * lpToAccount) / market.totalLp;
+            } else {
+                lpToAccount = netLpByScy;
+                scyUsed = scyDesired;
+                otUsed = (market.totalOt * lpToAccount) / market.totalLp;
+            }
         }
+
+        require(lpToAccount > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
 
         market.totalScy += scyUsed;
         market.totalOt += otUsed;
         market.totalLp += lpToAccount + lpToReserve;
-
-        require(lpToAccount > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
     }
 
     function _removeLiquidity(MarketParameters memory market, int256 lpToRemove)
