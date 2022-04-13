@@ -217,20 +217,26 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         lastScyBalance = IERC20(SCY).balanceOf(address(this));
     }
 
+    function _getImpliedScyBalance(address user, uint256 scyIndex) internal returns (uint256) {
+        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + data[user].dueInterest;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256
     ) internal override {
+        uint256 scyIndex = ISuperComposableYield(SCY).scyIndexCurrent();
         address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, totalSupply());
+        _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
+
         if (from != address(0) && from != address(this)) {
+            _updateUserRewardSkipGlobal(rewardTokens, from, _getImpliedScyBalance(from, scyIndex));
             _updateDueInterest(from);
-            _updateUserRewardSkipGlobal(rewardTokens, from, balanceOf(from));
         }
         if (to != address(0) && to != address(this)) {
+            _updateUserRewardSkipGlobal(rewardTokens, to, _getImpliedScyBalance(to, scyIndex));
             _updateDueInterest(to);
-            _updateUserRewardSkipGlobal(rewardTokens, to, balanceOf(to));
         }
     }
 }
