@@ -231,12 +231,12 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
 
         if (from != address(0) && from != address(this)) {
-            _updateUserRewardSkipGlobal(rewardTokens, from, _getImpliedScyBalance(from, scyIndex));
             _updateDueInterest(from);
+            _updateUserRewardSkipGlobal(rewardTokens, from, _getImpliedScyBalance(from, scyIndex));
         }
         if (to != address(0) && to != address(this)) {
-            _updateUserRewardSkipGlobal(rewardTokens, to, _getImpliedScyBalance(to, scyIndex));
             _updateDueInterest(to);
+            _updateUserRewardSkipGlobal(rewardTokens, to, _getImpliedScyBalance(to, scyIndex));
         }
     }
 }
