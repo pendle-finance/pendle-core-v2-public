@@ -34,7 +34,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
     int256 public immutable scalarRoot;
     uint256 public immutable feeRateRoot; // allow fee to be changable?
-    int256 public immutable anchorRoot;
+    int256 public immutable initialAnchor;
 
     uint256 public immutable rateOracleTimeWindow;
     int8 public immutable reserveFeePercent;
@@ -46,7 +46,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         uint256 _rateOracleTimeWindow,
         uint256 _feeRateRoot,
         int256 _scalarRoot,
-        int256 _anchorRoot,
+        int256 _initialAnchor,
         uint8 _reserveFeePercent
     ) PendleBaseToken(NAME, SYMBOL, 18, IPOwnershipToken(_OT).expiry()) {
         OT = _OT;
@@ -58,7 +58,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         require(_reserveFeePercent <= 100, "invalid fee rate");
         reserveFeePercent = int8(_reserveFeePercent);
-        anchorRoot = _anchorRoot;
+        initialAnchor = _initialAnchor;
     }
 
     function addLiquidity(
@@ -87,7 +87,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(index, anchorRoot, block.timestamp);
+            market.setInitialImpliedRate(index, initialAnchor, block.timestamp);
             _mint(address(1), lpToReserve);
         }
 

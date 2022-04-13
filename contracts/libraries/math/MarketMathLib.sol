@@ -138,7 +138,7 @@ library MarketMathLib {
     function setInitialImpliedRate(
         MarketParameters memory market,
         SCYIndex index,
-        int256 anchorRoot,
+        int256 initialAnchor,
         uint256 blockTime
     ) internal pure {
         require(blockTime < market.expiry, "market expired");
@@ -149,7 +149,7 @@ library MarketMathLib {
             market.totalOt,
             totalAsset,
             rateScalar,
-            anchorRoot,
+            initialAnchor,
             market.expiry - blockTime
         );
     }

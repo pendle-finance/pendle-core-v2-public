@@ -24,7 +24,7 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
         address OT,
         uint256 feeRateRoot,
         int256 scalarRoot,
-        int256 anchorRoot,
+        int256 initialAnchor,
         uint8 reserveFeePercent,
         uint256 rateOracleTimeWindow
     ) external returns (address market) {
@@ -42,7 +42,7 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
                 rateOracleTimeWindow,
                 feeRateRoot,
                 scalarRoot,
-                anchorRoot,
+                initialAnchor,
                 reserveFeePercent
             )
         );
