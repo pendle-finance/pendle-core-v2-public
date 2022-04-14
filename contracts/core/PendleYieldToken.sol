@@ -99,7 +99,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         if (user != msg.sender) require(receiver == user, "invalid receiver");
         else require(receiver != address(0), "zero address");
 
-        _updateUserReward(user, balanceOf(user), totalSupply());
+        updateUserReward(user);
         rewardsOut = _doTransferOutRewardsForUser(user, receiver);
     }
 
@@ -109,7 +109,10 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function updateUserReward(address user) public virtual {
-        _updateUserReward(user, balanceOf(user), totalSupply());
+        uint256 scyIndex = data[user].lastScyIndex;
+        uint256 impliedScyBalance = _getImpliedScyBalance(user, scyIndex);
+        uint256 totalScy = IERC20(SCY).balanceOf(address(this));
+        _updateUserReward(user, impliedScyBalance, totalScy);
     }
 
     function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
