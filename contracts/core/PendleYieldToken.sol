@@ -106,7 +106,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
 
     function updateGlobalReward() public virtual {
         address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, totalSupply());
+        _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
     }
 
     function updateUserReward(address user) public virtual {
