@@ -7,6 +7,7 @@ import "../misc/BoringOwnableUpg.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../../interfaces/IPRouterCore.sol";
 import "../../interfaces/IPRouterYT.sol";
+import "../../interfaces/IPRouterStatic.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
@@ -14,10 +15,12 @@ import "../../interfaces/IPRouterYT.sol";
 contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg {
     address public immutable PENDLE_ROUTER_CORE;
     address public immutable PENDLE_ROUTER_YT;
+    address public immutable PENDLE_ROUTER_STATIC;
 
-    constructor(address _PENDLE_ROUTER_CORE, address _PENDLE_ROUTER_YT) {
+    constructor(address _PENDLE_ROUTER_CORE, address _PENDLE_ROUTER_YT, address _PENDLE_ROUTER_STATIC) {
         PENDLE_ROUTER_CORE = _PENDLE_ROUTER_CORE;
         PENDLE_ROUTER_YT = _PENDLE_ROUTER_YT;
+        PENDLE_ROUTER_STATIC = _PENDLE_ROUTER_STATIC;
     }
 
     function initialize() external initializer {
@@ -52,6 +55,17 @@ contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnab
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             // only ROUTER_YT is doing callback
             return PENDLE_ROUTER_YT;
+        }
+        /// FROM HERE ONWARDS, ONLY HAVE STATIC & VIEW FUNCTIONS
+        else if (
+            sig == IPRouterStatic.addLiquidityStatic.selector ||
+            sig == IPRouterStatic.removeLiquidityStatic.selector ||
+            sig == IPRouterStatic.swapOtForScyStatic.selector ||
+            sig == IPRouterStatic.swapScyForOtStatic.selector ||
+            sig == IPRouterStatic.scyIndex.selector ||
+            sig == IPRouterStatic.getOtImpliedYield.selector
+        ) {
+            return PENDLE_ROUTER_STATIC;
         }
         require(false, "invalid market sig");
     }
