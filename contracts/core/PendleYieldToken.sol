@@ -78,6 +78,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function redeemDueInterest(address user) public returns (uint256 interestOut) {
+        updateUserReward(user);
         _updateDueInterest(user);
 
         uint256 interestPreFee = data[user].dueInterest;
