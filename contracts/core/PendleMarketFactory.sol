@@ -46,7 +46,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
                 reserveFeePercent
             )
         );
-        otMarkets[address(OT)].add(market);
+        otMarkets[OT].add(market);
     }
 
     function setTreasury(address newTreasury) external onlyGovernance {
