@@ -12,6 +12,15 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../SuperComposableYield/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
 
+/*
+With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should 
+be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
+
+Due to this, it is required to update users' accruedReward STRICTLY BEFORE their dueInterest & YT is changed, 
+which includes:
+- YT transfers
+- RedeemDueInterest 
+*/
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using FixedPoint for uint256;
     using SafeERC20 for IERC20;
@@ -81,6 +90,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         public
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
+        // redeemDueRewards before redeemDueInterest
         rewardsOut = _redeemDueRewards(user, rewardReceiver);
         interestOut = _redeemDueInterest(user);
     }
@@ -159,10 +169,19 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         res = ISuperComposableYield(SCY).scyIndexCurrent();
         lastScyIndexBeforeExpiry = res;
     }
-
+    /**
+     * @dev: In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should 
+     * be claimed before withdrawing to treasury.
+     *
+     * And since the reward distribution (which based on users' dueInterest) stopped at the scyIndexBeforeExpiry, it is not
+     * necessary to updateDueInterest along with reward here.
+     */
     function withdrawFeeToTreasury() public {
         address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, 0);
+        if (isExpired()) {
+            _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this))); // as refered to the doc above
+        }
+
         uint256 length = rewardTokens.length;
         address treasury = IPYieldContractFactory(factory).treasury();
 
