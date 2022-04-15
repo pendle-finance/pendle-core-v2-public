@@ -77,8 +77,15 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _afterTransferOutSCY();
     }
 
-    function redeemDueInterest(address user) public returns (uint256 interestOut) {
-        updateUserReward(user);
+    function redeemDueIncome(address user, address rewardReceiver)
+        public
+        returns (uint256 interestOut, uint256[] memory rewardsOut)
+    {
+        rewardsOut = _redeemDueRewards(user, rewardReceiver);
+        interestOut = _redeemDueInterest(user);
+    }
+
+    function _redeemDueInterest(address user) internal returns (uint256 interestOut) {
         _updateDueInterest(user);
 
         uint256 interestPreFee = data[user].dueInterest;
@@ -93,27 +100,18 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _afterTransferOutSCY();
     }
 
-    function redeemDueRewards(address user, address receiver)
-        public
+    function _redeemDueRewards(address user, address receiver)
+        internal
+        virtual
         returns (uint256[] memory rewardsOut)
     {
         if (user != msg.sender) require(receiver == user, "invalid receiver");
         else require(receiver != address(0), "zero address");
 
-        updateUserReward(user);
-        rewardsOut = _doTransferOutRewardsForUser(user, receiver);
-    }
-
-    function updateGlobalReward() public virtual {
-        address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
-    }
-
-    function updateUserReward(address user) public virtual {
-        uint256 scyIndex = data[user].lastScyIndex;
-        uint256 impliedScyBalance = _getImpliedScyBalance(user, scyIndex);
+        uint256 impliedScyBalance = getImpliedScyBalance(user);
         uint256 totalScy = IERC20(SCY).balanceOf(address(this));
         _updateUserReward(user, impliedScyBalance, totalScy);
+        rewardsOut = _doTransferOutRewardsForUser(user, receiver);
     }
 
     function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
@@ -163,7 +161,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function withdrawFeeToTreasury() public {
-        address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, 0);
         uint256 length = rewardTokens.length;
         address treasury = IPYieldContractFactory(factory).treasury();
 
@@ -221,7 +220,9 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         lastScyBalance = IERC20(SCY).balanceOf(address(this));
     }
 
-    function _getImpliedScyBalance(address user, uint256 scyIndex) internal returns (uint256) {
+    function getImpliedScyBalance(address user) public view returns (uint256) {
+        uint256 scyIndex = data[user].lastScyIndex;
+        if (scyIndex == 0) return 0;
         return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + data[user].dueInterest;
     }
 
@@ -230,17 +231,16 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         address to,
         uint256
     ) internal override {
-        uint256 scyIndex = ISuperComposableYield(SCY).scyIndexCurrent();
         address[] memory rewardTokens = getRewardTokens();
         _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
 
         if (from != address(0) && from != address(this)) {
             _updateDueInterest(from);
-            _updateUserRewardSkipGlobal(rewardTokens, from, _getImpliedScyBalance(from, scyIndex));
+            _updateUserRewardSkipGlobal(rewardTokens, from, getImpliedScyBalance(from));
         }
         if (to != address(0) && to != address(this)) {
             _updateDueInterest(to);
-            _updateUserRewardSkipGlobal(rewardTokens, to, _getImpliedScyBalance(to, scyIndex));
+            _updateUserRewardSkipGlobal(rewardTokens, to, getImpliedScyBalance(to));
         }
     }
 }
