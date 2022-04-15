@@ -12,7 +12,7 @@
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-pragma solidity 0.8.9;
+pragma solidity ^0.8.0;
 
 /* solhint-disable */
 
@@ -53,8 +53,6 @@ library LogExpMath {
     int256 constant LN_36_LOWER_BOUND = ONE_18 - 1e17;
     int256 constant LN_36_UPPER_BOUND = ONE_18 + 1e17;
 
-    uint256 constant MILD_EXPONENT_BOUND = 2**254 / uint256(ONE_20);
-
     // 18 decimal constants
     int256 constant x0 = 128000000000000000000; // 2ˆ7
     int256 constant a0 = 38877084059945950922200000000000000000000000000000000000; // eˆ(x0) (no decimals)
@@ -82,64 +80,6 @@ library LogExpMath {
     int256 constant a10 = 113314845306682631683; // eˆ(x10)
     int256 constant x11 = 6250000000000000000; // 2ˆ-4
     int256 constant a11 = 106449445891785942956; // eˆ(x11)
-
-    /**
-     * @dev Exponentiation (x^y) with unsigned 18 decimal fixed point base and exponent.
-     *
-     * Reverts if ln(x) * y is smaller than `MIN_NATURAL_EXPONENT`, or larger than `MAX_NATURAL_EXPONENT`.
-     */
-    function pow(uint256 x, uint256 y) internal pure returns (uint256) {
-        unchecked {
-            if (y == 0) {
-                // We solve the 0^0 indetermination by making it equal one.
-                return uint256(ONE_18);
-            }
-
-            if (x == 0) {
-                return 0;
-            }
-
-            // Instead of computing x^y directly, we instead rely on the properties of logarithms and exponentiation to
-            // arrive at that result. In particular, exp(ln(x)) = x, and ln(x^y) = y * ln(x). This means
-            // x^y = exp(y * ln(x)).
-
-            // The ln function takes a signed value, so we need to make sure x fits in the signed 256 bit range.
-            require(x < 2**255, "X out of bounds");
-            int256 x_int256 = int256(x);
-
-            // We will compute y * ln(x) in a single step. Depending on the value of x, we can either use ln or ln_36. In
-            // both cases, we leave the division by ONE_18 (due to fixed point multiplication) to the end.
-
-            // This prevents y * ln(x) from overflowing, and at the same time guarantees y fits in the signed 256 bit range.
-            require(y < MILD_EXPONENT_BOUND, "Y out of bounds");
-            int256 y_int256 = int256(y);
-
-            int256 logx_times_y;
-            if (LN_36_LOWER_BOUND < x_int256 && x_int256 < LN_36_UPPER_BOUND) {
-                int256 ln_36_x = _ln_36(x_int256);
-
-                // ln_36_x has 36 decimal places, so multiplying by y_int256 isn't as straightforward, since we can't just
-                // bring y_int256 to 36 decimal places, as it might overflow. Instead, we perform two 18 decimal
-                // multiplications and add the results: one with the first 18 decimals of ln_36_x, and one with the
-                // (downscaled) last 18 decimals.
-                logx_times_y = ((ln_36_x / ONE_18) *
-                    y_int256 +
-                    ((ln_36_x % ONE_18) * y_int256) /
-                    ONE_18);
-            } else {
-                logx_times_y = _ln(x_int256) * y_int256;
-            }
-            logx_times_y /= ONE_18;
-
-            // Finally, we compute exp(y * ln(x)) to arrive at x^y
-            require(
-                MIN_NATURAL_EXPONENT <= logx_times_y && logx_times_y <= MAX_NATURAL_EXPONENT,
-                "Product out of bounds"
-            );
-
-            return uint256(exp(logx_times_y));
-        }
-    }
 
     /**
      * @dev Natural exponentiation (e^x) with signed 18 decimal fixed point exponent.
@@ -282,35 +222,6 @@ library LogExpMath {
             // and then drop two digits to return an 18 decimal value.
 
             return (((product * seriesSum) / ONE_20) * firstAN) / 100;
-        }
-    }
-
-    /**
-     * @dev Logarithm (log(arg, base), with signed 18 decimal fixed point base and argument.
-     */
-    function log(int256 arg, int256 base) internal pure returns (int256) {
-        unchecked {
-            // This performs a simple base change: log(arg, base) = ln(arg) / ln(base).
-
-            // Both logBase and logArg are computed as 36 decimal fixed point numbers, either by using ln_36, or by
-            // upscaling.
-
-            int256 logBase;
-            if (LN_36_LOWER_BOUND < base && base < LN_36_UPPER_BOUND) {
-                logBase = _ln_36(base);
-            } else {
-                logBase = _ln(base) * ONE_18;
-            }
-
-            int256 logArg;
-            if (LN_36_LOWER_BOUND < arg && arg < LN_36_UPPER_BOUND) {
-                logArg = _ln_36(arg);
-            } else {
-                logArg = _ln(arg) * ONE_18;
-            }
-
-            // When dividing, we multiply by ONE_18 to arrive at a result with 18 decimal places
-            return (logArg * ONE_18) / logBase;
         }
     }
 
