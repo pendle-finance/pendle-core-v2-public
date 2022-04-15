@@ -23,6 +23,6 @@
 
 pragma solidity 0.8.9;
 
-interface IPermissionsV2 {
+interface IPermissionsV2Upg {
     function governanceManager() external view returns (address);
 }

@@ -2,9 +2,9 @@
 pragma solidity 0.8.9;
 
 import "../interfaces/IPGovernanceManager.sol";
-import "../interfaces/IPPermissionsV2.sol";
+import "../interfaces/IPPermissionsV2Upg.sol";
 
-abstract contract PermissionsV2 is IPermissionsV2 {
+abstract contract PermissionsV2Upg is IPermissionsV2Upg {
     address public immutable governanceManager;
 
     modifier onlyGovernance() {

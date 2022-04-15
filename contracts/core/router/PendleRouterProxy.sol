@@ -3,21 +3,26 @@ pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../misc/BoringOwnableUpg.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../../interfaces/IPRouterCore.sol";
 import "../../interfaces/IPRouterYT.sol";
 import "../../interfaces/IPRouterStatic.sol";
+import "../../periphery/PermissionsV2Upg.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
 /// corresponding implementation contracts
-contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg {
+contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg {
     address public immutable PENDLE_ROUTER_CORE;
     address public immutable PENDLE_ROUTER_YT;
     address public immutable PENDLE_ROUTER_STATIC;
 
-    constructor(address _PENDLE_ROUTER_CORE, address _PENDLE_ROUTER_YT, address _PENDLE_ROUTER_STATIC) {
+    constructor(
+        address _PENDLE_ROUTER_CORE,
+        address _PENDLE_ROUTER_YT,
+        address _PENDLE_ROUTER_STATIC,
+        address _governanceManager
+    ) PermissionsV2Upg(_governanceManager) initializer {
         PENDLE_ROUTER_CORE = _PENDLE_ROUTER_CORE;
         PENDLE_ROUTER_YT = _PENDLE_ROUTER_YT;
         PENDLE_ROUTER_STATIC = _PENDLE_ROUTER_STATIC;
@@ -25,7 +30,7 @@ contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnab
 
     function initialize() external initializer {
         __UUPSUpgradeable_init();
-        __BoringOwnable_init();
+        // no need to initialize PermissionsV2Upg
     }
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
@@ -74,5 +79,5 @@ contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, BoringOwnab
         return getRouterImplementation(msg.sig);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
 }

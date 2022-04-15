@@ -4,10 +4,10 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
-import "../periphery/PermissionsV2.sol";
+import "../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
 
-contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
+contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     mapping(address => EnumerableSet.AddressSet) internal otMarkets;
@@ -15,7 +15,7 @@ contract PendleMarketFactory is PermissionsV2, IPMarketFactory {
     address public treasury;
 
     constructor(address _governanceManager, address _yieldContractFactory)
-        PermissionsV2(_governanceManager)
+        PermissionsV2Upg(_governanceManager)
     {
         yieldContractFactory = _yieldContractFactory;
     }

@@ -26,13 +26,13 @@ pragma solidity 0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../libraries/helpers/ExpiryUtilsLib.sol";
-import "./misc/BoringOwnable.sol";
+import "../periphery/PermissionsV2Upg.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 
 import "./PendleOwnershipToken.sol";
 import "./PendleYieldToken.sol";
 
-contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
+contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory {
     using ExpiryUtils for string;
 
     string public constant OT_PREFIX = "OT";
@@ -49,8 +49,9 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
     constructor(
         uint256 _expiryDivisor,
         uint256 _interestFeeRate,
-        address _treasury
-    ) BoringOwnable(msg.sender) {
+        address _treasury,
+        address _governanceManager
+    ) PermissionsV2Upg(_governanceManager) {
         expiryDivisor = _expiryDivisor;
         interestFeeRate = _interestFeeRate;
         treasury = _treasury;
@@ -95,15 +96,15 @@ contract PendleYieldContractFactory is BoringOwnable, IPYieldContractFactory {
         getYT[SCY][expiry] = YT;
     }
 
-    function setExpiryDivisor(uint256 newExpiryDivisor) external onlyOwner {
+    function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {
         expiryDivisor = newExpiryDivisor;
     }
 
-    function setInterestFeeRate(uint256 newInterestFeeRate) external onlyOwner {
+    function setInterestFeeRate(uint256 newInterestFeeRate) external onlyGovernance {
         interestFeeRate = newInterestFeeRate;
     }
 
-    function setTreasury(address newTreasury) external onlyOwner {
+    function setTreasury(address newTreasury) external onlyGovernance {
         treasury = newTreasury;
     }
 }
