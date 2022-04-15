@@ -20,134 +20,49 @@ import "./LogExpMath.sol";
 
 library FixedPoint {
     uint256 internal constant ONE = 1e18; // 18 decimal places
-    int256 internal constant ONE_INT = 1e18; // 18 decimal places
+    int256 internal constant IONE = 1e18; // 18 decimal places
 
     uint256 internal constant MAX_POW_RELATIVE_ERROR = 10000; // 10^(-14)
 
     function subMax0(uint256 a, uint256 b) internal pure returns (uint256) {
-        return (a >= b ? a - b : 0);
+        unchecked {
+            return (a >= b ? a - b : 0);
+        }
     }
 
     function subNoNeg(int256 a, int256 b) internal pure returns (int256) {
         require(a >= b, "NEGATIVE");
-        return a - b;
-    }
-
-    function subNoNeg(int256 a, uint256 b) internal pure returns (int256) {
-        int256 _b = Int(b);
-        require(a >= _b, "NEGATIVE");
-        return a - _b;
+        unchecked {
+            return a - b;
+        }
     }
 
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 product = a * b;
-        return product / ONE;
+        unchecked {
+            return product / ONE;
+        }
     }
 
     function mulDown(int256 a, int256 b) internal pure returns (int256) {
         int256 product = a * b;
-        return product / ONE_INT;
-    }
-
-    function mulDown(int256 a, uint256 b) internal pure returns (int256) {
-        return mulDown(a, Int(b));
-    }
-
-    function mulDown(uint256 a, int256 b) internal pure returns (int256) {
-        return mulDown(Int(a), b);
-    }
-
-    function mulUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 product = a * b;
-
-        if (product == 0) {
-            return 0;
-        } else {
-            // The traditional divUp formula is:
-            // divUp(x, y) := (x + y - 1) / y
-            // To avoid intermediate overflow in the addition, we distribute the division and get:
-            // divUp(x, y) := (x - 1) / y + 1
-            // Note that this requires x != 0, which we already tested for.
-
-            return ((product - 1) / ONE) + 1;
+        unchecked {
+            return product / IONE;
         }
     }
 
     function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a == 0) {
-            return 0;
-        } else {
-            uint256 aInflated = a * ONE;
+        uint256 aInflated = a * ONE;
+        unchecked {
             return aInflated / b;
         }
     }
 
     function divDown(int256 a, int256 b) internal pure returns (int256) {
-        if (a == 0) {
-            return 0;
-        } else {
-            int256 aInflated = a * ONE_INT;
+        int256 aInflated = a * IONE;
+        unchecked {
             return aInflated / b;
         }
-    }
-
-    function divDown(uint256 a, int256 b) internal pure returns (int256) {
-        return divDown(Int(a), b);
-    }
-
-    function divDown(int256 a, uint256 b) internal pure returns (int256) {
-        return divDown(a, Int(b));
-    }
-
-    function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a == 0) {
-            return 0;
-        } else {
-            uint256 aInflated = a * ONE;
-            // The traditional divUp formula is:
-            // divUp(x, y) := (x + y - 1) / y
-            // To avoid intermediate overflow in the addition, we distribute the division and get:
-            // divUp(x, y) := (x - 1) / y + 1
-            // Note that this requires x != 0, which we already tested for.
-
-            return ((aInflated - 1) / b) + 1;
-        }
-    }
-
-    /**
-     * @dev Returns x^y, assuming both are fixed point numbers, rounding down. The result is guaranteed to not be above
-     * the true value (that is, the error function expected - actual is always positive).
-     */
-    function powDown(uint256 x, uint256 y) internal pure returns (uint256) {
-        uint256 raw = LogExpMath.pow(x, y);
-        uint256 maxError = mulUp(raw, MAX_POW_RELATIVE_ERROR) + 1;
-
-        if (raw < maxError) {
-            return 0;
-        } else {
-            return raw - maxError;
-        }
-    }
-
-    /**
-     * @dev Returns x^y, assuming both are fixed point numbers, rounding up. The result is guaranteed to not be below
-     * the true value (that is, the error function expected - actual is always negative).
-     */
-    function powUp(uint256 x, uint256 y) internal pure returns (uint256) {
-        uint256 raw = LogExpMath.pow(x, y);
-        uint256 maxError = mulUp(raw, MAX_POW_RELATIVE_ERROR) + 1;
-
-        return raw + maxError;
-    }
-
-    /**
-     * @dev Returns the complement of a value (1 - x), capped to 0 if x is larger than 1.
-     *
-     * Useful when computing the complement for values with some level of relative error, as it strips this error and
-     * prevents intermediate negative values.
-     */
-    function complement(uint256 x) internal pure returns (uint256) {
-        return (x < ONE) ? (ONE - x) : 0;
     }
 
     function abs(int256 x) internal pure returns (uint256) {
@@ -184,22 +99,22 @@ library FixedPoint {
     }
 
     function Int(uint256 x) internal pure returns (int256) {
-        require(x <= uint256(type(int256).max));
+        require(x < (1 << 255)); // signed, lim = bit-1
         return int256(x);
     }
 
     function Int128(int256 x) internal pure returns (int128) {
-        require(x <= type(int128).max);
+        require(x < (1 << 127)); // signed, lim = bit-1
         return int128(x);
     }
 
     function Uint32(uint256 x) internal pure returns (uint32) {
-        require(x <= type(uint32).max);
+        require(x < (1 << 32)); // unsigned, lim = bit
         return uint32(x);
     }
 
     function Uint112(uint256 x) internal pure returns (uint112) {
-        require(0 <= x && x <= type(uint112).max);
+        require(x < (1 << 112)); // unsigned, lim = bit
         return uint112(x);
     }
 }

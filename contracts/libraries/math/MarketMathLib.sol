@@ -404,7 +404,7 @@ library MarketMathLib {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
             // It's possible that the fee pushes exchange rates into negative territory. This is not possible
             // when swapping OT to SCY. If this happens then the trade has failed.
-            require(postFeeExchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
+            require(postFeeExchangeRate >= FixedPoint.IONE, "exchange rate below 1");
 
             // assetToAccount = -(otToAccount / exchangeRate)
             // postFeeExchangeRate = preFeeExchangeRate / feeExchangeRate
@@ -417,7 +417,7 @@ library MarketMathLib {
             // netFee = -(preFeeAssetToAccount) * (feeExchangeRate - 1)
             // netFee = preFeeAssetToAccount * (1 - feeExchangeRate)
             // RATE_PRECISION - fee will be negative here, preFeeAssetToAccount < 0, fee > 0
-            fee = preFeeAssetToAccount.mulDown(FixedPoint.ONE_INT - fee);
+            fee = preFeeAssetToAccount.mulDown(FixedPoint.IONE - fee);
         } else {
             // swapping OT for SCY
 
@@ -432,7 +432,7 @@ library MarketMathLib {
             // NOTE: preFeeAssetToAccount is negative in this branch so we negate it to ensure that fee is a positive number
             // preFee * (1 - fee) / fee will be negative, use neg() to flip to positive
             // RATE_PRECISION - fee will be negative
-            fee = ((preFeeAssetToAccount * (FixedPoint.ONE_INT - fee)) / fee).neg();
+            fee = ((preFeeAssetToAccount * (FixedPoint.IONE - fee)) / fee).neg();
         }
 
         netAssetToReserve = (fee * reserveFeePercent) / PERCENTAGE_DECIMALS;
@@ -486,7 +486,7 @@ library MarketMathLib {
         // This is the exchange rate at the new time to expiry
         int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
 
-        require(newExchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
+        require(newExchangeRate >= FixedPoint.IONE, "exchange rate below 1");
 
         {
             // totalOt / (totalOt + totalAsset)
@@ -508,7 +508,7 @@ library MarketMathLib {
         int256 rateAnchor,
         uint256 timeToExpiry
     ) private pure returns (uint256 impliedRate) {
-        // This will check for exchange rates < FixedPoint.ONE_INT
+        // This will check for exchange rates < FixedPoint.IONE
         int256 exchangeRate = _getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
@@ -543,7 +543,7 @@ library MarketMathLib {
     ) private pure returns (int256 exchangeRate) {
         int256 numerator = totalOt.subNoNeg(otToAccount);
 
-        // This is the proportion scaled by FixedPoint.ONE_INT
+        // This is the proportion scaled by FixedPoint.IONE
         // (totalOt + otToMarket) / (totalOt + totalAsset)
         int256 proportion = (numerator.divDown(totalOt + totalAsset));
 
@@ -561,15 +561,15 @@ library MarketMathLib {
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
 
         // Do not succeed if interest rates fall below 1
-        require(exchangeRate >= FixedPoint.ONE_INT, "exchange rate below 1");
+        require(exchangeRate >= FixedPoint.IONE, "exchange rate below 1");
     }
 
     function _logProportion(int256 proportion) private pure returns (int256 res) {
         // This will result in divide by zero, short circuit
-        require(proportion != FixedPoint.ONE_INT, "proportion must not be one");
+        require(proportion != FixedPoint.IONE, "proportion must not be one");
 
         // Convert proportion to what is used inside the logit function (p / (1-p))
-        int256 logitP = proportion.divDown(FixedPoint.ONE_INT - proportion);
+        int256 logitP = proportion.divDown(FixedPoint.IONE - proportion);
 
         res = logitP.ln();
     }
