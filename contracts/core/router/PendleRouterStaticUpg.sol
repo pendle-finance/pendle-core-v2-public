@@ -2,9 +2,12 @@
 pragma solidity 0.8.9;
 
 import "../../interfaces/IPRouterStatic.sol";
+import "../../interfaces/IPMarket.sol";
+import "../../libraries/math/MarketMathUint.sol";
 
 contract PendleRouterStaticUpg is IPRouterStatic {
-    using MarketMathLib for MarketParameters;
+    using MarketMathCore for MarketAllParams;
+    using MarketMathUint for MarketAllParams;
     using FixedPoint for uint256;
     using FixedPoint for int256;
     using LogExpMath for int256;
@@ -28,7 +31,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
             uint256 otUsed
         )
     {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             scyIndex(market),
             scyDesired,
@@ -41,7 +44,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         view
         returns (uint256 netScyOut, uint256 netOtOut)
     {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
     }
 
@@ -49,7 +52,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         external
         returns (uint256 netScyOut, uint256 netScyFee)
     {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (netScyOut, netScyFee) = state.swapExactOtForScy(
             scyIndex(market),
             exactOtIn,
@@ -61,7 +64,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         external
         returns (uint256 netScyIn, uint256 netScyFee)
     {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (netScyIn, netScyFee) = state.swapScyForExactOt(
             scyIndex(market),
             exactOtOut,
@@ -74,7 +77,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
     }
 
     function getOtImpliedYield(address market) external view returns (int256) {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
 
         int256 lnImpliedRate = (state.lastImpliedRate).Int();
         return lnImpliedRate.exp();

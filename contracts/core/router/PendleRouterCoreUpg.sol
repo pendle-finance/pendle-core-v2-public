@@ -6,13 +6,15 @@ import "./base/PendleRouterOTBaseUpg.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPRouterCore.sol";
+import "../../libraries/math/MarketMathUint.sol";
 
 contract PendleRouterCoreUpg is
     IPRouterCore,
     PendleRouterSCYAndForgeBaseUpg,
     PendleRouterOTBaseUpg
 {
-    using MarketMathLib for MarketParameters;
+    using MarketMathCore for MarketAllParams;
+    using MarketMathUint for MarketAllParams;
     using FixedPoint for uint256;
     using FixedPoint for int256;
 
@@ -72,19 +74,23 @@ contract PendleRouterCoreUpg is
     function swapOtForExactScy(
         address receiver,
         address market,
-        uint256 maxOtIn,
         uint256 exactScyOut,
-        uint256 netOtInGuessMin,
-        uint256 netOtInGuessMax
+        uint256 otInGuessMin,
+        uint256 otInGuessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256) {
         return
             _swapOtForExactScy(
                 receiver,
                 market,
-                maxOtIn,
                 exactScyOut,
-                netOtInGuessMin,
-                netOtInGuessMax,
+                ApproxParams({
+                    guessMin: otInGuessMin,
+                    guessMax: otInGuessMax,
+                    eps: eps,
+                    maxIteration: maxIteration
+                }),
                 true
             );
     }
@@ -104,18 +110,22 @@ contract PendleRouterCoreUpg is
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
+        uint256 otOutguessMin,
+        uint256 otOutguessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256) {
         return
             _swapExactScyForOt(
                 receiver,
                 market,
                 exactScyIn,
-                minOtOut,
-                netOtOutGuessMin,
-                netOtOutGuessMax,
+                ApproxParams({
+                    guessMin: otOutguessMin,
+                    guessMax: otOutguessMax,
+                    eps: eps,
+                    maxIteration: maxIteration
+                }),
                 true
             );
     }
@@ -177,9 +187,10 @@ contract PendleRouterCoreUpg is
         address receiver,
         address[] calldata path,
         address market,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
+        uint256 otOutguessMin,
+        uint256 otOutguessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256 netOtOut) {
         address SCY = IPMarket(market).SCY();
         uint256 netScyUseToBuyOt = _mintScyFromRawToken(
@@ -194,9 +205,12 @@ contract PendleRouterCoreUpg is
             receiver,
             market,
             netScyUseToBuyOt,
-            minOtOut,
-            netOtOutGuessMin,
-            netOtOutGuessMax,
+            ApproxParams({
+                guessMin: otOutguessMin,
+                guessMax: otOutguessMax,
+                eps: eps,
+                maxIteration: maxIteration
+            }),
             false
         );
     }

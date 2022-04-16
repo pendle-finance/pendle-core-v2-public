@@ -6,13 +6,15 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
+import "../../../libraries/math/MarketMathUint.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterOTBaseUpg {
     using FixedPoint for uint256;
     using FixedPoint for int256;
-    using MarketMathLib for MarketParameters;
-    using MarketApproxLib for MarketParameters;
+    using MarketMathCore for MarketAllParams;
+    using MarketMathUint for MarketAllParams;
+    using MarketApproxLib for MarketAllParams;
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
@@ -46,7 +48,7 @@ abstract contract PendleRouterOTBaseUpg {
     {
         (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             SCYIndexLib.newIndex(SCY),
             scyDesired,
@@ -79,7 +81,7 @@ abstract contract PendleRouterOTBaseUpg {
         uint256 otOutMin,
         bool doPull
     ) internal returns (uint256 netScyOut, uint256 netOtOut) {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
 
         (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
         require(netScyOut >= scyOutMin, "insufficient scy out");
@@ -125,24 +127,19 @@ abstract contract PendleRouterOTBaseUpg {
     function _swapOtForExactScy(
         address receiver,
         address market,
-        uint256 maxOtIn,
         uint256 exactScyOut,
-        uint256 netOtInGuessMin,
-        uint256 netOtInGuessMax,
+        ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netOtIn) {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
-        netOtIn = state.approxSwapOtForExactScy(
+        (netOtIn, ) = state.approxSwapOtForExactScy(
             SCYIndexLib.newIndex(SCY),
             exactScyOut,
             block.timestamp,
-            netOtInGuessMin,
-            netOtInGuessMax
+            approx
         );
-
-        require(netOtIn <= maxOtIn, "ot in exceed limit");
 
         if (doPull) {
             IERC20(OT).safeTransferFrom(msg.sender, market, netOtIn);
@@ -166,7 +163,7 @@ abstract contract PendleRouterOTBaseUpg {
         uint256 maxScyIn,
         bool doPull
     ) internal returns (uint256 netScyIn) {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         address SCY = IPMarket(market).SCY();
 
         (netScyIn, ) = state.swapScyForExactOt(
@@ -187,27 +184,18 @@ abstract contract PendleRouterOTBaseUpg {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax,
+        ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netOtOut) {
-        MarketParameters memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState();
         address SCY = IPMarket(market).SCY();
 
-        if (netOtOutGuessMax == type(uint256).max) {
-            netOtOutGuessMax = state.totalOt.Uint();
-        }
-
-        netOtOut = state.approxSwapExactScyForOt(
+        (netOtOut, ) = state.approxSwapExactScyForOt(
             SCYIndexLib.newIndex(SCY),
             exactScyIn,
             block.timestamp,
-            netOtOutGuessMin,
-            netOtOutGuessMax
+            approx
         );
-
-        require(netOtOut >= minOtOut, "insufficient out");
 
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);

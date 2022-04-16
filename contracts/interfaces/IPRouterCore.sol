@@ -11,9 +11,9 @@ interface IPRouterCore {
     )
         external
         returns (
-            uint256 netLpOut,
-            uint256 scyUsed,
-            uint256 otUsed
+            uint256,
+            uint256,
+            uint256
         );
 
     function removeLiquidity(
@@ -22,39 +22,41 @@ interface IPRouterCore {
         uint256 lpToRemove,
         uint256 scyOutMin,
         uint256 otOutMin
-    ) external returns (uint256 netScyOut, uint256 netOtOut);
+    ) external returns (uint256, uint256);
 
     function swapExactOtForScy(
         address receiver,
         address market,
         uint256 exactOtIn,
         uint256 minScyOut
-    ) external returns (uint256 netScyOut);
+    ) external returns (uint256);
 
     function swapOtForExactScy(
         address receiver,
         address market,
-        uint256 maxOtIn,
         uint256 exactScyOut,
-        uint256 netOtInGuessMin,
-        uint256 netOtInGuessMax
-    ) external returns (uint256 netOtIn);
+        uint256 otInGuessMin,
+        uint256 otInGuessMax,
+        uint256 maxIteration,
+        uint256 eps
+    ) external returns (uint256);
 
     function swapScyForExactOt(
         address receiver,
         address market,
         uint256 exactOtOut,
         uint256 maxScyIn
-    ) external returns (uint256 netScyIn);
+    ) external returns (uint256);
 
     function swapExactScyForOt(
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
-    ) external returns (uint256 netOtOut);
+        uint256 otOutguessMin,
+        uint256 otOutguessMax,
+        uint256 maxIteration,
+        uint256 eps
+    ) external returns (uint256);
 
     function mintScyFromRawToken(
         uint256 netRawTokenIn,
@@ -62,7 +64,7 @@ interface IPRouterCore {
         uint256 minScyOut,
         address receiver,
         address[] calldata path
-    ) external returns (uint256 netScyOut);
+    ) external returns (uint256);
 
     function redeemScyToRawToken(
         address SCY,
@@ -70,7 +72,7 @@ interface IPRouterCore {
         uint256 minRawTokenOut,
         address receiver,
         address[] memory path
-    ) external returns (uint256 netRawTokenOut);
+    ) external returns (uint256);
 
     function mintYoFromRawToken(
         uint256 netRawTokenIn,
@@ -78,7 +80,7 @@ interface IPRouterCore {
         uint256 minYoOut,
         address receiver,
         address[] calldata path
-    ) external returns (uint256 netYoOut);
+    ) external returns (uint256);
 
     function redeemYoToRawToken(
         address YT,
@@ -86,16 +88,17 @@ interface IPRouterCore {
         uint256 minRawTokenOut,
         address receiver,
         address[] memory path
-    ) external returns (uint256 netRawTokenOut);
+    ) external returns (uint256);
 
     function swapExactRawTokenForOt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
         address market,
-        uint256 minOtOut,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
+        uint256 otOutguessMin,
+        uint256 otOutguessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256 netOtOut);
 
     function swapExactOtForRawToken(

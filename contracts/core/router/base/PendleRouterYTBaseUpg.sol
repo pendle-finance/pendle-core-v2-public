@@ -7,13 +7,15 @@ import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
+import "../../../libraries/math/MarketMathUint.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;
     using FixedPoint for int256;
-    using MarketMathLib for MarketParameters;
-    using MarketApproxLib for MarketParameters;
+    using MarketMathCore for MarketAllParams;
+    using MarketMathUint for MarketAllParams;
+    using MarketApproxLib for MarketAllParams;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
 
@@ -47,35 +49,32 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         uint256 netYtOutGuessMax,
         bool doPull
     ) internal returns (uint256 netYtOut) {
-        {
-            (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-            {
-                MarketParameters memory state = IPMarket(market).readState();
-
-                netYtOut = state.approxSwapExactScyForYt(
-                    SCYIndexLib.newIndex(SCY),
-                    exactScyIn,
-                    block.timestamp,
-                    netYtOutGuessMin,
-                    netYtOutGuessMax
-                );
-                require(netYtOut >= minYtOut, "insufficient out");
-            }
-
-            if (doPull) {
-                SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
-            }
-        }
-
-        {
-            uint256 exactOtIn = netYtOut;
-            IPMarket(market).swapExactOtForScy(
-                receiver,
-                exactOtIn,
-                1,
-                abi.encode(YT_SWAP_TYPE.ExactScyForYt, receiver)
-            );
-        }
+        // {
+        //     (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        //     {
+        //         MarketAllParams memory state = IPMarket(market).readState();
+        //         netYtOut = state.approxSwapExactScyForYt(
+        //             SCYIndexLib.newIndex(SCY),
+        //             exactScyIn,
+        //             block.timestamp,
+        //             netYtOutGuessMin,
+        //             netYtOutGuessMax
+        //         );
+        //         require(netYtOut >= minYtOut, "insufficient out");
+        //     }
+        //     if (doPull) {
+        //         SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
+        //     }
+        // }
+        // {
+        //     uint256 exactOtIn = netYtOut;
+        //     IPMarket(market).swapExactOtForScy(
+        //         receiver,
+        //         exactOtIn,
+        //         1,
+        //         abi.encode(YT_SWAP_TYPE.ExactScyForYt, receiver)
+        //     );
+        // }
     }
 
     /**

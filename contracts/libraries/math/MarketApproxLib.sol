@@ -2,7 +2,15 @@
 pragma solidity 0.8.9;
 
 import "./FixedPoint.sol";
-import "./MarketMathLib.sol";
+import "./MarketMathCore.sol";
+import "./MarketMathCore.sol";
+
+struct ApproxParams {
+    uint256 guessMin;
+    uint256 guessMax;
+    uint256 maxIteration;
+    uint256 eps;
+}
 
 // solhint-disable reason-string, ordering
 library MarketApproxLib {
@@ -10,131 +18,192 @@ library MarketApproxLib {
     using FixedPoint for int256;
     using LogExpMath for int256;
     using SCYIndexLib for SCYIndex;
-    using MarketMathLib for MarketParameters;
+    using MarketMathCore for MarketAllParams;
 
-    struct ApproxSwapExactScyForYtSlot {
-        uint256 low;
-        uint256 high;
-        bool isAcceptableAnswerExisted;
-        uint256 currentYtOutGuess;
-        uint256 otToMarket;
-        uint256 scyReceived;
-        uint256 totalScyToMintYo;
-        uint256 netYoFromScy;
-        bool isResultAcceptable;
+    /// @param params the 4 variables in the struct will be used as follows:
+    /// guessMin & guessMax: the range to search for netOtIn
+    /// eps: this guarantees netScyOut <= minScyOut * (1 + eps)
+    /// maxIteration: the binary search will be done no more than this number of times. Each runs
+    /// takes about 6k or 12k gas (12k gas only when guessMax is extremely big)
+    function approxSwapOtForExactScy(
+        MarketAllParams memory market,
+        SCYIndex index,
+        uint256 minScyOut,
+        uint256 blockTime,
+        ApproxParams memory params
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netOtIn*/
+            uint256 /*netScyOut*/
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(minScyOut > 0, "invalid minScyOut");
+        require(isValidApproxParams(params), "invalid approx params");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        uint256 minAssetOut = index.scyToAsset(minScyOut);
+        uint256 largestGoodSlope;
+
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+
+        if (params.guessMax == type(uint256).max) {
+            params.guessMax = FixedPoint.min(comp.totalAsset, market.totalOt).Uint() - 1;
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        while (params.maxIteration != 0) {
+            unchecked {
+                params.maxIteration--;
+            }
+            uint256 otInGuess = (params.guessMin + params.guessMax) / 2;
+
+            /// ------------------------------------------------------------
+            /// CHECK SLOPE
+            /// ------------------------------------------------------------
+            if (otInGuess > largestGoodSlope) {
+                // it's not guaranteed that the current slop is good
+                // we therefore have to recalculate the slope
+                int256 slope = slopeFactor(
+                    market.totalOt,
+                    comp.rateScalar,
+                    comp.totalAsset,
+                    comp.rateAnchor,
+                    otInGuess.neg()
+                );
+
+                if (slope < 0) {
+                    params.guessMax = otInGuess;
+                    continue;
+                } else {
+                    largestGoodSlope = otInGuess;
+                }
+            }
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, otInGuess.neg());
+            uint256 netAssetOut = _assetToAccount.Uint();
+
+            if (netAssetOut >= minAssetOut) {
+                params.guessMax = otInGuess;
+                /// ------------------------------------------------------------
+                /// CHECK IF ANSWER FOUND
+                /// ------------------------------------------------------------
+                if (netAssetOut <= minAssetOut.mulDown(FixedPoint.ONE + params.eps)) {
+                    return (otInGuess, index.assetToScy(netAssetOut));
+                }
+            } else {
+                params.guessMin = otInGuess + 1;
+            }
+        }
+        revert("approx fail");
     }
 
     function approxSwapExactScyForOt(
-        MarketParameters memory marketImmutable,
+        MarketAllParams memory market,
         SCYIndex index,
-        uint256 exactScyIn,
+        uint256 maxScyIn,
         uint256 blockTime,
-        uint256 netOtOutGuessMin,
-        uint256 netOtOutGuessMax
-    ) internal pure returns (uint256 netOtOut) {
-        require(exactScyIn > 0, "invalid scy in");
-        require(
-            netOtOutGuessMin >= 0 && netOtOutGuessMax >= 0 && netOtOutGuessMin <= netOtOutGuessMax,
-            "invalid guess"
-        );
+        ApproxParams memory params
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netOtOut*/
+            uint256 /*netScyIn*/
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(maxScyIn > 0, "invalid maxScyIn");
+        require(isValidApproxParams(params), "invalid approx params");
 
-        uint256 low = netOtOutGuessMin;
-        uint256 high = netOtOutGuessMax;
-        bool isAcceptableAnswerExisted;
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        uint256 maxAssetIn = index.scyToAsset(maxScyIn);
 
-        while (low != high) {
-            uint256 currentOtOutGuess = (low + high + 1) / 2;
-            MarketParameters memory market = MarketMathLib.deepCloneMarket(marketImmutable);
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
-            (uint256 netScyNeed, ) = market.swapScyForExactOt(index, currentOtOutGuess, blockTime);
-            bool isResultAcceptable = (netScyNeed <= exactScyIn);
-            if (isResultAcceptable) {
-                low = currentOtOutGuess;
-                isAcceptableAnswerExisted = true;
-            } else high = currentOtOutGuess - 1;
+        if (params.guessMax == type(uint256).max) {
+            int256 logitP = (FixedPoint.IONE.mulDown(comp.feeRate) - comp.rateAnchor)
+                .mulDown(comp.rateScalar)
+                .exp();
+            int256 proportion = logitP.divDown(logitP + FixedPoint.IONE);
+            int256 numerator = proportion.mulDown(market.totalOt + comp.totalAsset);
+            int256 maxOtOut = market.totalOt - numerator;
+            // TODO: 999 & 1000 are magic numbers
+            params.guessMax = (maxOtOut.Uint() * 999) / 1000;
         }
 
-        require(isAcceptableAnswerExisted, "guess fail");
-        netOtOut = low;
-    }
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
 
-    function approxSwapOtForExactScy(
-        MarketParameters memory marketImmutable,
-        SCYIndex index,
-        uint256 exactScyOut,
-        uint256 blockTime,
-        uint256 netOtInGuessMin,
-        uint256 netOtInGuessMax
-    ) internal pure returns (uint256 netOtIn) {
-        require(exactScyOut > 0, "invalid scy in");
-        require(
-            netOtInGuessMin >= 0 && netOtInGuessMax >= 0 && netOtInGuessMin <= netOtInGuessMax,
-            "invalid guess"
-        );
+        while (params.maxIteration != 0) {
+            unchecked {
+                params.maxIteration--;
+            }
+            uint256 otOutGuess = (params.guessMin + params.guessMax + 1) / 2;
 
-        uint256 low = netOtInGuessMin;
-        uint256 high = netOtInGuessMax;
-        bool isAcceptableAnswerExisted;
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, otOutGuess.Int());
+            uint256 netAssetIn = _assetToAccount.neg().Uint();
 
-        while (low != high) {
-            uint256 currentOtInGuess = (low + high) / 2;
-            MarketParameters memory market = MarketMathLib.deepCloneMarket(marketImmutable);
-
-            (uint256 netScyToAccount, ) = market.swapExactOtForScy(
-                index,
-                currentOtInGuess,
-                blockTime
-            );
-            bool isResultAcceptable = (netScyToAccount >= exactScyOut);
-            if (isResultAcceptable) {
-                high = currentOtInGuess;
-                isAcceptableAnswerExisted = true;
+            if (netAssetIn <= maxAssetIn) {
+                params.guessMin = otOutGuess;
+                /// ------------------------------------------------------------
+                /// CHECK IF ANSWER FOUND
+                /// ------------------------------------------------------------
+                if (netAssetIn >= maxAssetIn.mulDown(FixedPoint.ONE - params.eps)) {
+                    return (otOutGuess, index.assetToScy(netAssetIn));
+                }
             } else {
-                low = currentOtInGuess + 1;
+                params.guessMax = otOutGuess - 1;
             }
         }
-
-        require(isAcceptableAnswerExisted, "guess fail");
-        netOtIn = high;
+        revert("approx fail");
     }
 
-    function approxSwapExactScyForYt(
-        MarketParameters memory marketImmutable,
-        SCYIndex index,
-        uint256 exactScyIn,
-        uint256 blockTime,
-        uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax
-    ) internal pure returns (uint256 netYtOut) {
-        require(exactScyIn > 0, "invalid scy in");
-        require(netYtOutGuessMin >= 0 && netYtOutGuessMax >= 0, "invalid guess");
+    // otToMarket < totalAsset && totalOt
+    function slopeFactor(
+        int256 totalOt,
+        int256 rateScalar,
+        int256 totalAsset,
+        int256 rateAnchor,
+        int256 otToAccount
+    ) internal pure returns (int256) {
+        int256 otToMarket = -otToAccount;
+        int256 diffAssetOtToMarket = totalAsset - otToMarket;
+        int256 sumOt = otToMarket + totalOt;
 
-        ApproxSwapExactScyForYtSlot memory slot;
+        require(diffAssetOtToMarket > 0 && sumOt > 0, "invalid otToMarket");
 
-        slot.low = netYtOutGuessMin;
-        slot.high = netYtOutGuessMax;
+        int256 part1 = (otToMarket * (totalOt + totalAsset)).divDown(sumOt * diffAssetOtToMarket);
 
-        while (slot.low != slot.high) {
-            slot.currentYtOutGuess = (slot.low + slot.high + 1) / 2;
-            MarketParameters memory market = MarketMathLib.deepCloneMarket(marketImmutable);
+        int256 part2 = sumOt.divDown(diffAssetOtToMarket).ln();
+        int256 part3 = FixedPoint.IONE.divDown(rateScalar);
 
-            slot.otToMarket = slot.currentYtOutGuess;
+        return rateAnchor - (part1 - part2).mulDown(part3);
+    }
 
-            (slot.scyReceived, ) = market.swapExactOtForScy(index, slot.otToMarket, blockTime);
-
-            slot.totalScyToMintYo = slot.scyReceived + exactScyIn;
-
-            slot.netYoFromScy = index.scyToAsset(slot.totalScyToMintYo);
-
-            bool isResultAcceptable = (slot.netYoFromScy >= slot.currentYtOutGuess);
-
-            if (isResultAcceptable) {
-                slot.low = slot.currentYtOutGuess;
-                slot.isAcceptableAnswerExisted = true;
-            } else slot.high = slot.currentYtOutGuess - 1;
-        }
-
-        require(slot.isAcceptableAnswerExisted, "guess fail");
-        netYtOut = slot.low;
+    function isValidApproxParams(ApproxParams memory params) internal pure returns (bool) {
+        return (params.guessMin <= params.guessMax &&
+            params.maxIteration <= 256 &&
+            params.eps <= FixedPoint.ONE);
     }
 }

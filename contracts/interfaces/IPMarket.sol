@@ -2,7 +2,9 @@
 pragma solidity 0.8.9;
 
 import "./IPBaseToken.sol";
-import "../libraries/math/MarketMathLib.sol";
+import "./IPOwnershipToken.sol";
+import "./IPYieldToken.sol";
+import "../libraries/math/MarketMathCore.sol";
 
 interface IPMarket is IPBaseToken {
     function addLiquidity(
@@ -38,7 +40,7 @@ interface IPMarket is IPBaseToken {
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
-    function readState() external view returns (MarketParameters memory market);
+    function readState() external view returns (MarketAllParams memory market);
 
     function OT() external view returns (address);
 
