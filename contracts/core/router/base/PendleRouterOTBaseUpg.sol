@@ -52,7 +52,8 @@ abstract contract PendleRouterOTBaseUpg {
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             SCYIndexLib.newIndex(SCY),
             scyDesired,
-            otDesired
+            otDesired,
+            false
         );
 
         require(netLpOut >= minLpOut, "insufficient lp out");
@@ -83,7 +84,7 @@ abstract contract PendleRouterOTBaseUpg {
     ) internal returns (uint256 netScyOut, uint256 netOtOut) {
         MarketState memory state = IPMarket(market).readState(false);
 
-        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
+        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove, false);
         require(netScyOut >= scyOutMin, "insufficient scy out");
         require(netOtOut >= otOutMin, "insufficient ot out");
 
@@ -169,7 +170,8 @@ abstract contract PendleRouterOTBaseUpg {
         (netScyIn, ) = state.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
             exactOtOut,
-            block.timestamp
+            block.timestamp,
+            false
         );
         require(netScyIn <= maxScyIn, "exceed limit scy in");
 

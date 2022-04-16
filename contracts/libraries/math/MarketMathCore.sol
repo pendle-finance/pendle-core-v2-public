@@ -55,7 +55,8 @@ library MarketMathCore {
         MarketState memory market,
         SCYIndex index,
         int256 scyDesired,
-        int256 otDesired
+        int256 otDesired,
+        bool updateState
     )
         internal
         pure
@@ -98,16 +99,18 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        market.totalScy += scyUsed;
-        market.totalOt += otUsed;
-        market.totalLp += lpToAccount + lpToReserve;
+        if (updateState) {
+            market.totalScy += scyUsed;
+            market.totalOt += otUsed;
+            market.totalLp += lpToAccount + lpToReserve;
+        }
     }
 
-    function removeLiquidityCore(MarketState memory market, int256 lpToRemove)
-        internal
-        pure
-        returns (int256 scyToAccount, int256 netOtToAccount)
-    {
+    function removeLiquidityCore(
+        MarketState memory market,
+        int256 lpToRemove,
+        bool updateState
+    ) internal pure returns (int256 scyToAccount, int256 netOtToAccount) {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
@@ -122,16 +125,19 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        market.totalLp = market.totalLp.subNoNeg(lpToRemove);
-        market.totalOt = market.totalOt.subNoNeg(netOtToAccount);
-        market.totalScy = market.totalScy.subNoNeg(scyToAccount);
+        if (updateState) {
+            market.totalLp = market.totalLp.subNoNeg(lpToRemove);
+            market.totalOt = market.totalOt.subNoNeg(netOtToAccount);
+            market.totalScy = market.totalScy.subNoNeg(scyToAccount);
+        }
     }
 
     function executeTradeCore(
         MarketState memory market,
         SCYIndex index,
         int256 netOtToAccount,
-        uint256 blockTime
+        uint256 blockTime,
+        bool updateState
     ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         /// ------------------------------------------------------------
         /// CHECKS
@@ -156,7 +162,16 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        _setNewMarketStateTrade(market, comp, index, netOtToAccount, netScyToAccount, blockTime);
+        if (updateState) {
+            _setNewMarketStateTrade(
+                market,
+                comp,
+                index,
+                netOtToAccount,
+                netScyToAccount,
+                blockTime
+            );
+        }
     }
 
     function getMarketPreCompute(

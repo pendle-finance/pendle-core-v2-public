@@ -83,7 +83,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         (lpToReserve, lpToAccount, scyUsed, otUsed) = market.addLiquidity(
             index,
             scyDesired,
-            otDesired
+            otDesired,
+            true
         );
 
         // initializing the market
@@ -116,7 +117,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
         MarketState memory market = readState(false);
 
-        (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
+        (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove, true);
 
         IERC20(SCY).safeTransfer(receiver, scyToAccount);
         IERC20(OT).safeTransfer(receiver, otToAccount);
@@ -148,7 +149,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         (netScyOut, netScyToReserve) = market.swapExactOtForScy(
             SCYIndexLib.newIndex(SCY),
             exactOtIn,
-            block.timestamp
+            block.timestamp,
+            true
         );
         require(netScyOut >= minScyOut, "insufficient scy out");
         IERC20(SCY).safeTransfer(receiver, netScyOut);
@@ -176,7 +178,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         (netScyIn, netScyToReserve) = market.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
             exactOtOut,
-            block.timestamp
+            block.timestamp,
+            true
         );
         require(netScyIn <= maxScyIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(receiver, exactOtOut);

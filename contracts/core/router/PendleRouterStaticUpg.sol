@@ -35,7 +35,8 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             scyIndex(market),
             scyDesired,
-            otDesired
+            otDesired,
+            false
         );
     }
 
@@ -45,7 +46,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         returns (uint256 netScyOut, uint256 netOtOut)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
+        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove, false);
     }
 
     function swapOtForScyStatic(address market, uint256 exactOtIn)
@@ -56,7 +57,8 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         (netScyOut, netScyFee) = state.swapExactOtForScy(
             scyIndex(market),
             exactOtIn,
-            block.timestamp
+            block.timestamp,
+            false
         );
     }
 
@@ -68,7 +70,8 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         (netScyIn, netScyFee) = state.swapScyForExactOt(
             scyIndex(market),
             exactOtOut,
-            block.timestamp
+            block.timestamp,
+            false
         );
     }
 
