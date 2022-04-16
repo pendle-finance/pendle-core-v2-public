@@ -31,7 +31,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
             uint256 otUsed
         )
     {
-        MarketAllParams memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState(false);
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             scyIndex(market),
             scyDesired,
@@ -44,7 +44,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         view
         returns (uint256 netScyOut, uint256 netOtOut)
     {
-        MarketAllParams memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState(false);
         (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
     }
 
@@ -52,7 +52,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         external
         returns (uint256 netScyOut, uint256 netScyFee)
     {
-        MarketAllParams memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState(false);
         (netScyOut, netScyFee) = state.swapExactOtForScy(
             scyIndex(market),
             exactOtIn,
@@ -64,7 +64,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
         external
         returns (uint256 netScyIn, uint256 netScyFee)
     {
-        MarketAllParams memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState(false);
         (netScyIn, netScyFee) = state.swapScyForExactOt(
             scyIndex(market),
             exactOtOut,
@@ -77,7 +77,7 @@ contract PendleRouterStaticUpg is IPRouterStatic {
     }
 
     function getOtImpliedYield(address market) external view returns (int256) {
-        MarketAllParams memory state = IPMarket(market).readState();
+        MarketAllParams memory state = IPMarket(market).readState(false);
 
         int256 lnImpliedRate = (state.lastImpliedRate).Int();
         return lnImpliedRate.exp();

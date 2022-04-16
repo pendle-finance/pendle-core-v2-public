@@ -76,7 +76,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
             uint256 otUsed
         )
     {
-        MarketAllParams memory market = readState();
+        MarketAllParams memory market = readState(false);
         SCYIndex index = SCYIndexLib.newIndex(SCY);
 
         uint256 lpToReserve;
@@ -114,7 +114,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         uint256 lpToRemove,
         bytes calldata data
     ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
-        MarketAllParams memory market = readState();
+        MarketAllParams memory market = readState(false);
 
         (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
 
@@ -143,7 +143,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) external nonReentrant returns (uint256 netScyOut, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
-        MarketAllParams memory market = readState();
+        MarketAllParams memory market = readState(false);
 
         (netScyOut, netScyToReserve) = market.swapExactOtForScy(
             SCYIndexLib.newIndex(SCY),
@@ -171,7 +171,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) external nonReentrant returns (uint256 netScyIn, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
-        MarketAllParams memory market = readState();
+        MarketAllParams memory market = readState(false);
 
         (netScyIn, netScyToReserve) = market.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
@@ -200,8 +200,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         );
     }
 
-    /// the only non-view part in this function is the ISuperComposableYield(SCY).scyIndexCurrent()
-    function readState() public view returns (MarketAllParams memory market) {
+    function readState(bool updateRateOracle) public view returns (MarketAllParams memory market) {
         MarketStorage storage store = marketStorage;
         market.totalOt = store.totalOt;
         market.totalScy = store.totalScy;
@@ -217,7 +216,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.lastImpliedRate = store.lastImpliedRate;
         market.lastTradeTime = store.lastTradeTime;
 
-        market.updateNewRateOracle(block.timestamp);
+        if (updateRateOracle) {
+            market.updateNewRateOracle(block.timestamp);
+        }
     }
 
     function _writeState(MarketAllParams memory market) internal {

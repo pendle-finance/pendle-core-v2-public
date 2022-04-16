@@ -52,7 +52,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         // {
         //     (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
         //     {
-        //         MarketAllParams memory state = IPMarket(market).readState();
+        //         MarketAllParams memory state = IPMarket(market).readState(false);
         //         netYtOut = state.approxSwapExactScyForYt(
         //             SCYIndexLib.newIndex(SCY),
         //             exactScyIn,
