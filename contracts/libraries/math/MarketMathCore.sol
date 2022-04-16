@@ -5,7 +5,7 @@ import "./FixedPoint.sol";
 import "./LogExpMath.sol";
 import "../SCYIndex.sol";
 
-struct MarketAllParams {
+struct MarketState {
     int256 totalOt;
     int256 totalScy;
     int256 totalLp;
@@ -52,7 +52,7 @@ library MarketMathCore {
     int256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
 
     function addLiquidityCore(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         int256 scyDesired,
         int256 otDesired
@@ -103,7 +103,7 @@ library MarketMathCore {
         market.totalLp += lpToAccount + lpToReserve;
     }
 
-    function removeLiquidityCore(MarketAllParams memory market, int256 lpToRemove)
+    function removeLiquidityCore(MarketState memory market, int256 lpToRemove)
         internal
         pure
         returns (int256 scyToAccount, int256 netOtToAccount)
@@ -128,7 +128,7 @@ library MarketMathCore {
     }
 
     function executeTradeCore(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         int256 netOtToAccount,
         uint256 blockTime
@@ -160,7 +160,7 @@ library MarketMathCore {
     }
 
     function getMarketPreCompute(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 blockTime
     ) internal pure returns (MarketPreCompute memory res) {
@@ -184,7 +184,7 @@ library MarketMathCore {
     }
 
     function calcTrade(
-        MarketAllParams memory market,
+        MarketState memory market,
         MarketPreCompute memory comp,
         int256 netOtToAccount
     ) internal pure returns (int256 netAssetToAccount, int256 netAssetToReserve) {
@@ -214,7 +214,7 @@ library MarketMathCore {
     }
 
     function _setNewMarketStateTrade(
-        MarketAllParams memory market,
+        MarketState memory market,
         MarketPreCompute memory comp,
         SCYIndex index,
         int256 netOtToAccount,
@@ -336,7 +336,7 @@ library MarketMathCore {
         res = logitP.ln();
     }
 
-    function _getRateScalar(MarketAllParams memory market, uint256 timeToExpiry)
+    function _getRateScalar(MarketState memory market, uint256 timeToExpiry)
         internal
         pure
         returns (int256 rateScalar)
@@ -346,7 +346,7 @@ library MarketMathCore {
     }
 
     function setInitialImpliedRate(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         int256 initialAnchor,
         uint256 blockTime
@@ -375,7 +375,7 @@ library MarketMathCore {
         );
     }
 
-    function updateNewRateOracle(MarketAllParams memory market, uint256 blockTime)
+    function updateNewRateOracle(MarketState memory market, uint256 blockTime)
         internal
         pure
         returns (uint256)

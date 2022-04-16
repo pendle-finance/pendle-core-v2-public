@@ -18,19 +18,19 @@ library MarketApproxLib {
     using FixedPoint for int256;
     using LogExpMath for int256;
     using SCYIndexLib for SCYIndex;
-    using MarketMathCore for MarketAllParams;
+    using MarketMathCore for MarketState;
 
-    /// @param params the 4 variables in the struct will be used as follows:
+    /// @param approx the 4 variables in the struct will be used as follows:
     /// guessMin & guessMax: the range to search for netOtIn
     /// eps: this guarantees netScyOut <= minScyOut * (1 + eps)
     /// maxIteration: the binary search will be done no more than this number of times. Each runs
     /// takes about 6k or 12k gas (12k gas only when guessMax is extremely big)
     function approxSwapOtForExactScy(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 minScyOut,
         uint256 blockTime,
-        ApproxParams memory params
+        ApproxParams memory approx
     )
         internal
         pure
@@ -43,7 +43,7 @@ library MarketApproxLib {
         /// CHECKS
         /// ------------------------------------------------------------
         require(minScyOut > 0, "invalid minScyOut");
-        require(isValidApproxParams(params), "invalid approx params");
+        require(isValidApproxParams(approx), "invalid approx approx");
 
         /// ------------------------------------------------------------
         /// SET UP VAIRBALES
@@ -53,19 +53,19 @@ library MarketApproxLib {
 
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
-        if (params.guessMax == type(uint256).max) {
-            params.guessMax = FixedPoint.min(comp.totalAsset, market.totalOt).Uint() - 1;
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = FixedPoint.min(comp.totalAsset, market.totalOt).Uint() - 1;
         }
 
         /// ------------------------------------------------------------
         /// BINARY SEARCH
         /// ------------------------------------------------------------
 
-        while (params.maxIteration != 0) {
+        while (approx.maxIteration != 0) {
             unchecked {
-                params.maxIteration--;
+                approx.maxIteration--;
             }
-            uint256 otInGuess = (params.guessMin + params.guessMax) / 2;
+            uint256 otInGuess = (approx.guessMin + approx.guessMax) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK SLOPE
@@ -82,7 +82,7 @@ library MarketApproxLib {
                 );
 
                 if (slope < 0) {
-                    params.guessMax = otInGuess;
+                    approx.guessMax = otInGuess;
                     continue;
                 } else {
                     largestGoodSlope = otInGuess;
@@ -96,26 +96,26 @@ library MarketApproxLib {
             uint256 netAssetOut = _assetToAccount.Uint();
 
             if (netAssetOut >= minAssetOut) {
-                params.guessMax = otInGuess;
+                approx.guessMax = otInGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (netAssetOut <= minAssetOut.mulDown(FixedPoint.ONE + params.eps)) {
+                if (netAssetOut <= minAssetOut.mulDown(FixedPoint.ONE + approx.eps)) {
                     return (otInGuess, index.assetToScy(netAssetOut));
                 }
             } else {
-                params.guessMin = otInGuess + 1;
+                approx.guessMin = otInGuess + 1;
             }
         }
         revert("approx fail");
     }
 
     function approxSwapExactScyForOt(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 maxScyIn,
         uint256 blockTime,
-        ApproxParams memory params
+        ApproxParams memory approx
     )
         internal
         pure
@@ -128,7 +128,7 @@ library MarketApproxLib {
         /// CHECKS
         /// ------------------------------------------------------------
         require(maxScyIn > 0, "invalid maxScyIn");
-        require(isValidApproxParams(params), "invalid approx params");
+        require(isValidApproxParams(approx), "invalid approx approx");
 
         /// ------------------------------------------------------------
         /// SET UP VAIRBALES
@@ -137,7 +137,7 @@ library MarketApproxLib {
 
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
-        if (params.guessMax == type(uint256).max) {
+        if (approx.guessMax == type(uint256).max) {
             int256 logitP = (FixedPoint.IONE.mulDown(comp.feeRate) - comp.rateAnchor)
                 .mulDown(comp.rateScalar)
                 .exp();
@@ -145,18 +145,18 @@ library MarketApproxLib {
             int256 numerator = proportion.mulDown(market.totalOt + comp.totalAsset);
             int256 maxOtOut = market.totalOt - numerator;
             // TODO: 999 & 1000 are magic numbers
-            params.guessMax = (maxOtOut.Uint() * 999) / 1000;
+            approx.guessMax = (maxOtOut.Uint() * 999) / 1000;
         }
 
         /// ------------------------------------------------------------
         /// BINARY SEARCH
         /// ------------------------------------------------------------
 
-        while (params.maxIteration != 0) {
+        while (approx.maxIteration != 0) {
             unchecked {
-                params.maxIteration--;
+                approx.maxIteration--;
             }
-            uint256 otOutGuess = (params.guessMin + params.guessMax + 1) / 2;
+            uint256 otOutGuess = (approx.guessMin + approx.guessMax + 1) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK ASSET
@@ -165,15 +165,15 @@ library MarketApproxLib {
             uint256 netAssetIn = _assetToAccount.neg().Uint();
 
             if (netAssetIn <= maxAssetIn) {
-                params.guessMin = otOutGuess;
+                approx.guessMin = otOutGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (netAssetIn >= maxAssetIn.mulDown(FixedPoint.ONE - params.eps)) {
+                if (netAssetIn >= maxAssetIn.mulDown(FixedPoint.ONE - approx.eps)) {
                     return (otOutGuess, index.assetToScy(netAssetIn));
                 }
             } else {
-                params.guessMax = otOutGuess - 1;
+                approx.guessMax = otOutGuess - 1;
             }
         }
         revert("approx fail");
@@ -201,9 +201,9 @@ library MarketApproxLib {
         return rateAnchor - (part1 - part2).mulDown(part3);
     }
 
-    function isValidApproxParams(ApproxParams memory params) internal pure returns (bool) {
-        return (params.guessMin <= params.guessMax &&
-            params.maxIteration <= 256 &&
-            params.eps <= FixedPoint.ONE);
+    function isValidApproxParams(ApproxParams memory approx) internal pure returns (bool) {
+        return (approx.guessMin <= approx.guessMax &&
+            approx.maxIteration <= 256 &&
+            approx.eps <= FixedPoint.ONE);
     }
 }

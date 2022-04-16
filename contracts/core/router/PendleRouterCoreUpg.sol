@@ -6,15 +6,15 @@ import "./base/PendleRouterOTBaseUpg.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPRouterCore.sol";
-import "../../libraries/math/MarketMathUint.sol";
+import "../../libraries/math/MarketMathAux.sol";
 
 contract PendleRouterCoreUpg is
     IPRouterCore,
     PendleRouterSCYAndForgeBaseUpg,
     PendleRouterOTBaseUpg
 {
-    using MarketMathCore for MarketAllParams;
-    using MarketMathUint for MarketAllParams;
+    using MarketMathCore for MarketState;
+    using MarketMathAux for MarketState;
     using FixedPoint for uint256;
     using FixedPoint for int256;
 

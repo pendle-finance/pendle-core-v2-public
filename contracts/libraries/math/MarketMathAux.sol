@@ -7,12 +7,12 @@ import "../SCYIndex.sol";
 import "./MarketMathCore.sol";
 
 // solhint-disable ordering
-library MarketMathUint {
+library MarketMathAux {
     using FixedPoint for uint256;
     using FixedPoint for int256;
 
     function addLiquidity(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 scyDesired,
         uint256 otDesired
@@ -39,7 +39,7 @@ library MarketMathUint {
         otUsed = _otUsed.Uint();
     }
 
-    function removeLiquidity(MarketAllParams memory market, uint256 lpToRemove)
+    function removeLiquidity(MarketState memory market, uint256 lpToRemove)
         internal
         pure
         returns (uint256 scyToAccount, uint256 netOtToAccount)
@@ -54,7 +54,7 @@ library MarketMathUint {
     }
 
     function swapExactOtForScy(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 exactOtToMarket,
         uint256 blockTime
@@ -71,7 +71,7 @@ library MarketMathUint {
     }
 
     function swapScyForExactOt(
-        MarketAllParams memory market,
+        MarketState memory market,
         SCYIndex index,
         uint256 exactOtToAccount,
         uint256 blockTime

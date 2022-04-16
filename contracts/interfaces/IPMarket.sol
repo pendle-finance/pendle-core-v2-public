@@ -40,10 +40,7 @@ interface IPMarket is IPBaseToken {
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
-    function readState(bool updateRateOracle)
-        external
-        view
-        returns (MarketAllParams memory market);
+    function readState(bool updateRateOracle) external view returns (MarketState memory market);
 
     function OT() external view returns (address);
 

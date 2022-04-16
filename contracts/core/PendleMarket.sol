@@ -11,7 +11,7 @@ import "../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/FixedPoint.sol";
-import "../libraries/math/MarketMathUint.sol";
+import "../libraries/math/MarketMathAux.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -22,8 +22,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     using FixedPoint for int256;
     using FixedPoint for uint128;
     using LogExpMath for uint256;
-    using MarketMathUint for MarketAllParams;
-    using MarketMathCore for MarketAllParams;
+    using MarketMathAux for MarketState;
+    using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
 
     string private constant NAME = "Pendle Market";
@@ -76,7 +76,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
             uint256 otUsed
         )
     {
-        MarketAllParams memory market = readState(false);
+        MarketState memory market = readState(false);
         SCYIndex index = SCYIndexLib.newIndex(SCY);
 
         uint256 lpToReserve;
@@ -114,7 +114,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         uint256 lpToRemove,
         bytes calldata data
     ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
-        MarketAllParams memory market = readState(false);
+        MarketState memory market = readState(false);
 
         (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove);
 
@@ -143,7 +143,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) external nonReentrant returns (uint256 netScyOut, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
-        MarketAllParams memory market = readState(false);
+        MarketState memory market = readState(false);
 
         (netScyOut, netScyToReserve) = market.swapExactOtForScy(
             SCYIndexLib.newIndex(SCY),
@@ -171,7 +171,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     ) external nonReentrant returns (uint256 netScyIn, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
 
-        MarketAllParams memory market = readState(false);
+        MarketState memory market = readState(false);
 
         (netScyIn, netScyToReserve) = market.swapScyForExactOt(
             SCYIndexLib.newIndex(SCY),
@@ -200,7 +200,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         );
     }
 
-    function readState(bool updateRateOracle) public view returns (MarketAllParams memory market) {
+    function readState(bool updateRateOracle) public view returns (MarketState memory market) {
         MarketStorage storage store = marketStorage;
         market.totalOt = store.totalOt;
         market.totalScy = store.totalScy;
@@ -221,7 +221,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         }
     }
 
-    function _writeState(MarketAllParams memory market) internal {
+    function _writeState(MarketState memory market) internal {
         MarketStorage storage store = marketStorage;
 
         store.totalOt = market.totalOt.Int128();

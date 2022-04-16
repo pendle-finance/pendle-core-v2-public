@@ -7,15 +7,15 @@ import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
-import "../../../libraries/math/MarketMathUint.sol";
+import "../../../libraries/math/MarketMathAux.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
     using FixedPoint for uint256;
     using FixedPoint for int256;
-    using MarketMathCore for MarketAllParams;
-    using MarketMathUint for MarketAllParams;
-    using MarketApproxLib for MarketAllParams;
+    using MarketMathCore for MarketState;
+    using MarketMathAux for MarketState;
+    using MarketApproxLib for MarketState;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
 
@@ -52,7 +52,7 @@ abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
         // {
         //     (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
         //     {
-        //         MarketAllParams memory state = IPMarket(market).readState(false);
+        //         MarketState memory state = IPMarket(market).readState(false);
         //         netYtOut = state.approxSwapExactScyForYt(
         //             SCYIndexLib.newIndex(SCY),
         //             exactScyIn,

@@ -6,15 +6,15 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
-import "../../../libraries/math/MarketMathUint.sol";
+import "../../../libraries/math/MarketMathAux.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterOTBaseUpg {
     using FixedPoint for uint256;
     using FixedPoint for int256;
-    using MarketMathCore for MarketAllParams;
-    using MarketMathUint for MarketAllParams;
-    using MarketApproxLib for MarketAllParams;
+    using MarketMathCore for MarketState;
+    using MarketMathAux for MarketState;
+    using MarketApproxLib for MarketState;
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
@@ -48,7 +48,7 @@ abstract contract PendleRouterOTBaseUpg {
     {
         (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
-        MarketAllParams memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState(false);
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
             SCYIndexLib.newIndex(SCY),
             scyDesired,
@@ -81,7 +81,7 @@ abstract contract PendleRouterOTBaseUpg {
         uint256 otOutMin,
         bool doPull
     ) internal returns (uint256 netScyOut, uint256 netOtOut) {
-        MarketAllParams memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState(false);
 
         (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove);
         require(netScyOut >= scyOutMin, "insufficient scy out");
@@ -131,7 +131,7 @@ abstract contract PendleRouterOTBaseUpg {
         ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netOtIn) {
-        MarketAllParams memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState(false);
         (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
 
         (netOtIn, ) = state.approxSwapOtForExactScy(
@@ -163,7 +163,7 @@ abstract contract PendleRouterOTBaseUpg {
         uint256 maxScyIn,
         bool doPull
     ) internal returns (uint256 netScyIn) {
-        MarketAllParams memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState(false);
         address SCY = IPMarket(market).SCY();
 
         (netScyIn, ) = state.swapScyForExactOt(
@@ -187,7 +187,7 @@ abstract contract PendleRouterOTBaseUpg {
         ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netOtOut) {
-        MarketAllParams memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState(false);
         address SCY = IPMarket(market).SCY();
 
         (netOtOut, ) = state.approxSwapExactScyForOt(
