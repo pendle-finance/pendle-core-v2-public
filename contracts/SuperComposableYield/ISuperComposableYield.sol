@@ -25,15 +25,29 @@ pragma solidity 0.8.9;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface ISuperComposableYield is IERC20Metadata {
+    function mintNoPull(
+        address receiver,
+        address baseTokenIn,
+        uint256 minAmountScyOut
+    ) external returns (uint256 amountScyOut);
+
+    function redeemNoPull(
+        address receiver,
+        address baseTokenOut,
+        uint256 minAmountBaseOut
+    ) external returns (uint256 amountBaseOut);
+
     function mint(
         address receiver,
         address baseTokenIn,
+        uint256 amountBaseToPull,
         uint256 minAmountScyOut
     ) external returns (uint256 amountScyOut);
 
     function redeem(
         address receiver,
         address baseTokenOut,
+        uint256 amountScyToPull,
         uint256 minAmountBaseOut
     ) external returns (uint256 amountBaseOut);
 

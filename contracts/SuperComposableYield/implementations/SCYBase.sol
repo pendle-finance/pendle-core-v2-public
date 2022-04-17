@@ -39,6 +39,26 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     function mint(
         address receiver,
         address baseTokenIn,
+        uint256 amountBaseToPull,
+        uint256 minAmountScyOut
+    ) external returns (uint256 amountScyOut) {
+        IERC20(baseTokenIn).safeTransferFrom(msg.sender, address(this), amountBaseToPull);
+        amountScyOut = mintNoPull(receiver, baseTokenIn, minAmountScyOut);
+    }
+
+    function redeem(
+        address receiver,
+        address baseTokenOut,
+        uint256 amountScyToPull,
+        uint256 minAmountBaseOut
+    ) external returns (uint256 amountBaseOut) {
+        transferFrom(msg.sender, address(this), amountScyToPull);
+        amountBaseOut = redeemNoPull(receiver, baseTokenOut, minAmountBaseOut);
+    }
+
+    function mintNoPull(
+        address receiver,
+        address baseTokenIn,
         uint256 minAmountScyOut
     ) public virtual override returns (uint256 amountScyOut) {
         require(isValidBaseToken(baseTokenIn), "invalid base token");
@@ -52,7 +72,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
         _mint(receiver, amountScyOut);
     }
 
-    function redeem(
+    function redeemNoPull(
         address receiver,
         address baseTokenOut,
         uint256 minAmountBaseOut

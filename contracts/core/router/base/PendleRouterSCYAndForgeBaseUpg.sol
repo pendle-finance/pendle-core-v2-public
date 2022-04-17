@@ -44,7 +44,7 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
         }
 
         address baseToken = path[path.length - 1];
-        netScyOut = ISuperComposableYield(SCY).mint(receiver, baseToken, minScyOut);
+        netScyOut = ISuperComposableYield(SCY).mintNoPull(receiver, baseToken, minScyOut);
     }
 
     /**
@@ -72,13 +72,13 @@ abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
 
         address baseToken = path[0];
         if (path.length == 1) {
-            netRawTokenOut = ISuperComposableYield(SCY).redeem(
+            netRawTokenOut = ISuperComposableYield(SCY).redeemNoPull(
                 receiver,
                 baseToken,
                 minRawTokenOut
             );
         } else {
-            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeem(
+            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeemNoPull(
                 _getFirstPair(path),
                 baseToken,
                 1
