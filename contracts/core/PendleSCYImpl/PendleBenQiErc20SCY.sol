@@ -80,7 +80,7 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastScyIndex, IQiToken(qiToken).exchangeRateCurrent());
+        res = Math.max(lastScyIndex, IQiToken(qiToken).exchangeRateCurrent());
         lastScyIndex = res;
         return res;
     }

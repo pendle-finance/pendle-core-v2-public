@@ -8,8 +8,8 @@ import "../../libraries/math/MarketMathAux.sol";
 contract PendleRouterStaticUpg is IPRouterStatic {
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
     using LogExpMath for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variabless

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./FixedPoint.sol";
+import "./Math.sol";
 import "./MarketMathCore.sol";
 import "./MarketMathCore.sol";
 
@@ -14,8 +14,8 @@ struct ApproxParams {
 
 // solhint-disable reason-string, ordering
 library MarketApproxLib {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
     using LogExpMath for int256;
     using SCYIndexLib for SCYIndex;
     using MarketMathCore for MarketState;
@@ -88,7 +88,7 @@ library MarketApproxLib {
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (FixedPoint.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
+                if (Math.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
                     return (otInGuess, index.assetToScy(netAssetOut));
                 }
             } else {
@@ -150,7 +150,7 @@ library MarketApproxLib {
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (FixedPoint.isASmallerApproxB(netAssetIn, maxAssetIn, approx.eps)) {
+                if (Math.isASmallerApproxB(netAssetIn, maxAssetIn, approx.eps)) {
                     return (otOutGuess, index.assetToScy(netAssetIn));
                 }
             } else {
@@ -239,9 +239,7 @@ library MarketApproxLib {
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (
-                    FixedPoint.isASmallerApproxB(slot.amountAssetNeedMore, maxAssetIn, approx.eps)
-                ) {
+                if (Math.isASmallerApproxB(slot.amountAssetNeedMore, maxAssetIn, approx.eps)) {
                     return (slot.otInGuess, index.assetToScy(slot.amountAssetNeedMore));
                 }
             } else {
@@ -309,7 +307,7 @@ library MarketApproxLib {
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
-                if (FixedPoint.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
+                if (Math.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
                     return (otOutGuess, index.assetToScy(netAssetOut));
                 }
             } else {
@@ -352,7 +350,7 @@ library MarketApproxLib {
         );
 
         int256 part2 = sumOt.divDown(diffAssetOtToMarket).ln();
-        int256 part3 = FixedPoint.IONE.divDown(comp.rateScalar);
+        int256 part3 = Math.IONE.divDown(comp.rateScalar);
 
         return comp.rateAnchor - (part1 - part2).mulDown(part3);
     }
@@ -362,10 +360,10 @@ library MarketApproxLib {
         pure
         returns (uint256)
     {
-        int256 logitP = (FixedPoint.IONE.mulDown(comp.feeRate) - comp.rateAnchor)
+        int256 logitP = (Math.IONE.mulDown(comp.feeRate) - comp.rateAnchor)
             .mulDown(comp.rateScalar)
             .exp();
-        int256 proportion = logitP.divDown(logitP + FixedPoint.IONE);
+        int256 proportion = logitP.divDown(logitP + Math.IONE);
         int256 numerator = proportion.mulDown(totalOt + comp.totalAsset);
         int256 maxOtOut = totalOt - numerator;
         // TODO: 999 & 1000 are magic numbers
@@ -373,12 +371,12 @@ library MarketApproxLib {
     }
 
     function calcMaxOtIn(int256 totalOt, int256 totalAsset) internal pure returns (uint256) {
-        return FixedPoint.min(totalOt, totalAsset).Uint() - 1;
+        return Math.min(totalOt, totalAsset).Uint() - 1;
     }
 
     function isValidApproxParams(ApproxParams memory approx) internal pure returns (bool) {
         return (approx.guessMin <= approx.guessMax &&
             approx.maxIteration <= 256 &&
-            approx.eps <= FixedPoint.ONE);
+            approx.eps <= Math.ONE);
     }
 }

@@ -2,13 +2,13 @@
 pragma solidity 0.8.9;
 import "../SuperComposableYield/ISuperComposableYield.sol";
 import "../SuperComposableYield/SCYUtils.sol";
-import "./math/FixedPoint.sol";
+import "./math/Math.sol";
 
 type SCYIndex is uint256;
 
 library SCYIndexLib {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
 
     function newIndex(ISuperComposableYield SCY) internal returns (SCYIndex) {
         return SCYIndex.wrap(SCY.scyIndexCurrent());

@@ -18,7 +18,7 @@ import "./LogExpMath.sol";
 
 /* solhint-disable private-vars-leading-underscore, reason-string */
 
-library FixedPoint {
+library Math {
     uint256 internal constant ONE = 1e18; // 18 decimal places
     int256 internal constant IONE = 1e18; // 18 decimal places
 
@@ -131,7 +131,7 @@ library FixedPoint {
         uint256 b,
         uint256 eps
     ) internal pure returns (bool) {
-        return a >= b && a <= mulDown(b, FixedPoint.ONE + eps);
+        return a >= b && a <= mulDown(b, Math.ONE + eps);
     }
 
     function isASmallerApproxB(
@@ -139,6 +139,6 @@ library FixedPoint {
         uint256 b,
         uint256 eps
     ) internal pure returns (bool) {
-        return a <= b && a >= mulDown(b, FixedPoint.ONE - eps);
+        return a <= b && a >= mulDown(b, Math.ONE - eps);
     }
 }

@@ -5,9 +5,8 @@ import "./PendleBaseToken.sol";
 import "../SuperComposableYield/ISuperComposableYield.sol";
 import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
-import "../libraries/math/FixedPoint.sol";
+import "../libraries/math/Math.sol";
 import "../interfaces/IPYieldContractFactory.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../SuperComposableYield/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
@@ -21,7 +20,7 @@ It has been proven and tested that impliedScyBalance will not change over time, 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
-    using FixedPoint for uint256;
+    using Math for uint256;
     using SafeERC20 for IERC20;
 
     struct UserData {

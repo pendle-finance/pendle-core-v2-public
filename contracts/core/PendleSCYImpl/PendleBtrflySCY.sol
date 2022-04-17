@@ -74,7 +74,7 @@ contract PendleBtrflyScy is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = FixedPoint.max(lastScyIndex, IWXBTRFLY(wxBTRFLY).xBTRFLYValue(FixedPoint.ONE));
+        res = Math.max(lastScyIndex, IWXBTRFLY(wxBTRFLY).xBTRFLYValue(Math.ONE));
         lastScyIndex = res;
         return res;
     }

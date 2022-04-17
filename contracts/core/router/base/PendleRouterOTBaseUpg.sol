@@ -10,8 +10,8 @@ import "../../../libraries/math/MarketMathAux.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract PendleRouterOTBaseUpg {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
     using MarketApproxLib for MarketState;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./FixedPoint.sol";
+import "./Math.sol";
 import "./LogExpMath.sol";
 import "../SCYIndex.sol";
 
@@ -39,8 +39,8 @@ struct MarketStorage {
 
 // solhint-disable ordering
 library MarketMathCore {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
     using LogExpMath for int256;
     using SCYIndexLib for SCYIndex;
 
@@ -216,10 +216,10 @@ library MarketMathCore {
 
         if (netOtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
-            require(postFeeExchangeRate >= FixedPoint.IONE, "exchange rate below 1");
-            fee = preFeeAssetToAccount.mulDown(FixedPoint.IONE - fee);
+            require(postFeeExchangeRate >= Math.IONE, "exchange rate below 1");
+            fee = preFeeAssetToAccount.mulDown(Math.IONE - fee);
         } else {
-            fee = ((preFeeAssetToAccount * (FixedPoint.IONE - fee)) / fee).neg();
+            fee = ((preFeeAssetToAccount * (Math.IONE - fee)) / fee).neg();
         }
 
         netAssetToReserve = (fee * market.reserveFeePercent) / PERCENTAGE_DECIMALS;
@@ -263,7 +263,7 @@ library MarketMathCore {
         // This is the exchange rate at the new time to expiry
         int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
 
-        require(newExchangeRate >= FixedPoint.IONE, "exchange rate below 1");
+        require(newExchangeRate >= Math.IONE, "exchange rate below 1");
 
         {
             // totalOt / (totalOt + totalAsset)
@@ -285,7 +285,7 @@ library MarketMathCore {
         int256 rateAnchor,
         uint256 timeToExpiry
     ) internal pure returns (uint256 impliedRate) {
-        // This will check for exchange rates < FixedPoint.IONE
+        // This will check for exchange rates < Math.IONE
         int256 exchangeRate = _getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
@@ -320,7 +320,7 @@ library MarketMathCore {
     ) internal pure returns (int256 exchangeRate) {
         int256 numerator = totalOt.subNoNeg(netOtToAccount);
 
-        // This is the proportion scaled by FixedPoint.IONE
+        // This is the proportion scaled by Math.IONE
         // (totalOt - netOtToAccount) / (totalOt + totalAsset)
         int256 proportion = (numerator.divDown(totalOt + totalAsset));
 
@@ -338,15 +338,15 @@ library MarketMathCore {
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
 
         // Do not succeed if interest rates fall below 1
-        require(exchangeRate >= FixedPoint.IONE, "exchange rate below 1");
+        require(exchangeRate >= Math.IONE, "exchange rate below 1");
     }
 
     function _logProportion(int256 proportion) internal pure returns (int256 res) {
         // This will result in divide by zero, short circuit
-        require(proportion != FixedPoint.IONE, "proportion must not be one");
+        require(proportion != Math.IONE, "proportion must not be one");
 
         // Convert proportion to what is used inside the logit function (p / (1-p))
-        int256 logitP = proportion.divDown(FixedPoint.IONE - proportion);
+        int256 logitP = proportion.divDown(Math.IONE - proportion);
 
         res = logitP.ln();
     }
@@ -412,7 +412,7 @@ library MarketMathCore {
         uint256 lastTradeWeight = timeDiff.divDown(market.rateOracleTimeWindow);
 
         // 1 - (currentTs - previousTs) / timeWindow
-        uint256 oracleWeight = FixedPoint.ONE - lastTradeWeight;
+        uint256 oracleWeight = Math.ONE - lastTradeWeight;
 
         uint256 newOracleRate = market.lastTradeTime.mulDown(lastTradeWeight) +
             market.oracleRate.mulDown(oracleWeight);

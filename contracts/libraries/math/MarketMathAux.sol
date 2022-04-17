@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./FixedPoint.sol";
+import "./Math.sol";
 import "./LogExpMath.sol";
 import "../SCYIndex.sol";
 import "./MarketMathCore.sol";
 
 // solhint-disable ordering
 library MarketMathAux {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
+    using Math for uint256;
+    using Math for int256;
 
     function addLiquidity(
         MarketState memory market,

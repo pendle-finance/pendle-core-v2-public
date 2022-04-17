@@ -10,7 +10,7 @@ import "../interfaces/IPMarketSwapCallback.sol";
 import "../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../libraries/math/LogExpMath.sol";
-import "../libraries/math/FixedPoint.sol";
+import "../libraries/math/Math.sol";
 import "../libraries/math/MarketMathAux.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,9 +18,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // solhint-disable reason-string
 contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
-    using FixedPoint for uint256;
-    using FixedPoint for int256;
-    using FixedPoint for uint128;
+    using Math for uint256;
+    using Math for int256;
+    using Math for uint128;
     using LogExpMath for uint256;
     using MarketMathAux for MarketState;
     using MarketMathCore for MarketState;
