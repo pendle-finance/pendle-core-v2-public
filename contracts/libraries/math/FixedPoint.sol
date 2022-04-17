@@ -117,4 +117,28 @@ library FixedPoint {
         require(x < (1 << 112)); // unsigned, lim = bit
         return uint112(x);
     }
+
+    function isAApproxB(
+        uint256 a,
+        uint256 b,
+        uint256 eps
+    ) internal pure returns (bool) {
+        return (isAGreaterApproxB(a, b, eps) || isASmallerApproxB(a, b, eps));
+    }
+
+    function isAGreaterApproxB(
+        uint256 a,
+        uint256 b,
+        uint256 eps
+    ) internal pure returns (bool) {
+        return a >= b && a <= mulDown(b, FixedPoint.ONE + eps);
+    }
+
+    function isASmallerApproxB(
+        uint256 a,
+        uint256 b,
+        uint256 eps
+    ) internal pure returns (bool) {
+        return a <= b && a >= mulDown(b, FixedPoint.ONE - eps);
+    }
 }
