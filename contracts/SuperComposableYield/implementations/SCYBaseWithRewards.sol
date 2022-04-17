@@ -34,17 +34,14 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function redeemReward(address user, address receiver)
+    function redeemReward(address user)
         public
         virtual
         override
         returns (uint256[] memory outAmounts)
     {
-        if (user != msg.sender) require(receiver == user, "invalid receiver");
-        else require(receiver != address(0), "zero address");
-
         _updateUserReward(user, balanceOf(user), totalSupply());
-        outAmounts = _doTransferOutRewardsForUser(user, receiver);
+        outAmounts = _doTransferOutRewardsForUser(user, user);
     }
 
     function updateGlobalReward() public virtual override {

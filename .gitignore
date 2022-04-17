@@ -1,6 +1,7 @@
 .env
 .vscode/
 .idea/
+out/
 
 typechain-types
 

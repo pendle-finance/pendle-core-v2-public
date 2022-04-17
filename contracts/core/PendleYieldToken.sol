@@ -13,13 +13,13 @@ import "../SuperComposableYield/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
 
 /*
-With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should 
+With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
 be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
 
-Due to this, it is required to update users' accruedReward STRICTLY BEFORE their dueInterest & YT is changed, 
+Due to this, it is required to update users' accruedReward STRICTLY BEFORE their dueInterest & YT is changed,
 which includes:
 - YT transfers
-- RedeemDueInterest 
+- RedeemDueInterest
 */
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using FixedPoint for uint256;
@@ -86,42 +86,58 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _afterTransferOutSCY();
     }
 
-    function redeemDueIncome(address user, address rewardReceiver)
+    function redeemDueInterestAndRewards(address user)
         public
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
         // redeemDueRewards before redeemDueInterest
-        rewardsOut = _redeemDueRewards(user, rewardReceiver);
-        interestOut = _redeemDueInterest(user);
+        updateUserReward(user);
+        updateUserInterest(user);
+        rewardsOut = _doTransferOutRewardsForUser(user, user);
+        interestOut = _doTransferOutDueInterest(user);
     }
 
-    function _redeemDueInterest(address user) internal returns (uint256 interestOut) {
-        _updateDueInterest(user);
-
-        uint256 interestPreFee = data[user].dueInterest;
-        data[user].dueInterest = 0;
-
-        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
-        uint256 feeAmount = interestPreFee.mulDown(feeRate);
-        totalProtocolFee += feeAmount;
-
-        interestOut = interestPreFee - feeAmount;
-        IERC20(SCY).safeTransfer(user, interestOut);
-        _afterTransferOutSCY();
+    function redeemDueInterest(address user) public returns (uint256 interestOut) {
+        updateUserReward(user); /// strictly required, see above for explanation
+        updateUserInterest(user);
+        interestOut = _doTransferOutDueInterest(user);
     }
 
-    function _redeemDueRewards(address user, address receiver)
-        internal
-        virtual
-        returns (uint256[] memory rewardsOut)
-    {
-        if (user != msg.sender) require(receiver == user, "invalid receiver");
-        else require(receiver != address(0), "zero address");
+    function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
+        updateUserReward(user);
+        rewardsOut = _doTransferOutRewardsForUser(user, user);
+    }
 
+    function updateGlobalReward() external {
+        address[] memory rewardTokens = getRewardTokens();
+        _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
+    }
+
+    function updateUserReward(address user) public {
         uint256 impliedScyBalance = getImpliedScyBalance(user);
         uint256 totalScy = IERC20(SCY).balanceOf(address(this));
         _updateUserReward(user, impliedScyBalance, totalScy);
-        rewardsOut = _doTransferOutRewardsForUser(user, receiver);
+    }
+
+    function updateUserInterest(address user) public {
+        uint256 prevIndex = data[user].lastScyIndex;
+
+        uint256 currentIndex = getScyIndexBeforeExpiry();
+
+        if (prevIndex == currentIndex) return;
+        if (prevIndex == 0) {
+            data[user].lastScyIndex = currentIndex;
+            return;
+        }
+
+        uint256 principal = balanceOf(user);
+
+        uint256 interestFromYT = (principal * (currentIndex - prevIndex)).divDown(
+            prevIndex * currentIndex
+        );
+
+        data[user].dueInterest += interestFromYT;
+        data[user].lastScyIndex = currentIndex;
     }
 
     function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
@@ -150,8 +166,21 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         }
     }
 
+    function _doTransferOutDueInterest(address user) internal returns (uint256 interestOut) {
+        uint256 interestPreFee = data[user].dueInterest;
+        data[user].dueInterest = 0;
+
+        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
+        uint256 feeAmount = interestPreFee.mulDown(feeRate);
+        totalProtocolFee += feeAmount;
+
+        interestOut = interestPreFee - feeAmount;
+        IERC20(SCY).safeTransfer(user, interestOut);
+        _afterTransferOutSCY();
+    }
+
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).redeemReward(address(this), address(this));
+        ISuperComposableYield(SCY).redeemReward(address(this));
     }
 
     function getRewardTokens()
@@ -169,8 +198,9 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         res = ISuperComposableYield(SCY).scyIndexCurrent();
         lastScyIndexBeforeExpiry = res;
     }
+
     /**
-     * @dev: In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should 
+     * In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should
      * be claimed before withdrawing to treasury.
      *
      * And since the reward distribution (which based on users' dueInterest) stopped at the scyIndexBeforeExpiry, it is not
@@ -197,27 +227,6 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
             _afterTransferOutSCY();
             totalProtocolFee = 0;
         }
-    }
-
-    function _updateDueInterest(address user) internal {
-        uint256 prevIndex = data[user].lastScyIndex;
-
-        uint256 currentIndex = getScyIndexBeforeExpiry();
-
-        if (prevIndex == currentIndex) return;
-        if (prevIndex == 0) {
-            data[user].lastScyIndex = currentIndex;
-            return;
-        }
-
-        uint256 principal = balanceOf(user);
-
-        uint256 interestFromYT = (principal * (currentIndex - prevIndex)).divDown(
-            prevIndex * currentIndex
-        );
-
-        data[user].dueInterest += interestFromYT;
-        data[user].lastScyIndex = currentIndex;
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
@@ -254,11 +263,11 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
 
         if (from != address(0) && from != address(this)) {
-            _updateDueInterest(from);
+            updateUserInterest(from);
             _updateUserRewardSkipGlobal(rewardTokens, from, getImpliedScyBalance(from));
         }
         if (to != address(0) && to != address(this)) {
-            _updateDueInterest(to);
+            updateUserInterest(to);
             _updateUserRewardSkipGlobal(rewardTokens, to, getImpliedScyBalance(to));
         }
     }

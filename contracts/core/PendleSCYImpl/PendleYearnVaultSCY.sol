@@ -93,12 +93,7 @@ contract PendleYearnVaultScy is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     //solhint-disable-next-line no-empty-blocks
-    function redeemReward(address user, address receiver)
-        public
-        virtual
-        override
-        returns (uint256[] memory)
-    {}
+    function redeemReward(address user) public virtual override returns (uint256[] memory) {}
 
     //solhint-disable-next-line no-empty-blocks
     function updateGlobalReward() public virtual override {}
