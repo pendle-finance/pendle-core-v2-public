@@ -179,6 +179,93 @@ library MarketApproxLib {
         revert("approx fail");
     }
 
+    function approxSwapExactScyForYt(
+        MarketState memory market,
+        SCYIndex index,
+        uint256 maxScyIn,
+        uint256 blockTime,
+        ApproxParams memory approx
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netYtOut*/
+            uint256 /*netScyIn*/
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(maxScyIn > 0, "invalid maxScyIn");
+        require(isValidApproxParams(approx), "invalid approx approx");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        uint256 maxAssetIn = index.scyToAsset(maxScyIn);
+        uint256 largestGoodSlope;
+
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = FixedPoint.min(comp.totalAsset, market.totalOt).Uint() - 1;
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        while (approx.maxIteration != 0) {
+            unchecked {
+                approx.maxIteration--;
+            }
+            // ytOutGuess = otInGuess
+            uint256 otInGuess = (approx.guessMin + approx.guessMax) / 2;
+
+            /// ------------------------------------------------------------
+            /// CHECK SLOPE
+            /// ------------------------------------------------------------
+            if (otInGuess > largestGoodSlope) {
+                // it's not guaranteed that the current slop is good
+                // we therefore have to recalculate the slope
+                int256 slope = slopeFactor(
+                    market.totalOt,
+                    comp.rateScalar,
+                    comp.totalAsset,
+                    comp.rateAnchor,
+                    otInGuess.neg()
+                );
+
+                if (slope < 0) {
+                    approx.guessMax = otInGuess - 1;
+                    continue;
+                } else {
+                    largestGoodSlope = otInGuess;
+                }
+            }
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, otInGuess.neg());
+            uint256 netAssetOut = _assetToAccount.Uint();
+            uint256 amountAssetNeedMore = otInGuess - netAssetOut;
+
+            if (amountAssetNeedMore <= maxAssetIn) {
+                approx.guessMin = otInGuess;
+                /// ------------------------------------------------------------
+                /// CHECK IF ANSWER FOUND
+                /// ------------------------------------------------------------
+                if (amountAssetNeedMore >= maxAssetIn.mulDown(FixedPoint.ONE - approx.eps)) {
+                    return (otInGuess, index.assetToScy(amountAssetNeedMore));
+                }
+            } else {
+                approx.guessMax = otInGuess - 1;
+            }
+        }
+        revert("approx fail");
+    }
+
     // otToMarket < totalAsset && totalOt
     function slopeFactor(
         int256 totalOt,
