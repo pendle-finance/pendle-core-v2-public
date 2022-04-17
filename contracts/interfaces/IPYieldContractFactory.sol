@@ -33,4 +33,8 @@ interface IPYieldContractFactory {
     function interestFeeRate() external view returns (uint256);
 
     function treasury() external view returns (address);
+
+    function isOT(address) external view returns (bool);
+
+    function isYT(address) external view returns (bool);
 }

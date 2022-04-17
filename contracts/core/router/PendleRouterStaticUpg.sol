@@ -3,7 +3,11 @@ pragma solidity 0.8.9;
 
 import "../../interfaces/IPRouterStatic.sol";
 import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPMarketFactory.sol";
 import "../../libraries/math/MarketMathAux.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract PendleRouterStaticUpg is IPRouterStatic {
     using MarketMathCore for MarketState;
@@ -12,12 +16,13 @@ contract PendleRouterStaticUpg is IPRouterStatic {
     using Math for int256;
     using LogExpMath for int256;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variabless
-    constructor(
-        address _joeRouter,
-        address _joeFactory,
-        address _marketFactory //solhint-disable-next-line no-empty-blocks
-    ) {}
+    IPYieldContractFactory public immutable yieldContractFactory;
+    IPMarketFactory public immutable marketFactory;
+
+    constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory) {
+        yieldContractFactory = _yieldContractFactory;
+        marketFactory = _marketFactory;
+    }
 
     function addLiquidityStatic(
         address market,
@@ -84,5 +89,19 @@ contract PendleRouterStaticUpg is IPRouterStatic {
 
         int256 lnImpliedRate = (state.lastImpliedRate).Int();
         return lnImpliedRate.exp();
+    }
+
+    function getPendleTokenType(address token)
+        external
+        view
+        returns (
+            bool isOT,
+            bool isYT,
+            bool isMarket
+        )
+    {
+        if (yieldContractFactory.isOT(token)) isOT = true;
+        else if (yieldContractFactory.isYT(token)) isYT = true;
+        else if (marketFactory.isValidMarket(token)) isMarket = true;
     }
 }

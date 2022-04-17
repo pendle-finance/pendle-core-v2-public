@@ -68,7 +68,8 @@ contract PendleRouterProxy is Proxy, Initializable, UUPSUpgradeable, Permissions
             sig == IPRouterStatic.swapOtForScyStatic.selector ||
             sig == IPRouterStatic.swapScyForOtStatic.selector ||
             sig == IPRouterStatic.scyIndex.selector ||
-            sig == IPRouterStatic.getOtImpliedYield.selector
+            sig == IPRouterStatic.getOtImpliedYield.selector ||
+            sig == IPRouterStatic.getPendleTokenType.selector
         ) {
             return PENDLE_ROUTER_STATIC;
         }

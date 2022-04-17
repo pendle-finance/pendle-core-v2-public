@@ -32,4 +32,13 @@ interface IPRouterStatic {
     function scyIndex(address market) external returns (SCYIndex index);
 
     function getOtImpliedYield(address market) external view returns (int256);
+
+    function getPendleTokenType(address token)
+        external
+        view
+        returns (
+            bool isOT,
+            bool isYT,
+            bool isMarket
+        );
 }

@@ -45,6 +45,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     // SCY => expiry => address
     mapping(address => mapping(uint256 => address)) public getOT;
     mapping(address => mapping(uint256 => address)) public getYT;
+    mapping(address => bool) public isOT;
+    mapping(address => bool) public isYT;
 
     constructor(
         uint256 _expiryDivisor,
@@ -94,6 +96,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
         getOT[SCY][expiry] = OT;
         getYT[SCY][expiry] = YT;
+        isOT[OT] = true;
+        isYT[YT] = true;
     }
 
     function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {
