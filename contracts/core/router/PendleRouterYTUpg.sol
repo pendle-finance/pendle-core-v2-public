@@ -49,18 +49,46 @@ contract PendleRouterYTUpg is IPRouterYT, PendleRouterSCYAndForgeBaseUpg, Pendle
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 minYtOut,
         uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax
+        uint256 netYtOutGuessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256) {
         return
             _swapExactScyForYt(
                 receiver,
                 market,
                 exactScyIn,
-                minYtOut,
-                netYtOutGuessMin,
-                netYtOutGuessMax,
+                ApproxParams({
+                    guessMin: netYtOutGuessMin,
+                    guessMax: netYtOutGuessMax,
+                    eps: eps,
+                    maxIteration: maxIteration
+                }),
+                true
+            );
+    }
+
+    function swapYtForExactScy(
+        address receiver,
+        address market,
+        uint256 exactScyOut,
+        uint256 netYtInGuessMin,
+        uint256 netYtInGuessMax,
+        uint256 maxIteration,
+        uint256 eps
+    ) external returns (uint256 netYtIn) {
+        return
+            _swapYtForExactScy(
+                receiver,
+                market,
+                exactScyOut,
+                ApproxParams({
+                    guessMin: netYtInGuessMin,
+                    guessMax: netYtInGuessMax,
+                    eps: eps,
+                    maxIteration: maxIteration
+                }),
                 true
             );
     }
@@ -78,9 +106,10 @@ contract PendleRouterYTUpg is IPRouterYT, PendleRouterSCYAndForgeBaseUpg, Pendle
         address receiver,
         address[] calldata path,
         address market,
-        uint256 minYtOut,
         uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax
+        uint256 netYtOutGuessMax,
+        uint256 maxIteration,
+        uint256 eps
     ) external returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -97,9 +126,12 @@ contract PendleRouterYTUpg is IPRouterYT, PendleRouterSCYAndForgeBaseUpg, Pendle
             receiver,
             market,
             netScyUsedToBuyYT,
-            minYtOut,
-            netYtOutGuessMin,
-            netYtOutGuessMax,
+            ApproxParams({
+                guessMin: netYtOutGuessMin,
+                guessMax: netYtOutGuessMax,
+                eps: eps,
+                maxIteration: maxIteration
+            }),
             false
         );
     }
