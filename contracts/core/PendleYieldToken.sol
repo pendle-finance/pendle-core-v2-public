@@ -16,10 +16,9 @@ import "../SuperComposableYield/implementations/RewardManager.sol";
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
 be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
 
-Due to this, it is required to update users' accruedReward STRICTLY BEFORE their dueInterest & YT is changed,
-which includes:
-- YT transfers
-- RedeemDueInterest
+It has been proven and tested that impliedScyBalance will not change over time, unless users redeem their interest or redeemYO.
+
+Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
 contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     using FixedPoint for uint256;
@@ -262,6 +261,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         address[] memory rewardTokens = getRewardTokens();
         _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
 
+        // Before the change in YT balance, users' impliedScyBalance is kept unchanged from last time
+        // Therefore, both updating due interest before or after due reward work the same.
         if (from != address(0) && from != address(this)) {
             updateUserInterest(from);
             _updateUserRewardSkipGlobal(rewardTokens, from, getImpliedScyBalance(from));
