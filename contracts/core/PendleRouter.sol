@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPActionCore.sol";
 import "../interfaces/IPActionYT.sol";
-import "../interfaces/IPActionStatic.sol";
+import "../interfaces/IPRouterStatic.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
 import "../periphery/PermissionsV2Upg.sol";
 
@@ -18,20 +18,17 @@ import "../periphery/PermissionsV2Upg.sol";
 contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg {
     address public immutable ACTION_CORE;
     address public immutable ACTION_YT;
-    address public immutable ACTION_STATIC;
     address public immutable ACTION_CALLBACK;
 
     constructor(
         address _ACTION_CORE,
         address _ACTION_YT,
         address _ACTION_CALLBACK,
-        address _ACTION_STATIC,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) initializer {
         ACTION_CORE = _ACTION_CORE;
         ACTION_YT = _ACTION_YT;
         ACTION_CALLBACK = _ACTION_CALLBACK;
-        ACTION_STATIC = _ACTION_STATIC;
     }
 
     function initialize() external initializer {
@@ -65,18 +62,6 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
             return ACTION_YT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
-        }
-        /// FROM HERE ONWARDS, ONLY HAVE STATIC & VIEW FUNCTIONS
-        else if (
-            sig == IPActionStatic.addLiquidityStatic.selector ||
-            sig == IPActionStatic.removeLiquidityStatic.selector ||
-            sig == IPActionStatic.swapOtForScyStatic.selector ||
-            sig == IPActionStatic.swapScyForOtStatic.selector ||
-            sig == IPActionStatic.scyIndex.selector ||
-            sig == IPActionStatic.getOtImpliedYield.selector ||
-            sig == IPActionStatic.getPendleTokenType.selector
-        ) {
-            return ACTION_STATIC;
         }
         require(false, "invalid market sig");
     }
