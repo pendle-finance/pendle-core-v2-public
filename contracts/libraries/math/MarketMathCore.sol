@@ -10,12 +10,13 @@ struct MarketState {
     int256 totalScy;
     int256 totalLp;
     uint256 oracleRate;
+    address treasury;
     /// immutable variables ///
     int256 scalarRoot;
     uint256 feeRateRoot;
     uint256 rateOracleTimeWindow;
     uint256 expiry;
-    int256 reserveFeePercent; // base 100
+    uint256 reserveFeePercent; // base 100
     /// last trade data ///
     uint256 lastImpliedRate;
     uint256 lastTradeTime;
@@ -222,7 +223,7 @@ library MarketMathCore {
             fee = ((preFeeAssetToAccount * (Math.IONE - fee)) / fee).neg();
         }
 
-        netAssetToReserve = (fee * market.reserveFeePercent) / PERCENTAGE_DECIMALS;
+        netAssetToReserve = (fee * market.reserveFeePercent.Int()) / PERCENTAGE_DECIMALS;
         netAssetToAccount = preFeeAssetToAccount - fee;
         // netAssetToMarket = (preFeeAssetToAccount - fee + netAssetToReserve)
         //     .neg();

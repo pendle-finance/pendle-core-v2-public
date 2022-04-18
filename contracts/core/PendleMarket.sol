@@ -34,31 +34,19 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     address public immutable YT;
 
     int256 public immutable scalarRoot;
-    uint256 public immutable feeRateRoot; // allow fee to be changable?
     int256 public immutable initialAnchor;
-
-    uint256 public immutable rateOracleTimeWindow;
-    int8 public immutable reserveFeePercent;
 
     MarketStorage public marketStorage;
 
     constructor(
         address _OT,
-        uint256 _rateOracleTimeWindow,
-        uint256 _feeRateRoot,
         int256 _scalarRoot,
-        int256 _initialAnchor,
-        uint8 _reserveFeePercent
+        int256 _initialAnchor
     ) PendleBaseToken(NAME, SYMBOL, 18, IPOwnershipToken(_OT).expiry()) {
         OT = _OT;
         SCY = IPOwnershipToken(_OT).SCY();
         YT = IPOwnershipToken(_OT).YT();
-        feeRateRoot = _feeRateRoot;
         scalarRoot = _scalarRoot;
-        rateOracleTimeWindow = _rateOracleTimeWindow;
-
-        require(_reserveFeePercent <= 100, "invalid fee rate");
-        reserveFeePercent = int8(_reserveFeePercent);
         initialAnchor = _initialAnchor;
     }
 
@@ -154,7 +142,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         );
         require(netScyOut >= minScyOut, "insufficient scy out");
         IERC20(SCY).safeTransfer(receiver, netScyOut);
-        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
+        IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
         if (data.length > 0) {
             IPMarketSwapCallback(msg.sender).swapCallback(exactOtIn.neg(), netScyOut.Int(), data);
@@ -183,7 +171,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         );
         require(netScyIn <= maxScyIn, "scy in exceed limit");
         IERC20(OT).safeTransfer(receiver, exactOtOut);
-        IERC20(SCY).safeTransfer(IPMarketFactory(factory).treasury(), netScyToReserve);
+        IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
         if (data.length > 0) {
             IPMarketSwapCallback(msg.sender).swapCallback(exactOtOut.Int(), netScyIn.neg(), data);
@@ -206,11 +194,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.totalScy = store.totalScy;
         market.totalLp = totalSupply().Int();
         market.oracleRate = store.oracleRate;
-        market.reserveFeePercent = reserveFeePercent;
+
+        (
+            market.treasury,
+            market.feeRateRoot,
+            market.rateOracleTimeWindow,
+            market.reserveFeePercent
+        ) = IPMarketFactory(factory).marketConfig();
 
         market.scalarRoot = scalarRoot;
-        market.feeRateRoot = feeRateRoot;
-        market.rateOracleTimeWindow = rateOracleTimeWindow;
         market.expiry = expiry;
 
         market.lastImpliedRate = store.lastImpliedRate;
