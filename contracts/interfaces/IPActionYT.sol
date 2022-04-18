@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./IPMarketSwapCallback.sol";
 
-interface IPRouterYT is IPMarketSwapCallback {
+interface IPActionYT is IPMarketSwapCallback {
     function swapExactYtForScy(
         address receiver,
         address market,

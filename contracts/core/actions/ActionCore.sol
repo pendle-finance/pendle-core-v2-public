@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./base/PendleRouterSCYAndForgeBaseUpg.sol";
-import "./base/PendleRouterOTBaseUpg.sol";
+import "./base/ActionSCYAndOTBase.sol";
+import "./base/ActionSCYAndYOBase.sol";
 import "../../interfaces/IPOwnershipToken.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPRouterCore.sol";
+import "../../interfaces/IPActionCore.sol";
 import "../../libraries/math/MarketMathAux.sol";
 
-contract PendleRouterCoreUpg is
-    IPRouterCore,
-    PendleRouterSCYAndForgeBaseUpg,
-    PendleRouterOTBaseUpg
-{
+contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
     using Math for uint256;
@@ -24,8 +20,8 @@ contract PendleRouterCoreUpg is
         address _joeFactory,
         address _marketFactory
     )
-        PendleRouterSCYAndForgeBaseUpg(_joeRouter, _joeFactory)
-        PendleRouterOTBaseUpg()
+        ActionSCYAndYOBase(_joeRouter, _joeFactory)
+        ActionSCYAndOTBase()
     //solhint-disable-next-line no-empty-blocks
     {
 

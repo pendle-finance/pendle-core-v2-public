@@ -8,9 +8,10 @@ import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "../../../libraries/math/MarketMathAux.sol";
+import "./ActionSCYAndYOBase.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract PendleRouterYTBaseUpg is IPMarketSwapCallback {
+abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;

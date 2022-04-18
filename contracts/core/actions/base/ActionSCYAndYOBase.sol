@@ -6,7 +6,7 @@ import "../../../periphery/PendleJoeSwapHelperUpg.sol";
 import "../../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
-abstract contract PendleRouterSCYAndForgeBaseUpg is PendleJoeSwapHelperUpg {
+abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables

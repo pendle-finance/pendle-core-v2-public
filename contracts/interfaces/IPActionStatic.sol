@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "../libraries/math/MarketMathCore.sol";
 
-interface IPRouterStatic {
+interface IPActionStatic {
     function addLiquidityStatic(
         address market,
         uint256 scyDesired,

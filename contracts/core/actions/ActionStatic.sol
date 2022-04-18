@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "../../interfaces/IPRouterStatic.sol";
+import "../../interfaces/IPActionStatic.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
@@ -9,7 +9,7 @@ import "../../libraries/math/MarketMathAux.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract PendleRouterStaticUpg is IPRouterStatic {
+contract ActionStatic is IPActionStatic {
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
     using Math for uint256;
