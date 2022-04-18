@@ -19,11 +19,11 @@ It has been proven and tested that impliedScyBalance will not change over time, 
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
-contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
+contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
-    struct UserData {
+    struct InterestData {
         uint256 lastScyIndex;
         uint256 dueInterest;
     }
@@ -40,7 +40,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     mapping(address => uint256) public totalRewardsPostExpiry;
     uint256 public totalProtocolFee;
 
-    mapping(address => UserData) public data;
+    mapping(address => InterestData) internal interestData;
 
     constructor(
         address _SCY,
@@ -118,13 +118,13 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function updateUserInterest(address user) public {
-        uint256 prevIndex = data[user].lastScyIndex;
+        uint256 prevIndex = interestData[user].lastScyIndex;
 
         uint256 currentIndex = getScyIndexBeforeExpiry();
 
         if (prevIndex == currentIndex) return;
         if (prevIndex == 0) {
-            data[user].lastScyIndex = currentIndex;
+            interestData[user].lastScyIndex = currentIndex;
             return;
         }
 
@@ -134,8 +134,16 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
             prevIndex * currentIndex
         );
 
-        data[user].dueInterest += interestFromYT;
-        data[user].lastScyIndex = currentIndex;
+        interestData[user].dueInterest += interestFromYT;
+        interestData[user].lastScyIndex = currentIndex;
+    }
+
+    function getInterestData(address user)
+        external
+        view
+        returns (uint256 lastScyIndex, uint256 dueInterest)
+    {
+        return (interestData[user].lastScyIndex, interestData[user].dueInterest);
     }
 
     function _updateGlobalReward(address[] memory rewardTokens, uint256 totalSupply)
@@ -165,8 +173,8 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function _doTransferOutDueInterest(address user) internal returns (uint256 interestOut) {
-        uint256 interestPreFee = data[user].dueInterest;
-        data[user].dueInterest = 0;
+        uint256 interestPreFee = interestData[user].dueInterest;
+        interestData[user].dueInterest = 0;
 
         uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
         uint256 feeAmount = interestPreFee.mulDown(feeRate);
@@ -185,7 +193,7 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
         public
         view
         virtual
-        override(RewardManager)
+        override(RewardManager, IRewardManager)
         returns (address[] memory)
     {
         return ISuperComposableYield(SCY).getRewardTokens();
@@ -247,9 +255,9 @@ contract PendleYieldToken is PendleBaseToken, IPYieldToken, RewardManager {
     }
 
     function getImpliedScyBalance(address user) public view returns (uint256) {
-        uint256 scyIndex = data[user].lastScyIndex;
+        uint256 scyIndex = interestData[user].lastScyIndex;
         if (scyIndex == 0) return 0;
-        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + data[user].dueInterest;
+        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + interestData[user].dueInterest;
     }
 
     function _beforeTokenTransfer(

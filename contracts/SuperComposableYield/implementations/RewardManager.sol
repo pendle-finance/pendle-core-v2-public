@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 import "../ISuperComposableYield.sol";
+import "./IRewardManager.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../libraries/math/Math.sol";
 
-abstract contract RewardManager {
+abstract contract RewardManager is IRewardManager {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -20,8 +21,28 @@ abstract contract RewardManager {
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
-    mapping(address => GlobalReward) public globalReward;
-    mapping(address => mapping(address => UserReward)) public userReward;
+    mapping(address => GlobalReward) internal globalReward;
+    mapping(address => mapping(address => UserReward)) internal userReward;
+
+    function getGlobalReward(address rewardToken)
+        external
+        view
+        returns (uint256 index, uint256 lastBalance)
+    {
+        GlobalReward memory reward = globalReward[rewardToken];
+        return (reward.index, reward.lastBalance);
+    }
+
+    function getUserReward(address user, address rewardToken)
+        external
+        view
+        returns (uint256 lastIndex, uint256 accruedReward)
+    {
+        UserReward memory reward = userReward[user][rewardToken];
+        return (reward.lastIndex, reward.accruedReward);
+    }
+
+    function getRewardTokens() public view virtual override returns (address[] memory);
 
     function _doTransferOutRewardsForUser(address user, address receiver)
         internal
@@ -110,8 +131,6 @@ abstract contract RewardManager {
             }
         }
     }
-
-    function getRewardTokens() public view virtual returns (address[] memory);
 
     function _redeemExternalReward() internal virtual;
 }
