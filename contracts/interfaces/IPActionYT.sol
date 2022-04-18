@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./IPMarketSwapCallback.sol";
-
-interface IPActionYT is IPMarketSwapCallback {
+interface IPActionYT {
     function swapExactYtForScy(
         address receiver,
         address market,

@@ -12,10 +12,7 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _joeRouter, address _joeFactory)
         PendleJoeSwapHelperUpg(_joeRouter, _joeFactory)
-    // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    {}
 
     /**
      * @notice swap rawToken to baseToken -> baseToken to mint SCY

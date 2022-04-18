@@ -3,15 +3,14 @@ pragma solidity 0.8.9;
 
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../interfaces/IPMarketAddRemoveCallback.sol";
-import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "../../../libraries/math/MarketMathAux.sol";
 import "./ActionSCYAndYOBase.sol";
+import "./ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase {
+abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -19,28 +18,6 @@ abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase
     using MarketApproxLib for MarketState;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
-
-    // solhint-disable-next-line
-    enum YT_SWAP_TYPE {
-        ExactYtForScy,
-        SCYForExactYt,
-        ExactScyForYt,
-        YtForExactScy
-    }
-
-    address public immutable marketFactory;
-
-    modifier onlyPendleMarket(address market) {
-        require(IPMarketFactory(marketFactory).isValidMarket(market), "INVALID_MARKET");
-        _;
-    }
-
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(
-        address _marketFactory //solhint-disable-next-line no-empty-blocks
-    ) {
-        marketFactory = _marketFactory;
-    }
 
     function _swapExactScyForYt(
         address receiver,
@@ -67,7 +44,7 @@ abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase
             receiver,
             netYtOut, // exactOtIn = netYtOut
             1,
-            abi.encode(YT_SWAP_TYPE.ExactScyForYt, receiver)
+            abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver)
         );
     }
 
@@ -97,7 +74,7 @@ abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase
             receiver,
             exactYtIn, // exactOtOut = exactYtIn
             type(uint256).max,
-            abi.encode(YT_SWAP_TYPE.ExactYtForScy, receiver)
+            abi.encode(ACTION_TYPE.SwapExactYtForScy, receiver)
         );
 
         netScyOut = SCY.balanceOf(receiver) - preBalanceScy;
@@ -123,7 +100,7 @@ abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase
             receiver,
             exactYtOut, // exactOtIn = exactYtOut
             1,
-            abi.encode(YT_SWAP_TYPE.SCYForExactYt, msg.sender, receiver)
+            abi.encode(ACTION_TYPE.SwapSCYForExactYt, msg.sender, receiver)
         );
 
         netScyIn = preBalanceScy - SCY.balanceOf(receiver);
@@ -156,77 +133,7 @@ abstract contract ActionSCYAndYTBase is IPMarketSwapCallback, ActionSCYAndYOBase
             address(YT),
             netYtIn, // exactOtOut = netYtIn
             type(uint256).max,
-            abi.encode(YT_SWAP_TYPE.YtForExactScy, receiver)
+            abi.encode(ACTION_TYPE.SwapYtForExactScy, receiver)
         );
-    }
-
-    function swapCallback(
-        int256 otToAccount,
-        int256 scyToAccount,
-        bytes calldata data
-    ) external override onlyPendleMarket(msg.sender) {
-        (YT_SWAP_TYPE swapType, ) = abi.decode(data, (YT_SWAP_TYPE, bytes));
-
-        if (swapType == YT_SWAP_TYPE.ExactScyForYt) {
-            _swapExactScyForYt_callback(msg.sender, data);
-        } else if (swapType == YT_SWAP_TYPE.ExactYtForScy) {
-            _swapYtForScy_callback(msg.sender, scyToAccount, data);
-        } else if (swapType == YT_SWAP_TYPE.SCYForExactYt) {
-            _swapScyForExactYt_callback(msg.sender, otToAccount, scyToAccount, data);
-        } else if (swapType == YT_SWAP_TYPE.YtForExactScy) {
-            _swapYtForScy_callback(msg.sender, scyToAccount, data);
-        } else {
-            require(false, "unknown swapType");
-        }
-    }
-
-    function _swapExactScyForYt_callback(address market, bytes calldata data) internal {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        (, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address));
-
-        YT.mintYO(market, receiver);
-    }
-
-    function _swapScyForExactYt_callback(
-        address market,
-        int256 otToAccount,
-        int256 scyToAccount,
-        bytes calldata data
-    ) internal {
-        (, address payer, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address, address));
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-
-        uint256 otOwed = otToAccount.neg().Uint();
-        uint256 scyReceived = scyToAccount.Uint();
-
-        // otOwed = totalAsset
-        uint256 scyNeedTotal = SCYUtils.assetToScy(SCY.scyIndexCurrent(), otOwed);
-
-        uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
-        SCY.safeTransferFrom(payer, address(YT), netScyToPull);
-
-        YT.mintYO(market, receiver);
-    }
-
-    /**
-    @dev receive OT -> pair with YT to redeem SCY -> payback SCY
-    */
-    function _swapYtForScy_callback(
-        address market,
-        int256 scyToAccount,
-        bytes calldata data
-    ) internal {
-        (, address receiver) = abi.decode(data, (YT_SWAP_TYPE, address));
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-
-        uint256 scyOwed = scyToAccount.neg().Uint();
-
-        uint256 netScyReceived = YT.redeemYO(address(this));
-
-        SCY.safeTransfer(market, scyOwed);
-
-        if (receiver != address(this)) {
-            SCY.safeTransfer(receiver, netScyReceived - scyOwed);
-        }
     }
 }

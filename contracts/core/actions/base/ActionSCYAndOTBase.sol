@@ -18,10 +18,6 @@ abstract contract ActionSCYAndOTBase {
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor() //solhint-disable-next-line no-empty-blocks
-    {
-
-    }
 
     /**
      * @notice addLiquidity to the market, using both SCY & OT, the receiver will receive LP before
