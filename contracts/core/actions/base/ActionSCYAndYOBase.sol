@@ -6,6 +6,7 @@ import "../../../periphery/PendleJoeSwapHelperUpg.sol";
 import "../../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
+// solhint-disable no-empty-blocks
 abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;
 

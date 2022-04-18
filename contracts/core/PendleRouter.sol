@@ -13,6 +13,8 @@ import "../periphery/PermissionsV2Upg.sol";
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
 /// corresponding implementation contracts
+
+// solhint-disable no-empty-blocks
 contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg {
     address public immutable ACTION_CORE;
     address public immutable ACTION_YT;

@@ -70,7 +70,7 @@
     "use-forbidden-name": "warn",
     "var-name-mixedcase": "off",
     "visibility-modifier-order": "warn",
-    "contract-name-camelcase": "warn",
+    "contract-name-camelcase": "off",
     "event-name-camelcase": "warn",
     "func-param-name-mixedcase": "off",
     "modifier-name-mixedcase": "warn"
