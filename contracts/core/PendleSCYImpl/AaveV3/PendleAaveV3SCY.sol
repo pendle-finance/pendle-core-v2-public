@@ -8,6 +8,7 @@ import "../../../interfaces/IAaveRewardsController.sol";
 import "./WadRayMath.sol";
 
 contract PendleAaveV3SCY is SCYBaseWithRewards {
+    using Math for uint256;
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -17,9 +18,8 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     address public immutable aToken;
 
     uint256 public lastScyIndex;
+    uint256 public PRECISION_INDEX = 1e9;
 
-    // WIP: Aave reward controller can config to have more rewardsToken,
-    // hence rewardsLength should not be immutable
     constructor(
         string memory _name,
         string memory _symbol,
@@ -34,7 +34,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         pool = _aavePool;
         underlying = _underlying;
         rewardsController = _rewardsController;
-        IERC20(underlying).safeIncreaseAllowance(aToken, type(uint256).max);
+        IERC20(underlying).safeIncreaseAllowance(pool, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     {
         // aTokenScaled -> scy is 1:1
         if (token == aToken) {
-            amountScyOut = amountBase.rayDiv(scyIndexCurrent());
+            amountScyOut = amountBase;
         } else {
             IAavePool(pool).supply(underlying, amountBase, address(this), 0);
             _afterSendToken(underlying);
@@ -64,9 +64,9 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         returns (uint256 amountBaseOut)
     {
         if (token == aToken) {
-            amountBaseOut = amountScy.rayMul(scyIndexCurrent());
+            amountBaseOut = amountScy.rayMul(aaveIndexCurrent());
         } else {
-            uint256 amountBaseExpected = amountScy.rayMul(scyIndexCurrent());
+            uint256 amountBaseExpected = amountScy.rayMul(aaveIndexCurrent());
             IAavePool(pool).withdraw(underlying, amountBaseExpected, address(this));
             _afterSendToken(aToken);
             amountBaseOut = _afterReceiveToken(token);
@@ -78,9 +78,13 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
+        aaveIndexCurrent();
+        res = lastScyIndex;
+    }
+
+    function aaveIndexCurrent() public returns (uint256 res) {
         res = IAavePool(pool).getReserveNormalizedIncome(underlying);
-        lastScyIndex = res;
-        return res;
+        lastScyIndex = res / PRECISION_INDEX;
     }
 
     function scyIndexStored() public view override returns (uint256 res) {
@@ -88,7 +92,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {
-        return IAaveRewardsController(rewardsController).getRewardsByAsset(aToken);
+        res = IAaveRewardsController(rewardsController).getRewardsByAsset(aToken);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -118,15 +122,9 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
 
     /// @dev balance of aToken is saved by scaledBalanceOf instead
     function _afterReceiveToken(address token) internal virtual override returns (uint256 res) {
-        if (token == aToken) {
-            uint256 curBalance = IAToken(aToken).scaledBalanceOf(address(this));
-            res = (curBalance - lastBalanceOf[token]).rayMul(scyIndexCurrent());
-            lastBalanceOf[token] = curBalance;
-        } else {
-            uint256 curBalance = IERC20(token).balanceOf(address(this));
-            res = curBalance - lastBalanceOf[token];
-            lastBalanceOf[token] = curBalance;
-        }
+        uint256 curBalance = (token == aToken)? IAToken(aToken).scaledBalanceOf(address(this)) : IERC20(token).balanceOf(address(this));
+        res = curBalance - lastBalanceOf[token];
+        lastBalanceOf[token] = curBalance;
     }
 
     function _afterSendToken(address token) internal virtual override {
