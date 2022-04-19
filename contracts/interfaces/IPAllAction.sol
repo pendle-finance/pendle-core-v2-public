@@ -6,4 +6,4 @@ import "./IPActionCore.sol";
 import "./IPActionYT.sol";
 import "./IPRouterStatic.sol";
 
-interface IPAllAction is IPActionCore, IPActionYT, IPRouterStatic {}
+interface IPAllAction is IPActionCore, IPActionYT {}
