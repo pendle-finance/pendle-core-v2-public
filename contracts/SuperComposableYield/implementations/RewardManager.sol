@@ -142,8 +142,6 @@ abstract contract RewardManager is IRewardManager {
         lastRewardUpdateBlock = block.number;
         return true;
     }
-
-    function getRewardTokens() public view virtual returns (address[] memory);
-
+    
     function _redeemExternalReward() internal virtual;
 }
