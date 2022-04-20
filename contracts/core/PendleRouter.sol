@@ -57,7 +57,8 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
             sig == IPActionYT.swapScyForExactYt.selector ||
             sig == IPActionYT.swapExactScyForYt.selector ||
             sig == IPActionYT.swapExactRawTokenForYt.selector ||
-            sig == IPActionYT.swapExactYtForRawToken.selector
+            sig == IPActionYT.swapExactYtForRawToken.selector ||
+            sig == IPActionYT.swapYtForExactScy.selector
         ) {
             return ACTION_YT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {

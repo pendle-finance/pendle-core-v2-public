@@ -41,7 +41,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
         }
 
         IPMarket(market).swapExactOtForScy(
-            receiver,
+            address(YT),
             netYtOut, // exactOtIn = netYtOut
             1,
             abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver)
@@ -71,7 +71,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
         }
 
         IPMarket(market).swapScyForExactOt(
-            receiver,
+            address(YT),
             exactYtIn, // exactOtOut = exactYtIn
             type(uint256).max,
             abi.encode(ACTION_TYPE.SwapExactYtForScy, receiver)
@@ -92,12 +92,12 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
         uint256 exactYtOut,
         uint256 maxScyIn
     ) internal returns (uint256 netScyIn) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 preBalanceScy = SCY.balanceOf(receiver);
 
         IPMarket(market).swapExactOtForScy(
-            receiver,
+            address(YT),
             exactYtOut, // exactOtIn = exactYtOut
             1,
             abi.encode(ACTION_TYPE.SwapSCYForExactYt, msg.sender, receiver)

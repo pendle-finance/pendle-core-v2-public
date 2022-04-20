@@ -65,6 +65,15 @@ library Math {
         }
     }
 
+    function rawDivUp(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0) return 0;
+        else {
+            unchecked {
+                return (a + b - 1) / b;
+            }
+        }
+    }
+    
     function abs(int256 x) internal pure returns (uint256) {
         return uint256(x > 0 ? x : -x);
     }

@@ -34,8 +34,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         int256 scyToAccount,
         bytes calldata data
     ) external override onlyPendleMarket(msg.sender) {
-        (ACTION_TYPE swapType, ) = abi.decode(data, (ACTION_TYPE, bytes));
-
+        (ACTION_TYPE swapType, ) = abi.decode(data, (ACTION_TYPE, address));
         if (swapType == ACTION_TYPE.SwapExactScyForYt) {
             _swapExactScyForYt_callback(msg.sender, data);
         } else if (swapType == ACTION_TYPE.SwapSCYForExactYt) {
@@ -69,11 +68,12 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         uint256 scyReceived = scyToAccount.Uint();
 
         // otOwed = totalAsset
-        uint256 scyNeedTotal = SCYUtils.assetToScy(SCY.scyIndexCurrent(), otOwed);
+        uint256 scyIndex = SCY.scyIndexCurrent();
+        uint256 scyNeedTotal = SCYUtils.assetToScy(scyIndex, otOwed);
+        scyNeedTotal += scyIndex.rawDivUp(SCYUtils.ONE);
 
         uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
         SCY.safeTransferFrom(payer, address(YT), netScyToPull);
-
         YT.mintYO(market, receiver);
     }
 
