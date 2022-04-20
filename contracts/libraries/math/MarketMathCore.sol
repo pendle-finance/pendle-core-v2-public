@@ -13,12 +13,12 @@ struct MarketState {
     address treasury;
     /// immutable variables ///
     int256 scalarRoot;
-    uint256 feeRateRoot;
+    uint256 lnFeeRateRoot;
     uint256 rateOracleTimeWindow;
     uint256 expiry;
     uint256 reserveFeePercent; // base 100
     /// last trade data ///
-    uint256 lastImpliedRate;
+    uint256 lastLnImpliedRate;
     uint256 lastTradeTime;
 }
 
@@ -27,13 +27,13 @@ struct MarketPreCompute {
     int256 rateScalar;
     int256 totalAsset;
     int256 rateAnchor;
-    int256 feeRate;
+    int256 lnFeeRate;
 }
 
 struct MarketStorage {
     int128 totalOt;
     int128 totalScy;
-    uint112 lastImpliedRate;
+    uint112 lastLnImpliedRate;
     uint112 oracleRate;
     uint32 lastTradeTime;
 }
@@ -191,12 +191,12 @@ library MarketMathCore {
 
         res.rateAnchor = _getRateAnchor(
             market.totalOt,
-            market.lastImpliedRate,
+            market.lastLnImpliedRate,
             res.totalAsset,
             res.rateScalar,
             timeToExpiry
         );
-        res.feeRate = _getExchangeRateFromImpliedRate(market.feeRateRoot, timeToExpiry);
+        res.lnFeeRate = _getExchangeRateFromImpliedRate(market.lnFeeRateRoot, timeToExpiry);
     }
 
     function calcTrade(
@@ -213,7 +213,7 @@ library MarketMathCore {
         );
 
         int256 preFeeAssetToAccount = netOtToAccount.divDown(preFeeExchangeRate).neg();
-        int256 fee = comp.feeRate;
+        int256 fee = comp.lnFeeRate;
 
         if (netOtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
@@ -244,25 +244,25 @@ library MarketMathCore {
         market.totalOt = market.totalOt.subNoNeg(netOtToAccount);
         market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
 
-        market.lastImpliedRate = _getImpliedRate(
+        market.lastLnImpliedRate = _getLnImpliedRate(
             market.totalOt,
             index.scyToAsset(market.totalScy),
             comp.rateScalar,
             comp.rateAnchor,
             timeToExpiry
         );
-        require(market.lastImpliedRate != 0, "zero impliedRate");
+        require(market.lastLnImpliedRate != 0, "zero lnImpliedRate");
     }
 
     function _getRateAnchor(
         int256 totalOt,
-        uint256 lastImpliedRate,
+        uint256 lastLnImpliedRate,
         int256 totalAsset,
         int256 rateScalar,
         uint256 timeToExpiry
     ) internal pure returns (int256 rateAnchor) {
         // This is the exchange rate at the new time to expiry
-        int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastImpliedRate, timeToExpiry);
+        int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastLnImpliedRate, timeToExpiry);
 
         require(newExchangeRate >= Math.IONE, "exchange rate below 1");
 
@@ -278,31 +278,31 @@ library MarketMathCore {
     }
 
     /// @notice Calculates the current market implied rate.
-    /// @return impliedRate the implied rate
-    function _getImpliedRate(
+    /// @return lnImpliedRate the implied rate
+    function _getLnImpliedRate(
         int256 totalOt,
         int256 totalAsset,
         int256 rateScalar,
         int256 rateAnchor,
         uint256 timeToExpiry
-    ) internal pure returns (uint256 impliedRate) {
+    ) internal pure returns (uint256 lnImpliedRate) {
         // This will check for exchange rates < Math.IONE
         int256 exchangeRate = _getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
         uint256 lnRate = exchangeRate.ln().Uint();
 
-        impliedRate = (lnRate * IMPLIED_RATE_TIME) / timeToExpiry;
+        lnImpliedRate = (lnRate * IMPLIED_RATE_TIME) / timeToExpiry;
     }
 
     /// @notice Converts an implied rate to an exchange rate given a time to expiry. The
     /// formula is E = e^rt
-    function _getExchangeRateFromImpliedRate(uint256 impliedRate, uint256 timeToExpiry)
+    function _getExchangeRateFromImpliedRate(uint256 lnImpliedRate, uint256 timeToExpiry)
         internal
         pure
         returns (int256 exchangeRate)
     {
-        uint256 rt = (impliedRate * timeToExpiry) / IMPLIED_RATE_TIME;
+        uint256 rt = (lnImpliedRate * timeToExpiry) / IMPLIED_RATE_TIME;
 
         exchangeRate = LogExpMath.exp(rt.Int());
     }
@@ -361,7 +361,7 @@ library MarketMathCore {
         require(rateScalar > 0, "rateScalar underflow");
     }
 
-    function setInitialImpliedRate(
+    function setInitialLnImpliedRate(
         MarketState memory market,
         SCYIndex index,
         int256 initialAnchor,
@@ -382,7 +382,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        market.lastImpliedRate = _getImpliedRate(
+        market.lastLnImpliedRate = _getLnImpliedRate(
             market.totalOt,
             totalAsset,
             rateScalar,
@@ -398,14 +398,14 @@ library MarketMathCore {
     {
         // This can occur when using a view function get to a market state in the past
         if (market.lastTradeTime > blockTime) {
-            market.oracleRate = market.lastImpliedRate;
+            market.oracleRate = market.lastLnImpliedRate;
             return market.oracleRate;
         }
 
         uint256 timeDiff = blockTime - market.lastTradeTime;
         if (timeDiff > market.rateOracleTimeWindow) {
-            // If past the time window just return the market.lastImpliedRate
-            market.oracleRate = market.lastImpliedRate;
+            // If past the time window just return the market.lastLnImpliedRate
+            market.oracleRate = market.lastLnImpliedRate;
             return market.oracleRate;
         }
 

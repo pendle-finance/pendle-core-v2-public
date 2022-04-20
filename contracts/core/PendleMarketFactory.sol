@@ -12,7 +12,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
 
     struct MarketConfig {
         address treasury; // 160 bit
-        uint96 feeRateRoot; // 96 bit
+        uint96 lnFeeRateRoot; // 96 bit
         // 1 SLOT
         uint32 rateOracleTimeWindow;
         uint8 reserveFeePercent;
@@ -28,14 +28,14 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         address _governanceManager,
         address _yieldContractFactory,
         address _treasury,
-        uint96 _feeRateRoot,
+        uint96 _lnFeeRateRoot,
         uint32 _rateOracleTimeWindow,
         uint8 _reserveFeePercent
     ) PermissionsV2Upg(_governanceManager) {
         yieldContractFactory = _yieldContractFactory;
 
         setTreasury(_treasury);
-        setFeeRateRoot(_feeRateRoot);
+        setlnFeeRateRoot(_lnFeeRateRoot);
         setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
     }
@@ -71,9 +71,9 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         marketConfig.treasury = newTreasury;
     }
 
-    function setFeeRateRoot(uint96 newFeeRateRoot) public onlyGovernance {
+    function setlnFeeRateRoot(uint96 newlnFeeRateRoot) public onlyGovernance {
         // TODO: hard cap on the fee
-        marketConfig.feeRateRoot = newFeeRateRoot;
+        marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
     }
 
     function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {

@@ -77,7 +77,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         // initializing the market
         if (lpToReserve != 0) {
-            market.setInitialImpliedRate(index, initialAnchor, block.timestamp);
+            market.setInitialLnImpliedRate(index, initialAnchor, block.timestamp);
             _mint(address(1), lpToReserve);
         }
 
@@ -197,7 +197,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         (
             market.treasury,
-            market.feeRateRoot,
+            market.lnFeeRateRoot,
             market.rateOracleTimeWindow,
             market.reserveFeePercent
         ) = IPMarketFactory(factory).marketConfig();
@@ -205,7 +205,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
 
-        market.lastImpliedRate = store.lastImpliedRate;
+        market.lastLnImpliedRate = store.lastLnImpliedRate;
         market.lastTradeTime = store.lastTradeTime;
 
         if (updateRateOracle) {
@@ -218,7 +218,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
 
         store.totalOt = market.totalOt.Int128();
         store.totalScy = market.totalScy.Int128();
-        store.lastImpliedRate = market.lastImpliedRate.Uint112();
+        store.lastLnImpliedRate = market.lastLnImpliedRate.Uint112();
         store.oracleRate = market.oracleRate.Uint112();
         store.lastTradeTime = market.lastTradeTime.Uint32();
     }

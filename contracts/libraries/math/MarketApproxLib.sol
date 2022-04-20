@@ -360,7 +360,7 @@ library MarketApproxLib {
         pure
         returns (uint256)
     {
-        int256 logitP = (Math.IONE.mulDown(comp.feeRate) - comp.rateAnchor)
+        int256 logitP = (Math.IONE.mulDown(comp.lnFeeRate) - comp.rateAnchor)
             .mulDown(comp.rateScalar)
             .exp();
         int256 proportion = logitP.divDown(logitP + Math.IONE);

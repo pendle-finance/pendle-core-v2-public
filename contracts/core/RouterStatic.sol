@@ -87,7 +87,7 @@ contract RouterStatic is IPRouterStatic {
     function getOtImpliedYield(address market) external view returns (int256) {
         MarketState memory state = IPMarket(market).readState(false);
 
-        int256 lnImpliedRate = (state.lastImpliedRate).Int();
+        int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();
     }
 

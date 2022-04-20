@@ -12,7 +12,7 @@ interface IPMarketFactory {
         view
         returns (
             address treasury,
-            uint96 feeRateRoot,
+            uint96 lnFeeRateRoot,
             uint32 rateOracleTimeWindow,
             uint8 reserveFeePercent
         );
