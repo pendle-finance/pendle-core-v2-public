@@ -66,9 +66,8 @@ contract PendleYearnVaultScy is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = Math.max(lastScyIndex, IYearnVault(yvToken).pricePerShare());
-        lastScyIndex = res;
-        return res;
+        lastScyIndex = IYearnVault(yvToken).pricePerShare();
+        return lastScyIndex;
     }
 
     function scyIndexStored() public view override returns (uint256 res) {

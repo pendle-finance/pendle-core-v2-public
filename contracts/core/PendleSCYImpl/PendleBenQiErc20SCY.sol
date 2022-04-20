@@ -79,14 +79,13 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
                                SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = Math.max(lastScyIndex, IQiToken(qiToken).exchangeRateCurrent());
-        lastScyIndex = res;
-        return res;
+    function scyIndexCurrent() public virtual override returns (uint256) {
+        lastScyIndex = IQiToken(qiToken).exchangeRateCurrent();
+        return lastScyIndex;
     }
 
-    function scyIndexStored() public view override returns (uint256 res) {
-        res = lastScyIndex;
+    function scyIndexStored() public view override returns (uint256) {
+        return lastScyIndex;
     }
 
     function getRewardTokens() public view override returns (address[] memory res) {

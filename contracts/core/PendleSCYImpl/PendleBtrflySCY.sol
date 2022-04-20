@@ -42,9 +42,11 @@ contract PendleBtrflyScy is SCYBase {
         if (token == BTRFLY) {
             amountScyOut = IWXBTRFLY(wxBTRFLY).wrapFromBTRFLY(amountBase);
             _afterSendToken(BTRFLY);
+            _afterReceiveToken(wxBTRFLY);
         } else if (token == xBTRFLY) {
             amountScyOut = IWXBTRFLY(wxBTRFLY).wrapFromxBTRFLY(amountBase);
             _afterSendToken(xBTRFLY);
+            _afterReceiveToken(wxBTRFLY);
         } else {
             // 1 wxBTRFLY = 1 SCY
             amountScyOut = amountBase;
@@ -73,14 +75,13 @@ contract PendleBtrflyScy is SCYBase {
                                SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = Math.max(lastScyIndex, IWXBTRFLY(wxBTRFLY).xBTRFLYValue(Math.ONE));
-        lastScyIndex = res;
-        return res;
+    function scyIndexCurrent() public virtual override returns (uint256) {
+        lastScyIndex = IWXBTRFLY(wxBTRFLY).xBTRFLYValue(Math.ONE);
+        return lastScyIndex;
     }
 
-    function scyIndexStored() public view override returns (uint256 res) {
-        res = lastScyIndex;
+    function scyIndexStored() public view override returns (uint256) {
+        return lastScyIndex;
     }
 
     /*///////////////////////////////////////////////////////////////
