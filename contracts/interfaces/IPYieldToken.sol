@@ -25,7 +25,7 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
         view
         returns (uint256 lastScyIndex, uint256 dueInterest);
 
-    function getScyIndexBeforeExpiry() external returns (uint256 res);
+    function getScyIndex() external returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry);
 
     function withdrawFeeToTreasury() external;
 
