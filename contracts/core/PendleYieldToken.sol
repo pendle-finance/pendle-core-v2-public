@@ -211,7 +211,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
         if (isExpired()) {
             lastIndexBeforeExpiry = lastScyIndexBeforeExpiry;
         } else {
-            lastIndexBeforeExpiry = currentIndex;
+            lastScyIndexBeforeExpiry = lastIndexBeforeExpiry = currentIndex;
         }
     }
 
