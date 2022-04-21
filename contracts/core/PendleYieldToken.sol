@@ -252,7 +252,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
             IERC20(SCY).safeTransfer(treasury, totalScyFee);
             _afterTransferOutSCY();
         }
-        emit WithdrawTokenToTreasury(amountRewardsOut, totalScyFee);
+        emit WithdrawFeeToTreasury(amountRewardsOut, totalScyFee);
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {

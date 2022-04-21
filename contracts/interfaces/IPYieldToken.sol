@@ -13,7 +13,7 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
         uint256 interestOut
     );
 
-    event WithdrawTokenToTreasury(
+    event WithdrawFeeToTreasury(
         uint256[] amountRewardsOut,
         uint256 scyOut
     );
