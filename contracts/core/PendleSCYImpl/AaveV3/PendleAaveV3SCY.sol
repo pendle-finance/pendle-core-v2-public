@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
-pragma abicoder v2;
 import "../../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
 import "../../../interfaces/IAToken.sol";
 import "../../../interfaces/IAavePool.sol";
@@ -18,7 +17,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     address public immutable aToken;
 
     uint256 public lastScyIndex;
-    uint256 public PRECISION_INDEX = 1e9;
+    uint256 public constant PRECISION_INDEX = 1e9;
 
     constructor(
         string memory _name,
@@ -123,7 +122,9 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
 
     /// @dev balance of aToken is saved by scaledBalanceOf instead
     function _afterReceiveToken(address token) internal virtual override returns (uint256 res) {
-        uint256 curBalance = (token == aToken)? IAToken(aToken).scaledBalanceOf(address(this)) : IERC20(token).balanceOf(address(this));
+        uint256 curBalance = (token == aToken)
+            ? IAToken(aToken).scaledBalanceOf(address(this))
+            : IERC20(token).balanceOf(address(this));
         res = curBalance - lastBalanceOf[token];
         lastBalanceOf[token] = curBalance;
     }

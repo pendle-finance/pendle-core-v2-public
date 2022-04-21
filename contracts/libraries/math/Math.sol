@@ -22,8 +22,6 @@ library Math {
     uint256 internal constant ONE = 1e18; // 18 decimal places
     int256 internal constant IONE = 1e18; // 18 decimal places
 
-    uint256 internal constant MAX_POW_RELATIVE_ERROR = 10000; // 10^(-14)
-
     function subMax0(uint256 a, uint256 b) internal pure returns (uint256) {
         unchecked {
             return (a >= b ? a - b : 0);
@@ -73,7 +71,7 @@ library Math {
             }
         }
     }
-    
+
     function abs(int256 x) internal pure returns (uint256) {
         return uint256(x > 0 ? x : -x);
     }

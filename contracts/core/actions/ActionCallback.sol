@@ -26,6 +26,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _marketFactory) {
+        require(_marketFactory != address(0), "zero address");
         marketFactory = _marketFactory;
     }
 
@@ -36,23 +37,31 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
     ) external override onlyPendleMarket(msg.sender) {
         (ACTION_TYPE swapType, ) = abi.decode(data, (ACTION_TYPE, address));
         if (swapType == ACTION_TYPE.SwapExactScyForYt) {
-            _swapExactScyForYt_callback(msg.sender, data);
+            _swapExactScyForYt_callback(msg.sender, otToAccount, scyToAccount, data);
         } else if (swapType == ACTION_TYPE.SwapSCYForExactYt) {
             _swapScyForExactYt_callback(msg.sender, otToAccount, scyToAccount, data);
         } else if (
             swapType == ACTION_TYPE.SwapYtForExactScy || swapType == ACTION_TYPE.SwapExactYtForScy
         ) {
-            _swapYtForScy_callback(msg.sender, scyToAccount, data);
+            _swapYtForScy_callback(msg.sender, otToAccount, scyToAccount, data);
         } else {
             require(false, "unknown swapType");
         }
     }
 
-    function _swapExactScyForYt_callback(address market, bytes calldata data) internal {
+    function _swapExactScyForYt_callback(
+        address market,
+        int256 otToAccount,
+        int256, /*scyToAccount*/
+        bytes calldata data
+    ) internal {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
         (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
 
-        YT.mintYO(market, receiver);
+        uint256 otOwed = otToAccount.abs();
+        uint256 amountYOout = YT.mintYO(market, receiver);
+
+        require(amountYOout >= otOwed, "insufficient ot to pay");
     }
 
     function _swapScyForExactYt_callback(
@@ -72,9 +81,14 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         uint256 scyNeedTotal = SCYUtils.assetToScy(scyIndex, otOwed);
         scyNeedTotal += scyIndex.rawDivUp(SCYUtils.ONE);
 
-        uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
-        SCY.safeTransferFrom(payer, address(YT), netScyToPull);
-        YT.mintYO(market, receiver);
+        {
+            uint256 netScyToPull = scyNeedTotal.subMax0(scyReceived);
+            SCY.safeTransferFrom(payer, address(YT), netScyToPull);
+        }
+
+        uint256 amountYOout = YT.mintYO(market, receiver);
+
+        require(amountYOout >= otOwed, "insufficient ot to pay");
     }
 
     /**
@@ -82,6 +96,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
     */
     function _swapYtForScy_callback(
         address market,
+        int256, /*otToAccount*/
         int256 scyToAccount,
         bytes calldata data
     ) internal {

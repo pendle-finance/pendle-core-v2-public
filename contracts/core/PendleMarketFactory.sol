@@ -32,6 +32,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         uint32 _rateOracleTimeWindow,
         uint8 _reserveFeePercent
     ) PermissionsV2Upg(_governanceManager) {
+        require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
 
         setTreasury(_treasury);
@@ -54,7 +55,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         );
 
         market = address(new PendleMarket(OT, scalarRoot, initialAnchor));
-        markets[OT].add(market);
+        require(markets[OT].add(market), "market add failed");
 
         emit CreateNewMarket(OT, scalarRoot, initialAnchor);
     }

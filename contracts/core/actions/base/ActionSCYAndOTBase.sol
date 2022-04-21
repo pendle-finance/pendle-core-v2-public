@@ -59,7 +59,7 @@ abstract contract ActionSCYAndOTBase {
             IERC20(OT).safeTransferFrom(msg.sender, market, otUsed);
         }
 
-        IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode());
+        IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode()); // ignore return
     }
 
     /**
@@ -88,7 +88,7 @@ abstract contract ActionSCYAndOTBase {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
 
-        IPMarket(market).removeLiquidity(receiver, lpToRemove, abi.encode());
+        IPMarket(market).removeLiquidity(receiver, lpToRemove, abi.encode()); // ignore return
     }
 
     /**
@@ -142,7 +142,7 @@ abstract contract ActionSCYAndOTBase {
             IERC20(OT).safeTransferFrom(msg.sender, market, netOtIn);
         }
 
-        IPMarket(market).swapExactOtForScy(receiver, netOtIn, exactScyOut, abi.encode());
+        IPMarket(market).swapExactOtForScy(receiver, netOtIn, exactScyOut, abi.encode()); // ignore return
     }
 
     /**
@@ -175,7 +175,7 @@ abstract contract ActionSCYAndOTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode());
+        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode()); // ignore return
     }
 
     function _swapExactScyForOt(
@@ -199,6 +199,6 @@ abstract contract ActionSCYAndOTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode());
+        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode()); // ignore return
     }
 }

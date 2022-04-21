@@ -54,6 +54,9 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         address _treasury,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) {
+        require(_expiryDivisor != 0, "zero value");
+        require(treasury != address(0), "zero address");
+
         expiryDivisor = _expiryDivisor;
         interestFeeRate = _interestFeeRate;
         treasury = _treasury;
@@ -103,6 +106,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     }
 
     function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {
+        require(newExpiryDivisor != 0, "zero value");
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
@@ -113,6 +117,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     }
 
     function setTreasury(address newTreasury) external onlyGovernance {
+        require(newTreasury != address(0), "zero address");
         treasury = newTreasury;
         emit SetTreasury(treasury);
     }

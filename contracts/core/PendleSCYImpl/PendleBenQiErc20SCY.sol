@@ -28,11 +28,18 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
         address _QI,
         address _WAVAX
     ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals) {
-        underlying = _underlying;
+        require(
+            _qiToken != address(0) &&
+                _QI != address(0) &&
+                _WAVAX != address(0) &&
+                _comptroller != address(0),
+            "zero address"
+        );
         qiToken = _qiToken;
         QI = _QI;
         WAVAX = _WAVAX;
         comptroller = _comptroller;
+        underlying = _underlying;
         IERC20(underlying).safeIncreaseAllowance(qiToken, type(uint256).max);
     }
 

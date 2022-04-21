@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
-pragma abicoder v2;
+
 import "../../SuperComposableYield/implementations/SCYBase.sol";
 import "../../interfaces/IWXBTRFLY.sol";
 import "../../interfaces/IREDACTEDStaking.sol";
@@ -23,6 +23,7 @@ contract PendleBtrflyScy is SCYBase {
         address _xBTRFLY,
         address _wxBTRFLY
     ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
+        require(_wxBTRFLY != address(0), "zero address");
         BTRFLY = _BTRFLY;
         xBTRFLY = _xBTRFLY;
         wxBTRFLY = _wxBTRFLY;

@@ -26,7 +26,6 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         uint8 __assetDecimals
     )
         SCYBase(_name, _symbol, __scydecimals, __assetDecimals)
-        RewardManager()
     // solhint-disable-next-line no-empty-blocks
     {
 

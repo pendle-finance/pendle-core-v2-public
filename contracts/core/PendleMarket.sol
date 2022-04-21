@@ -194,11 +194,9 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     function redeemScyReward() external returns (uint256[] memory outAmounts) {
         outAmounts = ISuperComposableYield(SCY).redeemReward(address(this));
         address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
+        address treasury = IPMarketFactory(factory).treasury();
         for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransfer(
-                IPMarketFactory(factory).treasury(),
-                outAmounts[i]
-            );
+            IERC20(rewardTokens[i]).safeTransfer(treasury, outAmounts[i]);
         }
     }
 
@@ -223,7 +221,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         market.lastTradeTime = store.lastTradeTime;
 
         if (updateRateOracle) {
-            market.updateNewRateOracle(block.timestamp);
+            market.oracleRate = market.getNewRateOracle(block.timestamp);
         }
     }
 

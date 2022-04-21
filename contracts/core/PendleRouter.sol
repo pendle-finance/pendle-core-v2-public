@@ -26,6 +26,12 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         address _ACTION_CALLBACK,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) initializer {
+        require(
+            _ACTION_CORE != address(0) &&
+                _ACTION_YT != address(0) &&
+                _ACTION_CALLBACK != address(0),
+            "zero address"
+        );
         ACTION_CORE = _ACTION_CORE;
         ACTION_YT = _ACTION_YT;
         ACTION_CALLBACK = _ACTION_CALLBACK;

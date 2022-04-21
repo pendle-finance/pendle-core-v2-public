@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
-pragma abicoder v2;
+
 import "../../SuperComposableYield/implementations/SCYBase.sol";
 import "../../interfaces/IYearnVault.sol";
 
@@ -20,6 +20,7 @@ contract PendleYearnVaultScy is SCYBase {
         address _underlying,
         address _yvToken
     ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
+        require(_yvToken != address(0), "zero address");
         yvToken = _yvToken;
         underlying = _underlying;
         IERC20(underlying).safeIncreaseAllowance(yvToken, type(uint256).max);
@@ -39,7 +40,7 @@ contract PendleYearnVaultScy is SCYBase {
             amountScyOut = amountBase;
         } else {
             // must be underlying
-            IYearnVault(yvToken).deposit(amountBase);
+            IYearnVault(yvToken).deposit(amountBase); // ignore return
             _afterSendToken(underlying);
             amountScyOut = _afterReceiveToken(yvToken);
         }
@@ -55,7 +56,7 @@ contract PendleYearnVaultScy is SCYBase {
             amountBaseOut = amountScy;
         } else {
             // must be underlying
-            IYearnVault(yvToken).withdraw(amountScy);
+            IYearnVault(yvToken).withdraw(amountScy); // ignore return
             _afterSendToken(yvToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }

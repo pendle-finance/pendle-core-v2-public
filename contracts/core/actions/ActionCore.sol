@@ -19,10 +19,7 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         address _joeRouter,
         address _joeFactory,
         address _marketFactory
-    )
-        ActionSCYAndYOBase(_joeRouter, _joeFactory)
-        ActionSCYAndOTBase()
-    //solhint-disable-next-line no-empty-blocks
+    ) ActionSCYAndYOBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
     {
 
     }

@@ -13,6 +13,7 @@ contract PendleGovernanceManager {
     }
 
     constructor(address _governance) {
+        require(_governance != address(0), "zero address");
         governance = _governance;
     }
 
@@ -28,9 +29,10 @@ contract PendleGovernanceManager {
 
     /**
      * @dev Allows the current governance to set the pendingGovernance address.
-     * @param _governance The address to transfer ownership to.
+     * @param newGovernance The address to transfer ownership to.
      */
-    function transferGovernance(address _governance) external onlyGovernance {
-        pendingGovernance = _governance;
+    function transferGovernance(address newGovernance) external onlyGovernance {
+        require(newGovernance != address(0), "zero address");
+        pendingGovernance = newGovernance;
     }
 }

@@ -50,6 +50,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
         uint8 __decimals,
         uint256 _expiry
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
+        require(_SCY != address(0) && _OT != address(0), "zero address");
         SCY = _SCY;
         OT = _OT;
     }
@@ -198,7 +199,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
     }
 
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).redeemReward(address(this));
+        ISuperComposableYield(SCY).redeemReward(address(this)); // ignore return
     }
 
     function getRewardTokens()
