@@ -4,6 +4,6 @@ pragma solidity 0.8.9;
 
 import "./IPActionCore.sol";
 import "./IPActionYT.sol";
-import "./IPRouterStatic.sol";
+import "./IPActionRedeem.sol";
 
-interface IPAllAction is IPActionCore, IPActionYT {}
+interface IPAllAction is IPActionCore, IPActionYT, IPActionRedeem {}
