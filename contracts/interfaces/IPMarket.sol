@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 import "./IPBaseToken.sol";
-import "./IPOwnershipToken.sol";
+import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
 import "../libraries/math/MarketMathCore.sol";
 
@@ -24,14 +24,11 @@ interface IPMarket is IPBaseToken {
     event Swap(
         address indexed receiver,
         int256 otToAccount,
-        int256 scyToAccount, 
-        uint256 netScyToReserve 
+        int256 scyToAccount,
+        uint256 netScyToReserve
     );
 
-    event UpdateImpliedRate(
-        uint256 indexed timestamp,
-        uint256 lnLastImpliedRate
-    );
+    event UpdateImpliedRate(uint256 indexed timestamp, uint256 lnLastImpliedRate);
 
     function addLiquidity(
         address receiver,
@@ -52,23 +49,23 @@ interface IPMarket is IPBaseToken {
         bytes calldata data
     ) external returns (uint256 scyToAccount, uint256 otToAccount);
 
-    function swapExactOtForScy(
+    function swapExactPtForScy(
         address receiver,
-        uint256 exactOtIn,
+        uint256 exactPtIn,
         uint256 minScyOut,
         bytes calldata data
     ) external returns (uint256 netScyOut, uint256 netScyToReserve);
 
-    function swapScyForExactOt(
+    function swapScyForExactPt(
         address receiver,
-        uint256 exactOtOut,
+        uint256 exactPtOut,
         uint256 maxScyIn,
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
     function readState(bool updateRateOracle) external view returns (MarketState memory market);
 
-    function OT() external view returns (address);
+    function PT() external view returns (address);
 
     function YT() external view returns (address);
 
@@ -79,7 +76,7 @@ interface IPMarket is IPBaseToken {
         view
         returns (
             ISuperComposableYield _SCY,
-            IPOwnershipToken _OT,
+            IPPrincipalToken _OT,
             IPYieldToken _YT
         );
 }

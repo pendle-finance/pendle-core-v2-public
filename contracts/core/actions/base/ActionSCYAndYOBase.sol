@@ -26,18 +26,18 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
         uint256 netRawTokenOut
     );
 
-    event MintYoFromRawToken(
+    event MintPyFromRawToken(
         address indexed user,
         address indexed rawTokenIn,
         uint256 netRawTokenIn,
         address indexed YT,
-        uint256 netYoOut
+        uint256 netPyOut
     );
 
-    event RedeemYoToRawToken(
+    event RedeemPyToRawToken(
         address indexed user,
         address indexed YT,
-        uint256 netYoIn,
+        uint256 netPyIn,
         address indexed rawTokenOut,
         uint256 netRawTokenOut
     );
@@ -122,56 +122,56 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
     }
 
     /**
-     * @notice swap rawToken to baseToken -> convert to SCY -> convert to OT + YT
+     * @notice swap rawToken to baseToken -> convert to SCY -> convert to PT + YT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - same as mintScyFromRawToken, except the receiver of SCY will be the YT contract, then mintYO
-     will be called, minting OT + YT directly to receiver
+     will be called, minting PT + YT directly to receiver
      */
-    function _mintYoFromRawToken(
+    function _mintPyFromRawToken(
         uint256 netRawTokenIn,
         address YT,
-        uint256 minYoOut,
+        uint256 minPyOut,
         address receiver,
         address[] calldata path,
         bool doPull
-    ) internal returns (uint256 netYoOut) {
+    ) internal returns (uint256 netPyOut) {
         address SCY = IPYieldToken(YT).SCY();
         _mintScyFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
-        netYoOut = IPYieldToken(YT).mintYO(receiver, receiver);
-        require(netYoOut >= minYoOut, "insufficient YO out");
-        emit MintYoFromRawToken(msg.sender, path[0], netRawTokenIn, YT, netYoOut);
+        netPyOut = IPYieldToken(YT).mintYO(receiver, receiver);
+        require(netPyOut >= minPyOut, "insufficient PY out");
+        emit MintPyFromRawToken(msg.sender, path[0], netRawTokenIn, YT, netPyOut);
     }
 
     /**
-     * @notice redeem OT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to rawToken
+     * @notice redeem PT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to rawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - OT (+ YT if not expired) is transferred to the YT contract
+     - PT (+ YT if not expired) is transferred to the YT contract
      - redeemYO is called, redeem all outcome SCY to the SCY contract
      - The rest is the same as redeemScyToRawToken (except the first SCY transfer is skipped)
      */
-    function _redeemYoToRawToken(
+    function _redeemPyToRawToken(
         address YT,
-        uint256 netYoIn,
+        uint256 netPyIn,
         uint256 minRawTokenOut,
         address receiver,
         address[] memory path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
-        address OT = IPYieldToken(YT).OT();
+        address PT = IPYieldToken(YT).PT();
         address SCY = IPYieldToken(YT).SCY();
 
         if (doPull) {
             bool isNeedToBurnYt = (!IPBaseToken(YT).isExpired());
-            IERC20(OT).safeTransferFrom(msg.sender, YT, netYoIn);
-            if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netYoIn);
+            IERC20(PT).safeTransferFrom(msg.sender, YT, netPyIn);
+            if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }
 
         IPYieldToken(YT).redeemYO(SCY); // ignore return
 
         netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
 
-        emit RedeemYoToRawToken(msg.sender, YT, netYoIn, path[path.length - 1], netRawTokenOut);
+        emit RedeemPyToRawToken(msg.sender, YT, netPyIn, path[path.length - 1], netRawTokenOut);
     }
 }

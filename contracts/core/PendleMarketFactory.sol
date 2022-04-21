@@ -42,27 +42,27 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     }
 
     function createNewMarket(
-        address OT,
+        address PT,
         int256 scalarRoot,
         int256 initialAnchor
     ) external returns (address market) {
-        address SCY = IPOwnershipToken(OT).SCY();
-        uint256 expiry = IPOwnershipToken(OT).expiry();
+        address SCY = IPPrincipalToken(PT).SCY();
+        uint256 expiry = IPPrincipalToken(PT).expiry();
 
         require(
-            IPYieldContractFactory(yieldContractFactory).getOT(SCY, expiry) == OT,
+            IPYieldContractFactory(yieldContractFactory).getOT(SCY, expiry) == PT,
             "INVALID_OT"
         );
 
-        market = address(new PendleMarket(OT, scalarRoot, initialAnchor));
-        require(markets[OT].add(market), "market add failed");
+        market = address(new PendleMarket(PT, scalarRoot, initialAnchor));
+        require(markets[PT].add(market), "market add failed");
 
-        emit CreateNewMarket(OT, scalarRoot, initialAnchor);
+        emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
 
     function isValidMarket(address market) external view returns (bool) {
-        address OT = IPMarket(market).OT();
-        return markets[OT].contains(market);
+        address PT = IPMarket(market).PT();
+        return markets[PT].contains(market);
     }
 
     function treasury() external view returns (address) {

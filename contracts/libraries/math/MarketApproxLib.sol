@@ -20,7 +20,7 @@ library MarketApproxLib {
     using SCYIndexLib for SCYIndex;
     using MarketMathCore for MarketState;
 
-    function approxSwapOtForExactScy(
+    function approxSwapPtForExactScy(
         MarketState memory market,
         SCYIndex index,
         uint256 minScyOut,
@@ -30,7 +30,7 @@ library MarketApproxLib {
         internal
         pure
         returns (
-            uint256, /*netOtIn*/
+            uint256, /*netPtIn*/
             uint256 /*netScyOut*/
         )
     {
@@ -50,7 +50,7 @@ library MarketApproxLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
         if (approx.guessMax == type(uint256).max) {
-            approx.guessMax = calcMaxOtIn(market.totalOt, comp.totalAsset);
+            approx.guessMax = calcMaxPtIn(market.totalPt, comp.totalAsset);
         }
 
         /// ------------------------------------------------------------
@@ -67,7 +67,7 @@ library MarketApproxLib {
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = updateSlope(
-                market.totalOt,
+                market.totalPt,
                 otInGuess,
                 comp,
                 largestGoodSlope
@@ -98,7 +98,7 @@ library MarketApproxLib {
         revert("approx fail");
     }
 
-    function approxSwapExactScyForOt(
+    function approxSwapExactScyForPt(
         MarketState memory market,
         SCYIndex index,
         uint256 maxScyIn,
@@ -108,7 +108,7 @@ library MarketApproxLib {
         internal
         pure
         returns (
-            uint256, /*netOtOut*/
+            uint256, /*netPtOut*/
             uint256 /*netScyIn*/
         )
     {
@@ -126,7 +126,7 @@ library MarketApproxLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
         if (approx.guessMax == type(uint256).max) {
-            approx.guessMax = calcMaxOtOut(market.totalOt, comp);
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
         }
 
         /// ------------------------------------------------------------
@@ -197,7 +197,7 @@ library MarketApproxLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
         if (approx.guessMax == type(uint256).max) {
-            approx.guessMax = calcMaxOtIn(market.totalOt, comp.totalAsset);
+            approx.guessMax = calcMaxPtIn(market.totalPt, comp.totalAsset);
         }
 
         /// ------------------------------------------------------------
@@ -217,7 +217,7 @@ library MarketApproxLib {
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = updateSlope(
-                market.totalOt,
+                market.totalPt,
                 slot.otInGuess,
                 comp,
                 largestGoodSlope
@@ -277,7 +277,7 @@ library MarketApproxLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
         if (approx.guessMax == type(uint256).max) {
-            approx.guessMax = calcMaxOtOut(market.totalOt, comp);
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
         }
 
         /// ------------------------------------------------------------
@@ -318,7 +318,7 @@ library MarketApproxLib {
     }
 
     function updateSlope(
-        int256 totalOt,
+        int256 totalPt,
         uint256 otInGuess,
         MarketPreCompute memory comp,
         uint256 largestGoodSlope
@@ -328,34 +328,34 @@ library MarketApproxLib {
         }
         // it's not guaranteed that the current slop is good
         // we therefore have to recalculate the slope
-        int256 slope = slopeFactor(totalOt, otInGuess.neg(), comp);
+        int256 slope = slopeFactor(totalPt, otInGuess.neg(), comp);
         if (slope >= 0) return (true, otInGuess);
         else return (false, largestGoodSlope);
     }
 
-    // otToMarket < totalAsset && totalOt
+    // otToMarket < totalAsset && totalPt
     function slopeFactor(
-        int256 totalOt,
+        int256 totalPt,
         int256 otToAccount,
         MarketPreCompute memory comp
     ) internal pure returns (int256) {
         int256 otToMarket = -otToAccount;
-        int256 diffAssetOtToMarket = comp.totalAsset - otToMarket;
-        int256 sumOt = otToMarket + totalOt;
+        int256 diffAssetPtToMarket = comp.totalAsset - otToMarket;
+        int256 sumPt = otToMarket + totalPt;
 
-        require(diffAssetOtToMarket > 0 && sumOt > 0, "invalid otToMarket");
+        require(diffAssetPtToMarket > 0 && sumPt > 0, "invalid otToMarket");
 
-        int256 part1 = (otToMarket * (totalOt + comp.totalAsset)).divDown(
-            sumOt * diffAssetOtToMarket
+        int256 part1 = (otToMarket * (totalPt + comp.totalAsset)).divDown(
+            sumPt * diffAssetPtToMarket
         );
 
-        int256 part2 = sumOt.divDown(diffAssetOtToMarket).ln();
+        int256 part2 = sumPt.divDown(diffAssetPtToMarket).ln();
         int256 part3 = Math.IONE.divDown(comp.rateScalar);
 
         return comp.rateAnchor - (part1 - part2).mulDown(part3);
     }
 
-    function calcMaxOtOut(int256 totalOt, MarketPreCompute memory comp)
+    function calcMaxPtOut(int256 totalPt, MarketPreCompute memory comp)
         internal
         pure
         returns (uint256)
@@ -364,14 +364,14 @@ library MarketApproxLib {
             .mulDown(comp.rateScalar)
             .exp();
         int256 proportion = logitP.divDown(logitP + Math.IONE);
-        int256 numerator = proportion.mulDown(totalOt + comp.totalAsset);
-        int256 maxOtOut = totalOt - numerator;
+        int256 numerator = proportion.mulDown(totalPt + comp.totalAsset);
+        int256 maxPtOut = totalPt - numerator;
         // TODO: 999 & 1000 are magic numbers
-        return (maxOtOut.Uint() * 999) / 1000;
+        return (maxPtOut.Uint() * 999) / 1000;
     }
 
-    function calcMaxOtIn(int256 totalOt, int256 totalAsset) internal pure returns (uint256) {
-        return Math.min(totalOt, totalAsset).Uint() - 1;
+    function calcMaxPtIn(int256 totalPt, int256 totalAsset) internal pure returns (uint256) {
+        return Math.min(totalPt, totalAsset).Uint() - 1;
     }
 
     function isValidApproxParams(ApproxParams memory approx) internal pure returns (bool) {

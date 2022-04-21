@@ -4,7 +4,7 @@ pragma solidity 0.8.9;
 import "./PendleBaseToken.sol";
 import "../SuperComposableYield/ISuperComposableYield.sol";
 import "../interfaces/IPYieldToken.sol";
-import "../interfaces/IPOwnershipToken.sol";
+import "../interfaces/IPPrincipalToken.sol";
 import "../libraries/math/Math.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../SuperComposableYield/SCYUtils.sol";
@@ -30,7 +30,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     address public immutable SCY;
-    address public immutable OT;
+    address public immutable PT;
 
     /// params to do interests & rewards accounting
     uint256 public lastScyBalance;
@@ -53,11 +53,11 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
         require(_SCY != address(0) && _OT != address(0), "zero address");
         SCY = _SCY;
-        OT = _OT;
+        PT = _OT;
     }
 
     /**
-     * @notice this function splits scy into OT + YT of equal qty
+     * @notice this function splits scy into PT + YT of equal qty
      * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
      */
     function mintYO(address receiverOT, address receiverYT)
@@ -71,19 +71,19 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         _mint(receiverYT, amountYOOut);
 
-        IPOwnershipToken(OT).mintByYT(receiverOT, amountYOOut);
+        IPPrincipalToken(PT).mintByYT(receiverOT, amountYOOut);
     }
 
-    /// @dev this function converts YO tokens into scy, but interests & rewards are not redeemed at the same time
+    /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
     function redeemYO(address receiver) public nonReentrant returns (uint256 amountScyOut) {
-        // minimum of OT & YT balance
-        uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
+        // minimum of PT & YT balance
+        uint256 amountYOToRedeem = IERC20(PT).balanceOf(address(this));
         if (!isExpired()) {
             amountYOToRedeem = Math.min(amountYOToRedeem, balanceOf(address(this)));
             _burn(address(this), amountYOToRedeem);
         }
 
-        IPOwnershipToken(OT).burnByYT(address(this), amountYOToRedeem);
+        IPPrincipalToken(PT).burnByYT(address(this), amountYOToRedeem);
 
         uint256 amountScyToTreasury;
         (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountYOToRedeem);
@@ -125,9 +125,9 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         rewardsOut = _doTransferOutRewardsForUser(user, user);
         emit RedeemReward(user, rewardsOut);
     }
-    
+
     /**
-     * @notice: updateGlobalReward does not need reentrancy modifier since the rewards
+     * @dev updateGlobalReward does not need reentrancy modifier since the rewards
      * will be transfered directly from SCY to YT, without triggering any callbacks
      */
     function updateGlobalReward() external {

@@ -6,7 +6,7 @@ import "./LogExpMath.sol";
 import "../SCYIndex.sol";
 
 struct MarketState {
-    int256 totalOt;
+    int256 totalPt;
     int256 totalScy;
     int256 totalLp;
     uint256 oracleRate;
@@ -31,7 +31,7 @@ struct MarketPreCompute {
 }
 
 struct MarketStorage {
-    int128 totalOt;
+    int128 totalPt;
     int128 totalScy;
     uint112 lastLnImpliedRate;
     uint112 oracleRate;
@@ -82,16 +82,16 @@ library MarketMathCore {
             scyUsed = scyDesired;
             otUsed = otDesired;
         } else {
-            int256 netLpByOt = (otDesired * market.totalLp) / market.totalOt;
+            int256 netLpByPt = (otDesired * market.totalLp) / market.totalPt;
             int256 netLpByScy = (scyDesired * market.totalLp) / market.totalScy;
-            if (netLpByOt < netLpByScy) {
-                lpToAccount = netLpByOt;
+            if (netLpByPt < netLpByScy) {
+                lpToAccount = netLpByPt;
                 otUsed = otDesired;
                 scyUsed = (market.totalScy * lpToAccount) / market.totalLp;
             } else {
                 lpToAccount = netLpByScy;
                 scyUsed = scyDesired;
-                otUsed = (market.totalOt * lpToAccount) / market.totalLp;
+                otUsed = (market.totalPt * lpToAccount) / market.totalLp;
             }
         }
 
@@ -102,7 +102,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         if (updateState) {
             market.totalScy += scyUsed;
-            market.totalOt += otUsed;
+            market.totalPt += otUsed;
             market.totalLp += lpToAccount + lpToReserve;
         }
     }
@@ -111,7 +111,7 @@ library MarketMathCore {
         MarketState memory market,
         int256 lpToRemove,
         bool updateState
-    ) internal pure returns (int256 scyToAccount, int256 netOtToAccount) {
+    ) internal pure returns (int256 scyToAccount, int256 netPtToAccount) {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
@@ -121,14 +121,14 @@ library MarketMathCore {
         /// MATH
         /// ------------------------------------------------------------
         scyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
-        netOtToAccount = (lpToRemove * market.totalOt) / market.totalLp;
+        netPtToAccount = (lpToRemove * market.totalPt) / market.totalLp;
 
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
         if (updateState) {
             market.totalLp = market.totalLp.subNoNeg(lpToRemove);
-            market.totalOt = market.totalOt.subNoNeg(netOtToAccount);
+            market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
             market.totalScy = market.totalScy.subNoNeg(scyToAccount);
         }
     }
@@ -136,7 +136,7 @@ library MarketMathCore {
     function executeTradeCore(
         MarketState memory market,
         SCYIndex index,
-        int256 netOtToAccount,
+        int256 netPtToAccount,
         uint256 blockTime,
         bool updateState
     ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
@@ -144,7 +144,7 @@ library MarketMathCore {
         /// CHECKS
         /// ------------------------------------------------------------
         require(blockTime < market.expiry, "market expired");
-        require(market.totalOt > netOtToAccount, "insufficient liquidity");
+        require(market.totalPt > netPtToAccount, "insufficient liquidity");
 
         /// ------------------------------------------------------------
         /// MATH
@@ -154,7 +154,7 @@ library MarketMathCore {
         (int256 netAssetToAccount, int256 netAssetToReserve) = calcTrade(
             market,
             comp,
-            netOtToAccount
+            netPtToAccount
         );
 
         netScyToAccount = index.assetToScy(netAssetToAccount);
@@ -168,7 +168,7 @@ library MarketMathCore {
                 market,
                 comp,
                 index,
-                netOtToAccount,
+                netPtToAccount,
                 netScyToAccount,
                 blockTime
             );
@@ -187,10 +187,10 @@ library MarketMathCore {
         res.rateScalar = _getRateScalar(market, timeToExpiry);
         res.totalAsset = index.scyToAsset(market.totalScy);
 
-        require(market.totalOt != 0 && res.totalAsset != 0, "invalid market state");
+        require(market.totalPt != 0 && res.totalAsset != 0, "invalid market state");
 
         res.rateAnchor = _getRateAnchor(
-            market.totalOt,
+            market.totalPt,
             market.lastLnImpliedRate,
             res.totalAsset,
             res.rateScalar,
@@ -202,20 +202,20 @@ library MarketMathCore {
     function calcTrade(
         MarketState memory market,
         MarketPreCompute memory comp,
-        int256 netOtToAccount
+        int256 netPtToAccount
     ) internal pure returns (int256 netAssetToAccount, int256 netAssetToReserve) {
         int256 preFeeExchangeRate = _getExchangeRate(
-            market.totalOt,
+            market.totalPt,
             comp.totalAsset,
             comp.rateScalar,
             comp.rateAnchor,
-            netOtToAccount
+            netPtToAccount
         );
 
-        int256 preFeeAssetToAccount = netOtToAccount.divDown(preFeeExchangeRate).neg();
+        int256 preFeeAssetToAccount = netPtToAccount.divDown(preFeeExchangeRate).neg();
         int256 fee = comp.lnFeeRate;
 
-        if (netOtToAccount > 0) {
+        if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
             require(postFeeExchangeRate >= Math.IONE, "exchange rate below 1");
             fee = preFeeAssetToAccount.mulDown(Math.IONE - fee);
@@ -233,7 +233,7 @@ library MarketMathCore {
         MarketState memory market,
         MarketPreCompute memory comp,
         SCYIndex index,
-        int256 netOtToAccount,
+        int256 netPtToAccount,
         int256 netScyToAccount,
         uint256 blockTime
     ) internal pure {
@@ -241,11 +241,11 @@ library MarketMathCore {
 
         market.lastTradeTime = blockTime;
 
-        market.totalOt = market.totalOt.subNoNeg(netOtToAccount);
+        market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
         market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
 
         market.lastLnImpliedRate = _getLnImpliedRate(
-            market.totalOt,
+            market.totalPt,
             index.scyToAsset(market.totalScy),
             comp.rateScalar,
             comp.rateAnchor,
@@ -255,7 +255,7 @@ library MarketMathCore {
     }
 
     function _getRateAnchor(
-        int256 totalOt,
+        int256 totalPt,
         uint256 lastLnImpliedRate,
         int256 totalAsset,
         int256 rateScalar,
@@ -266,7 +266,7 @@ library MarketMathCore {
         require(newExchangeRate >= Math.IONE, "exchange rate below 1");
 
         {
-            int256 proportion = totalOt.divDown(totalOt + totalAsset);
+            int256 proportion = totalPt.divDown(totalPt + totalAsset);
 
             int256 lnProportion = _logProportion(proportion);
 
@@ -277,14 +277,14 @@ library MarketMathCore {
     /// @notice Calculates the current market implied rate.
     /// @return lnImpliedRate the implied rate
     function _getLnImpliedRate(
-        int256 totalOt,
+        int256 totalPt,
         int256 totalAsset,
         int256 rateScalar,
         int256 rateAnchor,
         uint256 timeToExpiry
     ) internal pure returns (uint256 lnImpliedRate) {
         // This will check for exchange rates < Math.IONE
-        int256 exchangeRate = _getExchangeRate(totalOt, totalAsset, rateScalar, rateAnchor, 0);
+        int256 exchangeRate = _getExchangeRate(totalPt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
         uint256 lnRate = exchangeRate.ln().Uint();
@@ -305,15 +305,15 @@ library MarketMathCore {
     }
 
     function _getExchangeRate(
-        int256 totalOt,
+        int256 totalPt,
         int256 totalAsset,
         int256 rateScalar,
         int256 rateAnchor,
-        int256 netOtToAccount
+        int256 netPtToAccount
     ) internal pure returns (int256 exchangeRate) {
-        int256 numerator = totalOt.subNoNeg(netOtToAccount);
+        int256 numerator = totalPt.subNoNeg(netPtToAccount);
 
-        int256 proportion = (numerator.divDown(totalOt + totalAsset));
+        int256 proportion = (numerator.divDown(totalPt + totalAsset));
 
         require(proportion <= MAX_MARKET_PROPORTION, "max proportion exceeded");
 
@@ -363,7 +363,7 @@ library MarketMathCore {
         /// WRITE
         /// ------------------------------------------------------------
         market.lastLnImpliedRate = _getLnImpliedRate(
-            market.totalOt,
+            market.totalPt,
             totalAsset,
             rateScalar,
             initialAnchor,

@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 import "./base/ActionSCYAndYTBase.sol";
-import "../../interfaces/IPOwnershipToken.sol";
+import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionYT.sol";
 import "../../libraries/math/MarketMathAux.sol";
@@ -93,7 +93,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      * @dev inner working of this function:
      - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
      - market.swap is called, which will transfer SCY to the YT contract, and callback is invoked
-     - callback will do call YT's mintYO, which will mint OT to the market & YT to the receiver
+     - callback will do call YT's mintYO, which will mint PT to the market & YT to the receiver
      */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
@@ -136,7 +136,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - YT is transferred to the YT contract
-     - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
+     - market.swap is called, which will transfer PT directly to the YT contract, and callback is invoked
      - callback will do call YT's redeemYO, which will redeem the outcome SCY to this router, then
         all SCY owed to the market will be paid, the rest is used to feed redeemScyToRawToken
      */

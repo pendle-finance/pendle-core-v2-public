@@ -19,19 +19,19 @@ interface IPRouterStatic {
     function removeLiquidityStatic(address market, uint256 lpToRemove)
         external
         view
-        returns (uint256 netScyOut, uint256 netOtOut);
+        returns (uint256 netScyOut, uint256 netPtOut);
 
-    function swapOtForScyStatic(address market, uint256 exactOtIn)
+    function swapPtForScyStatic(address market, uint256 exactPtIn)
         external
         returns (uint256 netScyOut, uint256 netScyFee);
 
-    function swapScyForOtStatic(address market, uint256 exactOtOut)
+    function swapScyForPtStatic(address market, uint256 exactPtOut)
         external
         returns (uint256 netScyIn, uint256 netScyFee);
 
     function scyIndex(address market) external returns (SCYIndex index);
 
-    function getOtImpliedYield(address market) external view returns (int256);
+    function getPtImpliedYield(address market) external view returns (int256);
 
     function getPendleTokenType(address token)
         external

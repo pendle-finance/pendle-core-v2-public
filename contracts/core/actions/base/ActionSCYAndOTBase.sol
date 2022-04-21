@@ -20,8 +20,8 @@ abstract contract ActionSCYAndOTBase {
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
 
     /**
-     * @notice addLiquidity to the market, using both SCY & OT, the receiver will receive LP before
-     msg.sender is required to pay SCY & OT
+     * @notice addLiquidity to the market, using both SCY & PT, the receiver will receive LP before
+     msg.sender is required to pay SCY & PT
      * @dev inner working of this function:
      - market.addLiquidity is called
      - LP is minted to the receiver, and this router's addLiquidityCallback is invoked
@@ -42,7 +42,7 @@ abstract contract ActionSCYAndOTBase {
             uint256 otUsed
         )
     {
-        (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         MarketState memory state = IPMarket(market).readState(false);
         (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
@@ -56,18 +56,18 @@ abstract contract ActionSCYAndOTBase {
 
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, market, scyUsed);
-            IERC20(OT).safeTransferFrom(msg.sender, market, otUsed);
+            IERC20(PT).safeTransferFrom(msg.sender, market, otUsed);
         }
 
         IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode()); // ignore return
     }
 
     /**
-     * @notice removeLiquidity from the market to receive both SCY & OT. The receiver will receive
-     SCY & OT before msg.sender is required to transfer in the necessary LP
+     * @notice removeLiquidity from the market to receive both SCY & PT. The receiver will receive
+     SCY & PT before msg.sender is required to transfer in the necessary LP
      * @dev inner working of this function:
      - market.removeLiquidity is called
-     - SCY & OT is transferred to the receiver, and the router's callback is invoked
+     - SCY & PT is transferred to the receiver, and the router's callback is invoked
      - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
      */
     function _removeLiquidity(
@@ -77,12 +77,12 @@ abstract contract ActionSCYAndOTBase {
         uint256 scyOutMin,
         uint256 otOutMin,
         bool doPull
-    ) internal returns (uint256 netScyOut, uint256 netOtOut) {
+    ) internal returns (uint256 netScyOut, uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
 
-        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove, false);
+        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
         require(netScyOut >= scyOutMin, "insufficient scy out");
-        require(netOtOut >= otOutMin, "insufficient ot out");
+        require(netPtOut >= otOutMin, "insufficient ot out");
 
         if (doPull) {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
@@ -92,28 +92,28 @@ abstract contract ActionSCYAndOTBase {
     }
 
     /**
-     * @notice swap exact OT for SCY, with receiver receiving SCY before msg.sender is required to
-     transfer the owed OT
+     * @notice swap exact PT for SCY, with receiver receiving SCY before msg.sender is required to
+     transfer the owed PT
      * @dev inner working of this function:
      - market.swap is called
      - SCY is transferred to the receiver, and the router's callback is invoked
-     - the router will transfer the necessary OT from msg.sender to the market, and finish the callback
+     - the router will transfer the necessary PT from msg.sender to the market, and finish the callback
      */
-    function _swapExactOtForScy(
+    function _swapExactPtForScy(
         address receiver,
         address market,
-        uint256 exactOtIn,
+        uint256 exactPtIn,
         uint256 minScyOut,
         bool doPull
     ) internal returns (uint256 netScyOut) {
         if (doPull) {
-            address OT = IPMarket(market).OT();
-            IERC20(OT).safeTransferFrom(msg.sender, market, exactOtIn);
+            address PT = IPMarket(market).PT();
+            IERC20(PT).safeTransferFrom(msg.sender, market, exactPtIn);
         }
 
-        (netScyOut, ) = IPMarket(market).swapExactOtForScy(
+        (netScyOut, ) = IPMarket(market).swapExactPtForScy(
             receiver,
-            exactOtIn,
+            exactPtIn,
             minScyOut,
             abi.encode()
         );
@@ -121,17 +121,17 @@ abstract contract ActionSCYAndOTBase {
         require(netScyOut >= minScyOut, "insufficient scy out");
     }
 
-    function _swapOtForExactScy(
+    function _swapPtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         ApproxParams memory approx,
         bool doPull
-    ) internal returns (uint256 netOtIn) {
+    ) internal returns (uint256 netPtIn) {
         MarketState memory state = IPMarket(market).readState(false);
-        (ISuperComposableYield SCY, IPOwnershipToken OT, ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
-        (netOtIn, ) = state.approxSwapOtForExactScy(
+        (netPtIn, ) = state.approxSwapPtForExactScy(
             SCYIndexLib.newIndex(SCY),
             exactScyOut,
             block.timestamp,
@@ -139,33 +139,33 @@ abstract contract ActionSCYAndOTBase {
         );
 
         if (doPull) {
-            IERC20(OT).safeTransferFrom(msg.sender, market, netOtIn);
+            IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
         }
 
-        IPMarket(market).swapExactOtForScy(receiver, netOtIn, exactScyOut, abi.encode()); // ignore return
+        IPMarket(market).swapExactPtForScy(receiver, netPtIn, exactScyOut, abi.encode()); // ignore return
     }
 
     /**
-     * @notice swap SCY for exact OT, with receiver receiving OT before msg.sender is required to
+     * @notice swap SCY for exact PT, with receiver receiving PT before msg.sender is required to
      transfer the owed SCY
      * @dev inner working of this function:
      - market.swap is called
-     - OT is transferred to the receiver, and the router's callback is invoked
+     - PT is transferred to the receiver, and the router's callback is invoked
      - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
      */
-    function _swapScyForExactOt(
+    function _swapScyForExactPt(
         address receiver,
         address market,
-        uint256 exactOtOut,
+        uint256 exactPtOut,
         uint256 maxScyIn,
         bool doPull
     ) internal returns (uint256 netScyIn) {
         MarketState memory state = IPMarket(market).readState(false);
         address SCY = IPMarket(market).SCY();
 
-        (netScyIn, ) = state.swapScyForExactOt(
+        (netScyIn, ) = state.swapScyForExactPt(
             SCYIndexLib.newIndex(SCY),
-            exactOtOut,
+            exactPtOut,
             block.timestamp,
             false
         );
@@ -175,20 +175,20 @@ abstract contract ActionSCYAndOTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, exactOtOut, maxScyIn, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, maxScyIn, abi.encode()); // ignore return
     }
 
-    function _swapExactScyForOt(
+    function _swapExactScyForPt(
         address receiver,
         address market,
         uint256 exactScyIn,
         ApproxParams memory approx,
         bool doPull
-    ) internal returns (uint256 netOtOut) {
+    ) internal returns (uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
         address SCY = IPMarket(market).SCY();
 
-        (netOtOut, ) = state.approxSwapExactScyForOt(
+        (netPtOut, ) = state.approxSwapExactScyForPt(
             SCYIndexLib.newIndex(SCY),
             exactScyIn,
             block.timestamp,
@@ -199,6 +199,6 @@ abstract contract ActionSCYAndOTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactOt(receiver, netOtOut, exactScyIn, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, netPtOut, exactScyIn, abi.encode()); // ignore return
     }
 }

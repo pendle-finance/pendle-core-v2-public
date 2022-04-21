@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 import "./IPBaseToken.sol";
 
-interface IPOwnershipToken is IPBaseToken {
+interface IPPrincipalToken is IPBaseToken {
     function initialize(address _YT) external;
 
     function burnByYT(address user, uint256 amount) external;

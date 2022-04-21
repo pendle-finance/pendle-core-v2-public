@@ -51,16 +51,16 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         if (
             sig == IPActionCore.mintScyFromRawToken.selector ||
             sig == IPActionCore.redeemScyToRawToken.selector ||
-            sig == IPActionCore.mintYoFromRawToken.selector ||
-            sig == IPActionCore.redeemYoToRawToken.selector ||
+            sig == IPActionCore.mintPyFromRawToken.selector ||
+            sig == IPActionCore.redeemPyToRawToken.selector ||
             sig == IPActionCore.addLiquidity.selector ||
             sig == IPActionCore.removeLiquidity.selector ||
-            sig == IPActionCore.swapExactOtForScy.selector ||
-            sig == IPActionCore.swapOtForExactScy.selector ||
-            sig == IPActionCore.swapScyForExactOt.selector ||
-            sig == IPActionCore.swapExactScyForOt.selector ||
-            sig == IPActionCore.swapExactRawTokenForOt.selector ||
-            sig == IPActionCore.swapExactOtForRawToken.selector
+            sig == IPActionCore.swapExactPtForScy.selector ||
+            sig == IPActionCore.swapPtForExactScy.selector ||
+            sig == IPActionCore.swapScyForExactPt.selector ||
+            sig == IPActionCore.swapExactScyForPt.selector ||
+            sig == IPActionCore.swapExactRawTokenForPt.selector ||
+            sig == IPActionCore.swapExactPtForRawToken.selector
         ) {
             return ACTION_CORE;
         } else if (

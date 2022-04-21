@@ -50,7 +50,7 @@ library MarketMathAux {
         MarketState memory market,
         uint256 lpToRemove,
         bool updateState
-    ) internal pure returns (uint256 scyToAccount, uint256 netOtToAccount) {
+    ) internal pure returns (uint256 scyToAccount, uint256 netPtToAccount) {
         (int256 _scyToAccount, int256 _otToAccount) = MarketMathCore.removeLiquidityCore(
             market,
             lpToRemove.Int(),
@@ -58,20 +58,20 @@ library MarketMathAux {
         );
 
         scyToAccount = _scyToAccount.Uint();
-        netOtToAccount = _otToAccount.Uint();
+        netPtToAccount = _otToAccount.Uint();
     }
 
-    function swapExactOtForScy(
+    function swapExactPtForScy(
         MarketState memory market,
         SCYIndex index,
-        uint256 exactOtToMarket,
+        uint256 exactPtToMarket,
         uint256 blockTime,
         bool updateState
     ) internal pure returns (uint256 netScyToAccount, uint256 netScyToReserve) {
         (int256 _netScyToAccount, int256 _netScyToReserve) = MarketMathCore.executeTradeCore(
             market,
             index,
-            exactOtToMarket.neg(),
+            exactPtToMarket.neg(),
             blockTime,
             updateState
         );
@@ -80,17 +80,17 @@ library MarketMathAux {
         netScyToReserve = _netScyToReserve.Uint();
     }
 
-    function swapScyForExactOt(
+    function swapScyForExactPt(
         MarketState memory market,
         SCYIndex index,
-        uint256 exactOtToAccount,
+        uint256 exactPtToAccount,
         uint256 blockTime,
         bool updateState
     ) internal pure returns (uint256 netScyToMarket, uint256 netScyToReserve) {
         (int256 _netScyToAccount, int256 _netScyToReserve) = MarketMathCore.executeTradeCore(
             market,
             index,
-            exactOtToAccount.Int(),
+            exactPtToAccount.Int(),
             blockTime,
             updateState
         );

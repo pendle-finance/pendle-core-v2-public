@@ -13,7 +13,7 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     function redeemYO(address receiver) external returns (uint256 amountScyOut);
 
-    // minimum of OT & YT balance
+    // minimum of PT & YT balance
 
     function redeemDueInterestAndRewards(address user)
         external
@@ -40,5 +40,5 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     function SCY() external view returns (address);
 
-    function OT() external view returns (address);
+    function PT() external view returns (address);
 }

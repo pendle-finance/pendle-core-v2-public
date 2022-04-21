@@ -42,9 +42,9 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
             SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
         }
 
-        IPMarket(market).swapExactOtForScy(
+        IPMarket(market).swapExactPtForScy(
             address(YT),
-            netYtOut, // exactOtIn = netYtOut
+            netYtOut, // exactPtIn = netYtOut
             1,
             abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver)
         ); // ignore-return
@@ -55,7 +55,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     /**
     * @dev inner working of this function:
      - YT is transferred to the YT contract
-     - market.swap is called, which will transfer OT directly to the YT contract, and callback is invoked
+     - market.swap is called, which will transfer PT directly to the YT contract, and callback is invoked
      - callback will call YT's redeemYO, which will redeem the outcome SCY to this router, then
         all SCY owed to the market will be paid, the rest is transferred to the receiver
      */
@@ -74,9 +74,9 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
             YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
         }
 
-        IPMarket(market).swapScyForExactOt(
+        IPMarket(market).swapScyForExactPt(
             address(YT),
-            exactYtIn, // exactOtOut = exactYtIn
+            exactYtIn, // exactPtOut = exactYtIn
             type(uint256).max,
             abi.encode(ACTION_TYPE.SwapExactYtForScy, receiver)
         ); // ignore return
@@ -90,7 +90,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     /**
      * @dev inner working of this function:
      - market.swap is called, which will transfer SCY directly to the YT contract, and callback is invoked
-     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint OT to the market & YT to the receiver
+     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint PT to the market & YT to the receiver
      */
     function _swapScyForExactYt(
         address receiver,
@@ -102,9 +102,9 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
 
         uint256 preBalanceScy = SCY.balanceOf(receiver);
 
-        IPMarket(market).swapExactOtForScy(
+        IPMarket(market).swapExactPtForScy(
             address(YT),
-            exactYtOut, // exactOtIn = exactYtOut
+            exactYtOut, // exactPtIn = exactYtOut
             1,
             abi.encode(ACTION_TYPE.SwapSCYForExactYt, msg.sender, receiver)
         ); // ignore return
@@ -137,9 +137,9 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
             YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
         }
 
-        IPMarket(market).swapScyForExactOt(
+        IPMarket(market).swapScyForExactPt(
             address(YT),
-            netYtIn, // exactOtOut = netYtIn
+            netYtIn, // exactPtOut = netYtIn
             type(uint256).max,
             abi.encode(ACTION_TYPE.SwapYtForExactScy, receiver)
         ); // ignore return

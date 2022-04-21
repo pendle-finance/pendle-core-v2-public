@@ -29,13 +29,13 @@ import "../libraries/helpers/ExpiryUtilsLib.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 
-import "./PendleOwnershipToken.sol";
+import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
 contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory {
     using ExpiryUtils for string;
 
-    string public constant OT_PREFIX = "OT";
+    string public constant OT_PREFIX = "PT";
     string public constant YT_PREFIX = "YT";
 
     uint256 public expiryDivisor;
@@ -64,7 +64,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
     function createYieldContract(address SCY, uint256 expiry)
         external
-        returns (address OT, address YT)
+        returns (address PT, address YT)
     {
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 
@@ -74,8 +74,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
         uint8 assetDecimals = _SCY.assetDecimals();
 
-        OT = address(
-            new PendleOwnershipToken(
+        PT = address(
+            new PendlePrincipalToken(
                 SCY,
                 OT_PREFIX.concat(_SCY.name(), expiry, " "),
                 OT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
@@ -87,7 +87,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         YT = address(
             new PendleYieldToken(
                 SCY,
-                OT,
+                PT,
                 YT_PREFIX.concat(_SCY.name(), expiry, " "),
                 YT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
@@ -95,14 +95,14 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
             )
         );
 
-        IPOwnershipToken(OT).initialize(YT);
+        IPPrincipalToken(PT).initialize(YT);
 
-        getOT[SCY][expiry] = OT;
+        getOT[SCY][expiry] = PT;
         getYT[SCY][expiry] = YT;
-        isOT[OT] = true;
+        isOT[PT] = true;
         isYT[YT] = true;
 
-        emit CreateYieldContract(SCY, OT, YT, expiry);
+        emit CreateYieldContract(SCY, PT, YT, expiry);
     }
 
     function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {

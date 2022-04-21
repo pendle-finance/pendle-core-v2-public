@@ -92,7 +92,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
     }
 
     /**
-    @dev receive OT -> pair with YT to redeem SCY -> payback SCY
+    @dev receive PT -> pair with YT to redeem SCY -> payback SCY
     */
     function _swapYtForScy_callback(
         address market,

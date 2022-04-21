@@ -48,33 +48,33 @@ contract RouterStatic is IPRouterStatic {
     function removeLiquidityStatic(address market, uint256 lpToRemove)
         external
         view
-        returns (uint256 netScyOut, uint256 netOtOut)
+        returns (uint256 netScyOut, uint256 netPtOut)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScyOut, netOtOut) = state.removeLiquidity(lpToRemove, false);
+        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
     }
 
-    function swapOtForScyStatic(address market, uint256 exactOtIn)
+    function swapPtForScyStatic(address market, uint256 exactPtIn)
         external
         returns (uint256 netScyOut, uint256 netScyFee)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScyOut, netScyFee) = state.swapExactOtForScy(
+        (netScyOut, netScyFee) = state.swapExactPtForScy(
             scyIndex(market),
-            exactOtIn,
+            exactPtIn,
             block.timestamp,
             false
         );
     }
 
-    function swapScyForOtStatic(address market, uint256 exactOtOut)
+    function swapScyForPtStatic(address market, uint256 exactPtOut)
         external
         returns (uint256 netScyIn, uint256 netScyFee)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScyIn, netScyFee) = state.swapScyForExactOt(
+        (netScyIn, netScyFee) = state.swapScyForExactPt(
             scyIndex(market),
-            exactOtOut,
+            exactPtOut,
             block.timestamp,
             false
         );
@@ -84,7 +84,7 @@ contract RouterStatic is IPRouterStatic {
         return SCYIndexLib.newIndex(IPMarket(market).SCY());
     }
 
-    function getOtImpliedYield(address market) external view returns (int256) {
+    function getPtImpliedYield(address market) external view returns (int256) {
         MarketState memory state = IPMarket(market).readState(false);
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();

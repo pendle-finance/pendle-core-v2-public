@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./base/ActionSCYAndOTBase.sol";
 import "./base/ActionSCYAndYOBase.sol";
-import "../../interfaces/IPOwnershipToken.sol";
+import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionCore.sol";
 import "../../libraries/math/MarketMathAux.sol";
@@ -19,10 +19,9 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         address _joeRouter,
         address _joeFactory,
         address _marketFactory
-    ) ActionSCYAndYOBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    )
+        ActionSCYAndYOBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
+    {}
 
     /// @dev docs can be found in the internal function
     function addLiquidity(
@@ -54,17 +53,17 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
     }
 
     /// @dev docs can be found in the internal function
-    function swapExactOtForScy(
+    function swapExactPtForScy(
         address receiver,
         address market,
-        uint256 exactOtIn,
+        uint256 exactPtIn,
         uint256 minScyOut
     ) external returns (uint256) {
-        return _swapExactOtForScy(receiver, market, exactOtIn, minScyOut, true);
+        return _swapExactPtForScy(receiver, market, exactPtIn, minScyOut, true);
     }
 
     /// @dev docs can be found in the internal function
-    function swapOtForExactScy(
+    function swapPtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
@@ -74,7 +73,7 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         uint256 eps
     ) external returns (uint256) {
         return
-            _swapOtForExactScy(
+            _swapPtForExactScy(
                 receiver,
                 market,
                 exactScyOut,
@@ -89,17 +88,17 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
     }
 
     /// @dev docs can be found in the internal function
-    function swapScyForExactOt(
+    function swapScyForExactPt(
         address receiver,
         address market,
-        uint256 exactOtOut,
+        uint256 exactPtOut,
         uint256 maxScyIn
     ) external returns (uint256) {
-        return _swapScyForExactOt(receiver, market, exactOtOut, maxScyIn, true);
+        return _swapScyForExactPt(receiver, market, exactPtOut, maxScyIn, true);
     }
 
     /// @dev docs can be found in the internal function
-    function swapExactScyForOt(
+    function swapExactScyForPt(
         address receiver,
         address market,
         uint256 exactScyIn,
@@ -109,7 +108,7 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         uint256 eps
     ) external returns (uint256) {
         return
-            _swapExactScyForOt(
+            _swapExactScyForPt(
                 receiver,
                 market,
                 exactScyIn,
@@ -146,36 +145,36 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
     }
 
     /// @dev docs can be found in the internal function
-    function mintYoFromRawToken(
+    function mintPyFromRawToken(
         uint256 netRawTokenIn,
         address YT,
-        uint256 minYoOut,
+        uint256 minPyOut,
         address receiver,
         address[] calldata path
     ) external returns (uint256) {
-        return _mintYoFromRawToken(netRawTokenIn, YT, minYoOut, receiver, path, true);
+        return _mintPyFromRawToken(netRawTokenIn, YT, minPyOut, receiver, path, true);
     }
 
     /// @dev docs can be found in the internal function
-    function redeemYoToRawToken(
+    function redeemPyToRawToken(
         address YT,
-        uint256 netYoIn,
+        uint256 netPyIn,
         uint256 minRawTokenOut,
         address receiver,
         address[] memory path
     ) external returns (uint256) {
-        return _redeemYoToRawToken(YT, netYoIn, minRawTokenOut, receiver, path, true);
+        return _redeemPyToRawToken(YT, netPyIn, minRawTokenOut, receiver, path, true);
     }
 
     /**
-    * @dev netOtOutGuessMin & netOtOutGuessMax the minimum & maximum possible guess for the netOtOut
+    * @dev netPtOutGuessMin & netPtOutGuessMax the minimum & maximum possible guess for the netPtOut
     the correct otOut must lie between this range, else the function will revert.
     * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
     guess range. After getting the result, min = result * (100-slippage) & max = result * (100+slippage)
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
     */
-    function swapExactRawTokenForOt(
+    function swapExactRawTokenForPt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
@@ -184,9 +183,9 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         uint256 otOutguessMax,
         uint256 maxIteration,
         uint256 eps
-    ) external returns (uint256 netOtOut) {
+    ) external returns (uint256 netPtOut) {
         address SCY = IPMarket(market).SCY();
-        uint256 netScyUseToBuyOt = _mintScyFromRawToken(
+        uint256 netScyUseToBuyPt = _mintScyFromRawToken(
             exactRawTokenIn,
             SCY,
             1,
@@ -194,10 +193,10 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
             path,
             true
         );
-        netOtOut = _swapExactScyForOt(
+        netPtOut = _swapExactScyForPt(
             receiver,
             market,
-            netScyUseToBuyOt,
+            netScyUseToBuyPt,
             ApproxParams({
                 guessMin: otOutguessMin,
                 guessMax: otOutguessMax,
@@ -209,18 +208,18 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
     }
 
     /**
-     * @notice sell all Ot for RawToken
+     * @notice sell all Pt for RawToken
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      */
-    function swapExactOtForRawToken(
-        uint256 exactOtIn,
+    function swapExactPtForRawToken(
+        uint256 exactPtIn,
         address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut) {
         address SCY = IPMarket(market).SCY();
-        _swapExactOtForScy(SCY, market, exactOtIn, 1, true);
+        _swapExactPtForScy(SCY, market, exactPtIn, 1, true);
         netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
     }
 }

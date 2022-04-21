@@ -24,14 +24,14 @@ interface IPActionCore {
         uint256 otOutMin
     ) external returns (uint256, uint256);
 
-    function swapExactOtForScy(
+    function swapExactPtForScy(
         address receiver,
         address market,
-        uint256 exactOtIn,
+        uint256 exactPtIn,
         uint256 minScyOut
     ) external returns (uint256);
 
-    function swapOtForExactScy(
+    function swapPtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
@@ -41,14 +41,14 @@ interface IPActionCore {
         uint256 eps
     ) external returns (uint256);
 
-    function swapScyForExactOt(
+    function swapScyForExactPt(
         address receiver,
         address market,
-        uint256 exactOtOut,
+        uint256 exactPtOut,
         uint256 maxScyIn
     ) external returns (uint256);
 
-    function swapExactScyForOt(
+    function swapExactScyForPt(
         address receiver,
         address market,
         uint256 exactScyIn,
@@ -74,23 +74,23 @@ interface IPActionCore {
         address[] memory path
     ) external returns (uint256);
 
-    function mintYoFromRawToken(
+    function mintPyFromRawToken(
         uint256 netRawTokenIn,
         address YT,
-        uint256 minYoOut,
+        uint256 minPyOut,
         address receiver,
         address[] calldata path
     ) external returns (uint256);
 
-    function redeemYoToRawToken(
+    function redeemPyToRawToken(
         address YT,
-        uint256 netYoIn,
+        uint256 netPyIn,
         uint256 minRawTokenOut,
         address receiver,
         address[] memory path
     ) external returns (uint256);
 
-    function swapExactRawTokenForOt(
+    function swapExactRawTokenForPt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
@@ -99,10 +99,10 @@ interface IPActionCore {
         uint256 otOutguessMax,
         uint256 maxIteration,
         uint256 eps
-    ) external returns (uint256 netOtOut);
+    ) external returns (uint256 netPtOut);
 
-    function swapExactOtForRawToken(
-        uint256 exactOtIn,
+    function swapExactPtForRawToken(
+        uint256 exactPtIn,
         address receiver,
         address[] calldata path,
         address market,

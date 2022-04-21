@@ -2,10 +2,10 @@
 pragma solidity 0.8.9;
 
 import "./PendleBaseToken.sol";
-import "../interfaces/IPOwnershipToken.sol";
+import "../interfaces/IPPrincipalToken.sol";
 import "../interfaces/IPYieldToken.sol";
 
-contract PendleOwnershipToken is PendleBaseToken, IPOwnershipToken {
+contract PendlePrincipalToken is PendleBaseToken, IPPrincipalToken {
     address public immutable SCY;
     address public YT;
 
@@ -33,7 +33,7 @@ contract PendleOwnershipToken is PendleBaseToken, IPOwnershipToken {
     }
 
     function initialize(address _YT) external onlyFactory {
-        require(IPYieldToken(_YT).OT() == address(this), "invalid YT");
+        require(IPYieldToken(_YT).PT() == address(this), "invalid YT");
         YT = _YT;
         emit YTSet(_YT);
     }
