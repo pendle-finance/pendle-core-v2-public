@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
-pragma abicoder v2;
+
 import "../../SuperComposableYield/implementations/SCYBaseWithRewards.sol";
 import "../../interfaces/IQiErc20.sol";
 import "../../interfaces/IBenQiComptroller.sol";
@@ -53,7 +53,8 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
         if (token == qiToken) {
             amountScyOut = amountBase;
         } else {
-            IQiErc20(qiToken).mint(amountBase);
+            uint256 errCode = IQiErc20(qiToken).mint(amountBase);
+            require(errCode == 0, "mint failed");
             _afterSendToken(underlying);
             amountScyOut = _afterReceiveToken(qiToken);
         }
@@ -69,7 +70,8 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
             amountBaseOut = amountScy;
         } else {
             // must be underlying
-            IQiErc20(qiToken).redeem(amountScy);
+            uint256 errCode = IQiErc20(qiToken).redeem(amountScy);
+            require(errCode == 0, "redeem failed");
             _afterSendToken(qiToken);
             amountBaseOut = _afterReceiveToken(underlying);
         }
@@ -81,7 +83,7 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
 
     function scyIndexCurrent() public virtual override returns (uint256) {
         lastScyIndex = IQiToken(qiToken).exchangeRateCurrent();
-        
+
         emit UpdateScyIndex(lastScyIndex);
         return lastScyIndex;
     }
