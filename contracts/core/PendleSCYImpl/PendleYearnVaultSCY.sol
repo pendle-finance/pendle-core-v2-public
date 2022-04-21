@@ -67,6 +67,7 @@ contract PendleYearnVaultScy is SCYBase {
 
     function scyIndexCurrent() public virtual override returns (uint256 res) {
         lastScyIndex = IYearnVault(yvToken).pricePerShare();
+        emit UpdateScyIndex(lastScyIndex);
         return lastScyIndex;
     }
 

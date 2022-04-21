@@ -19,6 +19,12 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
 
+    event SwapYT(
+        address indexed user,
+        int256 ytToAccount,
+        int256 scyToAccount
+    );
+
     function _swapExactScyForYt(
         address receiver,
         address market,
@@ -46,6 +52,8 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
             1,
             abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver)
         );
+
+        emit SwapYT(receiver, netYtOut.Int(), exactScyIn.neg());
     }
 
     /**
@@ -79,6 +87,8 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
 
         netScyOut = SCY.balanceOf(receiver) - preBalanceScy;
         require(netScyOut >= minScyOut, "INSUFFICIENT_SCY_OUT");
+
+        emit SwapYT(receiver, exactYtIn.neg(), netScyOut.Int());
     }
 
     /**
@@ -106,6 +116,8 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
         netScyIn = preBalanceScy - SCY.balanceOf(receiver);
 
         require(netScyIn <= maxScyIn, "exceed out limit");
+
+        emit SwapYT(receiver, exactYtOut.Int(), netScyIn.neg());
     }
 
     function _swapYtForExactScy(
@@ -135,5 +147,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
             type(uint256).max,
             abi.encode(ACTION_TYPE.SwapYtForExactScy, receiver)
         );
+
+        emit SwapYT(receiver, netYtIn.neg(), exactScyOut.Int());
     }
 }

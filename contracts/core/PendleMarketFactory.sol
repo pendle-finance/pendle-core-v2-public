@@ -55,6 +55,8 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
 
         market = address(new PendleMarket(OT, scalarRoot, initialAnchor));
         markets[OT].add(market);
+
+        emit CreateNewMarket(OT, scalarRoot, initialAnchor);
     }
 
     function isValidMarket(address market) external view returns (bool) {

@@ -96,6 +96,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
 
         _writeState(market);
+
+        emit AddLiquidity(receiver, lpToAccount, scyUsed, otUsed);
     }
 
     function removeLiquidity(
@@ -122,6 +124,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         _burn(address(this), lpToRemove);
 
         _writeState(market);
+        emit RemoveLiquidity(receiver, lpToRemove, scyToAccount, otToAccount);
     }
 
     function swapExactOtForScy(
@@ -151,6 +154,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         // have received enough OT
         require(market.totalOt.Uint() <= IERC20(OT).balanceOf(address(this)));
         _writeState(market);
+
+        emit Swap(receiver, exactOtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
 
     function swapScyForExactOt(
@@ -180,6 +185,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         // have received enough SCY
         require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
         _writeState(market);
+
+        emit Swap(receiver, exactOtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
 
     /// @dev this function is just a place holder. Later on the rewards will be transferred to the liquidity minining
@@ -221,6 +228,8 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         store.lastLnImpliedRate = market.lastLnImpliedRate.Uint112();
         store.oracleRate = market.oracleRate.Uint112();
         store.lastTradeTime = market.lastTradeTime.Uint32();
+
+        emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
     }
 
     function readTokens()

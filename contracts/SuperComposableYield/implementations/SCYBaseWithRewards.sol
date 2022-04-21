@@ -17,6 +17,8 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    event RedeemReward(address indexed user, uint256[] rewardsOut);
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -42,8 +44,10 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     {
         _updateUserReward(user, balanceOf(user), totalSupply());
         outAmounts = _doTransferOutRewardsForUser(user, user);
+        emit RedeemReward(user, outAmounts);
     }
 
+    // [EVENT-NOTE] no need for subgraph, but still considering
     function updateGlobalReward() public virtual override {
         address[] memory rewardTokens = getRewardTokens();
         _updateGlobalReward(rewardTokens, totalSupply());

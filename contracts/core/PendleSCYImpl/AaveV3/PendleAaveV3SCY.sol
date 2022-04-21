@@ -80,6 +80,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     function scyIndexCurrent() public virtual override returns (uint256 res) {
         aaveIndexCurrent();
         res = lastScyIndex;
+        emit UpdateScyIndex(lastScyIndex);
     }
 
     function aaveIndexCurrent() public returns (uint256 res) {

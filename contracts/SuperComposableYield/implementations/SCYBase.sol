@@ -17,6 +17,8 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    event UpdateScyIndex(uint256 scyIndex);
+
     uint8 private immutable _scyDecimals;
     uint8 private immutable _assetDecimals;
 
@@ -36,6 +38,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
+    // [EVENT-NOTE] Consider having specific mint events for SCY, since there is another param (basetokenIn)
     function mint(
         address receiver,
         address baseTokenIn,

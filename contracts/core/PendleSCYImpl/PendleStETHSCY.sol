@@ -67,6 +67,7 @@ contract PendleStEthSCY is SCYBase {
     function scyIndexCurrent() public virtual override returns (uint256 res) {
         res = IWstETH(wstETH).stEthPerToken();
         lastScyIndex = res;
+        emit UpdateScyIndex(lastScyIndex);
     }
 
     function scyIndexStored() public view virtual override returns (uint256 res) {

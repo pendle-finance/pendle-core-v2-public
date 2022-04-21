@@ -97,17 +97,22 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
         updateUserInterest(user);
         rewardsOut = _doTransferOutRewardsForUser(user, user);
         interestOut = _doTransferOutDueInterest(user);
+
+        emit RedeemReward(user, rewardsOut);
+        emit RedeemInterest(user, interestOut);
     }
 
     function redeemDueInterest(address user) public returns (uint256 interestOut) {
         updateUserReward(user); /// strictly required, see above for explanation
         updateUserInterest(user);
         interestOut = _doTransferOutDueInterest(user);
+        emit RedeemInterest(user, interestOut);
     }
 
     function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
         updateUserReward(user);
         rewardsOut = _doTransferOutRewardsForUser(user, user);
+        emit RedeemReward(user, rewardsOut);
     }
 
     function updateGlobalReward() external {
@@ -230,12 +235,14 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
 
         uint256 length = rewardTokens.length;
         address treasury = IPYieldContractFactory(factory).treasury();
+        uint256[] memory amountRewardsOut = new uint256[](length);
 
         for (uint256 i = 0; i < length; i++) {
             address token = rewardTokens[i];
             uint256 outAmount = totalRewardsPostExpiry[token];
             if (outAmount > 0) IERC20(rewardTokens[i]).safeTransfer(treasury, outAmount);
             totalRewardsPostExpiry[token] = 0;
+            amountRewardsOut[i] = outAmount;
         }
 
         uint256 totalScyFee = totalProtocolFee + totalInterestPostExpiry;
@@ -245,6 +252,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
             IERC20(SCY).safeTransfer(treasury, totalScyFee);
             _afterTransferOutSCY();
         }
+        emit WithdrawTokenToTreasury(amountRewardsOut, totalScyFee);
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {

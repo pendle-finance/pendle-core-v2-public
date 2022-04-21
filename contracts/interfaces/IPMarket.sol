@@ -7,6 +7,32 @@ import "./IPYieldToken.sol";
 import "../libraries/math/MarketMathCore.sol";
 
 interface IPMarket is IPBaseToken {
+    event AddLiquidity(
+        address indexed receiver,
+        uint256 lpToAccount,
+        uint256 scyUsed,
+        uint256 otUsed
+    );
+
+    event RemoveLiquidity(
+        address indexed receiver,
+        uint256 lpRemoved,
+        uint256 scyToAccount,
+        uint256 otToAccount
+    );
+
+    event Swap(
+        address indexed receiver,
+        int256 otToAccount,
+        int256 scyToAccount, 
+        uint256 netScyToReserve 
+    );
+
+    event UpdateImpliedRate(
+        uint256 indexed timestamp,
+        uint256 lnLastImpliedRate
+    );
+
     function addLiquidity(
         address receiver,
         uint256 scyDesired,

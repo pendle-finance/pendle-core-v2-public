@@ -24,6 +24,19 @@
 pragma solidity 0.8.9;
 
 interface IPYieldContractFactory {
+    event CreateYieldContract(
+        address indexed SCY,
+        address OT,
+        address YT,
+        uint256 expiry
+    );
+
+    event SetExpiryDivisor(uint256 newExpiryDivisor);
+
+    event SetInterestFeeRate(uint256 newInterestFeeRate);
+
+    event SetTreasury(address indexed treasury);
+
     function getOT(address SCY, uint256 expiry) external view returns (address);
 
     function getYT(address SCY, uint256 expiry) external view returns (address);

@@ -4,6 +4,21 @@ import "./IPBaseToken.sol";
 import "../SuperComposableYield/implementations/IRewardManager.sol";
 
 interface IPYieldToken is IPBaseToken, IRewardManager {
+    event RedeemReward(
+        address indexed user,
+        uint256[] amountRewardsOut
+    );
+    event RedeemInterest(
+        address indexed user,
+        uint256 interestOut
+    );
+
+    event WithdrawTokenToTreasury(
+        uint256[] amountRewardsOut,
+        uint256 scyOut
+    );
+
+
     function mintYO(address receiverOT, address receiverYT) external returns (uint256 amountYOOut);
 
     function redeemYO(address receiver) external returns (uint256 amountScyOut);

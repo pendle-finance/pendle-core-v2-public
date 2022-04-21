@@ -98,17 +98,22 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         getYT[SCY][expiry] = YT;
         isOT[OT] = true;
         isYT[YT] = true;
+
+        emit CreateYieldContract(SCY, OT, YT, expiry);
     }
 
     function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {
         expiryDivisor = newExpiryDivisor;
+        emit SetExpiryDivisor(newExpiryDivisor);
     }
 
     function setInterestFeeRate(uint256 newInterestFeeRate) external onlyGovernance {
         interestFeeRate = newInterestFeeRate;
+        emit SetInterestFeeRate(newInterestFeeRate);
     }
 
     function setTreasury(address newTreasury) external onlyGovernance {
         treasury = newTreasury;
+        emit SetTreasury(treasury);
     }
 }
