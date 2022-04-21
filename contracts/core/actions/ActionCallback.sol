@@ -8,7 +8,7 @@ import "../../interfaces/IPMarketSwapCallback.sol";
 import "../../SuperComposableYield/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
 import "../../libraries/math/MarketMathAux.sol";
-import "./base/ActionSCYAndYOBase.sol";
+import "./base/ActionSCYAndPYBase.sol";
 import "./base/ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -59,9 +59,9 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
 
         uint256 otOwed = otToAccount.abs();
-        uint256 amountYOout = YT.mintYO(market, receiver);
+        uint256 amountPYout = YT.mintPY(market, receiver);
 
-        require(amountYOout >= otOwed, "insufficient ot to pay");
+        require(amountPYout >= otOwed, "insufficient ot to pay");
     }
 
     function _swapScyForExactYt_callback(
@@ -86,9 +86,9 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
             SCY.safeTransferFrom(payer, address(YT), netScyToPull);
         }
 
-        uint256 amountYOout = YT.mintYO(market, receiver);
+        uint256 amountPYout = YT.mintPY(market, receiver);
 
-        require(amountYOout >= otOwed, "insufficient ot to pay");
+        require(amountPYout >= otOwed, "insufficient ot to pay");
     }
 
     /**
@@ -105,7 +105,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
 
         uint256 scyOwed = scyToAccount.neg().Uint();
 
-        uint256 netScyReceived = YT.redeemYO(address(this));
+        uint256 netScyReceived = YT.redeemPY(address(this));
 
         SCY.safeTransfer(market, scyOwed);
 

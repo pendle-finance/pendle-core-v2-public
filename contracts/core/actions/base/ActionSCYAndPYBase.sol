@@ -7,7 +7,7 @@ import "../../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
 // solhint-disable no-empty-blocks
-abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
+abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
     using SafeERC20 for IERC20;
 
     event MintScyFromRawToken(
@@ -125,7 +125,7 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
      * @notice swap rawToken to baseToken -> convert to SCY -> convert to PT + YT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
-     - same as mintScyFromRawToken, except the receiver of SCY will be the YT contract, then mintYO
+     - same as mintScyFromRawToken, except the receiver of SCY will be the YT contract, then mintPY
      will be called, minting PT + YT directly to receiver
      */
     function _mintPyFromRawToken(
@@ -138,7 +138,7 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
     ) internal returns (uint256 netPyOut) {
         address SCY = IPYieldToken(YT).SCY();
         _mintScyFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
-        netPyOut = IPYieldToken(YT).mintYO(receiver, receiver);
+        netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         require(netPyOut >= minPyOut, "insufficient PY out");
         emit MintPyFromRawToken(msg.sender, path[0], netRawTokenIn, YT, netPyOut);
     }
@@ -148,7 +148,7 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - PT (+ YT if not expired) is transferred to the YT contract
-     - redeemYO is called, redeem all outcome SCY to the SCY contract
+     - redeemPY is called, redeem all outcome SCY to the SCY contract
      - The rest is the same as redeemScyToRawToken (except the first SCY transfer is skipped)
      */
     function _redeemPyToRawToken(
@@ -168,7 +168,7 @@ abstract contract ActionSCYAndYOBase is PendleJoeSwapHelperUpg {
             if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }
 
-        IPYieldToken(YT).redeemYO(SCY); // ignore return
+        IPYieldToken(YT).redeemPY(SCY); // ignore return
 
         netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
 

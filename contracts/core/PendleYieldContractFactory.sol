@@ -35,7 +35,7 @@ import "./PendleYieldToken.sol";
 contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory {
     using ExpiryUtils for string;
 
-    string public constant OT_PREFIX = "PT";
+    string public constant PT_PREFIX = "PT";
     string public constant YT_PREFIX = "YT";
 
     uint256 public expiryDivisor;
@@ -43,9 +43,9 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     address public treasury;
 
     // SCY => expiry => address
-    mapping(address => mapping(uint256 => address)) public getOT;
+    mapping(address => mapping(uint256 => address)) public getPT;
     mapping(address => mapping(uint256 => address)) public getYT;
-    mapping(address => bool) public isOT;
+    mapping(address => bool) public isPT;
     mapping(address => bool) public isYT;
 
     constructor(
@@ -68,7 +68,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     {
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 
-        require(getOT[SCY][expiry] == address(0), "OT_EXISTED");
+        require(getPT[SCY][expiry] == address(0), "PT_EXISTED");
 
         ISuperComposableYield _SCY = ISuperComposableYield(SCY);
 
@@ -77,8 +77,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         PT = address(
             new PendlePrincipalToken(
                 SCY,
-                OT_PREFIX.concat(_SCY.name(), expiry, " "),
-                OT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
+                PT_PREFIX.concat(_SCY.name(), expiry, " "),
+                PT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
                 expiry
             )
@@ -97,9 +97,9 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
         IPPrincipalToken(PT).initialize(YT);
 
-        getOT[SCY][expiry] = PT;
+        getPT[SCY][expiry] = PT;
         getYT[SCY][expiry] = YT;
-        isOT[PT] = true;
+        isPT[PT] = true;
         isYT[YT] = true;
 
         emit CreateYieldContract(SCY, PT, YT, expiry);

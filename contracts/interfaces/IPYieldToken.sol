@@ -9,9 +9,9 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     event WithdrawFeeToTreasury(uint256[] amountRewardsOut, uint256 scyOut);
 
-    function mintYO(address receiverOT, address receiverYT) external returns (uint256 amountYOOut);
+    function mintPY(address receiverPT, address receiverYT) external returns (uint256 amountPYOut);
 
-    function redeemYO(address receiver) external returns (uint256 amountScyOut);
+    function redeemPY(address receiver) external returns (uint256 amountScyOut);
 
     // minimum of PT & YT balance
 

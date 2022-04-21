@@ -32,7 +32,7 @@ interface IPYieldContractFactory {
 
     event SetTreasury(address indexed treasury);
 
-    function getOT(address SCY, uint256 expiry) external view returns (address);
+    function getPT(address SCY, uint256 expiry) external view returns (address);
 
     function getYT(address SCY, uint256 expiry) external view returns (address);
 
@@ -42,7 +42,7 @@ interface IPYieldContractFactory {
 
     function treasury() external view returns (address);
 
-    function isOT(address) external view returns (bool);
+    function isPT(address) external view returns (bool);
 
     function isYT(address) external view returns (bool);
 }

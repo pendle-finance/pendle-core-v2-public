@@ -50,8 +50,8 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         uint256 expiry = IPPrincipalToken(PT).expiry();
 
         require(
-            IPYieldContractFactory(yieldContractFactory).getOT(SCY, expiry) == PT,
-            "INVALID_OT"
+            IPYieldContractFactory(yieldContractFactory).getPT(SCY, expiry) == PT,
+            "INVALID_PT"
         );
 
         market = address(new PendleMarket(PT, scalarRoot, initialAnchor));

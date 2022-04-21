@@ -15,7 +15,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _joeRouter, address _joeFactory)
-        ActionSCYAndYOBase(_joeRouter, _joeFactory)
+        ActionSCYAndPYBase(_joeRouter, _joeFactory)
     //solhint-disable-next-line no-empty-blocks
     {
 
@@ -88,12 +88,12 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     }
 
     /**
-     * @dev netYtOutGuessMin & Max can be used in the same way as RawTokenOT
+     * @dev netYtOutGuessMin & Max can be used in the same way as RawTokenPT
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
      - market.swap is called, which will transfer SCY to the YT contract, and callback is invoked
-     - callback will do call YT's mintYO, which will mint PT to the market & YT to the receiver
+     - callback will do call YT's mintPY, which will mint PT to the market & YT to the receiver
      */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
@@ -137,7 +137,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      * @dev inner working of this function:
      - YT is transferred to the YT contract
      - market.swap is called, which will transfer PT directly to the YT contract, and callback is invoked
-     - callback will do call YT's redeemYO, which will redeem the outcome SCY to this router, then
+     - callback will do call YT's redeemPY, which will redeem the outcome SCY to this router, then
         all SCY owed to the market will be paid, the rest is used to feed redeemScyToRawToken
      */
     function swapExactYtForRawToken(

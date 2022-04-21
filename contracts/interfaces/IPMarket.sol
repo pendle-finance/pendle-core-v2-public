@@ -76,7 +76,7 @@ interface IPMarket is IPBaseToken {
         view
         returns (
             ISuperComposableYield _SCY,
-            IPPrincipalToken _OT,
+            IPPrincipalToken _PT,
             IPYieldToken _YT
         );
 }

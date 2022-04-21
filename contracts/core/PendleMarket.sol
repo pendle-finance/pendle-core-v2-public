@@ -39,13 +39,13 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     MarketStorage public marketStorage;
 
     constructor(
-        address _OT,
+        address _PT,
         int256 _scalarRoot,
         int256 _initialAnchor
-    ) PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_OT).expiry()) {
-        PT = _OT;
-        SCY = IPPrincipalToken(_OT).SCY();
-        YT = IPPrincipalToken(_OT).YT();
+    ) PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_PT).expiry()) {
+        PT = _PT;
+        SCY = IPPrincipalToken(_PT).SCY();
+        YT = IPPrincipalToken(_PT).YT();
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
     }
@@ -242,12 +242,12 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         view
         returns (
             ISuperComposableYield _SCY,
-            IPPrincipalToken _OT,
+            IPPrincipalToken _PT,
             IPYieldToken _YT
         )
     {
         _SCY = ISuperComposableYield(SCY);
-        _OT = IPPrincipalToken(PT);
+        _PT = IPPrincipalToken(PT);
         _YT = IPYieldToken(YT);
     }
 }

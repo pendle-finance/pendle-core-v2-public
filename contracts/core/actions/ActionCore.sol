@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "./base/ActionSCYAndOTBase.sol";
-import "./base/ActionSCYAndYOBase.sol";
+import "./base/ActionSCYAndPTBase.sol";
+import "./base/ActionSCYAndPYBase.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionCore.sol";
 import "../../libraries/math/MarketMathAux.sol";
 
-contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
+contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
     using Math for uint256;
@@ -20,7 +20,7 @@ contract ActionCore is IPActionCore, ActionSCYAndOTBase, ActionSCYAndYOBase {
         address _joeFactory,
         address _marketFactory
     )
-        ActionSCYAndYOBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
+        ActionSCYAndPYBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
     {}
 
     /// @dev docs can be found in the internal function

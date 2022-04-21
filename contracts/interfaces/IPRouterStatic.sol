@@ -37,7 +37,7 @@ interface IPRouterStatic {
         external
         view
         returns (
-            bool isOT,
+            bool isPT,
             bool isYT,
             bool isMarket
         );

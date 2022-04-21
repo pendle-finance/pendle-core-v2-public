@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
 be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
 
-It has been proven and tested that impliedScyBalance will not change over time, unless users redeem their interest or redeemYO.
+It has been proven and tested that impliedScyBalance will not change over time, unless users redeem their interest or redeemPY.
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
@@ -45,48 +45,48 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     constructor(
         address _SCY,
-        address _OT,
+        address _PT,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
-        require(_SCY != address(0) && _OT != address(0), "zero address");
+        require(_SCY != address(0) && _PT != address(0), "zero address");
         SCY = _SCY;
-        PT = _OT;
+        PT = _PT;
     }
 
     /**
      * @notice this function splits scy into PT + YT of equal qty
      * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
      */
-    function mintYO(address receiverOT, address receiverYT)
+    function mintPY(address receiverPT, address receiverYT)
         public
         nonReentrant
-        returns (uint256 amountYOOut)
+        returns (uint256 amountPYOut)
     {
         uint256 amountToTokenize = _receiveSCY();
 
-        amountYOOut = _calcAmountToMint(amountToTokenize);
+        amountPYOut = _calcAmountToMint(amountToTokenize);
 
-        _mint(receiverYT, amountYOOut);
+        _mint(receiverYT, amountPYOut);
 
-        IPPrincipalToken(PT).mintByYT(receiverOT, amountYOOut);
+        IPPrincipalToken(PT).mintByYT(receiverPT, amountPYOut);
     }
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
-    function redeemYO(address receiver) public nonReentrant returns (uint256 amountScyOut) {
+    function redeemPY(address receiver) public nonReentrant returns (uint256 amountScyOut) {
         // minimum of PT & YT balance
-        uint256 amountYOToRedeem = IERC20(PT).balanceOf(address(this));
+        uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
         if (!isExpired()) {
-            amountYOToRedeem = Math.min(amountYOToRedeem, balanceOf(address(this)));
-            _burn(address(this), amountYOToRedeem);
+            amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
+            _burn(address(this), amountPYToRedeem);
         }
 
-        IPPrincipalToken(PT).burnByYT(address(this), amountYOToRedeem);
+        IPPrincipalToken(PT).burnByYT(address(this), amountPYToRedeem);
 
         uint256 amountScyToTreasury;
-        (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountYOToRedeem);
+        (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
 
         totalInterestPostExpiry += amountScyToTreasury;
 

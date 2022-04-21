@@ -6,11 +6,11 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../SuperComposableYield/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "../../../libraries/math/MarketMathAux.sol";
-import "./ActionSCYAndYOBase.sol";
+import "./ActionSCYAndPYBase.sol";
 import "./ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
+abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -56,7 +56,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     * @dev inner working of this function:
      - YT is transferred to the YT contract
      - market.swap is called, which will transfer PT directly to the YT contract, and callback is invoked
-     - callback will call YT's redeemYO, which will redeem the outcome SCY to this router, then
+     - callback will call YT's redeemPY, which will redeem the outcome SCY to this router, then
         all SCY owed to the market will be paid, the rest is transferred to the receiver
      */
     function _swapExactYtForScy(
@@ -90,7 +90,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndYOBase, ActionType {
     /**
      * @dev inner working of this function:
      - market.swap is called, which will transfer SCY directly to the YT contract, and callback is invoked
-     - callback will pull more SCY if necessary, do call YT's mintYO, which will mint PT to the market & YT to the receiver
+     - callback will pull more SCY if necessary, do call YT's mintPY, which will mint PT to the market & YT to the receiver
      */
     function _swapScyForExactYt(
         address receiver,

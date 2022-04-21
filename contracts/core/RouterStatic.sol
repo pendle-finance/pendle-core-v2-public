@@ -95,12 +95,12 @@ contract RouterStatic is IPRouterStatic {
         external
         view
         returns (
-            bool isOT,
+            bool isPT,
             bool isYT,
             bool isMarket
         )
     {
-        if (yieldContractFactory.isOT(token)) isOT = true;
+        if (yieldContractFactory.isPT(token)) isPT = true;
         else if (yieldContractFactory.isYT(token)) isYT = true;
         else if (marketFactory.isValidMarket(token)) isMarket = true;
     }
