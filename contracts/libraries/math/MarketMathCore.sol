@@ -371,22 +371,20 @@ library MarketMathCore {
         );
     }
 
-    function updateNewRateOracle(MarketState memory market, uint256 blockTime)
+    function getNewRateOracle(MarketState memory market, uint256 blockTime)
         internal
         pure
         returns (uint256)
     {
         // This can occur when using a view function get to a market state in the past
         if (market.lastTradeTime > blockTime) {
-            market.oracleRate = market.lastLnImpliedRate;
-            return market.oracleRate;
+            return market.lastLnImpliedRate;
         }
 
         uint256 timeDiff = blockTime - market.lastTradeTime;
         if (timeDiff > market.rateOracleTimeWindow) {
             // If past the time window just return the market.lastLnImpliedRate
-            market.oracleRate = market.lastLnImpliedRate;
-            return market.oracleRate;
+            return market.lastLnImpliedRate;
         }
 
         // (currentTs - previousTs) / timeWindow
@@ -398,7 +396,6 @@ library MarketMathCore {
         uint256 newOracleRate = market.lastTradeTime.mulDown(lastTradeWeight) +
             market.oracleRate.mulDown(oracleWeight);
 
-        market.oracleRate = newOracleRate;
-        return market.oracleRate;
+        return newOracleRate;
     }
 }
