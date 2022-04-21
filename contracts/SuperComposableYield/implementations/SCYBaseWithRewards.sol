@@ -47,7 +47,6 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         emit RedeemReward(user, outAmounts);
     }
 
-    // [EVENT-NOTE] no need for subgraph, but still considering
     function updateGlobalReward() public virtual override {
         address[] memory rewardTokens = getRewardTokens();
         _updateGlobalReward(rewardTokens, totalSupply());
