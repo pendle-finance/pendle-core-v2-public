@@ -7,9 +7,10 @@ import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPOwnershipToken.sol";
 import "../libraries/math/Math.sol";
 import "../interfaces/IPYieldContractFactory.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../SuperComposableYield/SCYUtils.sol";
 import "../SuperComposableYield/implementations/RewardManager.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
@@ -19,7 +20,7 @@ It has been proven and tested that impliedScyBalance will not change over time, 
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
-contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
+contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, ReentrancyGuard {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -59,7 +60,11 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
      * @notice this function splits scy into OT + YT of equal qty
      * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
      */
-    function mintYO(address receiverOT, address receiverYT) public returns (uint256 amountYOOut) {
+    function mintYO(address receiverOT, address receiverYT)
+        public
+        nonReentrant
+        returns (uint256 amountYOOut)
+    {
         uint256 amountToTokenize = _receiveSCY();
 
         amountYOOut = _calcAmountToMint(amountToTokenize);
@@ -70,7 +75,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
     }
 
     /// @dev this function converts YO tokens into scy, but interests & rewards are not redeemed at the same time
-    function redeemYO(address receiver) public returns (uint256 amountScyOut) {
+    function redeemYO(address receiver) public nonReentrant returns (uint256 amountScyOut) {
         // minimum of OT & YT balance
         uint256 amountYOToRedeem = IERC20(OT).balanceOf(address(this));
         if (!isExpired()) {
@@ -91,6 +96,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
 
     function redeemDueInterestAndRewards(address user)
         public
+        nonReentrant
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
         // redeemDueRewards before redeemDueInterest
@@ -103,19 +109,27 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken {
         emit RedeemInterest(user, interestOut);
     }
 
-    function redeemDueInterest(address user) public returns (uint256 interestOut) {
+    function redeemDueInterest(address user) public nonReentrant returns (uint256 interestOut) {
         updateUserReward(user); /// strictly required, see above for explanation
         updateUserInterest(user);
         interestOut = _doTransferOutDueInterest(user);
         emit RedeemInterest(user, interestOut);
     }
 
-    function redeemDueRewards(address user) public returns (uint256[] memory rewardsOut) {
+    function redeemDueRewards(address user)
+        public
+        nonReentrant
+        returns (uint256[] memory rewardsOut)
+    {
         updateUserReward(user);
         rewardsOut = _doTransferOutRewardsForUser(user, user);
         emit RedeemReward(user, rewardsOut);
     }
-
+    
+    /**
+     * @notice: updateGlobalReward does not need reentrancy modifier since the rewards
+     * will be transfered directly from SCY to YT, without triggering any callbacks
+     */
     function updateGlobalReward() external {
         address[] memory rewardTokens = getRewardTokens();
         _updateGlobalReward(rewardTokens, IERC20(SCY).balanceOf(address(this)));
