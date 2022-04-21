@@ -261,18 +261,15 @@ library MarketMathCore {
         int256 rateScalar,
         uint256 timeToExpiry
     ) internal pure returns (int256 rateAnchor) {
-        // This is the exchange rate at the new time to expiry
         int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastLnImpliedRate, timeToExpiry);
 
         require(newExchangeRate >= Math.IONE, "exchange rate below 1");
 
         {
-            // totalOt / (totalOt + totalAsset)
             int256 proportion = totalOt.divDown(totalOt + totalAsset);
 
             int256 lnProportion = _logProportion(proportion);
 
-            // newExchangeRate - ln(proportion / (1 - proportion)) / rateScalar
             rateAnchor = newExchangeRate - lnProportion.divDown(rateScalar);
         }
     }
@@ -307,11 +304,6 @@ library MarketMathCore {
         exchangeRate = LogExpMath.exp(rt.Int());
     }
 
-    /// @notice Returns the exchange rate between OT and Asset for the given market
-    /// Calculates the following exchange rate:
-    ///     (1 / rateScalar) * ln(proportion / (1 - proportion)) + rateAnchor
-    /// where:
-    ///     proportion = totalOt / (totalOt + totalUnderlyingAsset)
     function _getExchangeRate(
         int256 totalOt,
         int256 totalAsset,
@@ -321,32 +313,20 @@ library MarketMathCore {
     ) internal pure returns (int256 exchangeRate) {
         int256 numerator = totalOt.subNoNeg(netOtToAccount);
 
-        // This is the proportion scaled by Math.IONE
-        // (totalOt - netOtToAccount) / (totalOt + totalAsset)
         int256 proportion = (numerator.divDown(totalOt + totalAsset));
 
-        // This limit is here to prevent the market from reaching extremely high interest rates via an
-        // excessively large proportion (high amounts of OT relative to Asset).
-        // Market proportion can only increase via swapping OT to SCY (OT is added to the market and SCY is
-        // removed). Over time, the yield from SCY will slightly decrease the proportion (the
-        // amount of Asset in the market must be monotonically increasing). Therefore it is not
-        // possible for the proportion to go over max market proportion unless borrowing occurs.
         require(proportion <= MAX_MARKET_PROPORTION, "max proportion exceeded");
 
         int256 lnProportion = _logProportion(proportion);
 
-        // lnProportion / rateScalar + rateAnchor
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
 
-        // Do not succeed if interest rates fall below 1
         require(exchangeRate >= Math.IONE, "exchange rate below 1");
     }
 
     function _logProportion(int256 proportion) internal pure returns (int256 res) {
-        // This will result in divide by zero, short circuit
         require(proportion != Math.IONE, "proportion must not be one");
 
-        // Convert proportion to what is used inside the logit function (p / (1-p))
         int256 logitP = proportion.divDown(Math.IONE - proportion);
 
         res = logitP.ln();
