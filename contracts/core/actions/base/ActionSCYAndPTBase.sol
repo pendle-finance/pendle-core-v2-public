@@ -178,6 +178,13 @@ abstract contract ActionSCYAndPTBase {
         IPMarket(market).swapScyForExactPt(receiver, exactPtOut, maxScyIn, abi.encode()); // ignore return
     }
 
+    /**
+     * @dev swap exact amount of Scy to PT
+     * @dev inner working steps:
+       - The outcome amount of PT in is approximated
+       - market.swapExactPtToScy() is called, user will receive their PT
+       - The approximated amount of PT is transferred from msg.sender to market via router
+     */
     function _swapExactScyForPt(
         address receiver,
         address market,

@@ -30,6 +30,9 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         marketFactory = _marketFactory;
     }
 
+    /**
+     * @dev The callback is only callable by a Pendle Market created by the factory
+     */
     function swapCallback(
         int256 otToAccount,
         int256 scyToAccount,

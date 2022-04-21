@@ -38,10 +38,16 @@ contract PendlePrincipalToken is PendleBaseToken, IPPrincipalToken {
         emit YTSet(_YT);
     }
 
+    /**
+     * @dev only callable by the YT correspond to this OT
+     */
     function burnByYT(address user, uint256 amount) external onlyYT {
         _burn(user, amount);
     }
 
+    /**
+     * @dev only callable by the YT correspond to this OT
+     */
     function mintByYT(address user, uint256 amount) external onlyYT {
         _mint(user, amount);
     }

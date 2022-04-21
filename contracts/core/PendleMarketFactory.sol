@@ -41,6 +41,10 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         setReserveFeePercent(_reserveFeePercent);
     }
 
+    /**
+     * @notice Create a market between PT and its corresponding SCY
+     * with scalar & anchor config. Anyone is allowed to create a market on their own.
+     */
     function createNewMarket(
         address PT,
         int256 scalarRoot,

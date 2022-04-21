@@ -50,6 +50,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         initialAnchor = _initialAnchor;
     }
 
+    /**
+     * @notice PendleMarket allows users to provide in PT & SCY in exchange for LPs, which
+     * will grant LP holders more exchange fee over time
+     * @dev steps working of this function:
+       - Releases the proportional amount of LP to receiver
+       - Callback to msg.sender if data.length > 0
+       - Ensure that the corresponding amount of SCY & PT have been transferred to this address
+     * @param data bytes data to be sent in the callback
+     */
     function addLiquidity(
         address receiver,
         uint256 scyDesired,
@@ -100,6 +109,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         emit AddLiquidity(receiver, lpToAccount, scyUsed, otUsed);
     }
 
+    /**
+     * @notice LP Holders can burn their LP to receive back SCY & PT proportionally
+     * to their share of market
+     * @dev steps working of this contract
+       - SCY & PT will be first transferred out to receiver
+       - Callback to msg.sender if data.length > 0
+       - Ensure the corresponding amount of LP has been transferred to this contract
+     * @param data bytes data to be sent in the callback
+     */
     function removeLiquidity(
         address receiver,
         uint256 lpToRemove,
@@ -127,6 +145,16 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         emit RemoveLiquidity(receiver, lpToRemove, scyToAccount, otToAccount);
     }
 
+    /**
+     * @notice Pendle Market allows swaps between PT & SCY it is holding. This function
+     * aims to swap an exact amount of PT to SCY.
+     * @dev steps working of this contract
+       - The outcome amount of SCY will be precomputed by MarketMathLib
+       - Release the calculated amount of SCY to receiver
+       - Callback to msg.sender if data.length > 0
+       - Ensure exactPtIn amount of PT has been transferred to this address
+     * @param data bytes data to be sent in the callback
+     */
     function swapExactPtForScy(
         address receiver,
         uint256 exactPtIn,
@@ -158,6 +186,15 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         emit Swap(receiver, exactPtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
 
+    /**
+     * @notice Pendle Market allows swaps between PT & SCY it is holding. This function
+     * aims to swap an exact amount of SCY to PT.
+     * @dev steps working of this function
+       - The exact outcome amount of PT will be transferred to receiver
+       - Callback to msg.sender if data.length > 0
+       - Ensure the calculated required amount of SCY is transferred to this address
+     * @param data bytes data to be sent in the callback
+     */
     function swapScyForExactPt(
         address receiver,
         uint256 exactPtOut,

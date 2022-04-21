@@ -62,10 +62,15 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         treasury = _treasury;
     }
 
+    /**
+     * @notice Create a pair of (PT, YT) from any SCY and valid expiry. Anyone can create a yield contract
+     */
     function createYieldContract(address SCY, uint256 expiry)
         external
         returns (address PT, address YT)
     {
+        require(expiry > block.timestamp, "invalid expiry");
+
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 
         require(getPT[SCY][expiry] == address(0), "PT_EXISTED");

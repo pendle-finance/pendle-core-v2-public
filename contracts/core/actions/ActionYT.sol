@@ -21,6 +21,14 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
 
     }
 
+    /**
+     * @dev Take in a fixed amount of YT and returns receiver a corresponding amount of SCY
+     * @dev inner working step
+       - Transfer exactYtIn amount of YT to YT
+       - market.swapScyToExactPt is called, the receiver of PT is YT
+       - YT.redeemPY is called, burning exactYtIn YT & PT to SCY
+       - Return the owed Scy for contract, the rest is transferred to user
+     */
     function swapExactYtForScy(
         address receiver,
         address market,
@@ -30,6 +38,14 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         return _swapExactYtForScy(receiver, market, exactYtIn, minScyOut, true);
     }
 
+    /**
+     * @dev Take in a corresponding amount of SCY & return receiver a fixed amount of YT
+     * @dev inner working step
+       - Input SCY is transferred to YT address
+       - swap.swapExactPtForScy is called the receiver is YT
+       - YT.mintPY is called, granting router exactYtOut YT & PT
+       - The owed PT is paid by setting the PT receiver is market, YT receiver is $receiver
+     */
     function swapScyForExactYt(
         address receiver,
         address market,
@@ -39,6 +55,10 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         return _swapScyForExactYt(receiver, market, exactYtOut, maxScyIn);
     }
 
+    /**
+     * @dev Take in a fixed a mount of SCY and return receiver the corresponding amount of YT
+     * @dev can refer to the doc of swapExactRawTokenForYt
+     */
     function swapExactScyForYt(
         address receiver,
         address market,
@@ -63,6 +83,10 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
             );
     }
 
+    /**
+     * @dev take in a correesponding amount of YT & return an exactScyOut amount of SCY
+     * @dev can refer to the doc of swapExactYtForRawToken
+     */
     function swapYtForExactScy(
         address receiver,
         address market,
@@ -92,8 +116,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
-     - market.swap is called, which will transfer SCY to the YT contract, and callback is invoked
-     - callback will do call YT's mintPY, which will mint PT to the market & YT to the receiver
+     - market.swapExactPtToScy is called, which will transfer SCY to the YT contract, and callback is invoked
+     - callback will do call YT.mintPT, which will mint PT to the market & YT to the receiver
      */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
@@ -136,8 +160,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      * @dev inner working of this function:
      - YT is transferred to the YT contract
-     - market.swap is called, which will transfer PT directly to the YT contract, and callback is invoked
-     - callback will do call YT's redeemPY, which will redeem the outcome SCY to this router, then
+     - market.swapScyForExactPt is called, which will transfer PT directly to the YT contract, and callback is invoked
+     - callback will do call YT.redeemPY, which will redeem the outcome SCY to this router, then
         all SCY owed to the market will be paid, the rest is used to feed redeemScyToRawToken
      */
     function swapExactYtForRawToken(

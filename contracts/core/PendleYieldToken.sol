@@ -94,6 +94,9 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         _afterTransferOutSCY();
     }
 
+    /**
+     * @dev as mentioned in doc, updateDueReward should be placed strictly before every redeemDueInterest
+     */
     function redeemDueInterestAndRewards(address user)
         public
         nonReentrant
@@ -109,6 +112,9 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         emit RedeemInterest(user, interestOut);
     }
 
+    /**
+     * @dev as mentioned in doc, updateDueReward should be placed strictly before every redeemDueInterest
+     */
     function redeemDueInterest(address user) public nonReentrant returns (uint256 interestOut) {
         updateUserReward(user); /// strictly required, see above for explanation
         updateUserInterest(user);
@@ -236,10 +242,10 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     /**
-     * In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should
+     * @dev In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should
      * be claimed before withdrawing to treasury.
      *
-     * And since the reward distribution (which based on users' dueInterest) stopped at the scyIndexBeforeExpiry, it is not
+     * @dev And since the reward distribution (which based on users' dueInterest) stopped at the scyIndexBeforeExpiry, it is not
      * necessary to updateUserInterest along with reward here.
      */
     function withdrawFeeToTreasury() public {

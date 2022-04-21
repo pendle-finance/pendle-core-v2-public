@@ -171,7 +171,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
     the correct otOut must lie between this range, else the function will revert.
     * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
-    guess range. After getting the result, min = result * (100-slippage) & max = result * (100+slippage)
+    guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
     */
     function swapExactRawTokenForPt(
