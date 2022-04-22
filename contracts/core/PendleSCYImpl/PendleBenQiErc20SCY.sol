@@ -110,8 +110,8 @@ contract PendleBenQiErc20SCY is SCYBaseWithRewards {
         res[1] = underlying;
     }
 
-    function isValidBaseToken(address token) public view virtual override returns (bool res) {
-        res = (token == underlying || token == qiToken);
+    function isValidBaseToken(address token) public view virtual override returns (bool) {
+        return token == underlying || token == qiToken;
     }
 
     /*///////////////////////////////////////////////////////////////

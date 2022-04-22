@@ -80,8 +80,8 @@ contract PendleStEthSCY is SCYBase {
         res[1] = wstETH;
     }
 
-    function isValidBaseToken(address token) public view virtual override returns (bool res) {
-        res = (token == stETH || token == wstETH);
+    function isValidBaseToken(address token) public view virtual override returns (bool) {
+        return token == stETH || token == wstETH;
     }
 
     /*///////////////////////////////////////////////////////////////
