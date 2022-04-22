@@ -11,11 +11,12 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketConfig {
-        address treasury; // 160 bit
-        uint96 lnFeeRateRoot; // 96 bit
-        // 1 SLOT
+        address treasury;
+        uint96 lnFeeRateRoot;
+        // 1 SLOT = 256 bits
         uint32 rateOracleTimeWindow;
         uint8 reserveFeePercent;
+        // 1 SLOT = 40 bits
     }
 
     mapping(address => EnumerableSet.AddressSet) internal markets;

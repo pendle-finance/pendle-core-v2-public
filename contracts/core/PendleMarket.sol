@@ -200,6 +200,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             true
         );
         require(netScyOut >= minScyOut, "insufficient scy out");
+
         IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
@@ -240,6 +241,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             true
         );
         require(netScyIn <= maxScyIn, "scy in exceed limit");
+
         IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
@@ -280,11 +282,12 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     }
 
     function readState(bool updateRateOracle) public view returns (MarketState memory market) {
-        MarketStorage storage store = _storage;
-        market.totalPt = store.totalPt;
-        market.totalScy = store.totalScy;
+        MarketStorage memory local = _storage;
+
+        market.totalPt = local.totalPt;
+        market.totalScy = local.totalScy;
         market.totalLp = totalSupply().Int();
-        market.oracleRate = store.oracleRate;
+        market.oracleRate = local.oracleRate;
 
         (
             market.treasury,
@@ -296,8 +299,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
 
-        market.lastLnImpliedRate = store.lastLnImpliedRate;
-        market.lastTradeTime = store.lastTradeTime;
+        market.lastLnImpliedRate = local.lastLnImpliedRate;
+        market.lastTradeTime = local.lastTradeTime;
 
         if (updateRateOracle) {
             market.oracleRate = market.getNewRateOracle(block.timestamp);
@@ -305,13 +308,15 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     }
 
     function _writeState(MarketState memory market) internal {
-        MarketStorage storage store = _storage;
+        MarketStorage memory tempStore;
 
-        store.totalPt = market.totalPt.Int128();
-        store.totalScy = market.totalScy.Int128();
-        store.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
-        store.oracleRate = market.oracleRate.Uint96();
-        store.lastTradeTime = market.lastTradeTime.Uint32();
+        tempStore.totalPt = market.totalPt.Int128();
+        tempStore.totalScy = market.totalScy.Int128();
+        tempStore.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
+        tempStore.oracleRate = market.oracleRate.Uint96();
+        tempStore.lastTradeTime = market.lastTradeTime.Uint32();
+
+        _storage = tempStore;
 
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
     }
