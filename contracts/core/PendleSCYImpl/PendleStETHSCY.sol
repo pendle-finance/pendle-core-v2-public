@@ -9,7 +9,7 @@ contract PendleStEthSCY is SCYBase {
     address public immutable stETH;
     address public immutable wstETH;
 
-    uint256 public lastScyIndex;
+    uint256 public override scyIndexStored;
 
     constructor(
         string memory _name,
@@ -64,14 +64,10 @@ contract PendleStEthSCY is SCYBase {
                                SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function scyIndexCurrent() public virtual override returns (uint256 res) {
-        res = IWstETH(wstETH).stEthPerToken();
-        lastScyIndex = res;
-        emit UpdateScyIndex(lastScyIndex);
-    }
-
-    function scyIndexStored() public view virtual override returns (uint256 res) {
-        res = lastScyIndex;
+    function scyIndexCurrent() public virtual override returns (uint256) {
+        scyIndexStored = IWstETH(wstETH).stEthPerToken();
+        emit UpdateScyIndex(scyIndexStored);
+        return scyIndexStored;
     }
 
     /*///////////////////////////////////////////////////////////////

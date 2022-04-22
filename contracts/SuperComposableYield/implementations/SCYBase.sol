@@ -63,7 +63,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
         address receiver,
         address baseTokenIn,
         uint256 minAmountScyOut
-    ) public virtual override nonReentrant returns (uint256) {
+    ) external virtual override nonReentrant returns (uint256) {
         return _mintFresh(receiver, baseTokenIn, minAmountScyOut);
     }
 
@@ -71,7 +71,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
         address receiver,
         address baseTokenOut,
         uint256 minAmountBaseOut
-    ) public virtual override nonReentrant returns (uint256) {
+    ) external virtual override nonReentrant returns (uint256) {
         return _redeemFresh(receiver, baseTokenOut, minAmountBaseOut);
     }
 
@@ -124,9 +124,9 @@ abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
                                SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function scyIndexCurrent() public virtual override returns (uint256 res);
+    function scyIndexCurrent() external virtual override returns (uint256 res);
 
-    function scyIndexStored() public view virtual override returns (uint256 res);
+    function scyIndexStored() external view virtual override returns (uint256 res);
 
     /*///////////////////////////////////////////////////////////////
                 MISC METADATA FUNCTIONS
@@ -136,11 +136,11 @@ abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
         return _scyDecimals;
     }
 
-    function assetDecimals() public view virtual returns (uint8) {
+    function assetDecimals() external view virtual returns (uint8) {
         return _assetDecimals;
     }
 
-    function getBaseTokens() public view virtual override returns (address[] memory res);
+    function getBaseTokens() external view virtual override returns (address[] memory res);
 
     function isValidBaseToken(address token) public view virtual override returns (bool);
 
