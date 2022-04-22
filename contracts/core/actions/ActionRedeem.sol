@@ -7,7 +7,7 @@ import "../../interfaces/IPYieldToken.sol";
 import "../../core/PendleMarket.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract PendleRouterRedeemUpg is IPActionRedeem {
+contract ActionRedeem is IPActionRedeem {
     function redeemDueIncome(
         address user,
         address[] calldata scys,
