@@ -42,18 +42,17 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         nonReentrant
         returns (uint256[] memory outAmounts)
     {
-        _updateUserReward(user, balanceOf(user), totalSupply());
+        _updateUserReward(user);
         outAmounts = _doTransferOutRewardsForUser(user, user);
         emit RedeemReward(user, outAmounts);
     }
 
-    function updateGlobalReward() external virtual override {
-        address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, totalSupply());
+    function updateGlobalReward() external virtual override nonReentrant {
+        _updateGlobalReward();
     }
 
-    function updateUserReward(address user) external virtual override {
-        _updateUserReward(user, balanceOf(user), totalSupply());
+    function updateUserReward(address user) external virtual override nonReentrant {
+        _updateUserReward(user);
     }
 
     function getRewardTokens()
@@ -71,9 +70,18 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         address to,
         uint256 /*amount*/
     ) internal virtual override {
-        address[] memory rewardTokens = getRewardTokens();
-        _updateGlobalReward(rewardTokens, totalSupply());
-        if (from != address(0)) _updateUserRewardSkipGlobal(rewardTokens, from, balanceOf(from));
-        if (to != address(0)) _updateUserRewardSkipGlobal(rewardTokens, to, balanceOf(to));
+        _updateGlobalReward();
+        if (from != address(0)) _updateUserRewardSkipGlobal(from);
+        if (to != address(0)) _updateUserRewardSkipGlobal(to);
+    }
+
+    /// @dev to be overriden if there is rewards
+    function _rewardSharesTotal() internal virtual override returns (uint256) {
+        return totalSupply();
+    }
+
+    /// @dev to be overriden if there is rewards
+    function _rewardSharesUser(address user) internal virtual override returns (uint256) {
+        return balanceOf(user);
     }
 }
