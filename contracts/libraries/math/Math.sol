@@ -125,6 +125,11 @@ library Math {
         return uint112(x);
     }
 
+    function Uint96(uint256 x) internal pure returns (uint96) {
+        require(x < (1 << 96)); // unsigned, lim = bit
+        return uint96(x);
+    }
+
     function isAApproxB(
         uint256 a,
         uint256 b,

@@ -30,14 +30,6 @@ struct MarketPreCompute {
     int256 lnFeeRate;
 }
 
-struct MarketStorage {
-    int128 totalPt;
-    int128 totalScy;
-    uint112 lastLnImpliedRate;
-    uint112 oracleRate;
-    uint32 lastTradeTime;
-}
-
 // solhint-disable ordering
 library MarketMathCore {
     using Math for uint256;

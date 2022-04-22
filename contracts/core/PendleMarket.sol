@@ -14,10 +14,9 @@ import "../libraries/math/Math.sol";
 import "../libraries/math/MarketMathAux.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // solhint-disable reason-string
-contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
+contract PendleMarket is PendleBaseToken, IPMarket {
     using Math for uint256;
     using Math for int256;
     using Math for uint128;
@@ -25,6 +24,20 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     using MarketMathAux for MarketState;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
+
+    struct MarketStorage {
+        int128 totalPt;
+        int128 totalScy;
+        // 1 SLOT = 256 bits
+        uint96 lastLnImpliedRate;
+        uint96 oracleRate;
+        uint32 lastTradeTime;
+        uint8 _reentrancyStatus;
+        // 1 SLOT = 232 bits
+    }
+
+    uint8 private constant _NOT_ENTERED = 1;
+    uint8 private constant _ENTERED = 2;
 
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
@@ -36,7 +49,21 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     int256 public immutable scalarRoot;
     int256 public immutable initialAnchor;
 
-    MarketStorage public marketStorage;
+    MarketStorage public _storage;
+
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_storage._reentrancyStatus != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _storage._reentrancyStatus = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _storage._reentrancyStatus = _NOT_ENTERED;
+    }
 
     constructor(
         address _PT,
@@ -48,6 +75,7 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         YT = IPPrincipalToken(_PT).YT();
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
+        _storage._reentrancyStatus = _NOT_ENTERED;
     }
 
     /**
@@ -237,8 +265,22 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
         }
     }
 
+    function readTokens()
+        external
+        view
+        returns (
+            ISuperComposableYield _SCY,
+            IPPrincipalToken _PT,
+            IPYieldToken _YT
+        )
+    {
+        _SCY = ISuperComposableYield(SCY);
+        _PT = IPPrincipalToken(PT);
+        _YT = IPYieldToken(YT);
+    }
+
     function readState(bool updateRateOracle) public view returns (MarketState memory market) {
-        MarketStorage storage store = marketStorage;
+        MarketStorage storage store = _storage;
         market.totalPt = store.totalPt;
         market.totalScy = store.totalScy;
         market.totalLp = totalSupply().Int();
@@ -263,28 +305,14 @@ contract PendleMarket is PendleBaseToken, IPMarket, ReentrancyGuard {
     }
 
     function _writeState(MarketState memory market) internal {
-        MarketStorage storage store = marketStorage;
+        MarketStorage storage store = _storage;
 
         store.totalPt = market.totalPt.Int128();
         store.totalScy = market.totalScy.Int128();
-        store.lastLnImpliedRate = market.lastLnImpliedRate.Uint112();
-        store.oracleRate = market.oracleRate.Uint112();
+        store.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
+        store.oracleRate = market.oracleRate.Uint96();
         store.lastTradeTime = market.lastTradeTime.Uint32();
 
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
-    }
-
-    function readTokens()
-        external
-        view
-        returns (
-            ISuperComposableYield _SCY,
-            IPPrincipalToken _PT,
-            IPYieldToken _YT
-        )
-    {
-        _SCY = ISuperComposableYield(SCY);
-        _PT = IPPrincipalToken(PT);
-        _YT = IPYieldToken(YT);
     }
 }
