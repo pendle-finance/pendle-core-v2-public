@@ -55,7 +55,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) {
         require(_expiryDivisor != 0, "zero value");
-        require(treasury != address(0), "zero address");
+        require(_treasury != address(0), "zero address");
 
         expiryDivisor = _expiryDivisor;
         interestFeeRate = _interestFeeRate;
