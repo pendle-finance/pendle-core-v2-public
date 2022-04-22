@@ -77,12 +77,13 @@ contract PendleYearnVaultScy is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     function getBaseTokens() public view virtual override returns (address[] memory res) {
-        res = new address[](1);
+        res = new address[](2);
         res[0] = underlying;
+        res[1] = yvToken;
     }
 
-    function isValidBaseToken(address token) public view virtual override returns (bool res) {
-        res = (token == underlying);
+    function isValidBaseToken(address token) public view virtual override returns (bool) {
+        return token == underlying || token == yvToken;
     }
 
     /*///////////////////////////////////////////////////////////////
