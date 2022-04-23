@@ -8,12 +8,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../libraries/math/Math.sol";
 import "../SCYUtils.sol";
 
-/**
-# CONDITIONS TO USE THIS PRESET:
-- the token's balance must be static (i.e not increase on its own). Some examples of tokens don't
-satisfy this restriction is AaveV2's aToken
-
-*/
 abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Math for uint256;
