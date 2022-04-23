@@ -58,57 +58,29 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     /**
      * @dev Take in a fixed a mount of SCY and return receiver the corresponding amount of YT
      * @dev can refer to the doc of swapExactRawTokenForYt
+     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtOut
      */
     function swapExactScyForYt(
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax,
-        uint256 maxIteration,
-        uint256 eps
-    ) external returns (uint256) {
-        return
-            _swapExactScyForYt(
-                receiver,
-                market,
-                exactScyIn,
-                ApproxParams({
-                    guessMin: netYtOutGuessMin,
-                    guessMax: netYtOutGuessMax,
-                    eps: eps,
-                    maxIteration: maxIteration
-                }),
-                true
-            );
+        ApproxParams memory approx
+    ) external returns (uint256 netYtOut) {
+        return _swapExactScyForYt(receiver, market, exactScyIn, approx, true);
     }
 
     /**
      * @dev take in a correesponding amount of YT & return an exactScyOut amount of SCY
      * @dev can refer to the doc of swapExactYtForRawToken
+     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtIn
      */
     function swapYtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 netYtInGuessMin,
-        uint256 netYtInGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netYtIn) {
-        return
-            _swapYtForExactScy(
-                receiver,
-                market,
-                exactScyOut,
-                ApproxParams({
-                    guessMin: netYtInGuessMin,
-                    guessMax: netYtInGuessMax,
-                    eps: eps,
-                    maxIteration: maxIteration
-                }),
-                true
-            );
+        return _swapYtForExactScy(receiver, market, exactScyOut, approx, true);
     }
 
     /**
@@ -118,16 +90,14 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
      - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
      - market.swapExactPtToScy is called, which will transfer SCY to the YT contract, and callback is invoked
      - callback will do call YT.mintPT, which will mint PT to the market & YT to the receiver
+     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtOut
      */
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
         address market,
-        uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -140,18 +110,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
             true
         );
 
-        netYtOut = _swapExactScyForYt(
-            receiver,
-            market,
-            netScyUsedToBuyYT,
-            ApproxParams({
-                guessMin: netYtOutGuessMin,
-                guessMax: netYtOutGuessMax,
-                eps: eps,
-                maxIteration: maxIteration
-            }),
-            false
-        );
+        netYtOut = _swapExactScyForYt(receiver, market, netScyUsedToBuyYT, approx, false);
     }
 
     /**

@@ -67,24 +67,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 ptInGuessMin,
-        uint256 ptInGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256) {
-        return
-            _swapPtForExactScy(
-                receiver,
-                market,
-                exactScyOut,
-                ApproxParams({
-                    guessMin: ptInGuessMin,
-                    guessMax: ptInGuessMax,
-                    eps: eps,
-                    maxIteration: maxIteration
-                }),
-                true
-            );
+        return _swapPtForExactScy(receiver, market, exactScyOut, approx, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -102,24 +87,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 ptOutguessMin,
-        uint256 ptOutguessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256) {
-        return
-            _swapExactScyForPt(
-                receiver,
-                market,
-                exactScyIn,
-                ApproxParams({
-                    guessMin: ptOutguessMin,
-                    guessMax: ptOutguessMax,
-                    eps: eps,
-                    maxIteration: maxIteration
-                }),
-                true
-            );
+        return _swapExactScyForPt(receiver, market, exactScyIn, approx, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -173,16 +143,14 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
     guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+    * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
     */
     function swapExactRawTokenForPt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
         address market,
-        uint256 ptOutguessMin,
-        uint256 ptOutguessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netPtOut) {
         address SCY = IPMarket(market).SCY();
         uint256 netScyUseToBuyPt = _mintScyFromRawToken(
@@ -193,18 +161,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
             path,
             true
         );
-        netPtOut = _swapExactScyForPt(
-            receiver,
-            market,
-            netScyUseToBuyPt,
-            ApproxParams({
-                guessMin: ptOutguessMin,
-                guessMax: ptOutguessMax,
-                eps: eps,
-                maxIteration: maxIteration
-            }),
-            false
-        );
+        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, approx, false);
     }
 
     /**

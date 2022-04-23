@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
+import "../libraries/math/MarketApproxLib.sol";
+
 interface IPActionYT {
     function swapExactYtForScy(
         address receiver,
@@ -20,20 +22,14 @@ interface IPActionYT {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netYtOut);
 
     function swapYtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 netYtInGuessMin,
-        uint256 netYtInGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netYtIn);
 
     function swapExactRawTokenForYt(
@@ -41,10 +37,7 @@ interface IPActionYT {
         address receiver,
         address[] calldata path,
         address market,
-        uint256 netYtOutGuessMin,
-        uint256 netYtOutGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netYtOut);
 
     function swapExactYtForRawToken(

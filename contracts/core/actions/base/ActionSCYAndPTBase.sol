@@ -121,6 +121,12 @@ abstract contract ActionSCYAndPTBase {
         require(netScyOut >= minScyOut, "insufficient scy out");
     }
 
+    /**
+     * @notice swap PT for exact SCY, with receiver receiving SCY before msg.sender is required to
+     transfer the owed PT
+     * @dev inner working of this function is similar to swapExactPtForScy
+     * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtIn
+     */
     function _swapPtForExactScy(
         address receiver,
         address market,
@@ -184,6 +190,7 @@ abstract contract ActionSCYAndPTBase {
        - The outcome amount of PT in is approximated
        - market.swapExactPtToScy() is called, user will receive their PT
        - The approximated amount of PT is transferred from msg.sender to market via router
+     * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
      */
     function _swapExactScyForPt(
         address receiver,

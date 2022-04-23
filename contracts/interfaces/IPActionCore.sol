@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
+import "../libraries/math/MarketApproxLib.sol";
+
 interface IPActionCore {
     function addLiquidity(
         address receiver,
@@ -35,10 +37,7 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 ptInGuessMin,
-        uint256 ptInGuessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256);
 
     function swapScyForExactPt(
@@ -52,10 +51,7 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 ptOutguessMin,
-        uint256 ptOutguessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256);
 
     function mintScyFromRawToken(
@@ -95,10 +91,7 @@ interface IPActionCore {
         address receiver,
         address[] calldata path,
         address market,
-        uint256 ptOutguessMin,
-        uint256 ptOutguessMax,
-        uint256 maxIteration,
-        uint256 eps
+        ApproxParams memory approx
     ) external returns (uint256 netPtOut);
 
     function swapExactPtForRawToken(
