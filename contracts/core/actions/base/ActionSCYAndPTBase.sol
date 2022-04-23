@@ -25,13 +25,13 @@ abstract contract ActionSCYAndPTBase {
      * @dev inner working of this function:
      - market.addLiquidity is called
      - LP is minted to the receiver, and this router's addLiquidityCallback is invoked
-     - the router will transfer the necessary scy & ot from msg.sender to the market, and finish the callback
+     - the router will transfer the necessary scy & pt from msg.sender to the market, and finish the callback
      */
     function _addLiquidity(
         address receiver,
         address market,
         uint256 scyDesired,
-        uint256 otDesired,
+        uint256 ptDesired,
         uint256 minLpOut,
         bool doPull
     )
@@ -39,16 +39,16 @@ abstract contract ActionSCYAndPTBase {
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
-            uint256 otUsed
+            uint256 ptUsed
         )
     {
         (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         MarketState memory state = IPMarket(market).readState(false);
-        (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
+        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
             SCYIndexLib.newIndex(SCY),
             scyDesired,
-            otDesired,
+            ptDesired,
             false
         );
 
@@ -56,10 +56,10 @@ abstract contract ActionSCYAndPTBase {
 
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, market, scyUsed);
-            IERC20(PT).safeTransferFrom(msg.sender, market, otUsed);
+            IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
         }
 
-        IPMarket(market).addLiquidity(receiver, otDesired, scyDesired, abi.encode()); // ignore return
+        IPMarket(market).addLiquidity(receiver, ptDesired, scyDesired, abi.encode()); // ignore return
     }
 
     /**
@@ -75,14 +75,14 @@ abstract contract ActionSCYAndPTBase {
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
-        uint256 otOutMin,
+        uint256 ptOutMin,
         bool doPull
     ) internal returns (uint256 netScyOut, uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
 
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
         require(netScyOut >= scyOutMin, "insufficient scy out");
-        require(netPtOut >= otOutMin, "insufficient ot out");
+        require(netPtOut >= ptOutMin, "insufficient pt out");
 
         if (doPull) {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);

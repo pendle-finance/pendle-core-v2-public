@@ -27,20 +27,20 @@ contract RouterStatic is IPRouterStatic {
     function addLiquidityStatic(
         address market,
         uint256 scyDesired,
-        uint256 otDesired
+        uint256 ptDesired
     )
         external
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
-            uint256 otUsed
+            uint256 ptUsed
         )
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (, netLpOut, scyUsed, otUsed) = state.addLiquidity(
+        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
             scyIndex(market),
             scyDesired,
-            otDesired,
+            ptDesired,
             false
         );
     }

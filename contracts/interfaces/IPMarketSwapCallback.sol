@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 interface IPMarketSwapCallback {
     function swapCallback(
-        int256 otToAccount,
+        int256 ptToAccount,
         int256 scyToAccount,
         bytes calldata data
     ) external;

@@ -28,7 +28,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 scyDesired,
-        uint256 otDesired,
+        uint256 ptDesired,
         uint256 minLpOut
     )
         external
@@ -38,7 +38,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
             uint256
         )
     {
-        return _addLiquidity(receiver, market, scyDesired, otDesired, minLpOut, true);
+        return _addLiquidity(receiver, market, scyDesired, ptDesired, minLpOut, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -47,9 +47,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
-        uint256 otOutMin
+        uint256 ptOutMin
     ) external returns (uint256, uint256) {
-        return _removeLiquidity(receiver, market, lpToRemove, scyOutMin, otOutMin, true);
+        return _removeLiquidity(receiver, market, lpToRemove, scyOutMin, ptOutMin, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -67,8 +67,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 otInGuessMin,
-        uint256 otInGuessMax,
+        uint256 ptInGuessMin,
+        uint256 ptInGuessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256) {
@@ -78,8 +78,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
                 market,
                 exactScyOut,
                 ApproxParams({
-                    guessMin: otInGuessMin,
-                    guessMax: otInGuessMax,
+                    guessMin: ptInGuessMin,
+                    guessMax: ptInGuessMax,
                     eps: eps,
                     maxIteration: maxIteration
                 }),
@@ -102,8 +102,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 otOutguessMin,
-        uint256 otOutguessMax,
+        uint256 ptOutguessMin,
+        uint256 ptOutguessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256) {
@@ -113,8 +113,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
                 market,
                 exactScyIn,
                 ApproxParams({
-                    guessMin: otOutguessMin,
-                    guessMax: otOutguessMax,
+                    guessMin: ptOutguessMin,
+                    guessMax: ptOutguessMax,
                     eps: eps,
                     maxIteration: maxIteration
                 }),
@@ -168,7 +168,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
 
     /**
     * @dev netPtOutGuessMin & netPtOutGuessMax the minimum & maximum possible guess for the netPtOut
-    the correct otOut must lie between this range, else the function will revert.
+    the correct ptOut must lie between this range, else the function will revert.
     * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
     to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
     guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
@@ -179,8 +179,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address receiver,
         address[] calldata path,
         address market,
-        uint256 otOutguessMin,
-        uint256 otOutguessMax,
+        uint256 ptOutguessMin,
+        uint256 ptOutguessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256 netPtOut) {
@@ -198,8 +198,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
             market,
             netScyUseToBuyPt,
             ApproxParams({
-                guessMin: otOutguessMin,
-                guessMax: otOutguessMax,
+                guessMin: ptOutguessMin,
+                guessMax: ptOutguessMax,
                 eps: eps,
                 maxIteration: maxIteration
             }),

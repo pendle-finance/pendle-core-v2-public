@@ -6,7 +6,7 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 scyDesired,
-        uint256 otDesired,
+        uint256 ptDesired,
         uint256 minLpOut
     )
         external
@@ -21,7 +21,7 @@ interface IPActionCore {
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
-        uint256 otOutMin
+        uint256 ptOutMin
     ) external returns (uint256, uint256);
 
     function swapExactPtForScy(
@@ -35,8 +35,8 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyOut,
-        uint256 otInGuessMin,
-        uint256 otInGuessMax,
+        uint256 ptInGuessMin,
+        uint256 ptInGuessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256);
@@ -52,8 +52,8 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyIn,
-        uint256 otOutguessMin,
-        uint256 otOutguessMax,
+        uint256 ptOutguessMin,
+        uint256 ptOutguessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256);
@@ -95,8 +95,8 @@ interface IPActionCore {
         address receiver,
         address[] calldata path,
         address market,
-        uint256 otOutguessMin,
-        uint256 otOutguessMax,
+        uint256 ptOutguessMin,
+        uint256 ptOutguessMax,
         uint256 maxIteration,
         uint256 eps
     ) external returns (uint256 netPtOut);

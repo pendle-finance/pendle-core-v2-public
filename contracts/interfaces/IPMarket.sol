@@ -11,19 +11,19 @@ interface IPMarket is IPBaseToken {
         address indexed receiver,
         uint256 lpToAccount,
         uint256 scyUsed,
-        uint256 otUsed
+        uint256 ptUsed
     );
 
     event RemoveLiquidity(
         address indexed receiver,
         uint256 lpRemoved,
         uint256 scyToAccount,
-        uint256 otToAccount
+        uint256 ptToAccount
     );
 
     event Swap(
         address indexed receiver,
-        int256 otToAccount,
+        int256 ptToAccount,
         int256 scyToAccount,
         uint256 netScyToReserve
     );
@@ -33,21 +33,21 @@ interface IPMarket is IPBaseToken {
     function addLiquidity(
         address receiver,
         uint256 scyDesired,
-        uint256 otDesired,
+        uint256 ptDesired,
         bytes calldata data
     )
         external
         returns (
             uint256 lpToAccount,
             uint256 scyUsed,
-            uint256 otUsed
+            uint256 ptUsed
         );
 
     function removeLiquidity(
         address receiver,
         uint256 lpToRemove,
         bytes calldata data
-    ) external returns (uint256 scyToAccount, uint256 otToAccount);
+    ) external returns (uint256 scyToAccount, uint256 ptToAccount);
 
     function swapExactPtForScy(
         address receiver,

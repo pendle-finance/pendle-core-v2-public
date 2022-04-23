@@ -48,7 +48,7 @@ library MarketMathCore {
         MarketState memory market,
         SCYIndex index,
         int256 scyDesired,
-        int256 otDesired,
+        int256 ptDesired,
         bool updateState
     )
         internal
@@ -57,13 +57,13 @@ library MarketMathCore {
             int256 lpToReserve,
             int256 lpToAccount,
             int256 scyUsed,
-            int256 otUsed
+            int256 ptUsed
         )
     {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(scyDesired > 0 && otDesired > 0, "ZERO_AMOUNTS");
+        require(scyDesired > 0 && ptDesired > 0, "ZERO_AMOUNTS");
 
         /// ------------------------------------------------------------
         /// MATH
@@ -72,18 +72,18 @@ library MarketMathCore {
             lpToAccount = index.scyToAsset(scyDesired).subNoNeg(MINIMUM_LIQUIDITY);
             lpToReserve = MINIMUM_LIQUIDITY;
             scyUsed = scyDesired;
-            otUsed = otDesired;
+            ptUsed = ptDesired;
         } else {
-            int256 netLpByPt = (otDesired * market.totalLp) / market.totalPt;
+            int256 netLpByPt = (ptDesired * market.totalLp) / market.totalPt;
             int256 netLpByScy = (scyDesired * market.totalLp) / market.totalScy;
             if (netLpByPt < netLpByScy) {
                 lpToAccount = netLpByPt;
-                otUsed = otDesired;
+                ptUsed = ptDesired;
                 scyUsed = (market.totalScy * lpToAccount) / market.totalLp;
             } else {
                 lpToAccount = netLpByScy;
                 scyUsed = scyDesired;
-                otUsed = (market.totalPt * lpToAccount) / market.totalLp;
+                ptUsed = (market.totalPt * lpToAccount) / market.totalLp;
             }
         }
 
@@ -94,7 +94,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         if (updateState) {
             market.totalScy += scyUsed;
-            market.totalPt += otUsed;
+            market.totalPt += ptUsed;
             market.totalLp += lpToAccount + lpToReserve;
         }
     }

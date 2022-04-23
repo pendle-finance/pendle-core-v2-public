@@ -61,38 +61,38 @@ library MarketApproxLib {
             unchecked {
                 approx.maxIteration--;
             }
-            uint256 otInGuess = (approx.guessMin + approx.guessMax) / 2;
+            uint256 ptInGuess = (approx.guessMin + approx.guessMax) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = updateSlope(
                 market.totalPt,
-                otInGuess,
+                ptInGuess,
                 comp,
                 largestGoodSlope
             );
             if (!isSlopeNonNeg) {
-                approx.guessMax = otInGuess;
+                approx.guessMax = ptInGuess;
                 continue;
             }
 
             /// ------------------------------------------------------------
             /// CHECK ASSET
             /// ------------------------------------------------------------
-            (int256 _assetToAccount, ) = market.calcTrade(comp, otInGuess.neg());
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptInGuess.neg());
             uint256 netAssetOut = _assetToAccount.Uint();
 
             if (netAssetOut >= minAssetOut) {
-                approx.guessMax = otInGuess;
+                approx.guessMax = ptInGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
                 if (Math.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
-                    return (otInGuess, index.assetToScy(netAssetOut));
+                    return (ptInGuess, index.assetToScy(netAssetOut));
                 }
             } else {
-                approx.guessMin = otInGuess + 1;
+                approx.guessMin = ptInGuess + 1;
             }
         }
         revert("approx fail");
@@ -137,31 +137,31 @@ library MarketApproxLib {
             unchecked {
                 approx.maxIteration--;
             }
-            uint256 otOutGuess = (approx.guessMin + approx.guessMax + 1) / 2;
+            uint256 ptOutGuess = (approx.guessMin + approx.guessMax + 1) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK ASSET
             /// ------------------------------------------------------------
-            (int256 _assetToAccount, ) = market.calcTrade(comp, otOutGuess.Int());
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptOutGuess.Int());
             uint256 netAssetIn = _assetToAccount.neg().Uint();
 
             if (netAssetIn <= maxAssetIn) {
-                approx.guessMin = otOutGuess;
+                approx.guessMin = ptOutGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
                 if (Math.isASmallerApproxB(netAssetIn, maxAssetIn, approx.eps)) {
-                    return (otOutGuess, index.assetToScy(netAssetIn));
+                    return (ptOutGuess, index.assetToScy(netAssetIn));
                 }
             } else {
-                approx.guessMax = otOutGuess - 1;
+                approx.guessMax = ptOutGuess - 1;
             }
         }
         revert("approx fail");
     }
 
     struct SlotSwapExactScyForYt {
-        uint256 otInGuess;
+        uint256 ptInGuess;
         int256 _assetToAccount;
         uint256 netAssetOut;
         uint256 amountAssetNeedMore;
@@ -210,40 +210,40 @@ library MarketApproxLib {
             }
 
             SlotSwapExactScyForYt memory slot;
-            // ytOutGuess = otInGuess
-            slot.otInGuess = (approx.guessMin + approx.guessMax + 1) / 2;
+            // ytOutGuess = ptInGuess
+            slot.ptInGuess = (approx.guessMin + approx.guessMax + 1) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = updateSlope(
                 market.totalPt,
-                slot.otInGuess,
+                slot.ptInGuess,
                 comp,
                 largestGoodSlope
             );
             if (!isSlopeNonNeg) {
-                approx.guessMax = slot.otInGuess - 1;
+                approx.guessMax = slot.ptInGuess - 1;
                 continue;
             }
 
             /// ------------------------------------------------------------
             /// CHECK ASSET
             /// ------------------------------------------------------------
-            (slot._assetToAccount, ) = market.calcTrade(comp, slot.otInGuess.neg());
+            (slot._assetToAccount, ) = market.calcTrade(comp, slot.ptInGuess.neg());
             slot.netAssetOut = slot._assetToAccount.Uint();
-            slot.amountAssetNeedMore = slot.otInGuess - slot.netAssetOut;
+            slot.amountAssetNeedMore = slot.ptInGuess - slot.netAssetOut;
 
             if (slot.amountAssetNeedMore <= maxAssetIn) {
-                approx.guessMin = slot.otInGuess;
+                approx.guessMin = slot.ptInGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
                 if (Math.isASmallerApproxB(slot.amountAssetNeedMore, maxAssetIn, approx.eps)) {
-                    return (slot.otInGuess, index.assetToScy(slot.amountAssetNeedMore));
+                    return (slot.ptInGuess, index.assetToScy(slot.amountAssetNeedMore));
                 }
             } else {
-                approx.guessMax = slot.otInGuess - 1;
+                approx.guessMax = slot.ptInGuess - 1;
             }
         }
         revert("approx fail");
@@ -288,30 +288,30 @@ library MarketApproxLib {
             unchecked {
                 approx.maxIteration--;
             }
-            // ytInGuess = otOutGuess
-            uint256 otOutGuess = (approx.guessMin + approx.guessMax) / 2;
+            // ytInGuess = ptOutGuess
+            uint256 ptOutGuess = (approx.guessMin + approx.guessMax) / 2;
 
             /// ------------------------------------------------------------
             /// CHECK ASSET
             /// ------------------------------------------------------------
-            (int256 _assetToAccount, ) = market.calcTrade(comp, otOutGuess.Int());
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptOutGuess.Int());
             uint256 netAssetOwed = _assetToAccount.neg().Uint();
 
-            // since otOutGuess is between guessMin & guessMax, it's guaranteed that
-            // there are enough Yt to pair with otOut
+            // since ptOutGuess is between guessMin & guessMax, it's guaranteed that
+            // there are enough Yt to pair with ptOut
 
-            uint256 netAssetOut = otOutGuess - netAssetOwed;
+            uint256 netAssetOut = ptOutGuess - netAssetOwed;
 
             if (netAssetOut >= minAssetOut) {
-                approx.guessMax = otOutGuess;
+                approx.guessMax = ptOutGuess;
                 /// ------------------------------------------------------------
                 /// CHECK IF ANSWER FOUND
                 /// ------------------------------------------------------------
                 if (Math.isAGreaterApproxB(netAssetOut, minAssetOut, approx.eps)) {
-                    return (otOutGuess, index.assetToScy(netAssetOut));
+                    return (ptOutGuess, index.assetToScy(netAssetOut));
                 }
             } else {
-                approx.guessMin = otOutGuess + 1;
+                approx.guessMin = ptOutGuess + 1;
             }
         }
         revert("approx fail");
@@ -319,31 +319,31 @@ library MarketApproxLib {
 
     function updateSlope(
         int256 totalPt,
-        uint256 otInGuess,
+        uint256 ptInGuess,
         MarketPreCompute memory comp,
         uint256 largestGoodSlope
     ) internal pure returns (bool isSlopeNonNeg, uint256 newLargestGoodSlop) {
-        if (otInGuess <= largestGoodSlope) {
+        if (ptInGuess <= largestGoodSlope) {
             return (true, largestGoodSlope);
         }
         // it's not guaranteed that the current slop is good
         // we therefore have to recalculate the slope
-        int256 slope = slopeFactor(totalPt, otInGuess.neg(), comp);
-        if (slope >= 0) return (true, otInGuess);
+        int256 slope = slopeFactor(totalPt, ptInGuess.neg(), comp);
+        if (slope >= 0) return (true, ptInGuess);
         else return (false, largestGoodSlope);
     }
 
-    // otToMarket < totalAsset && totalPt
+    // ptToMarket < totalAsset && totalPt
     function slopeFactor(
         int256 totalPt,
-        int256 otToAccount,
+        int256 ptToAccount,
         MarketPreCompute memory comp
     ) internal pure returns (int256) {
-        int256 otToMarket = -otToAccount;
-        int256 diffAssetPtToMarket = comp.totalAsset - otToMarket;
-        int256 sumPt = otToMarket + totalPt;
+        int256 ptToMarket = -ptToAccount;
+        int256 diffAssetPtToMarket = comp.totalAsset - ptToMarket;
+        int256 sumPt = ptToMarket + totalPt;
 
-        require(diffAssetPtToMarket > 0 && sumPt > 0, "invalid otToMarket");
+        require(diffAssetPtToMarket > 0 && sumPt > 0, "invalid ptToMarket");
 
         int256 part1 = (otToMarket * (totalPt + comp.totalAsset)).divDown(
             sumPt * diffAssetPtToMarket

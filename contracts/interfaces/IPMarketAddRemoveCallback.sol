@@ -5,14 +5,14 @@ interface IPMarketAddRemoveCallback {
     function addLiquidityCallback(
         uint256 lpToAccount,
         uint256 scyOwed,
-        uint256 otOwed,
+        uint256 ptOwed,
         bytes calldata data
     ) external;
 
     function removeLiquidityCallback(
         uint256 lpOwed,
         uint256 scyToAccount,
-        uint256 otToAccount,
+        uint256 ptToAccount,
         bytes calldata data
     ) external;
 }

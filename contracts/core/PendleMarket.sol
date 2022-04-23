@@ -90,7 +90,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     function addLiquidity(
         address receiver,
         uint256 scyDesired,
-        uint256 otDesired,
+        uint256 ptDesired,
         bytes calldata data
     )
         external
@@ -98,17 +98,17 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         returns (
             uint256 lpToAccount,
             uint256 scyUsed,
-            uint256 otUsed
+            uint256 ptUsed
         )
     {
         MarketState memory market = readState(true);
         SCYIndex index = SCYIndexLib.newIndex(SCY);
 
         uint256 lpToReserve;
-        (lpToReserve, lpToAccount, scyUsed, otUsed) = market.addLiquidity(
+        (lpToReserve, lpToAccount, scyUsed, ptUsed) = market.addLiquidity(
             index,
             scyDesired,
-            otDesired,
+            ptDesired,
             true
         );
 
@@ -124,7 +124,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
                 lpToAccount,
                 scyUsed,
-                otUsed,
+                ptUsed,
                 data
             );
         }
@@ -134,7 +134,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         _writeState(market);
 
-        emit AddLiquidity(receiver, lpToAccount, scyUsed, otUsed);
+        emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
     }
 
     /**
@@ -150,19 +150,19 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         address receiver,
         uint256 lpToRemove,
         bytes calldata data
-    ) external nonReentrant returns (uint256 scyToAccount, uint256 otToAccount) {
+    ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
         MarketState memory market = readState(true);
 
-        (scyToAccount, otToAccount) = market.removeLiquidity(lpToRemove, true);
+        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
 
         IERC20(SCY).safeTransfer(receiver, scyToAccount);
-        IERC20(PT).safeTransfer(receiver, otToAccount);
+        IERC20(PT).safeTransfer(receiver, ptToAccount);
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
                 lpToRemove,
                 scyToAccount,
-                otToAccount,
+                ptToAccount,
                 data
             );
         }
@@ -170,7 +170,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         _burn(address(this), lpToRemove);
 
         _writeState(market);
-        emit RemoveLiquidity(receiver, lpToRemove, scyToAccount, otToAccount);
+        emit RemoveLiquidity(receiver, lpToRemove, scyToAccount, ptToAccount);
     }
 
     /**

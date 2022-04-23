@@ -7,13 +7,13 @@ interface IPRouterStatic {
     function addLiquidityStatic(
         address market,
         uint256 scyDesired,
-        uint256 otDesired
+        uint256 ptDesired
     )
         external
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
-            uint256 otUsed
+            uint256 ptUsed
         );
 
     function removeLiquidityStatic(address market, uint256 lpToRemove)
