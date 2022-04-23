@@ -345,7 +345,7 @@ library MarketApproxLib {
 
         require(diffAssetPtToMarket > 0 && sumPt > 0, "invalid ptToMarket");
 
-        int256 part1 = (otToMarket * (totalPt + comp.totalAsset)).divDown(
+        int256 part1 = (ptToMarket * (totalPt + comp.totalAsset)).divDown(
             sumPt * diffAssetPtToMarket
         );
 
