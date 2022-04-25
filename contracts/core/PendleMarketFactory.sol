@@ -22,6 +22,8 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     mapping(address => EnumerableSet.AddressSet) internal markets;
 
     address public immutable yieldContractFactory;
+    uint256 public immutable maxLnFeeRateRoot;
+    uint256 public constant minRateOracleTimeWindow = 300 seconds;
 
     MarketConfig public marketConfig;
 
@@ -35,6 +37,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     ) PermissionsV2Upg(_governanceManager) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
+        maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
 
         setTreasury(_treasury);
         setlnFeeRateRoot(_lnFeeRateRoot);
@@ -80,15 +83,17 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     }
 
     function setlnFeeRateRoot(uint96 newlnFeeRateRoot) public onlyGovernance {
+        require(newlnFeeRateRoot <= maxLnFeeRateRoot, "invalid fee rate root");
         marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
     }
 
     function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {
+        require(newRateOracleTimeWindow >= minRateOracleTimeWindow, "invalid time window");
         marketConfig.rateOracleTimeWindow = newRateOracleTimeWindow;
     }
 
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyGovernance {
-        require(newReserveFeePercent <= 100, "invalid fee rate");
+        require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
     }
 }
