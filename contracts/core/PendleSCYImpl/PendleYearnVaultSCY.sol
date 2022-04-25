@@ -17,9 +17,10 @@ contract PendleYearnVaultScy is SCYBase {
         string memory _symbol,
         uint8 __scydecimals,
         uint8 __assetDecimals,
+        bytes32 __assetId,
         address _underlying,
         address _yvToken
-    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
+    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals, __assetId) {
         require(_yvToken != address(0), "zero address");
         yvToken = _yvToken;
         underlying = _underlying;

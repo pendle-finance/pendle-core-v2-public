@@ -23,9 +23,10 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         string memory _name,
         string memory _symbol,
         uint8 __scydecimals,
-        uint8 __assetDecimals
+        uint8 __assetDecimals,
+        bytes32 __assetId
     )
-        SCYBase(_name, _symbol, __scydecimals, __assetDecimals)
+        SCYBase(_name, _symbol, __scydecimals, __assetDecimals, __assetId)
     // solhint-disable-next-line no-empty-blocks
     {
 

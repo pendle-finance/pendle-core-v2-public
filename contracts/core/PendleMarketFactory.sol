@@ -80,12 +80,10 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     }
 
     function setlnFeeRateRoot(uint96 newlnFeeRateRoot) public onlyGovernance {
-        // TODO: hard cap on the fee
         marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
     }
 
     function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {
-        // TODO: hard min for the time window
         marketConfig.rateOracleTimeWindow = newRateOracleTimeWindow;
     }
 

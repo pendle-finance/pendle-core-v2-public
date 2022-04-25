@@ -24,11 +24,12 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         string memory _symbol,
         uint8 __scydecimals,
         uint8 __assetDecimals,
+        bytes32 __assetId,
         address _aavePool,
         address _underlying,
         address _aToken,
         address _rewardsController
-    ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals) {
+    ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals, __assetId) {
         aToken = _aToken;
         pool = _aavePool;
         underlying = _underlying;

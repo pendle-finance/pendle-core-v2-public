@@ -19,10 +19,11 @@ contract PendleBtrflyScy is SCYBase {
         string memory _symbol,
         uint8 __scydecimals,
         uint8 __assetDecimals,
+        bytes32 __assetId,
         address _BTRFLY,
         address _xBTRFLY,
         address _wxBTRFLY
-    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
+    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals, __assetId) {
         require(_wxBTRFLY != address(0), "zero address");
         BTRFLY = _BTRFLY;
         xBTRFLY = _xBTRFLY;

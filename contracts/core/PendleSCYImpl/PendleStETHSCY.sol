@@ -17,8 +17,9 @@ contract PendleStEthSCY is SCYBase {
         uint8 __scydecimals,
         uint8 __assetDecimals,
         address _stETH,
-        address _wstETH
-    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals) {
+        address _wstETH,
+        bytes32 __assetId
+    ) SCYBase(_name, _symbol, __scydecimals, __assetDecimals, __assetId) {
         require(_wstETH != address(0), "zero address");
         stETH = _stETH;
         wstETH = _wstETH;

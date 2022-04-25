@@ -399,7 +399,7 @@ library MarketApproxLib {
         int256 proportion = logitP.divDown(logitP + Math.IONE);
         int256 numerator = proportion.mulDown(totalPt + comp.totalAsset);
         int256 maxPtOut = totalPt - numerator;
-        // TODO: 999 & 1000 are magic numbers
+        // only get 99.9% of the theoretical max to accommodate some precision issues
         return (maxPtOut.Uint() * 999) / 1000;
     }
 
