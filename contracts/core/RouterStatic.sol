@@ -50,18 +50,18 @@ contract RouterStatic is IPRouterStatic {
     function removeLiquidityStatic(address market, uint256 lpToRemove)
         external
         view
-        returns (uint256 netScpyut, uint256 netPtOut)
+        returns (uint256 netScyOut, uint256 netPtOut)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScpyut, netPtOut) = state.removeLiquidity(lpToRemove, false);
+        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
     }
 
     function swapPtForScyStatic(address market, uint256 exactPtIn)
         external
-        returns (uint256 netScpyut, uint256 netScyFee)
+        returns (uint256 netScyOut, uint256 netScyFee)
     {
         MarketState memory state = IPMarket(market).readState(false);
-        (netScpyut, netScyFee) = state.swapExactPtForScy(
+        (netScyOut, netScyFee) = state.swapExactPtForScy(
             scyIndex(market),
             exactPtIn,
             block.timestamp,
