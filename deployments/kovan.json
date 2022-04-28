@@ -1,0 +1,34 @@
+{
+    "network": "KOVAN",
+    "DEPLOYER": "0x42D2D78Cc14e1B7D5e317B42e5335D8816B4Fd3F",
+    "PENDLE_GOVERNANCE_MANAGER": "0xf6679977b3733572D1D92BF8c0Aa6371c9e1a108",
+    "PENDLE_PY_FACTORY": "0x9842a452F237d737306b01728EDf75688d960E84",
+    "PENDLE_MARKET_FACTORY": "0xF8E42bEE264990CEA883B59C4cB2dC789c3B0128",
+    "PENDLE_ROUTER": "0x420c4172296A8FA8Af7dEfFC43f6FB949F897e74",
+    "YIELD_CONTRACTS": {
+        "SCY-QIUSD-25-DEC": {
+            "scy": "0x5ae5FFe21817C3c39B8194D32eEd7723b0444947",
+            "expiry": 1671926400,
+            "yt": "0xbaC3460A1E7b48FDB500aeD6554a3A4C476F7f65",
+            "pt": "0x0B7FCDFC13839aeDF622613994B5b9D8da154f0e",
+            "market": "0xFa51275a423b283157cCC587f0FB2674aeb5b4f9",
+            "ibToken": {
+                "address": "0x049f24D4F13f6AA696fCCB7d37d9998a27E6bEbC",
+                "symbol": "qiUSD"
+            },
+            "underlyings": [
+                {
+                    "address": "0xcc81Bf141a2d43Dd005E22360C89461B834B693C",
+                    "symbol": "USD"
+                }
+            ]
+        }
+    },
+    "TEST_CONTRACTS": {
+        "USD": "0xcc81Bf141a2d43Dd005E22360C89461B834B693C",
+        "WNATIVE": "0x45973cDC27ceecC71Db91f823241c20533902c15",
+        "FUND_KEEPER": "0x32B4f127385E31f4D9839675B270945173AD432B",
+        "QIUSD": "0x049f24D4F13f6AA696fCCB7d37d9998a27E6bEbC",
+        "SCY_QIUSD": "0x5ae5FFe21817C3c39B8194D32eEd7723b0444947"
+    }
+}
