@@ -15,7 +15,9 @@
   },
   "files": [
     "contracts",
-    "typechain-types"
+    "typechain-types",
+    "build/artifacts/contracts/",
+    "deployments/"
   ],
   "engines": {
     "node": ">=10"
