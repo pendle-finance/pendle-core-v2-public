@@ -63,7 +63,7 @@ library MarketApproxLib {
         require(isValidApproxParams(approx), "invalid approx approx");
 
         /// ------------------------------------------------------------
-        /// SET UP VAIRBALES
+        /// SET UP VARIABLES
         /// ------------------------------------------------------------
         uint256 minAssetOut = index.scyToAsset(minScyOut);
         uint256 largestGoodSlope;
