@@ -137,7 +137,7 @@ abstract contract SCYBase is ERC20, ISuperComposableYield, ReentrancyGuard {
         return _assetDecimals;
     }
 
-    function assetId() external view returns (bytes32) {
+    function assetId() external view virtual returns (bytes32) {
         return _assetId;
     }
 
