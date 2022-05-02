@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "./IVePToken.sol";
 
-interface IVotingEscrowPendle is IVePToken {
+interface IPVotingEscrow is IVePToken {
     // ============= ACTIONS =============
 
     function lock(uint256 expiry) external returns (uint256);
@@ -15,7 +15,7 @@ interface IVotingEscrowPendle is IVePToken {
     function withdraw(address user) external returns (uint256);
 
     /**
-     * @return amount :amount of vePendle voted for pool
+     * @return amount amount of vePendle voted for pool
      */
     function vote(address gauge, uint256 weight) external returns (uint256 amount);
 
