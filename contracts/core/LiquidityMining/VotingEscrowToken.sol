@@ -35,7 +35,7 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     VeBalance internal _totalSupply;
     uint256 public lastSupplyUpdatedAt;
-    mapping(address => LockedPosition) internal positionData;
+    mapping(address => LockedPosition) public positionData;
 
     constructor() {
         lastSupplyUpdatedAt = (block.timestamp / WEEK - 1) * WEEK;
@@ -43,11 +43,6 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     function balanceOf(address user) public view returns (uint256) {
         return convertToVeBalance(positionData[user]).getCurrentValue();
-    }
-
-    function readUserInfo(address user) external view returns (uint256 amount, uint256 expiry) {
-        amount = positionData[user].amount;
-        expiry = positionData[user].expiry;
     }
 
     function totalSupply() public view virtual returns (uint256) {

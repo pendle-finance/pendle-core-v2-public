@@ -4,18 +4,15 @@ pragma solidity 0.8.9;
 pragma abicoder v2;
 
 interface IPVeToken {
+
     // ============= USER INFO =============
 
     function balanceOf(address user) external view returns (uint256);
 
-    /**
-     * @return lockedAmount amount of PENDLE user locked
-     * @return expiry expiry of users' locked PENDLE
-     */
-    function readUserInfo(address user)
+    function positionData(address user)
         external
         view
-        returns (uint256 lockedAmount, uint256 expiry);
+        returns (uint256 amount, uint256 expiry);
 
     // ============= META DATA =============
 
