@@ -8,25 +8,18 @@ interface IPGauge {
 
     function withdraw(address receiver, uint256 amount) external;
 
-    function redeemReward(address receiver) external returns (uint256 redeemedReward);
+    function redeemReward(address receiver) external returns (uint256[] memory outAmounts);
 
     // ============= USER INFO =============
 
-    function readUserInfo(address user)
+    function balance(address user)
         external
         returns (
             uint256 lpStaked,
-            uint256 activeLpAmount,
-            uint256 accruedReward
+            uint256 activeLpAmount
         );
 
     // ============= META DATA =============
 
-    function readGlobalInfo()
-        external
-        returns (
-            uint256 totalLpStaked,
-            uint256 totalActiveLp,
-            uint256 pendlePerSec
-        );
+    function market() external view returns (address market);
 }

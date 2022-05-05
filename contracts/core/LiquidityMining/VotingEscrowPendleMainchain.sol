@@ -17,11 +17,20 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         uint256 timestamp;
     }
 
+    bytes private constant EMPTY_BYTES = abi.encode();
+
     IERC20 public immutable pendle;
 
+    // Each user has a set of chain they are interested in
     mapping(address => EnumerableSet.UintSet) private userChains;
+
     mapping(uint256 => uint256) private slopeChanges;
+
+    // Saving totalSupply checkpoint for each week, later can be used for reward accounting
     mapping(uint256 => uint256) public totalSupplyAt;
+
+    // Saving VeBalance checkpoint for users of each week, can later use binary search
+    // to ask for their vePendle balance at any timestamp
     mapping(address => Checkpoint[]) public userCheckpoints;
 
     constructor(IERC20 _pendle, address _governanceManager) CelerSender(_governanceManager) {
@@ -31,8 +40,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     function lock(uint256 amount, uint256 expiry) external payable returns (uint256) {
         address user = msg.sender;
         require(expiry % WEEK == 0 && expiry > block.timestamp, "invalid expiry");
-        require(positionData[user].expiry == 0, "user position unexpired");
-        require(positionData[user].amount == 0, "user old position not withdrawed");
+        // as long as users' amount = 0, their expiry will also be 0
+        require(positionData[user].amount == 0, "lock not expired or withdrawed");
         require(amount > 0, "zero amount");
 
         pendle.safeTransferFrom(user, address(this), amount);
@@ -40,6 +49,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return _increasePosition(user, expiry, amount);
     }
 
+    /**
+     * @dev strict condition, user can only increase lock duration for themselves
+     */
     function increaseLockDuration(uint256 duration) external payable returns (uint256) {
         address user = msg.sender;
         require(!isPositionExpired(user), "user position expired");
@@ -48,6 +60,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return _increasePosition(user, duration, 0);
     }
 
+    /**
+     * @dev anyone can top up one user's pendle locked amount
+     */
     function increaseLockAmount(address user, uint256 amount)
         external
         payable
@@ -61,6 +76,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return _increasePosition(user, 0, amount);
     }
 
+    /**
+     * @dev there is not a need for broadcasting in withdrawing thanks to the definition of _totalSupply
+     */
     function withdraw(address user) external returns (uint256 amount) {
         require(isPositionExpired(user), "user position unexpired");
         amount = positionData[user].amount;
@@ -86,7 +104,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         }
     }
 
-    function addUserChain(uint256 chainId) external payable {
+    function addUserPreference(uint256 chainId) external payable {
         address user = msg.sender;
         require(!userChains[user].contains(chainId), "user already added chain");
         require(sidechainContracts.contains(chainId), "chain not supported");
@@ -94,15 +112,15 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         _afterAddUserChain(user, chainId);
     }
 
-    function removeUserChain(uint256 chainId) external {
+    function removeUserPreference(uint256 chainId) external {
         address user = msg.sender;
         require(userChains[user].contains(chainId), "chain not exists in preference");
         userChains[user].remove(chainId);
     }
 
     /**
-     * @dev in case of creating a new position, position should already be set to (0, 0), and expiryChange = expiry
-     * @dev in other cases, expiryToIncrease = additionalDuration and amountToIncrease = additionalPendle
+     * @dev in case of creating a new position, position should already be set to (0, 0), and expiryToIncrease = expiry
+     * @dev in other cases, expiryToIncrease = additional-duration and amountToIncrease = additional-pendle
      */
     function _increasePosition(
         address user,
@@ -145,6 +163,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return veBalance.getCurrentValue();
     }
 
+    /**
+     * @param doUpdateSupply to prevent one write to storage in _increasePosition call
+     */
     function _updateGlobalSupply(bool doUpdateSupply)
         internal
         returns (VeBalance memory supply, uint256 timestamp)
@@ -207,10 +228,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         _sendMessage(
             addr,
             chainId,
-            abi.encode(
-                UPDATE_TYPE.UpdateUserPosition,
-                abi.encode(timestamp, supply, user, position)
-            )
+            abi.encode(abi.encode(timestamp, supply, abi.encode(user, position)))
         );
     }
 
@@ -220,10 +238,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         uint256 timestamp,
         VeBalance memory supply
     ) internal {
-        _sendMessage(
-            addr,
-            chainId,
-            abi.encode(UPDATE_TYPE.UpdateTotalSupply, abi.encode(timestamp, supply))
-        );
+        _sendMessage(addr, chainId, abi.encode(timestamp, supply, EMPTY_BYTES));
     }
 }

@@ -96,4 +96,8 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
     }
+
+    function verifyGauge(address, address) external view returns (bool) {
+        return true;
+    }
 }

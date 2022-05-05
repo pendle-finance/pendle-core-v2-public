@@ -81,4 +81,6 @@ interface IPMarket is IPBaseToken {
             IPPrincipalToken _PT,
             IPYieldToken _YT
         );
+
+    function redeemScyReward() external returns (uint256[] memory outAmounts);
 }

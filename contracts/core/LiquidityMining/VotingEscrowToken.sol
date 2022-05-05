@@ -45,6 +45,13 @@ abstract contract VotingEscrowToken is IPVeToken {
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
 
+    /**
+     * @dev There will be a short delay every start of the week where this function
+     * will be reverted, on both mainchain & sidechain. This also implies Gauge pause.
+     * This will be resolved as soon as broadcastSupply is called on mainchain
+     * @dev Gauges will use updateAndGetTotalSupply to get totalSupply, this will
+     * prevent the pause for gauges on mainchain.
+     */
     function totalSupply() public view virtual returns (uint256) {
         require(
             lastSupplyUpdatedAt >= (block.timestamp / WEEK) * WEEK,

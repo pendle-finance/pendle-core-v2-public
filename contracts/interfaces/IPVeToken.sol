@@ -17,4 +17,6 @@ interface IPVeToken {
     // ============= META DATA =============
 
     function totalSupply() external view returns (uint256);
+
+    function updateAndGetTotalSupply() external virtual returns (uint256);
 }

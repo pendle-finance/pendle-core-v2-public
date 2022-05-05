@@ -18,4 +18,6 @@ interface IPMarketFactory {
             uint32 rateOracleTimeWindow,
             uint8 reserveFeePercent
         );
+    
+    function verifyGauge(address market, address gauge) external view returns(bool);
 }
