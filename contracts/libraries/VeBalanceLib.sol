@@ -6,6 +6,11 @@ struct VeBalance {
     uint256 slope;
 }
 
+struct Checkpoint {
+    VeBalance balance;
+    uint256 timestamp;
+}
+
 library VeBalanceLib {
     function add(VeBalance memory a, VeBalance memory b)
         internal
@@ -25,6 +30,15 @@ library VeBalanceLib {
         res.slope = a.slope - b.slope;
     }
 
+    function sub(VeBalance memory a, uint256 slope, uint256 expiry)
+        internal
+        pure
+        returns (VeBalance memory res)
+    {
+        res.slope = a.slope - slope;
+        res.bias = a.bias - slope * expiry;
+    }
+
     function isExpired(VeBalance memory a) internal view returns (bool) {
         return a.slope * block.timestamp >= a.bias;
     }
@@ -36,5 +50,10 @@ library VeBalanceLib {
     function getCurrentValue(VeBalance memory a) internal view returns (uint256) {
         if (isExpired(a)) return 0;
         return getValueAt(a, block.timestamp);
+    }
+
+    function getExpiry(VeBalance memory a) internal pure returns (uint256) {
+        require(a.slope > 0, "invalid VeBalance");
+        return a.bias / a.slope; // this is guaranteed to be true
     }
 }

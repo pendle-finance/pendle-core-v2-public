@@ -26,7 +26,7 @@ abstract contract CelerSender is PermissionsV2Upg {
         celerMessageBus.sendMessage{ value: fee }(addr, chainId, message);
     }
 
-    function _afterAddSidechainContract(address addr, uint256 chainId) internal virtual;
+    function _afterAddSidechainContract(address addr, uint256 chainId) internal virtual {}
 
     function addSidechainContract(address _address, uint256 _chainId)
         external

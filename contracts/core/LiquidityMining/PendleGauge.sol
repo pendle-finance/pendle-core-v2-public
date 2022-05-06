@@ -80,7 +80,13 @@ contract PendleGauge is IPGauge, RewardManager {
      * @dev Complex logic in this function to saves 2x (1-2) storage read every call
      * @dev this only saves gas in case SCYRewards is immutable
      */
-    function getRewardTokens() public view virtual override returns (address[] memory rewardTokens) {
+    function getRewardTokens()
+        public
+        view
+        virtual
+        override
+        returns (address[] memory rewardTokens)
+    {
         address[] memory SCYRewards = ISuperComposableYield(SCY).getRewardTokens();
         rewardTokens = new address[](SCYRewards.length + 1);
         rewardTokens[SCYRewards.length] = gaugeController;
@@ -125,9 +131,8 @@ contract PendleGauge is IPGauge, RewardManager {
             uint256 currentRewardBalance;
             if (token == gaugeController) {
                 // reward from gauge controller will be treated differently
-                currentRewardBalance = IPGaugeController(gaugeController).updateAndGetGaugeReward(
-                    address(this)
-                );
+                currentRewardBalance = IPGaugeController(gaugeController)
+                    .updateAndGetMarketIncentives(market);
             } else {
                 currentRewardBalance = IERC20(token).balanceOf(address(this));
             }
@@ -156,6 +161,7 @@ contract PendleGauge is IPGauge, RewardManager {
             outAmounts[i] = userReward[user][token].accruedReward;
             userReward[user][token].accruedReward = 0;
 
+            // this subtraction is also valid for pendle incentives
             globalReward[token].lastBalance -= outAmounts[i];
 
             if (outAmounts[i] != 0) {

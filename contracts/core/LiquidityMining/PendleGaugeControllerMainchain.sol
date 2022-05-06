@@ -9,17 +9,18 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
     constructor(
         address _votingController,
         address _pendle,
-        address _marketFactory
-    ) PendleGaugeController(_pendle, _marketFactory) {
+        address _marketFactory,
+        address _governanceManager
+    ) PendleGaugeController(_pendle, _marketFactory) PermissionsV2Upg(_governanceManager) {
         votingController = _votingController;
     }
 
-    function updateLpVote(
-        uint256 pendleAcquired,
-        address lpToken,
-        uint256 newVote
+    function updateVotingResults(
+        uint256 epochStart,
+        address[] memory markets,
+        uint256[] memory pendleSpeeds
     ) external {
         require(msg.sender == votingController, "not voting controller");
-        _updateLpVote(pendleAcquired, lpToken, newVote);
+        _receiveVotingResults(epochStart, markets, pendleSpeeds);
     }
 }

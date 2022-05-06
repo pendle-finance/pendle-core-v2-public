@@ -17,10 +17,10 @@ contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver 
     }
 
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint256 pendleAcquired, address lpToken, uint256 newVote) = abi.decode(
+        (uint256 epochStart, address[] memory markets, uint256[] memory pendleSpeeds) = abi.decode(
             message,
-            (uint256, address, uint256)
+            (uint256, address[], uint256[])
         );
-        _updateLpVote(pendleAcquired, lpToken, newVote);
+        _receiveVotingResults(epochStart, markets, pendleSpeeds);
     }
 }

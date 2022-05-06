@@ -12,11 +12,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    struct Checkpoint {
-        VeBalance balance;
-        uint256 timestamp;
-    }
-
     bytes private constant EMPTY_BYTES = abi.encode();
 
     IERC20 public immutable pendle;
@@ -176,10 +171,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
 
-            uint256 slope = slopeChanges[timestamp];
-            supply.bias -= slope * timestamp;
-            supply.slope -= slope;
-
+            supply = supply.sub(slopeChanges[timestamp], timestamp);
             totalSupplyAt[timestamp] = supply.getValueAt(timestamp);
         }
 
@@ -198,27 +190,38 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         uint256 length = userChains[user].length();
         for (uint256 i = 0; i < length; ++i) {
             uint256 chainId = userChains[user].at(i);
-            address addr = sidechainContracts.get(chainId);
-            _broadcastPositionSingle(addr, chainId, timestamp, supply, user, position);
+            address sidechainVePendle = sidechainContracts.get(chainId);
+            _broadcastPositionSingle(
+                sidechainVePendle,
+                chainId,
+                timestamp,
+                supply,
+                user,
+                position
+            );
         }
     }
 
-    function _afterAddSidechainContract(address addr, uint256 chainId) internal virtual override {
+    function _afterAddSidechainContract(address sidechainVePendle, uint256 chainId)
+        internal
+        virtual
+        override
+    {
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
-        _broadcastSupplySingle(addr, chainId, timestamp, supply);
+        _broadcastSupplySingle(sidechainVePendle, chainId, timestamp, supply);
     }
 
     function _afterAddUserChain(address user, uint256 chainId) internal {
         LockedPosition memory position = positionData[user];
         if (position.expiry < block.timestamp) return; // position already expired
 
-        address addr = sidechainContracts.get(chainId);
+        address sidechainVePendle = sidechainContracts.get(chainId);
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
-        _broadcastPositionSingle(addr, chainId, timestamp, supply, user, position);
+        _broadcastPositionSingle(sidechainVePendle, chainId, timestamp, supply, user, position);
     }
 
     function _broadcastPositionSingle(
-        address addr,
+        address sidechainVePendle,
         uint256 chainId,
         uint256 timestamp,
         VeBalance memory supply,
@@ -226,18 +229,18 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         LockedPosition memory position
     ) internal {
         _sendMessage(
-            addr,
+            sidechainVePendle,
             chainId,
             abi.encode(abi.encode(timestamp, supply, abi.encode(user, position)))
         );
     }
 
     function _broadcastSupplySingle(
-        address addr,
+        address sidechainVePendle,
         uint256 chainId,
         uint256 timestamp,
         VeBalance memory supply
     ) internal {
-        _sendMessage(addr, chainId, abi.encode(timestamp, supply, EMPTY_BYTES));
+        _sendMessage(sidechainVePendle, chainId, abi.encode(timestamp, supply, EMPTY_BYTES));
     }
 }
