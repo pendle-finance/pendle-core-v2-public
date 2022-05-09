@@ -11,7 +11,7 @@ import "./CelerAbstracts/CelerSender.sol";
 /**
  */
 
-contract VotingController is CelerSender {
+contract PendleVotingController is CelerSender {
     using VeBalanceLib for VeBalance;
     using Math for uint256;
     using Math for int256;
