@@ -5,16 +5,12 @@ import "./PendleGaugeController.sol";
 import "./CelerAbstracts/CelerReceiver.sol";
 
 contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver {
-    address public immutable votingController;
 
     constructor(
-        address _votingController,
         address _pendle,
         address _marketFactory,
         address _governanceManager
-    ) PendleGaugeController(_pendle, _marketFactory) CelerReceiver(_governanceManager) {
-        votingController = _votingController;
-    }
+    ) PendleGaugeController(_pendle, _marketFactory) CelerReceiver(_governanceManager) {}
 
     function _executeMessage(bytes memory message) internal virtual override {
         (uint256 epochStart, address[] memory markets, uint256[] memory pendleSpeeds) = abi.decode(

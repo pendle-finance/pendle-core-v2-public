@@ -231,7 +231,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         _sendMessage(
             sidechainVePendle,
             chainId,
-            abi.encode(abi.encode(timestamp, supply, abi.encode(user, position)))
+            abi.encode(timestamp, supply, abi.encode(user, position))
         );
     }
 
