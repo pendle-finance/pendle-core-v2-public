@@ -23,11 +23,6 @@ abstract contract VotingEscrowToken is IPVeToken {
     uint256 public constant WEEK = 1 weeks;
     uint256 public constant MAX_LOCK_TIME = 104 weeks;
 
-    enum UPDATE_TYPE {
-        UpdateUserPosition,
-        UpdateTotalSupply
-    }
-
     struct LockedPosition {
         uint256 amount;
         uint256 expiry;

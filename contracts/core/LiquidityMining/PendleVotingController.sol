@@ -24,6 +24,7 @@ contract PendleVotingController is CelerSender {
 
     uint256 public constant WEEK = 1 weeks;
     uint256 public constant MAX_WEIGHT = 10**9;
+    uint256 public constant MAX_LOCK_TIME = 104 weeks;
 
     IPVeToken public immutable vePendle;
     uint256 public pendlePerSec;
@@ -113,7 +114,7 @@ contract PendleVotingController is CelerSender {
         // read user vePendle info
         (uint256 amount, uint256 expiry) = vePendle.positionData(user);
         require(expiry > block.timestamp, "user position expired");
-        amount = (amount * newUserPoolWeight) / MAX_WEIGHT;
+        amount = amount * newUserPoolWeight / MAX_WEIGHT / MAX_LOCK_TIME;
 
         // Record new user vote
         VeBalance memory newUserPoolVote = VeBalance(amount * expiry, amount);
