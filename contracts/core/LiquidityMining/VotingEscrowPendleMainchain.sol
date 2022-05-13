@@ -40,7 +40,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(amount > 0, "zero amount");
 
         pendle.safeTransferFrom(user, address(this), amount);
-
         return _increasePosition(user, expiry, amount);
     }
 
@@ -104,7 +103,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(!userChains[user].contains(chainId), "user already added chain");
         require(sidechainContracts.contains(chainId), "chain not supported");
         userChains[user].add(chainId);
-        _afterAddUserChain(user, chainId);
+        if (!isPositionExpired(user)) {
+            _afterAddUserChain(user, chainId);
+        }
     }
 
     function removeUserPreference(uint256 chainId) external {

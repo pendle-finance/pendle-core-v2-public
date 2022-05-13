@@ -7,7 +7,6 @@ import "../../libraries/math/Math.sol";
 import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "./CelerAbstracts/CelerSender.sol";
-
 /**
  */
 
@@ -116,9 +115,10 @@ contract PendleVotingController is CelerSender {
         require(expiry > block.timestamp, "user position expired");
         amount = amount * newUserPoolWeight / MAX_WEIGHT / MAX_LOCK_TIME;
 
+
         // Record new user vote
         VeBalance memory newUserPoolVote = VeBalance(amount * expiry, amount);
-        pvotes = pvotes.add(newUserPoolVote);
+        poolVotes[poolId] = pvotes.add(newUserPoolVote);
         poolSlopeChangesAt[poolId][expiry] += amount;
         userPoolCheckpoints[user][poolId].push(Checkpoint(newUserPoolVote, block.timestamp));
     }
@@ -144,7 +144,8 @@ contract PendleVotingController is CelerSender {
     function updatePoolVotes(uint256 poolId) public {
         uint256 timestamp = poolTimestamp[poolId];
         VeBalance memory votes = poolVotes[poolId];
-        while (timestamp + WEEK <= timestamp) {
+
+        while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
             votes = votes.sub(poolSlopeChangesAt[poolId][timestamp], timestamp);
             poolVotesAt[poolId][timestamp] = votes.getValueAt(timestamp);
