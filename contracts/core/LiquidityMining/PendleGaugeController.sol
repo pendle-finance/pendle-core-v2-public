@@ -35,8 +35,8 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     IPMarketFactory internal immutable marketFactory;
 
     uint256 private broadcastedEpochTimestamp;
-    mapping(address => bool) private poolListed;
-    mapping(address => PoolRewardData) private rewardData;
+    mapping(address => bool) public poolListed;
+    mapping(address => PoolRewardData) public rewardData;
 
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
@@ -90,7 +90,6 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     ) internal {
         assert(epochStart == (block.timestamp / WEEK) * WEEK);
         assert(markets.length == pendleSpeeds.length);
-
         broadcastedEpochTimestamp = epochStart;
         for (uint256 i = 0; i < markets.length; ++i) {
             address market = markets[i];

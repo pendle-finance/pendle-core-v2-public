@@ -7,8 +7,6 @@ import "../../libraries/math/Math.sol";
 import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "./CelerAbstracts/CelerSender.sol";
-/**
- */
 
 contract PendleVotingController is CelerSender {
     using VeBalanceLib for VeBalance;
@@ -19,6 +17,11 @@ contract PendleVotingController is CelerSender {
     struct PoolInfo {
         uint256 chainId;
         address market;
+    }
+
+    struct UserPoolInfo {
+        uint256 weight;
+        VeBalance vote;
     }
 
     uint256 public constant WEEK = 1 weeks;
@@ -46,8 +49,7 @@ contract PendleVotingController is CelerSender {
 
     // user voting info
     mapping(address => uint256) public userVotedWeight;
-    mapping(address => mapping(uint256 => uint256)) public userPoolVotedWeight;
-    mapping(address => mapping(uint256 => VeBalance)) public userPoolVotedBalance;
+    mapping(address => mapping(uint256 => UserPoolInfo)) public userPoolVotes;
 
     // user voting checkpoints saved for future feature
     mapping(address => mapping(uint256 => Checkpoint[])) public userPoolCheckpoints;
@@ -66,6 +68,7 @@ contract PendleVotingController is CelerSender {
         chainPools[chainId].push(poolId);
         poolExists[chainId][market] = true;
         poolWeight[poolId] = 100;
+        poolTimestamp[poolId] = _getCurrentEpochStart();
     }
 
     function removePool(uint256 poolId) external onlyGovernance {
@@ -97,30 +100,28 @@ contract PendleVotingController is CelerSender {
         address user = msg.sender;
         updatePoolVotes(poolId);
 
+        // Remove old vote
         VeBalance memory pvotes = poolVotes[poolId];
-        VeBalance memory oldUserPoolVote = userPoolVotedBalance[user][poolId];
-        if (oldUserPoolVote.slope > 0 && oldUserPoolVote.getExpiry() > block.timestamp) {
-            pvotes = pvotes.sub(oldUserPoolVote);
-            poolSlopeChangesAt[poolId][oldUserPoolVote.getExpiry()] -= oldUserPoolVote.slope;
+        VeBalance memory oldUVote = userPoolVotes[user][poolId].vote;
+        if (oldUVote.isValid()) {
+            pvotes = pvotes.sub(oldUVote);
+            poolSlopeChangesAt[poolId][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
         // negative weight should be automatically caught by soidity 0.8.0
         userVotedWeight[user] = (userVotedWeight[user].Int() + weight).Uint();
         require(userVotedWeight[user] <= MAX_WEIGHT, "max weight exceed");
 
-        uint256 newUserPoolWeight = (userPoolVotedWeight[user][poolId].Int() + weight).Uint();
+        uint256 newUWeight = (userPoolVotes[user][poolId].weight.Int() + weight).Uint();
+        VeBalance memory newUVote = _getUserVoteByWeight(user, newUWeight);
 
-        // read user vePendle info
-        (uint256 amount, uint256 expiry) = vePendle.positionData(user);
-        require(expiry > block.timestamp, "user position expired");
-        amount = amount * newUserPoolWeight / MAX_WEIGHT / MAX_LOCK_TIME;
-
+        // Update pool Info
+        poolVotes[poolId] = pvotes.add(newUVote);
+        poolSlopeChangesAt[poolId][newUVote.getExpiry()] += newUVote.slope;
 
         // Record new user vote
-        VeBalance memory newUserPoolVote = VeBalance(amount * expiry, amount);
-        poolVotes[poolId] = pvotes.add(newUserPoolVote);
-        poolSlopeChangesAt[poolId][expiry] += amount;
-        userPoolCheckpoints[user][poolId].push(Checkpoint(newUserPoolVote, block.timestamp));
+        userPoolCheckpoints[user][poolId].push(Checkpoint(newUVote, block.timestamp));
+        userPoolVotes[user][poolId] = UserPoolInfo(newUWeight, newUVote);
     }
 
     /**
@@ -159,7 +160,7 @@ contract PendleVotingController is CelerSender {
      * @dev Each epoch, it is allowed to broadcast only once, and expected to be done by governance
      */
     function broadcastVotingResults() external payable {
-        uint256 epochTimestamp = (block.timestamp / WEEK) * WEEK;
+        uint256 epochTimestamp = _getCurrentEpochStart();
         require(!epochBroadcasted[epochTimestamp], "not allowed to rebroadcast");
 
         uint256 totalVotes = 0;
@@ -168,7 +169,8 @@ contract PendleVotingController is CelerSender {
         uint256[][] memory votes = new uint256[][](numChain);
 
         for (uint256 i = 0; i < numChain; ++i) {
-            pools[i] = chainPools[i];
+            (uint256 chainId, ) = sidechainContracts.at(i);
+            pools[i] = chainPools[chainId];
             votes[i] = new uint256[](pools[i].length);
             for (uint256 j = 0; j < pools[i].length; ++j) {
                 uint256 poolId = pools[i][j];
@@ -206,5 +208,21 @@ contract PendleVotingController is CelerSender {
 
     function setPendlePerSec(uint256 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
+    }
+
+    function _getCurrentEpochStart() internal view returns (uint256) {
+        return (block.timestamp / WEEK) * WEEK;
+    }
+
+    function _getUserVoteByWeight(address user, uint256 weight)
+        internal
+        view
+        returns (VeBalance memory res)
+    {
+        (uint256 amount, uint256 expiry) = vePendle.positionData(user);
+        require(expiry > block.timestamp, "user position expired");
+        amount = (amount * weight) / MAX_WEIGHT / MAX_LOCK_TIME;
+        res.slope = amount;
+        res.bias = amount * expiry;
     }
 }

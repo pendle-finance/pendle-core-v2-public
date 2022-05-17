@@ -56,4 +56,8 @@ library VeBalanceLib {
         require(a.slope > 0, "invalid VeBalance");
         return a.bias / a.slope; // this is guaranteed to be true
     }
+
+    function isValid(VeBalance memory a) internal view returns (bool) {
+        return a.slope > 0 && getExpiry(a) > block.timestamp;
+    }
 }
