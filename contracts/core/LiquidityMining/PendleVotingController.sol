@@ -117,7 +117,9 @@ contract PendleVotingController is CelerSender {
 
         // Update pool Info
         poolVotes[poolId] = pvotes.add(newUVote);
-        poolSlopeChangesAt[poolId][newUVote.getExpiry()] += newUVote.slope;
+        if (newUWeight != 0) {
+            poolSlopeChangesAt[poolId][newUVote.getExpiry()] += newUVote.slope;
+        }
 
         // Record new user vote
         userPoolCheckpoints[user][poolId].push(Checkpoint(newUVote, block.timestamp));

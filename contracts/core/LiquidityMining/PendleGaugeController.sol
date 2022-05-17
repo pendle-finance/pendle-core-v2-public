@@ -43,7 +43,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         marketFactory = IPMarketFactory(_marketFactory);
     }
 
-    function updateAndGetMarketIncentives(address market) external returns (uint256) {
+    function updateAndGetMarketIncentives(address market) public returns (uint256) {
         if (!poolListed[market]) {
             // pool not listed by governance
             return rewardData[market].accumulatedPendle;
@@ -58,6 +58,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
 
         rwd.accumulatedPendle += rwd.pendlePerSec * (currentTimestamp - rwd.accumulatedTimestamp);
         rwd.accumulatedTimestamp = currentTimestamp;
+        rewardData[market] = rwd;
         return rwd.accumulatedPendle;
     }
 
