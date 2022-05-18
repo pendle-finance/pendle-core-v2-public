@@ -76,10 +76,12 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     }
 
     function listPool(address market) external onlyGovernance {
+        require(IPMarketFactory(marketFactory).isValidMarket(market), "invalid market");
         poolListed[market] = true;
     }
 
     function unlistPool(address market) external onlyGovernance {
+        require(poolListed[market], "market not listed");
         poolListed[market] = false;
     }
 
