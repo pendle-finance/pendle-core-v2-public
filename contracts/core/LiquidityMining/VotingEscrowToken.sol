@@ -37,6 +37,9 @@ abstract contract VotingEscrowToken is IPVeToken {
     }
 
     function balanceOf(address user) public view returns (uint256) {
+        if (positionData[user].expiry < block.timestamp) {
+            return 0;
+        }
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
 
