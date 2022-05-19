@@ -65,7 +65,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(!isPositionExpired(user), "user position expired");
 
         require(amount > 0, "zero amount");
-        pendle.safeTransferFrom(msg.sender, user, amount);
+        pendle.safeTransferFrom(msg.sender, address(this), amount);
 
         return _increasePosition(user, 0, amount);
     }

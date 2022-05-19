@@ -17,4 +17,8 @@ interface IPGaugeController {
             uint256,
             uint256
         );
+
+    function listPool(address market) external;
+
+    function unlistPool(address market) external;
 }

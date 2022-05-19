@@ -6,6 +6,7 @@ import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
+import "./LiquidityMining/PendleGauge.sol";
 
 contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -20,11 +21,14 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     }
 
     mapping(address => EnumerableSet.AddressSet) internal markets;
+    mapping(address => address) public marketGauges;
 
     address public immutable yieldContractFactory;
+    address public vePendle;
+    address public gaugeController;
+
     uint256 public immutable maxLnFeeRateRoot;
     uint256 public constant minRateOracleTimeWindow = 300 seconds;
-
     MarketConfig public marketConfig;
 
     constructor(
@@ -68,6 +72,20 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
 
+    function createNewGauge(address market) external returns (address gauge) {
+        require(marketGauges[market] == address(0), "gauge existed");
+        require(gaugeController != address(0), "gauge controller not initialized");
+        require(vePendle != address(0), "vePendle not initialized");
+        // bytes conversion works from 0.8.5
+        PendleGauge gauge = new PendleGauge{ salt: bytes32(abi.encode(market)) }(
+            market,
+            gaugeController,
+            vePendle
+        );
+        marketGauges[market] = address(gauge);
+        return address(gauge);
+    }
+
     function isValidMarket(address market) external view returns (bool) {
         address PT = IPMarket(market).PT();
         return markets[PT].contains(market);
@@ -97,7 +115,12 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         marketConfig.reserveFeePercent = newReserveFeePercent;
     }
 
-    function verifyGauge(address, address) external view returns (bool) {
-        return true;
+    function setVeParams(address newVePendle, address newGaugeController) public onlyGovernance {
+        vePendle = newVePendle;
+        gaugeController = newGaugeController;
+    }
+
+    function verifyGauge(address market, address gauge) external view returns (bool) {
+        return marketGauges[market] == gauge;
     }
 }
