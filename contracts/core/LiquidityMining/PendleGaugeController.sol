@@ -8,6 +8,7 @@ import "../../interfaces/IPGauge.sol";
 import "../../interfaces/IPGaugeController.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../periphery/PermissionsV2Upg.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @dev Gauge controller provides no write function to any party other than voting controller
@@ -21,6 +22,7 @@ import "../../periphery/PermissionsV2Upg.sol";
 abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     using SafeERC20 for IERC20;
     using Math for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     struct PoolRewardData {
         uint256 pendlePerSec;
@@ -32,10 +34,10 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     uint256 public constant WEEK = 1 weeks;
 
     address public immutable pendle;
+    EnumerableSet.AddressSet internal marketsIncentivized;
     IPMarketFactory internal immutable marketFactory;
 
     uint256 private broadcastedEpochTimestamp;
-    mapping(address => bool) public poolListed;
     mapping(address => PoolRewardData) public rewardData;
 
     constructor(address _pendle, address _marketFactory) {
@@ -44,20 +46,18 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     }
 
     function updateAndGetMarketIncentives(address market) public returns (uint256) {
-        if (!poolListed[market]) {
+        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
+        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
+        if (!marketsIncentivized.contains(market)) {
             // pool not listed by governance
             return rewardData[market].accumulatedPendle;
         }
 
-        uint256 currentTimestamp = block.timestamp;
-        uint256 epochStart = (currentTimestamp / WEEK) * WEEK;
-        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
-
         PoolRewardData memory rwd = rewardData[market];
         assert(rwd.accumulatedTimestamp >= epochStart); // this should never happen
 
-        rwd.accumulatedPendle += rwd.pendlePerSec * (currentTimestamp - rwd.accumulatedTimestamp);
-        rwd.accumulatedTimestamp = currentTimestamp;
+        rwd.accumulatedPendle += rwd.pendlePerSec * (block.timestamp - rwd.accumulatedTimestamp);
+        rwd.accumulatedTimestamp = block.timestamp;
         rewardData[market] = rwd;
         return rwd.accumulatedPendle;
     }
@@ -75,16 +75,6 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         }
     }
 
-    function listPool(address market) external onlyGovernance {
-        require(IPMarketFactory(marketFactory).isValidMarket(market), "invalid market");
-        poolListed[market] = true;
-    }
-
-    function unlistPool(address market) external onlyGovernance {
-        require(poolListed[market], "market not listed");
-        poolListed[market] = false;
-    }
-
     // @TODO Think of what solution there is when these assert actually fails
     function _receiveVotingResults(
         uint256 epochStart,
@@ -93,26 +83,31 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     ) internal {
         assert(epochStart == (block.timestamp / WEEK) * WEEK);
         assert(markets.length == pendleSpeeds.length);
+
+        _finalizeLastWeekReward();
+
         broadcastedEpochTimestamp = epochStart;
         for (uint256 i = 0; i < markets.length; ++i) {
             address market = markets[i];
-            assert(poolListed[market]);
+            rewardData[market].accumulatedTimestamp = epochStart;
+            rewardData[market].pendlePerSec = pendleSpeeds[i];
+            marketsIncentivized.add(market);
+        }
+    }
+
+    function _finalizeLastWeekReward() internal {
+        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
+        address[] memory allMarkets = marketsIncentivized.values();
+        for (uint256 i = 0; i < allMarkets.length; ++i) {
+            address market = allMarkets[i];
 
             PoolRewardData memory rwd = rewardData[market];
-            if (rwd.accumulatedTimestamp == 0) {
-                rewardData[market].accumulatedTimestamp = epochStart;
-                rewardData[market].pendlePerSec = pendleSpeeds[i];
-                continue;
-            }
-
-            assert(rwd.accumulatedTimestamp < epochStart);
-            assert(epochStart - rwd.accumulatedTimestamp <= WEEK);
-
             rewardData[market].accumulatedPendle +=
                 rwd.pendlePerSec *
                 (epochStart - rwd.accumulatedTimestamp);
-            rewardData[market].pendlePerSec = pendleSpeeds[i];
             rewardData[market].accumulatedTimestamp = epochStart;
+            rewardData[market].pendlePerSec = 0;
+            marketsIncentivized.remove(market);
         }
     }
 }

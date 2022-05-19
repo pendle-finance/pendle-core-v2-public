@@ -17,6 +17,7 @@ contract PendleVotingController is CelerSender {
     struct PoolInfo {
         uint256 chainId;
         address market;
+        bool active;
     }
 
     struct UserPoolInfo {
@@ -33,7 +34,6 @@ contract PendleVotingController is CelerSender {
 
     // pool infos
     PoolInfo[] public allPools;
-    mapping(uint256 => bool) public poolRemoved;
     mapping(uint256 => uint256[]) public chainPools;
     mapping(uint256 => mapping(address => bool)) public poolExists;
 
@@ -64,7 +64,7 @@ contract PendleVotingController is CelerSender {
     function addPool(uint256 chainId, address market) external onlyGovernance {
         require(!poolExists[chainId][market], "pool already added");
         uint256 poolId = allPools.length;
-        allPools.push(PoolInfo(chainId, market));
+        allPools.push(PoolInfo(chainId, market, true));
         chainPools[chainId].push(poolId);
         poolExists[chainId][market] = true;
         poolWeight[poolId] = 100;
@@ -72,11 +72,11 @@ contract PendleVotingController is CelerSender {
     }
 
     function removePool(uint256 poolId) external onlyGovernance {
-        require(!poolRemoved[poolId], "pool already removed");
+        require(allPools[poolId].active, "pool not active");
         uint256 chainId = allPools[poolId].chainId;
         address market = allPools[poolId].market;
         poolExists[chainId][market] = false;
-        poolRemoved[poolId] = true;
+        allPools[poolId].active = false;
 
         uint256[] storage cpools = chainPools[chainId];
         for (uint256 i = 0; i < cpools.length; ++i) {
@@ -97,6 +97,8 @@ contract PendleVotingController is CelerSender {
 
     // weight can be negative
     function vote(uint256 poolId, int256 weight) external {
+        require(allPools[poolId].active, "pool not active");
+
         address user = msg.sender;
         updatePoolVotes(poolId);
 
