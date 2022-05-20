@@ -18,6 +18,8 @@ contract PendleVotingController is CelerSender {
         uint256 chainId;
         address market;
         bool active;
+        uint256 weight;
+        uint256 timestamp;
     }
 
     struct UserPoolInfo {
@@ -39,7 +41,6 @@ contract PendleVotingController is CelerSender {
 
     // pool votes
     mapping(uint256 => VeBalance) public poolVotes;
-    mapping(uint256 => uint256) public poolTimestamp;
     mapping(uint256 => mapping(uint256 => uint256)) public poolVotesAt;
     mapping(uint256 => mapping(uint256 => uint256)) public poolSlopeChangesAt;
 
@@ -64,11 +65,17 @@ contract PendleVotingController is CelerSender {
     function addPool(uint256 chainId, address market) external onlyGovernance {
         require(!poolExists[chainId][market], "pool already added");
         uint256 poolId = allPools.length;
-        allPools.push(PoolInfo(chainId, market, true));
+        allPools.push(
+            PoolInfo({
+                chainId: chainId,
+                market: market,
+                active: true,
+                weight: 100,
+                timestamp: _getCurrentEpochStart()
+            })
+        );
         chainPools[chainId].push(poolId);
         poolExists[chainId][market] = true;
-        poolWeight[poolId] = 100;
-        poolTimestamp[poolId] = _getCurrentEpochStart();
     }
 
     function removePool(uint256 poolId) external onlyGovernance {
@@ -92,7 +99,7 @@ contract PendleVotingController is CelerSender {
 
     function setPoolWeight(uint256 poolId, uint256 newWeight) external onlyGovernance {
         require(newWeight >= 80 && newWeight <= 120, "invalid weight");
-        poolWeight[poolId] = newWeight;
+        allPools[poolId].weight = newWeight;
     }
 
     // weight can be negative
@@ -115,7 +122,7 @@ contract PendleVotingController is CelerSender {
         require(userVotedWeight[user] <= MAX_WEIGHT, "max weight exceed");
 
         uint256 newUWeight = (userPoolVotes[user][poolId].weight.Int() + weight).Uint();
-        VeBalance memory newUVote = _getUserVoteByWeight(user, newUWeight);
+        VeBalance memory newUVote = _getUserBalanceByWeight(user, newUWeight);
 
         // Update pool Info
         poolVotes[poolId] = pvotes.add(newUVote);
@@ -137,7 +144,7 @@ contract PendleVotingController is CelerSender {
      * on every of its iteration. Therefore, reusing code here is not possible.
      */
     function getPoolVotesCurrentEpoch(uint256 poolId) public view returns (uint256) {
-        uint256 timestamp = poolTimestamp[poolId];
+        uint256 timestamp = allPools[poolId].timestamp;
         VeBalance memory votes = poolVotes[poolId];
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
@@ -147,7 +154,7 @@ contract PendleVotingController is CelerSender {
     }
 
     function updatePoolVotes(uint256 poolId) public {
-        uint256 timestamp = poolTimestamp[poolId];
+        uint256 timestamp = allPools[poolId].timestamp;
         VeBalance memory votes = poolVotes[poolId];
 
         while (timestamp + WEEK <= block.timestamp) {
@@ -156,7 +163,7 @@ contract PendleVotingController is CelerSender {
             poolVotesAt[poolId][timestamp] = votes.getValueAt(timestamp);
         }
         poolVotes[poolId] = votes;
-        poolTimestamp[poolId] = timestamp;
+        allPools[poolId].timestamp = timestamp;
     }
 
     /**
@@ -178,7 +185,7 @@ contract PendleVotingController is CelerSender {
             votes[i] = new uint256[](pools[i].length);
             for (uint256 j = 0; j < pools[i].length; ++j) {
                 uint256 poolId = pools[i][j];
-                votes[i][j] = (getPoolVotesCurrentEpoch(poolId) * poolWeight[poolId]) / 100;
+                votes[i][j] = (getPoolVotesCurrentEpoch(poolId) * allPools[poolId].weight) / 100;
                 totalVotes += votes[i][j];
             }
         }
@@ -218,7 +225,7 @@ contract PendleVotingController is CelerSender {
         return (block.timestamp / WEEK) * WEEK;
     }
 
-    function _getUserVoteByWeight(address user, uint256 weight)
+    function _getUserBalanceByWeight(address user, uint256 weight)
         internal
         view
         returns (VeBalance memory res)
