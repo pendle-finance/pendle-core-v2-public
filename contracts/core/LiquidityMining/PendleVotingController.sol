@@ -98,6 +98,7 @@ contract PendleVotingController is CelerSender {
     }
 
     function setPoolWeight(uint256 poolId, uint256 newWeight) external onlyGovernance {
+        require(allPools[poolId].active, "pool not active");
         require(newWeight >= 80 && newWeight <= 120, "invalid weight");
         allPools[poolId].weight = newWeight;
     }
@@ -117,7 +118,6 @@ contract PendleVotingController is CelerSender {
             poolSlopeChangesAt[poolId][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
-        // negative weight should be automatically caught by soidity 0.8.0
         userVotedWeight[user] = (userVotedWeight[user].Int() + weight).Uint();
         require(userVotedWeight[user] <= MAX_WEIGHT, "max weight exceed");
 
@@ -144,6 +144,7 @@ contract PendleVotingController is CelerSender {
      * on every of its iteration. Therefore, reusing code here is not possible.
      */
     function getPoolVotesCurrentEpoch(uint256 poolId) public view returns (uint256) {
+        require(allPools[poolId].active, "pool not active");
         uint256 timestamp = allPools[poolId].timestamp;
         VeBalance memory votes = poolVotes[poolId];
         while (timestamp + WEEK <= block.timestamp) {
@@ -154,6 +155,7 @@ contract PendleVotingController is CelerSender {
     }
 
     function updatePoolVotes(uint256 poolId) public {
+        require(allPools[poolId].active, "pool not active");
         uint256 timestamp = allPools[poolId].timestamp;
         VeBalance memory votes = poolVotes[poolId];
 
