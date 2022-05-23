@@ -126,7 +126,7 @@ contract PendleVotingController is CelerSender {
 
         // Update pool Info
         poolVotes[poolId] = pvotes.add(newUVote);
-        if (newUWeight != 0) {
+        if (newUVote.isValid()) {
             poolSlopeChangesAt[poolId][newUVote.getExpiry()] += newUVote.slope;
         }
 

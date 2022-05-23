@@ -213,9 +213,9 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function _afterAddUserChain(address user, uint256 chainId) internal {
-        LockedPosition memory position = positionData[user];
-        if (position.expiry < block.timestamp) return; // position already expired
+        if (isPositionExpired(user)) return;
 
+        LockedPosition memory position = positionData[user];
         address sidechainVePendle = sidechainContracts.get(chainId);
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
         _broadcastPositionSingle(sidechainVePendle, chainId, timestamp, supply, user, position);
