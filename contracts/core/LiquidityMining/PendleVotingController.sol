@@ -210,7 +210,6 @@ contract PendleVotingController is CelerSender {
                 );
             } else {
                 _sendMessage(
-                    gaugeController,
                     chainId,
                     abi.encode(epochTimestamp, markets, pendleSpeeds)
                 );

@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, CelerSender {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
-    using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     bytes private constant EMPTY_BYTES = abi.encode();
@@ -17,7 +16,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     IERC20 public immutable pendle;
 
     // Each user has a set of chain they are interested in
-    mapping(address => EnumerableSet.UintSet) private userChains;
+    mapping(address => EnumerableMap.UintToAddressMap) private userChains;
 
     mapping(uint256 => uint256) private slopeChanges;
 
@@ -93,22 +92,22 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         uint256 length = sidechainContracts.length();
 
         for (uint256 i = 0; i < length; ++i) {
-            (uint256 chainId, address addr) = sidechainContracts.at(i);
-            _broadcastSupplySingle(addr, chainId, timestamp, supply);
+            (uint256 chainId, ) = sidechainContracts.at(i);
+            _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
         }
     }
 
-    function addUserPreference(uint256 chainId) external payable {
+    function setUserCrosschainAddr(uint256 chainId, address delegatee) external payable {
         address user = msg.sender;
-        require(!userChains[user].contains(chainId), "user already added chain");
+        require(delegatee != address(0), "invalid delegatee");
         require(sidechainContracts.contains(chainId), "chain not supported");
-        userChains[user].add(chainId);
+        userChains[user].set(chainId, delegatee);
         if (!isPositionExpired(user)) {
-            _afterAddUserChain(user, chainId);
+            _afterModifyUserInfo(user, chainId, delegatee);
         }
     }
 
-    function removeUserPreference(uint256 chainId) external {
+    function removeUserCrosschainAddr(uint256 chainId) external {
         address user = msg.sender;
         require(userChains[user].contains(chainId), "chain not exists in preference");
         userChains[user].remove(chainId);
@@ -171,7 +170,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
-
             supply = supply.sub(slopeChanges[timestamp], timestamp);
             totalSupplyAt[timestamp] = supply.getValueAt(timestamp);
         }
@@ -190,58 +188,34 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     ) internal {
         uint256 length = userChains[user].length();
         for (uint256 i = 0; i < length; ++i) {
-            uint256 chainId = userChains[user].at(i);
-            address sidechainVePendle = sidechainContracts.get(chainId);
-            _broadcastPositionSingle(
-                sidechainVePendle,
-                chainId,
-                timestamp,
-                supply,
-                user,
-                position
-            );
+            (uint256 chainId, address delegatee) = userChains[user].at(i);
+            _broadcast(chainId, timestamp, supply, abi.encode(user, delegatee, position));
         }
     }
 
-    function _afterAddSidechainContract(address sidechainVePendle, uint256 chainId)
-        internal
-        virtual
-        override
-    {
+    function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
-        _broadcastSupplySingle(sidechainVePendle, chainId, timestamp, supply);
+        _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
     }
 
-    function _afterAddUserChain(address user, uint256 chainId) internal {
+    function _afterModifyUserInfo(
+        address user,
+        uint256 chainId,
+        address delegatee
+    ) internal {
         if (isPositionExpired(user)) return;
 
         LockedPosition memory position = positionData[user];
-        address sidechainVePendle = sidechainContracts.get(chainId);
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
-        _broadcastPositionSingle(sidechainVePendle, chainId, timestamp, supply, user, position);
+        _broadcast(chainId, timestamp, supply, abi.encode(user, delegatee, position));
     }
 
-    function _broadcastPositionSingle(
-        address sidechainVePendle,
+    function _broadcast(
         uint256 chainId,
         uint256 timestamp,
         VeBalance memory supply,
-        address user,
-        LockedPosition memory position
+        bytes memory userData
     ) internal {
-        _sendMessage(
-            sidechainVePendle,
-            chainId,
-            abi.encode(timestamp, supply, abi.encode(user, position))
-        );
-    }
-
-    function _broadcastSupplySingle(
-        address sidechainVePendle,
-        uint256 chainId,
-        uint256 timestamp,
-        VeBalance memory supply
-    ) internal {
-        _sendMessage(sidechainVePendle, chainId, abi.encode(timestamp, supply, EMPTY_BYTES));
+        _sendMessage(chainId, abi.encode(timestamp, supply, userData));
     }
 }

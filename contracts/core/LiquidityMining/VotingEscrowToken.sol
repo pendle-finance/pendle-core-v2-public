@@ -7,11 +7,11 @@ import "../../libraries/VeBalanceLib.sol";
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
  * PRINCIPLE:
- *   - All functions implemented in this contract should be either view or pure 
+ *   - All functions implemented in this contract should be either view or pure
  *     to ensure that no writing logic is inheritted by sidechain version
  *   - Mainchain version will handle the logic which are:
  *        + Deposit, withdraw, increase lock, increase amount
- *        + Mainchain logic will be ensured to have _totalSupply = linear sum of 
+ *        + Mainchain logic will be ensured to have _totalSupply = linear sum of
  *          all users' veBalance such that their locks are not yet expired
  *        + Mainchain contract reserves 100% the right to write on sidechain
  *        + No other transaction is allowed to write on sidechain storage
@@ -36,7 +36,7 @@ abstract contract VotingEscrowToken is IPVeToken {
         lastSupplyUpdatedAt = (block.timestamp / WEEK - 1) * WEEK;
     }
 
-    function balanceOf(address user) public view returns (uint256) {
+    function balanceOf(address user) public view virtual returns (uint256) {
         if (isPositionExpired(user)) return 0;
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
@@ -61,7 +61,6 @@ abstract contract VotingEscrowToken is IPVeToken {
     function isPositionExpired(address user) public view returns (bool) {
         return positionData[user].expiry < block.timestamp;
     }
-
 
     function convertToVeBalance(LockedPosition memory position)
         public
