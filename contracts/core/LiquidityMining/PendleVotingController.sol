@@ -37,7 +37,7 @@ contract PendleVotingController is CelerSender {
     // pool infos
     PoolInfo[] public allPools;
     mapping(uint256 => uint256[]) public chainPools;
-    mapping(uint256 => mapping(address => bool)) public poolExists;
+    mapping(uint256 => mapping(address => uint256)) internal _poolIndexes;
 
     // pool votes
     mapping(uint256 => VeBalance) public poolVotes;
@@ -63,7 +63,7 @@ contract PendleVotingController is CelerSender {
     }
 
     function addPool(uint256 chainId, address market) external onlyGovernance {
-        require(!poolExists[chainId][market], "pool already added");
+        require(_poolIndexes[chainId][market] == 0, "pool already added");
         uint256 poolId = allPools.length;
         allPools.push(
             PoolInfo({
@@ -75,14 +75,14 @@ contract PendleVotingController is CelerSender {
             })
         );
         chainPools[chainId].push(poolId);
-        poolExists[chainId][market] = true;
+        _poolIndexes[chainId][market] = poolId + 1;
     }
 
     function removePool(uint256 poolId) external onlyGovernance {
         require(allPools[poolId].active, "pool not active");
         uint256 chainId = allPools[poolId].chainId;
         address market = allPools[poolId].market;
-        poolExists[chainId][market] = false;
+        _poolIndexes[chainId][market] = 0;
         allPools[poolId].active = false;
 
         uint256[] storage cpools = chainPools[chainId];
@@ -90,11 +90,11 @@ contract PendleVotingController is CelerSender {
             if (cpools[i] == poolId) {
                 cpools[i] = cpools[cpools.length - 1];
                 cpools.pop();
-                break;
+                return;
             }
         }
 
-        assert(false); // this should never happen
+        revert("fatal: pool not in chainPools"); // this should never happen
     }
 
     function setPoolWeight(uint256 poolId, uint256 newWeight) external onlyGovernance {
@@ -133,6 +133,15 @@ contract PendleVotingController is CelerSender {
         // Record new user vote
         userPoolCheckpoints[user][poolId].push(Checkpoint(newUVote, block.timestamp));
         userPoolVotes[user][poolId] = UserPoolInfo(newUWeight, newUVote);
+    }
+
+    function removeUnactiveVote(uint256 poolId) external {
+        require(!allPools[poolId].active, "pool still active");
+        address user = msg.sender;
+        uint256 weight = userPoolVotes[user][poolId].weight;
+        userVotedWeight[user] -= weight;
+        userPoolVotes[user][poolId].weight = 0;
+        userPoolVotes[user][poolId].vote = VeBalance(0, 0);
     }
 
     /**
@@ -189,6 +198,7 @@ contract PendleVotingController is CelerSender {
                 uint256 poolId = pools[i][j];
                 votes[i][j] = (getPoolVotesCurrentEpoch(poolId) * allPools[poolId].weight) / 100;
                 totalVotes += votes[i][j];
+
             }
         }
 
@@ -197,7 +207,14 @@ contract PendleVotingController is CelerSender {
             uint256[] memory pendleSpeeds = new uint256[](pools[i].length);
             for (uint256 j = 0; j < pools[i].length; ++j) {
                 markets[j] = allPools[pools[i][j]].market;
-                pendleSpeeds[j] = (votes[i][j] * pendlePerSec) / totalVotes;
+
+                // in case of first week, we set all reward speed to 0
+                if (totalVotes == 0) {
+                    pendleSpeeds[j] = 0;
+                } else {
+
+                    pendleSpeeds[j] = (votes[i][j] * pendlePerSec) / totalVotes;
+                }
             }
 
             (uint256 chainId, address gaugeController) = sidechainContracts.at(i);
@@ -209,10 +226,7 @@ contract PendleVotingController is CelerSender {
                     pendleSpeeds
                 );
             } else {
-                _sendMessage(
-                    chainId,
-                    abi.encode(epochTimestamp, markets, pendleSpeeds)
-                );
+                _sendMessage(chainId, abi.encode(epochTimestamp, markets, pendleSpeeds));
             }
         }
         epochBroadcasted[epochTimestamp] = true;
@@ -220,6 +234,10 @@ contract PendleVotingController is CelerSender {
 
     function setPendlePerSec(uint256 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
+    }
+
+    function getPoolIndex(uint256 chainId, address pool) external view returns (uint256) {
+        return _poolIndexes[chainId][pool] - 1; // will revert on non-existing pool
     }
 
     function _getCurrentEpochStart() internal view returns (uint256) {
