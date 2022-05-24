@@ -89,7 +89,7 @@ contract PendleGauge is IPGauge, RewardManager {
     {
         address[] memory SCYRewards = ISuperComposableYield(SCY).getRewardTokens();
         rewardTokens = new address[](SCYRewards.length + 1);
-        rewardTokens[SCYRewards.length] = gaugeController;
+        rewardTokens[SCYRewards.length] = pendle;
         for (uint256 i = 0; i < SCYRewards.length; ++i) {
             rewardTokens[i] = SCYRewards[i];
         }
@@ -116,66 +116,9 @@ contract PendleGauge is IPGauge, RewardManager {
         balance[user].activeBalance = newActiveBalance;
     }
 
-    function _updateGlobalReward() internal virtual override {
-        if (!_shouldUpdateGlobalReward()) return;
-        _redeemExternalReward();
-
-        uint256 totalShares = _rewardSharesTotal();
-
-        address[] memory rewardTokens = getRewardTokens();
-        _initGlobalReward(rewardTokens);
-
-        for (uint256 i = 0; i < rewardTokens.length; ++i) {
-            address token = rewardTokens[i];
-
-            uint256 currentRewardBalance;
-            if (token == gaugeController) {
-                // reward from gauge controller will be treated differently
-                currentRewardBalance = IPGaugeController(gaugeController)
-                    .updateAndGetMarketIncentives(market);
-            } else {
-                currentRewardBalance = IERC20(token).balanceOf(address(this));
-            }
-
-            if (totalShares != 0) {
-                globalReward[token].index += (currentRewardBalance -
-                    globalReward[token].lastBalance).divDown(totalShares);
-            }
-
-            globalReward[token].lastBalance = currentRewardBalance;
-        }
-    }
-
-    function _doTransferOutRewardsForUser(address user, address receiver)
-        internal
-        virtual
-        override
-        returns (uint256[] memory outAmounts)
-    {
-        address[] memory rewardTokens = getRewardTokens();
-
-        outAmounts = new uint256[](rewardTokens.length);
-        for (uint256 i = 0; i < rewardTokens.length; ++i) {
-            address token = rewardTokens[i];
-
-            outAmounts[i] = userReward[user][token].accruedReward;
-            userReward[user][token].accruedReward = 0;
-
-            // this subtraction is also valid for pendle incentives
-            globalReward[token].lastBalance -= outAmounts[i];
-
-            if (outAmounts[i] != 0) {
-                if (token == gaugeController) {
-                    IPGaugeController(gaugeController).redeemLpStakerReward(user, outAmounts[i]);
-                } else {
-                    IERC20(token).safeTransfer(receiver, outAmounts[i]);
-                }
-            }
-        }
-    }
-
     function _redeemExternalReward() internal virtual override {
         IPMarket(market).redeemScyReward();
+        IPGaugeController(gaugeController).redeemLpStakerReward();
     }
 
     function _rewardSharesTotal() internal virtual override returns (uint256) {

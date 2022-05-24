@@ -45,33 +45,19 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         marketFactory = IPMarketFactory(_marketFactory);
     }
 
-    function updateAndGetMarketIncentives(address market) public returns (uint256) {
-        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
-        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
-        if (!marketsIncentivized.contains(market)) {
-            // pool not listed by governance
-            return rewardData[market].accumulatedPendle;
-        }
-
-        PoolRewardData memory rwd = rewardData[market];
-        assert(rwd.accumulatedTimestamp >= epochStart); // this should never happen
-
-        rwd.accumulatedPendle += rwd.pendlePerSec * (block.timestamp - rwd.accumulatedTimestamp);
-        rwd.accumulatedTimestamp = block.timestamp;
-        rewardData[market] = rwd;
-        return rwd.accumulatedPendle;
-    }
-
     /**
      * @dev this function is restricted to be called by gauge only
      */
-    function redeemLpStakerReward(address staker, uint256 amount) external {
+    function redeemLpStakerReward() external {
         address gauge = msg.sender;
         address market = IPGauge(gauge).market();
         require(marketFactory.verifyGauge(market, gauge), "market gauge not matched");
+        
+        _updateMarketIncentives(market);
+        uint256 amount = rewardData[market].accumulatedPendle;
         if (amount != 0) {
-            rewardData[market].accumulatedPendle -= amount;
-            IERC20(pendle).safeTransfer(staker, amount);
+            rewardData[market].accumulatedPendle = 0;
+            IERC20(pendle).safeTransfer(gauge, amount);
         }
     }
 
@@ -109,5 +95,21 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
             rewardData[market].pendlePerSec = 0;
             marketsIncentivized.remove(market);
         }
+    }
+
+    function _updateMarketIncentives(address market) internal {
+        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
+        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
+        if (!marketsIncentivized.contains(market)) {
+            // pool not listed by governance
+            return;
+        }
+
+        PoolRewardData memory rwd = rewardData[market];
+        assert(rwd.accumulatedTimestamp >= epochStart); // this should never happen
+
+        rwd.accumulatedPendle += rwd.pendlePerSec * (block.timestamp - rwd.accumulatedTimestamp);
+        rwd.accumulatedTimestamp = block.timestamp;
+        rewardData[market] = rwd;
     }
 }
