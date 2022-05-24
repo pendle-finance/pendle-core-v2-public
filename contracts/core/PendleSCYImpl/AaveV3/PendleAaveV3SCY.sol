@@ -30,6 +30,13 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         address _aToken,
         address _rewardsController
     ) SCYBaseWithRewards(_name, _symbol, __scydecimals, __assetDecimals, __assetId) {
+        require(
+            _aToken != address(0) &&
+                _aavePool != address(0) &&
+                _underlying != address(0) &&
+                _rewardsController != address(0),
+            "zero address"
+        );
         aToken = _aToken;
         pool = _aavePool;
         underlying = _underlying;
