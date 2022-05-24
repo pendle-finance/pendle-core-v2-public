@@ -154,7 +154,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         address receiverPt,
         uint256 lpToRemove,
         bytes calldata data
-    ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
+    ) public nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
         MarketState memory market = readState(true);
 
         (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);

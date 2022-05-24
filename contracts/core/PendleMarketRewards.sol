@@ -39,15 +39,17 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         }
     }
 
-    function removeLiquidityEmergency(address receiver, bytes calldata data)
+    function emergencyRemoveLiquidity(address receiver, bytes calldata data)
         external
         nonReentrant
         returns (uint256 scyToAccount, uint256 ptToAccount)
     {
         uint256 balance = balanceOf(msg.sender);
-        _beforeEmergencyRemoveLiquidity(user);
+        _beforeEmergencyRemoveLiquidity(msg.sender);
 
         _removeEmergency = true;
+
+        // consider making an internal removeLiquidity?
         (scyToAccount, ptToAccount) = removeLiquidity(receiver, balance, data);
         _removeEmergency = false;
     }
