@@ -29,10 +29,7 @@ library Math {
     }
 
     function subNoNeg(int256 a, int256 b) internal pure returns (int256) {
-        require(a >= b, "NEGATIVE");
-        unchecked {
-            return a - b;
-        }
+        return a - b;
     }
 
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -66,9 +63,7 @@ library Math {
     function rawDivUp(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a == 0) return 0;
         else {
-            unchecked {
-                return (a + b - 1) / b;
-            }
+            return (a + b - 1) / b;
         }
     }
 
@@ -77,11 +72,11 @@ library Math {
     }
 
     function neg(int256 x) internal pure returns (int256) {
-        return -x;
+        return x * (-1);
     }
 
     function neg(uint256 x) internal pure returns (int256) {
-        return -Int(x);
+        return Int(x) * (-1);
     }
 
     function max(uint256 x, uint256 y) internal pure returns (uint256) {
@@ -111,7 +106,7 @@ library Math {
     }
 
     function Int128(int256 x) internal pure returns (int128) {
-        require(x < (1 << 127)); // signed, lim = bit-1
+        require(-(1 << 127) <= x && x < (1 << 127)); // signed, lim = bit-1
         return int128(x);
     }
 
