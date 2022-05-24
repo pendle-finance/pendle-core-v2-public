@@ -34,8 +34,10 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     uint256 public constant WEEK = 1 weeks;
 
     address public immutable pendle;
-    EnumerableSet.AddressSet internal marketsIncentivized;
+    uint256 internal immutable startWeek;
     IPMarketFactory internal immutable marketFactory;
+
+    EnumerableSet.AddressSet internal marketsIncentivized;
 
     uint256 private broadcastedEpochTimestamp;
     mapping(address => PoolRewardData) public rewardData;
@@ -43,21 +45,21 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
+        startWeek = _getEpochStartTimestamp();
     }
 
     /**
      * @dev this function is restricted to be called by gauge only
      */
-    function redeemLpStakerReward() external {
-        address gauge = msg.sender;
-        address market = IPGauge(gauge).market();
-        require(marketFactory.verifyGauge(market, gauge), "market gauge not matched");
-        
+    function pullMarketReward() external {
+        address market = msg.sender;
+        require(marketFactory.isValidMarket(market), "market gauge not matched");
+
         _updateMarketIncentives(market);
         uint256 amount = rewardData[market].accumulatedPendle;
         if (amount != 0) {
             rewardData[market].accumulatedPendle = 0;
-            IERC20(pendle).safeTransfer(gauge, amount);
+            IERC20(pendle).safeTransfer(market, amount);
         }
     }
 
@@ -67,7 +69,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         address[] memory markets,
         uint256[] memory pendleSpeeds
     ) internal {
-        assert(epochStart == (block.timestamp / WEEK) * WEEK);
+        assert(epochStart == _getEpochStartTimestamp());
         assert(markets.length == pendleSpeeds.length);
 
         _finalizeLastWeekReward();
@@ -82,7 +84,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     }
 
     function _finalizeLastWeekReward() internal {
-        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
+        uint256 epochStart = _getEpochStartTimestamp();
         address[] memory allMarkets = marketsIncentivized.values();
         for (uint256 i = 0; i < allMarkets.length; ++i) {
             address market = allMarkets[i];
@@ -98,8 +100,11 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     }
 
     function _updateMarketIncentives(address market) internal {
-        uint256 epochStart = (block.timestamp / WEEK) * WEEK;
-        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
+        uint256 epochStart = _getEpochStartTimestamp();
+
+        if (epochStart != startWeek) {
+            require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
+        }
         if (!marketsIncentivized.contains(market)) {
             // pool not listed by governance
             return;
@@ -111,5 +116,9 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         rwd.accumulatedPendle += rwd.pendlePerSec * (block.timestamp - rwd.accumulatedTimestamp);
         rwd.accumulatedTimestamp = block.timestamp;
         rewardData[market] = rwd;
+    }
+
+    function _getEpochStartTimestamp() internal view returns (uint256) {
+        return (block.timestamp / WEEK) * WEEK;
     }
 }

@@ -4,7 +4,7 @@ pragma solidity 0.8.9;
 interface IPGaugeController {
     function pendle() external returns (address);
 
-    function redeemLpStakerReward() external;
+    function pullMarketReward() external;
 
     function rewardData(address pool)
         external

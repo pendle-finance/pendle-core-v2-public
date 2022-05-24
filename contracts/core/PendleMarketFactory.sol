@@ -6,6 +6,7 @@ import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
+import "./PendleMarketRewards.sol";
 import "./LiquidityMining/PendleGauge.sol";
 
 contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
@@ -21,7 +22,6 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     }
 
     mapping(address => EnumerableSet.AddressSet) internal markets;
-    mapping(address => address) public marketGauges;
 
     address public immutable yieldContractFactory;
     address public vePendle;
@@ -58,32 +58,28 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         int256 scalarRoot,
         int256 initialAnchor
     ) external returns (address market) {
-        address SCY = IPPrincipalToken(PT).SCY();
-        uint256 expiry = IPPrincipalToken(PT).expiry();
-
-        require(
-            IPYieldContractFactory(yieldContractFactory).getPT(SCY, expiry) == PT,
-            "INVALID_PT"
-        );
-
+        _verifyPT(PT);
         market = address(new PendleMarket(PT, scalarRoot, initialAnchor));
         require(markets[PT].add(market), "market add failed");
 
         emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
 
-    function createNewGauge(address market) external returns (address gauge) {
-        require(marketGauges[market] == address(0), "gauge existed");
-        require(gaugeController != address(0), "gauge controller not initialized");
-        require(vePendle != address(0), "vePendle not initialized");
-        // bytes conversion works from 0.8.5
-        PendleGauge gauge = new PendleGauge{ salt: bytes32(abi.encode(market)) }(
-            market,
-            gaugeController,
-            vePendle
+    function createNewMarketRewards(
+        address PT,
+        int256 scalarRoot,
+        int256 initialAnchor
+    ) external returns (address market) {
+        _verifyPT(PT);
+        require(vePendle != address(0), "vePendle unset");
+        require(gaugeController != address(0), "gaugeController unset");
+
+        market = address(
+            new PendleMarketRewards(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
-        marketGauges[market] = address(gauge);
-        return address(gauge);
+        require(markets[PT].add(market), "market add failed");
+
+        emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
 
     function isValidMarket(address market) external view returns (bool) {
@@ -120,7 +116,13 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         gaugeController = newGaugeController;
     }
 
-    function verifyGauge(address market, address gauge) external view returns (bool) {
-        return marketGauges[market] == gauge;
+    function _verifyPT(address PT) internal view {
+        address SCY = IPPrincipalToken(PT).SCY();
+        uint256 expiry = IPPrincipalToken(PT).expiry();
+
+        require(
+            IPYieldContractFactory(yieldContractFactory).getPT(SCY, expiry) == PT,
+            "INVALID_PT"
+        );
     }
 }
