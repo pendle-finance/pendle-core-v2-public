@@ -20,6 +20,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // solhint-disable reason-string
 contract PendleMarketRewards is PendleGauge, PendleMarket {
+    bool private _removeEmergency;
+
     constructor(
         address _PT,
         int256 _scalarRoot,
@@ -35,6 +37,19 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         for (uint256 i = 0; i < SCYRewards.length; ++i) {
             rewardTokens[i + 1] = SCYRewards[i];
         }
+    }
+
+    function removeLiquidityEmergency(address receiver, bytes calldata data)
+        external
+        nonReentrant
+        returns (uint256 scyToAccount, uint256 ptToAccount)
+    {
+        uint256 balance = balanceOf(msg.sender);
+        _beforeEmergencyRemoveLiquidity(user);
+
+        _removeEmergency = true;
+        (scyToAccount, ptToAccount) = removeLiquidity(receiver, balance, data);
+        _removeEmergency = false;
     }
 
     function _stakedBalance(address user) internal view override returns (uint256) {
@@ -55,6 +70,7 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         address to,
         uint256
     ) internal override {
+        if (_removeEmergency) return;
         _updateGlobalReward();
         if (from != address(0)) {
             _updateUserRewardSkipGlobal(from);
@@ -69,6 +85,7 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         address to,
         uint256
     ) internal override {
+        if (_removeEmergency) return;
         if (from != address(0)) {
             _updateUserActiveBalance(from);
         }
