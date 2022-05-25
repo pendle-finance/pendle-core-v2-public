@@ -308,16 +308,11 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     }
 
     function _writeState(MarketState memory market) internal {
-        MarketStorage memory tempStore;
-
-        tempStore.totalPt = market.totalPt.Int128();
-        tempStore.totalScy = market.totalScy.Int128();
-        tempStore.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
-        tempStore.oracleRate = market.oracleRate.Uint96();
-        tempStore.lastTradeTime = market.lastTradeTime.Uint32();
-
-        _storage = tempStore;
-
+        _storage.totalPt = market.totalPt.Int128();
+        _storage.totalScy = market.totalScy.Int128();
+        _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
+        _storage.oracleRate = market.oracleRate.Uint96();
+        _storage.lastTradeTime = market.lastTradeTime.Uint32();
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
     }
 }
