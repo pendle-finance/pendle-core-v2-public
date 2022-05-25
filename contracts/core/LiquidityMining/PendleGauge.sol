@@ -9,7 +9,6 @@ import "../../SuperComposableYield/ISuperComposableYield.sol";
 import "../../SuperComposableYield/implementations/RewardManager.sol";
 import "../../libraries/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev this contract will have the rewardTokens property a little different from its original meaning
@@ -56,7 +55,6 @@ abstract contract PendleGauge is RewardManager {
         uint256 lpBalance = _stakedBalance(user);
         uint256 vePendleBalance = vePendle.balanceOf(user);
         uint256 vePendleSupply = vePendle.updateAndGetTotalSupply();
-
         // Inspired by Curve's Gauge
         uint256 newActiveBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {

@@ -11,6 +11,10 @@ import "../../periphery/PermissionsV2Upg.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
+ * @TODO: Have voting controller inherit this?
+ */
+
+/**
  * @dev Gauge controller provides no write function to any party other than voting controller
  * @dev Gauge controller will receive (lpTokens[], pendle per sec[]) from voting controller and
  * set it directly to contract state
@@ -34,7 +38,6 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     uint256 public constant WEEK = 1 weeks;
 
     address public immutable pendle;
-    uint256 internal immutable startWeek;
     IPMarketFactory internal immutable marketFactory;
 
     EnumerableSet.AddressSet internal marketsIncentivized;
@@ -45,7 +48,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
-        startWeek = _getEpochStartTimestamp();
+        broadcastedEpochTimestamp = _getEpochStartTimestamp();
     }
 
     /**
@@ -102,9 +105,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     function _updateMarketIncentives(address market) internal {
         uint256 epochStart = _getEpochStartTimestamp();
 
-        if (epochStart != startWeek) {
-            require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
-        }
+        require(broadcastedEpochTimestamp == epochStart, "votes not broadcasted");
         if (!marketsIncentivized.contains(market)) {
             // pool not listed by governance
             return;
