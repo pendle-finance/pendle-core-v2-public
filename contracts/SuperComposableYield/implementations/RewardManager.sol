@@ -80,13 +80,13 @@ abstract contract RewardManager is IRewardManager {
         uint256 totalShares = _rewardSharesTotal();
 
         address[] memory rewardTokens = getRewardTokens();
-        _initGlobalReward(rewardTokens);
 
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
 
             uint256 currentRewardBalance = IERC20(token).balanceOf(address(this));
 
+            if (globalReward[token].index == 0) globalReward[token].index = INITIAL_REWARD_INDEX;
             if (totalShares != 0) {
                 globalReward[token].index += (currentRewardBalance -
                     globalReward[token].lastBalance).divDown(totalShares);
@@ -119,14 +119,6 @@ abstract contract RewardManager is IRewardManager {
 
             userReward[user][token].accruedReward += rewardFromUnit;
             userReward[user][token].lastIndex = globalReward[token].index;
-        }
-    }
-
-    function _initGlobalReward(address[] memory rewardTokens) internal virtual {
-        for (uint256 i = 0; i < rewardTokens.length; ++i) {
-            if (globalReward[rewardTokens[i]].index == 0) {
-                globalReward[rewardTokens[i]].index = INITIAL_REWARD_INDEX;
-            }
         }
     }
 

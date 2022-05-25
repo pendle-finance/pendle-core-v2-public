@@ -188,7 +188,6 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         uint256 totalShares = _rewardSharesTotal();
 
         address[] memory rewardTokens = getRewardTokens();
-        _initGlobalReward(rewardTokens);
 
         bool _isExpired = isExpired();
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
@@ -197,6 +196,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
             uint256 currentRewardBalance = IERC20(token).balanceOf(address(this));
             uint256 totalIncomeReward = currentRewardBalance - globalReward[token].lastBalance;
 
+            if (globalReward[token].index == 0) globalReward[token].index = INITIAL_REWARD_INDEX;
             if (_isExpired) {
                 totalRewardsPostExpiry[token] += totalIncomeReward;
             } else if (totalShares != 0) {
