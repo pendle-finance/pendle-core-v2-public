@@ -303,6 +303,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         market.lastTradeTime = local.lastTradeTime;
 
         if (updateRateOracle) {
+            // must happen after lastLnImpliedRate & lastTradeTime is filled
             market.oracleRate = market.getNewRateOracle(block.timestamp);
         }
     }

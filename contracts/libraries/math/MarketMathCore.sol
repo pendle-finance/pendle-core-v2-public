@@ -385,7 +385,7 @@ library MarketMathCore {
         // 1 - (currentTs - previousTs) / timeWindow
         uint256 oracleWeight = Math.ONE - lastTradeWeight;
 
-        uint256 newOracleRate = market.lastTradeTime.mulDown(lastTradeWeight) +
+        uint256 newOracleRate = market.lastLnImpliedRate.mulDown(lastTradeWeight) +
             market.oracleRate.mulDown(oracleWeight);
 
         return newOracleRate;
