@@ -29,7 +29,8 @@ library Math {
     }
 
     function subNoNeg(int256 a, int256 b) internal pure returns (int256) {
-        return a - b;
+        require(a >= b, "negative");
+        return a - b; // no unchecked since a+b might be >= uint256
     }
 
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
