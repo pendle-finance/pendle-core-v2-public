@@ -83,12 +83,12 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function updateAndGetTotalSupply() external virtual override returns (uint256) {
-        (VeBalance memory supply, ) = _updateGlobalSupply(true);
+        (VeBalance memory supply, ) = _updateGlobalSupply();
         return supply.getCurrentValue();
     }
 
     function broadcastTotalSupply() public payable {
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
+        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
         uint256 length = sidechainContracts.length();
 
         for (uint256 i = 0; i < length; ++i) {
@@ -136,7 +136,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         require(newPosition.expiry - block.timestamp <= MAX_LOCK_TIME, "max lock time exceed");
 
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(false);
+        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
         if (oldPosition.expiry > block.timestamp) {
             // remove old position not yet expired
             supply = supply.sub(convertToVeBalance(oldPosition));
@@ -158,15 +158,13 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return veBalance.getCurrentValue();
     }
 
-    /**
-     * @param doUpdateSupply to prevent one write to storage in _increasePosition call
-     */
-    function _updateGlobalSupply(bool doUpdateSupply)
-        internal
-        returns (VeBalance memory supply, uint256 timestamp)
-    {
+    function _updateGlobalSupply() internal returns (VeBalance memory supply, uint256 timestamp) {
         supply = _totalSupply;
-        timestamp = lastSupplyUpdatedAt;
+        timestamp = lastSupplyUpdatedAt;        
+        
+        if (timestamp + WEEK > block.timestamp) {
+            return (supply, timestamp);
+        }
 
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
@@ -174,9 +172,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             totalSupplyAt[timestamp] = supply.getValueAt(timestamp);
         }
 
-        if (doUpdateSupply) {
-            _totalSupply = supply;
-        }
+        _totalSupply = supply;
         lastSupplyUpdatedAt = timestamp;
     }
 
@@ -194,7 +190,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
+        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
         _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
     }
 
@@ -206,7 +202,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         if (isPositionExpired(user)) return;
 
         LockedPosition memory position = positionData[user];
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply(true);
+        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
         _broadcast(chainId, timestamp, supply, abi.encode(user, delegatee, position));
     }
 
