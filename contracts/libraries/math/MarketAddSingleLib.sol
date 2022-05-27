@@ -130,7 +130,7 @@ library MarketAddSingleLib {
         ApproxParams memory approx
     )
         internal
-        view
+        pure
         returns (
             uint256 /*ptToSwapTo*/
         )

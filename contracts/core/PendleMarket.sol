@@ -137,41 +137,24 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
     }
 
-    /**
-     * @notice LP Holders can burn their LP to receive back SCY & PT proportionally
-     * to their share of market
-     * @dev steps working of this contract
-       - SCY & PT will be first transferred out to receiver
-       - Callback to msg.sender if data.length > 0
-       - Ensure the corresponding amount of LP has been transferred to this contract
-     * @param data bytes data to be sent in the callback
-     */
     function removeLiquidity(
         address receiver,
         uint256 lpToRemove,
         bytes calldata data
     ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
-        MarketState memory market = readState(true);
-
-        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
-
-        IERC20(SCY).safeTransfer(receiver, scyToAccount);
-        IERC20(PT).safeTransfer(receiver, ptToAccount);
-
-        if (data.length > 0) {
-            IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
-                lpToRemove,
-                scyToAccount,
-                ptToAccount,
-                data
-            );
-        }
-
-        _burn(address(this), lpToRemove);
-
-        _writeState(market);
-        emit RemoveLiquidity(receiver, lpToRemove, scyToAccount, ptToAccount);
+        return _removeLiquidity(receiver, receiver, lpToRemove, data);
     }
+
+    function removeLiquidity(
+        address receiverSCY,
+        address receiverPT,
+        uint256 lpToRemove,
+        bytes calldata data
+    ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
+        return _removeLiquidity(receiverSCY, receiverPT, lpToRemove, data);
+    }
+
+
 
     /**
      * @notice Pendle Market allows swaps between PT & SCY it is holding. This function
@@ -307,6 +290,44 @@ contract PendleMarket is PendleBaseToken, IPMarket {
             market.oracleRate = market.getNewRateOracle(block.timestamp);
         }
     }
+
+    /**
+     * @notice LP Holders can burn their LP to receive back SCY & PT proportionally
+     * to their share of market
+     * @dev steps working of this contract
+       - SCY & PT will be first transferred out to receiver
+       - Callback to msg.sender if data.length > 0
+       - Ensure the corresponding amount of LP has been transferred to this contract
+     * @param data bytes data to be sent in the callback
+     */
+    function _removeLiquidity(
+        address receiverSCY,
+        address receiverPT,
+        uint256 lpToRemove,
+        bytes calldata data
+    ) internal returns (uint256 scyToAccount, uint256 ptToAccount) {
+        MarketState memory market = readState(true);
+
+        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
+
+        IERC20(SCY).safeTransfer(receiverSCY, scyToAccount);
+        IERC20(PT).safeTransfer(receiverPT, ptToAccount);
+
+        if (data.length > 0) {
+            IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
+                lpToRemove,
+                scyToAccount,
+                ptToAccount,
+                data
+            );
+        }
+
+        _burn(address(this), lpToRemove);
+
+        _writeState(market);
+        emit RemoveLiquidity(receiverSCY, receiverPT, lpToRemove, scyToAccount, ptToAccount);
+    }
+
 
     function _writeState(MarketState memory market) internal {
         _storage.totalPt = market.totalPt.Int128();

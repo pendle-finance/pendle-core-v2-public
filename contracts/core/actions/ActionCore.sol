@@ -41,6 +41,28 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         return _addLiquidity(receiver, market, scyDesired, ptDesired, minLpOut, true);
     }
 
+    function addLiquiditySinglePT(
+        address receiver,
+        address market,
+        uint256 ptIn,
+        uint256 minLpOut,
+        ApproxParams memory approx,
+        bool doPull
+    ) external returns (uint256) {
+        return _addLiquiditySinglePT(receiver, market, ptIn, minLpOut, approx, doPull);
+    }
+
+    function addLiquiditySingleSCY(
+        address receiver,
+        address market,
+        uint256 scyIn,
+        uint256 minLpOut,
+        ApproxParams memory approx,
+        bool doPull
+    ) external returns (uint256) {
+        return _addLiquiditySingleSCY(receiver, market, scyIn, minLpOut, approx, doPull);
+    }
+
     /// @dev docs can be found in the internal function
     function removeLiquidity(
         address receiver,
@@ -50,6 +72,27 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         uint256 ptOutMin
     ) external returns (uint256, uint256) {
         return _removeLiquidity(receiver, market, lpToRemove, scyOutMin, ptOutMin, true);
+    }
+
+    function removeLiquiditySinglePT(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minPtOut,
+        ApproxParams memory approx,
+        bool doPull
+    ) external returns (uint256) {
+        return _removeLiquiditySinglePT(receiver, market, lpToRemove, minPtOut, approx, doPull);
+    }
+
+    function removeLiquiditySingleSCY(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minScyOut,
+        bool doPull
+    ) external returns (uint256) {
+        return _removeLiquiditySingleSCY(receiver, market, lpToRemove, minScyOut, doPull);
     }
 
     /// @dev docs can be found in the internal function

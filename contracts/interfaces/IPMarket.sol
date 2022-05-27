@@ -15,7 +15,8 @@ interface IPMarket is IPBaseToken {
     );
 
     event RemoveLiquidity(
-        address indexed receiver,
+        address indexed receiverSCY,
+        address indexed receiverPT,
         uint256 lpRemoved,
         uint256 scyToAccount,
         uint256 ptToAccount
@@ -45,6 +46,13 @@ interface IPMarket is IPBaseToken {
 
     function removeLiquidity(
         address receiver,
+        uint256 lpToRemove,
+        bytes calldata data
+    ) external returns (uint256 scyToAccount, uint256 ptToAccount);
+
+    function removeLiquidity(
+        address receiverSCY,
+        address receiverPT,
         uint256 lpToRemove,
         bytes calldata data
     ) external returns (uint256 scyToAccount, uint256 ptToAccount);
