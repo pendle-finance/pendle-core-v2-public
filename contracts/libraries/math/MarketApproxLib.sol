@@ -296,7 +296,7 @@ library MarketApproxLib {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(minScyOut > 0, "invalid maxScyIn");
+        require(minScyOut > 0, "invalid minScyOut");
         require(isValidApproxParams(approx), "invalid approx approx");
 
         /// ------------------------------------------------------------
@@ -341,6 +341,243 @@ library MarketApproxLib {
                 }
             } else {
                 approx.guessMin = ptOutGuess + 1;
+            }
+
+            unchecked {
+                ++iter;
+            }
+        }
+        revert("approx fail");
+    }
+
+    function approxSwapExactYtToPt(
+        MarketState memory market,
+        SCYIndex index,
+        uint256 maxYtIn,
+        uint256 blockTime,
+        ApproxParams memory approx
+    )
+        internal
+        pure
+        returns (
+            uint256 /**netYtIn */,
+            uint256 /**netPtOut */
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(maxYtIn > 0, "invalid maxYtIn");
+        require(isValidApproxParams(approx), "invalid approx approx");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        for (uint256 iter = 0; iter < approx.maxIteration; ) {
+            // iter++ at end of loop
+            uint256 ptOutGuess = getCurrentGuess(iter, approx);
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptOutGuess.Int());
+            uint256 netAssetOwed = _assetToAccount.neg().Uint();
+
+            // since it is guaranteed that all YT should be use for scy payback
+            // we only need to compare netAssetOwed with maxYtIn
+
+            if (netAssetOwed <= maxYtIn) {
+                approx.guessMin = ptOutGuess;
+                if (Math.isASmallerApproxB(netAssetOwed, maxYtIn, approx.eps)) {
+                    return (netAssetOwed, ptOutGuess - netAssetOwed);
+                }
+            } else {
+                approx.guessMax = ptOutGuess - 1;
+            }
+
+            unchecked {
+                ++iter;
+            }
+        }
+        revert("approx fail");
+    }
+
+    function approxSwapYtToExactPt(
+        MarketState memory market,
+        SCYIndex index,
+        uint256 minPtOut,
+        uint256 blockTime,
+        ApproxParams memory approx
+    ) internal pure returns (
+        uint256,
+        uint256
+    ) {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(minPtOut > 0, "invalid minPtOut");
+        require(isValidApproxParams(approx), "invalid approx approx");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
+        }
+
+        if (approx.guessMin < minPtOut) {
+            approx.guessMin = minPtOut;
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        for (uint256 iter = 0; iter < approx.maxIteration; ) {
+            // iter++ at end of loop
+            uint256 ptOutGuess = getCurrentGuess(iter, approx);
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptOutGuess.Int());
+            uint256 netAssetOwed = _assetToAccount.neg().Uint();
+
+            if (netAssetOwed <= ptOutGuess - minPtOut) {
+                approx.guessMax = ptOutGuess;
+                if (Math.isASmallerApproxB(minPtOut, ptOutGuess - netAssetOwed, approx.eps)) {
+                    return (netAssetOwed, ptOutGuess - netAssetOwed);
+                }
+            } else {
+                approx.guessMin = ptOutGuess + 1;
+            }
+
+            unchecked {
+                ++iter;
+            }
+        }
+        revert("approx fail");
+    }
+
+    function approxSwapExactPtToYt(
+        MarketState memory market,
+        SCYIndex index,
+        uint256 maxPtIn,
+        uint256 blockTime,
+        ApproxParams memory approx
+    )
+        internal
+        pure
+        returns (
+            uint256 /**netPtIn */,
+            uint256 /**netYtOut */
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(maxPtIn > 0, "invalid maxPtIn");
+        require(isValidApproxParams(approx), "invalid approx approx");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        for (uint256 iter = 0; iter < approx.maxIteration; ) {
+            // iter++ at end of loop
+
+            uint256 ptInGuess = getCurrentGuess(iter, approx);
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptInGuess.neg());
+            uint256 netAssetOut = _assetToAccount.Uint();
+
+            if (netAssetOut + maxPtIn >= ptInGuess) {
+                approx.guessMin = ptInGuess;
+                if (Math.isASmallerApproxB(ptInGuess - netAssetOut, maxPtIn, approx.eps)) {
+                    return (ptInGuess - netAssetOut, netAssetOut);
+                }
+            } else {
+                approx.guessMax = ptInGuess - 1;
+            }
+
+            unchecked {
+                ++iter;
+            }
+        }
+        revert("approx fail");
+    }
+
+    function approxSwapPtToExactYt(
+        MarketState memory market,
+        SCYIndex index,
+        uint256 minYtOut,
+        uint256 blockTime,
+        ApproxParams memory approx
+    )
+        internal
+        view
+        returns (
+            uint256 /**netPtIn */,
+            uint256 /**ptInGuess */
+        )
+    {
+        /// ------------------------------------------------------------
+        /// CHECKS
+        /// ------------------------------------------------------------
+        require(minYtOut > 0, "invalid minYtOut");
+        require(isValidApproxParams(approx), "invalid approx approx");
+
+        /// ------------------------------------------------------------
+        /// SET UP VAIRBALES
+        /// ------------------------------------------------------------
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        if (approx.guessMax == type(uint256).max) {
+            approx.guessMax = calcMaxPtOut(market.totalPt, comp);
+        }
+
+        /// ------------------------------------------------------------
+        /// BINARY SEARCH
+        /// ------------------------------------------------------------
+
+        for (uint256 iter = 0; iter < approx.maxIteration; ) {
+            // iter++ at end of loop
+
+            uint256 ptInGuess = getCurrentGuess(iter, approx);
+
+            /// ------------------------------------------------------------
+            /// CHECK ASSET
+            /// ------------------------------------------------------------
+            (int256 _assetToAccount, ) = market.calcTrade(comp, ptInGuess.neg());
+            uint256 netAssetOut = _assetToAccount.Uint();
+
+            if (netAssetOut >= minYtOut) {
+                approx.guessMax = ptInGuess;
+                if (Math.isASmallerApproxB(minYtOut, netAssetOut, approx.eps)) {
+                    return (ptInGuess - netAssetOut, netAssetOut);
+                }
+            } else {
+                approx.guessMin = ptInGuess + 1;
             }
 
             unchecked {
