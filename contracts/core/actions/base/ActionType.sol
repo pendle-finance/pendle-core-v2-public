@@ -6,6 +6,9 @@ abstract contract ActionType {
         SwapExactYtForScy,
         SwapSCYForExactYt,
         SwapExactScyForYt,
-        SwapYtForExactScy
+        SwapYtForExactScy,
+        
+        SwapPtForYt,
+        SwapYtForPt
     }
 }

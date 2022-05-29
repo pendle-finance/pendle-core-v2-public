@@ -18,6 +18,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
     using Math for uint256;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
+    using SafeERC20 for IERC20;
 
     modifier onlyPendleMarket(address market) {
         require(IPMarketFactory(marketFactory).isValidMarket(market), "INVALID_MARKET");
@@ -47,6 +48,8 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
             swapType == ACTION_TYPE.SwapYtForExactScy || swapType == ACTION_TYPE.SwapExactYtForScy
         ) {
             _swapYtForScy_callback(msg.sender, ptToAccount, scyToAccount, data);
+        } else if (swapType == ACTION_TYPE.SwapPtForYt) {
+            _swapPtForYt_callback(msg.sender, ptToAccount, scyToAccount, data);
         } else {
             require(false, "unknown swapType");
         }
@@ -115,5 +118,34 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         if (receiver != address(this)) {
             SCY.safeTransfer(receiver, netScyReceived - scyOwed);
         }
+    }
+
+    function _swapPtForYt_callback(
+        address market,
+        int256, /**ptToAccount */
+        int256, /**scyToAccount */
+        bytes calldata data
+    ) internal {
+        (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        YT.mintPY(market, receiver);
+    }
+
+    function _swapYtForPt_callback(
+        address market,
+        int256 ptToAccount,
+        int256 scyToAccount,
+        bytes calldata data
+    ) internal {
+        (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
+        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
+
+        uint256 scyIndex = SCY.scyIndexCurrent();
+        uint256 scyOwed = scyToAccount.neg().Uint();
+        uint256 assetOwed = SCYUtils.scyToAsset(scyIndex, scyOwed);
+
+        PT.safeTransfer(address(YT), assetOwed);
+        PT.safeTransfer(receiver, ptToAccount.Uint() - assetOwed);
+        YT.redeemPY(market);
     }
 }
