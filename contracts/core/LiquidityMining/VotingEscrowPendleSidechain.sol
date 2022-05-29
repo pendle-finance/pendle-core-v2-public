@@ -44,6 +44,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
     }
 
     function updateAndGetTotalSupply() external virtual override returns (uint256) {
+        // add comments here
         return totalSupply();
     }
 

@@ -30,11 +30,11 @@ library VeBalanceLib {
         res.slope = a.slope - b.slope;
     }
 
-    function sub(VeBalance memory a, uint256 slope, uint256 expiry)
-        internal
-        pure
-        returns (VeBalance memory res)
-    {
+    function sub(
+        VeBalance memory a,
+        uint256 slope,
+        uint256 expiry
+    ) internal pure returns (VeBalance memory res) {
         res.slope = a.slope - slope;
         res.bias = a.bias - slope * expiry;
     }
@@ -57,6 +57,8 @@ library VeBalanceLib {
         return a.bias / a.slope; // this is guaranteed to be true
     }
 
+    // hmm I'm not the biggest fan of the random hooks, very hard to rmb when to call
+    // and this is not "isValid"
     function isValid(VeBalance memory a) internal view returns (bool) {
         return a.slope > 0 && getExpiry(a) > block.timestamp;
     }

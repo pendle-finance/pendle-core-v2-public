@@ -16,6 +16,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * The N-th reward token will be pendle, but represented by address(0)
  * This design aims to avoid the case when pendle is actually one of the rewardTokens in SCY
  */
+// comments are wrong here
 abstract contract PendleGauge is RewardManager {
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -38,6 +39,7 @@ abstract contract PendleGauge is RewardManager {
      * @dev It is intended to have msg.sender active balance updated when they try to redeem
      */
     function redeemReward(address receiver) external returns (uint256[] memory) {
+        // Change to allow redeeming for others
         address user = msg.sender;
         _updateUserReward(user);
         _updateUserActiveBalance(user);
@@ -59,10 +61,12 @@ abstract contract PendleGauge is RewardManager {
         uint256 newActiveBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {
             newActiveBalance +=
+                // Hmm will _totalStaked << vePendleSupply?
                 (((_totalStaked() * vePendleBalance) / vePendleSupply) *
                     (100 - TOKENLESS_PRODUCTION)) /
                 100;
         }
+        // I really hate the reuse of variables like this
         newActiveBalance = Math.min(newActiveBalance, lpBalance);
 
         totalActiveSupply = totalActiveSupply - activeBalance[user] + newActiveBalance;
@@ -85,7 +89,7 @@ abstract contract PendleGauge is RewardManager {
         activeBalance[user] = 0;
 
         address[] memory rewardTokens = getRewardTokens();
-        for(uint256 i = 0; i < rewardTokens.length; ++i) {
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
             userReward[user][token].accruedReward = 0;
         }

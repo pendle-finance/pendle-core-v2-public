@@ -18,6 +18,7 @@ import "../../libraries/VeBalanceLib.sol";
  */
 
 abstract contract VotingEscrowToken is IPVeToken {
+    // wrong name, should be VotingEscrowPendle
     using VeBalanceLib for VeBalance;
 
     uint256 public constant WEEK = 1 weeks;
@@ -25,7 +26,7 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     struct LockedPosition {
         uint256 amount;
-        uint256 expiry;
+        uint256 expiry; // confirm can't use 2 slots
     }
 
     VeBalance internal _totalSupply;
@@ -37,7 +38,8 @@ abstract contract VotingEscrowToken is IPVeToken {
     }
 
     function balanceOf(address user) public view virtual returns (uint256) {
-        if (isPositionExpired(user)) return 0;
+        // if this will be overriden, just don't write it here
+        if (isPositionExpired(user)) return 0; // is this necessary?
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
 
@@ -48,7 +50,10 @@ abstract contract VotingEscrowToken is IPVeToken {
      * @dev Gauges will use updateAndGetTotalSupply to get totalSupply, this will
      * prevent the pause for gauges on mainchain.
      */
+    // hmm I don't like this pause
     function totalSupply() public view virtual returns (uint256) {
+        // I really don't like the low-level logic here
+        // Overall these kinds of logics should be abstracted out
         require(
             lastSupplyUpdatedAt >= (block.timestamp / WEEK) * WEEK,
             "paused: total supply unupdated"

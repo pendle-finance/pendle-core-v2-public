@@ -35,7 +35,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         address user = msg.sender;
         require(expiry % WEEK == 0 && expiry > block.timestamp, "invalid expiry");
         // as long as users' amount = 0, their expiry will also be 0
-        require(positionData[user].amount == 0, "lock not expired or withdrawed");
+        require(positionData[user].amount == 0, "lock not expired or withdrawed"); // inappropriate comments
         require(amount > 0, "zero amount");
 
         pendle.safeTransferFrom(user, address(this), amount);
@@ -48,13 +48,14 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     function increaseLockDuration(uint256 duration) external payable returns (uint256) {
         address user = msg.sender;
         require(!isPositionExpired(user), "user position expired");
-        require(duration > 0 && duration % WEEK == 0, "invalid duration");
+        require(duration > 0 && duration % WEEK == 0, "invalid duration"); // duration % WEEK check looks meh
 
         return _increasePosition(user, duration, 0);
     }
 
     /**
      * @dev anyone can top up one user's pendle locked amount
+     // I don't like this, it's a surprising behavior
      */
     function increaseLockAmount(address user, uint256 amount)
         external
@@ -73,8 +74,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
      * @dev there is not a need for broadcasting in withdrawing thanks to the definition of _totalSupply
      */
     function withdraw(address user) external returns (uint256 amount) {
-        require(isPositionExpired(user), "user position unexpired");
-        amount = positionData[user].amount;
+        require(isPositionExpired(user), "user position unexpired"); // not expired, not unexpired
+        amount = positionData[user].amount; // should require amount != 0
 
         if (amount > 0) {
             positionData[user] = LockedPosition(0, 0);
@@ -98,11 +99,13 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function setUserCrosschainAddr(uint256 chainId, address delegatee) external payable {
+        // huh why payable
         address user = msg.sender;
         require(delegatee != address(0), "invalid delegatee");
         require(sidechainContracts.contains(chainId), "chain not supported");
         userChains[user].set(chainId, delegatee);
         if (!isPositionExpired(user)) {
+            // these hooks are out of nowhere
             _afterModifyUserInfo(user, chainId, delegatee);
         }
     }
@@ -159,9 +162,10 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function _updateGlobalSupply() internal returns (VeBalance memory supply, uint256 timestamp) {
+        // this looks damn confusing, supply & timestamp is reused
         supply = _totalSupply;
-        timestamp = lastSupplyUpdatedAt;        
-        
+        timestamp = lastSupplyUpdatedAt;
+
         if (timestamp + WEEK > block.timestamp) {
             return (supply, timestamp);
         }

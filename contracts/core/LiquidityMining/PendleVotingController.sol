@@ -8,6 +8,8 @@ import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "./CelerAbstracts/CelerSender.sol";
 
+// no reentracy protection yet?
+// Should VotingController and stuff become upgradeable?
 contract PendleVotingController is CelerSender {
     using VeBalanceLib for VeBalance;
     using Math for uint256;
@@ -85,7 +87,10 @@ contract PendleVotingController is CelerSender {
         _poolIndexes[chainId][market] = 0;
         allPools[poolId].active = false;
 
-        uint256[] storage cpools = chainPools[chainId];
+        uint256[] storage cpools = chainPools[chainId]; // fck what is this?
+        // and what is this cpools.length?
+        // and what is this loop?
+        // and do we even need poolId? market is the poolId itself
         for (uint256 i = 0; i < cpools.length; ++i) {
             if (cpools[i] == poolId) {
                 cpools[i] = cpools[cpools.length - 1];
@@ -98,6 +103,7 @@ contract PendleVotingController is CelerSender {
     }
 
     function setPoolWeight(uint256 poolId, uint256 newWeight) external onlyGovernance {
+        // what's poolWeight is for
         require(allPools[poolId].active, "pool not active");
         require(newWeight >= 80 && newWeight <= 120, "invalid weight");
         allPools[poolId].weight = newWeight;
@@ -114,11 +120,14 @@ contract PendleVotingController is CelerSender {
         VeBalance memory pvotes = poolVotes[poolId];
         VeBalance memory oldUVote = userPoolVotes[user][poolId].vote;
         if (oldUVote.isValid()) {
+            // the term isValid here is off. If something is not valid, you revert
             pvotes = pvotes.sub(oldUVote);
             poolSlopeChangesAt[poolId][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
+        // cast to Int to add, then recast to UInt? Do we check for results >= 0 here
         userVotedWeight[user] = (userVotedWeight[user].Int() + weight).Uint();
+        // I do feel like doing storage packaing is necessary
         require(userVotedWeight[user] <= MAX_WEIGHT, "max weight exceed");
 
         uint256 newUWeight = (userPoolVotes[user][poolId].weight.Int() + weight).Uint();
@@ -136,6 +145,9 @@ contract PendleVotingController is CelerSender {
     }
 
     function removeUnactiveVote(uint256 poolId) external {
+        // Not unactive, inactive
+        // good idea: All operations that require touching multiple mapping together, should be done through functions
+        // Idea of separating storage contract from logic is not new, but interesting
         require(!allPools[poolId].active, "pool still active");
         address user = msg.sender;
         uint256 weight = userPoolVotes[user][poolId].weight;
@@ -182,6 +194,7 @@ contract PendleVotingController is CelerSender {
      * @dev Each epoch, it is allowed to broadcast only once, and expected to be done by governance
      */
     function broadcastVotingResults() external payable {
+        // keeper here, we can use it here
         uint256 epochTimestamp = _getCurrentEpochStart();
         require(!epochBroadcasted[epochTimestamp], "not allowed to rebroadcast");
 
@@ -198,7 +211,6 @@ contract PendleVotingController is CelerSender {
                 uint256 poolId = pools[i][j];
                 votes[i][j] = (getPoolVotesCurrentEpoch(poolId) * allPools[poolId].weight) / 100;
                 totalVotes += votes[i][j];
-
             }
         }
 
@@ -212,7 +224,6 @@ contract PendleVotingController is CelerSender {
                 if (totalVotes == 0) {
                     pendleSpeeds[j] = 0;
                 } else {
-
                     pendleSpeeds[j] = (votes[i][j] * pendlePerSec) / totalVotes;
                 }
             }
