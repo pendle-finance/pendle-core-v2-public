@@ -324,7 +324,7 @@ abstract contract ActionSCYAndPTBase {
         if (doPull) {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
-        (uint256 netScyRemoved, uint256 netPtRemoved) = IPMarket(market).removeLiquidity(
+        (uint256 netScyRemoved,) = IPMarket(market).removeLiquidity(
             receiver,
             market,
             lpToRemove,

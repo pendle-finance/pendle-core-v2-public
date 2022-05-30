@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
+import "./base/ActionPTAndYTBase.sol";
 import "./base/ActionSCYAndYTBase.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionYT.sol";
 import "../../libraries/math/MarketMathAux.sol";
 
-contract ActionYT is IPActionYT, ActionSCYAndYTBase {
+contract ActionYT is IPActionYT, ActionSCYAndYTBase, ActionPTAndYTBase {
     using MarketMathCore for MarketState;
     using MarketMathAux for MarketState;
     using Math for uint256;
@@ -65,8 +66,80 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         address market,
         uint256 exactScyIn,
         ApproxParams memory approx
-    ) external returns (uint256 netYtOut) {
+    ) external returns (uint256) {
         return _swapExactScyForYt(receiver, market, exactScyIn, approx, true);
+    }
+
+    function swapExactYtForPt(
+        address receiver,
+        address market,
+        uint256 exactYTIn,
+        ApproxParams memory approx
+    ) external returns (uint256) {
+        return
+            _swapExactYtForPt(
+                SwapPTAndYTData({
+                    receiver: receiver,
+                    market: market,
+                    approx: approx,
+                    doPull: true
+                }),
+                exactYTIn
+            );
+    }
+
+    function swapYtForExactPt(
+        address receiver,
+        address market,
+        uint256 exactPtOut,
+        ApproxParams memory approx
+    ) external returns (uint256) {
+        return
+            _swapYtForExactPt(
+                SwapPTAndYTData({
+                    receiver: receiver,
+                    market: market,
+                    approx: approx,
+                    doPull: true
+                }),
+                exactPtOut
+            );
+    }
+
+    function swapExactPtForYt(
+        address receiver,
+        address market,
+        uint256 exactPtIn,
+        ApproxParams memory approx
+    ) external returns (uint256) {
+        return
+            _swapExactPtForYt(
+                SwapPTAndYTData({
+                    receiver: receiver,
+                    market: market,
+                    approx: approx,
+                    doPull: true
+                }),
+                exactPtIn
+            );
+    }
+
+    function swapPtForExactYt(
+        address receiver,
+        address market,
+        uint256 minYtOut,
+        ApproxParams memory approx
+    ) external returns (uint256) {
+        return
+            _swapPtForExactYt(
+                SwapPTAndYTData({
+                    receiver: receiver,
+                    market: market,
+                    approx: approx,
+                    doPull: true
+                }),
+                minYtOut
+            );
     }
 
     /**

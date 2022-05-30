@@ -50,6 +50,8 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
             _swapYtForScy_callback(msg.sender, ptToAccount, scyToAccount, data);
         } else if (swapType == ACTION_TYPE.SwapPtForYt) {
             _swapPtForYt_callback(msg.sender, ptToAccount, scyToAccount, data);
+        } else if (swapType == ACTION_TYPE.SwapYtForPt) {
+            _swapYtForPt_callback(msg.sender, ptToAccount, scyToAccount, data);
         } else {
             require(false, "unknown swapType");
         }
@@ -127,7 +129,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         bytes calldata data
     ) internal {
         (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
         YT.mintPY(market, receiver);
     }
 

@@ -32,6 +32,34 @@ interface IPActionYT {
         ApproxParams memory approx
     ) external returns (uint256 netYtIn);
 
+    function swapExactYtForPt(
+        address receiver,
+        address market,
+        uint256 exactYTIn,
+        ApproxParams memory approx
+    ) external returns (uint256);
+
+    function swapYtForExactPt(
+        address receiver,
+        address market,
+        uint256 exactPtOut,
+        ApproxParams memory approx
+    ) external returns (uint256);
+
+    function swapExactPtForYt(
+        address receiver,
+        address market,
+        uint256 exactPtIn,
+        ApproxParams memory approx
+    ) external returns (uint256);
+
+    function swapPtForExactYt(
+        address receiver,
+        address market,
+        uint256 minYtOut,
+        ApproxParams memory approx
+    ) external returns (uint256);
+
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
         address receiver,

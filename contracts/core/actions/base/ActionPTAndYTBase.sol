@@ -10,7 +10,7 @@ import "./ActionSCYAndPYBase.sol";
 import "./ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ActionPTAndYTBase is ActionSCYAndPYBase, ActionType {
+abstract contract ActionPTAndYTBase is ActionType {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -20,119 +20,118 @@ abstract contract ActionPTAndYTBase is ActionSCYAndPYBase, ActionType {
     using SafeERC20 for IPYieldToken;
     using SafeERC20 for IERC20;
 
-    function _swapExactPTForYT(
-        address receiver,
-        address market,
-        uint256 exactPtIn,
-        ApproxParams memory approx,
-        bool doPull
+    struct SwapPTAndYTData {
+        address receiver;
+        address market;
+        ApproxParams approx;
+        bool doPull;
+    }
+
+    function _swapExactPtForYt(
+        SwapPTAndYTData memory data,
+        uint256 exactPtIn
     ) internal returns (uint256) {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState(false);
+        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(data.market).readTokens();
+        MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netPtIn, uint256 netYtOut) = state.approxSwapExactPtToYt(
             SCYIndexLib.newIndex(SCY),
             exactPtIn,
             block.timestamp,
-            approx
+            data.approx
         );
 
-        if (doPull) {
-            PT.safeTransferFrom(msg.sender, market, netPtIn);
+        if (data.doPull) {
+            PT.safeTransferFrom(msg.sender, data.market, netPtIn);
         }
 
-        IPMarket(market).swapExactPtForScy(
+        IPMarket(data.market).swapExactPtForScy(
             address(YT),
             netPtIn + netYtOut,
             1,
-            abi.encode(ACTION_TYPE.SwapPtForYt, receiver)
+            abi.encode(ACTION_TYPE.SwapPtForYt, data.receiver)
         );
+        return netYtOut;
     }
 
-    function _swapPTForExactYT(
-        address receiver,
-        address market,
-        uint256 minYtOut,
-        ApproxParams memory approx,
-        bool doPull
-    ) internal {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState(false);
+    function _swapPtForExactYt(
+        SwapPTAndYTData memory data,
+        uint256 minYtOut
+    ) internal returns (uint256) {
+        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(data.market).readTokens();
+        MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netPtIn, uint256 netYtOut) = state.approxSwapPtToExactYt(
             SCYIndexLib.newIndex(SCY),
             minYtOut,
             block.timestamp,
-            approx
+            data.approx
         );
 
-        if (doPull) {
-            PT.safeTransferFrom(msg.sender, market, netPtIn);
+        if (data.doPull) {
+            PT.safeTransferFrom(msg.sender, data.market, netPtIn);
         }
 
-        IPMarket(market).swapExactPtForScy(
+        IPMarket(data.market).swapExactPtForScy(
             address(YT),
             netPtIn + netYtOut,
             1,
-            abi.encode(ACTION_TYPE.SwapPtForYt, receiver)
+            abi.encode(ACTION_TYPE.SwapPtForYt, data.receiver)
         );
+        return netPtIn;
     }
 
-    function _swapYTForExactPt(
-        address receiver,
-        address market,
-        uint256 exactPtOut,
-        ApproxParams memory approx,
-        bool doPull
-    ) internal {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState(false);
+    function _swapYtForExactPt(
+        SwapPTAndYTData memory data,
+        uint256 exactPtOut
+    ) internal returns (uint256) {
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(data.market).readTokens();
+        MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netYtIn, uint256 netPtOut) = state.approxSwapYtToExactPt(
             SCYIndexLib.newIndex(SCY),
             exactPtOut,
             block.timestamp,
-            approx
+            data.approx
         );
 
-        if (doPull) {
+        if (data.doPull) {
             YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
         }
 
-        IPMarket(market).swapScyForExactPt(
+        IPMarket(data.market).swapScyForExactPt(
             address(this),
             netYtIn + netPtOut,
             type(uint256).max,
-            abi.encode(ACTION_TYPE.SwapYtForPt, receiver)
+            abi.encode(ACTION_TYPE.SwapYtForPt, data.receiver)
         );
+        return netYtIn;
     }
 
-    function _swapExactYTForPT(
-        address receiver,
-        address market,
-        uint256 exactYTIn,
-        ApproxParams memory approx,
-        bool doPull
-    ) internal {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState(false);
+    function _swapExactYtForPt(
+        SwapPTAndYTData memory data,
+        uint256 exactYTIn
+    ) internal returns (uint256) {
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(data.market).readTokens();
+        MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netYtIn, uint256 netPtOut) = state.approxSwapExactYtToPt(
             SCYIndexLib.newIndex(SCY),
             exactYTIn,
             block.timestamp,
-            approx
+            data.approx
         );
 
-        if (doPull) {
+        if (data.doPull) {
             YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
         }
 
-        IPMarket(market).swapScyForExactPt(
+        IPMarket(data.market).swapScyForExactPt(
             address(this),
             netYtIn + netPtOut,
             type(uint256).max,
-            abi.encode(ACTION_TYPE.SwapYtForPt, receiver)
+            abi.encode(ACTION_TYPE.SwapYtForPt, data.receiver)
         );
+        return netPtOut;
     }
 }

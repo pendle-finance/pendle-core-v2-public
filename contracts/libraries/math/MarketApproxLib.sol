@@ -536,7 +536,7 @@ library MarketApproxLib {
         ApproxParams memory approx
     )
         internal
-        view
+        pure
         returns (
             uint256 /**netPtIn */,
             uint256 /**ptInGuess */
