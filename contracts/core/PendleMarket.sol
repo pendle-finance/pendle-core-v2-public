@@ -122,6 +122,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
+                receiver,
                 lpToAccount,
                 scyUsed,
                 ptUsed,
@@ -161,6 +162,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
+                receiverScy,
+                receiverPt,
                 lpToRemove,
                 scyToAccount,
                 ptToAccount,

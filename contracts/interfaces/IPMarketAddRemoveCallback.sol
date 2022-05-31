@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 
 interface IPMarketAddRemoveCallback {
     function addLiquidityCallback(
+        address lpReceiver,
         uint256 lpToAccount,
         uint256 scyOwed,
         uint256 ptOwed,
@@ -10,6 +11,8 @@ interface IPMarketAddRemoveCallback {
     ) external;
 
     function removeLiquidityCallback(
+        address receiverScy,
+        address receiverPt,
         uint256 lpOwed,
         uint256 scyToAccount,
         uint256 ptToAccount,
