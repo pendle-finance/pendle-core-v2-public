@@ -18,7 +18,7 @@ abstract contract ActionPTAndYTBase is ActionType {
     using MarketApproxLib for MarketState;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IPPrincipalToken;
 
     struct SwapPTAndYTData {
         address receiver;
@@ -27,11 +27,12 @@ abstract contract ActionPTAndYTBase is ActionType {
         bool doPull;
     }
 
-    function _swapExactPtForYt(
-        SwapPTAndYTData memory data,
-        uint256 exactPtIn
-    ) internal returns (uint256) {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(data.market).readTokens();
+    function _swapExactPtForYt(SwapPTAndYTData memory data, uint256 exactPtIn)
+        internal
+        returns (uint256)
+    {
+        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(data.market)
+            .readTokens();
         MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netPtIn, uint256 netYtOut) = state.approxSwapExactPtToYt(
@@ -54,11 +55,12 @@ abstract contract ActionPTAndYTBase is ActionType {
         return netYtOut;
     }
 
-    function _swapPtForExactYt(
-        SwapPTAndYTData memory data,
-        uint256 minYtOut
-    ) internal returns (uint256) {
-        (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(data.market).readTokens();
+    function _swapPtForExactYt(SwapPTAndYTData memory data, uint256 minYtOut)
+        internal
+        returns (uint256)
+    {
+        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(data.market)
+            .readTokens();
         MarketState memory state = IPMarket(data.market).readState(false);
 
         (uint256 netPtIn, uint256 netYtOut) = state.approxSwapPtToExactYt(
@@ -81,10 +83,10 @@ abstract contract ActionPTAndYTBase is ActionType {
         return netPtIn;
     }
 
-    function _swapYtForExactPt(
-        SwapPTAndYTData memory data,
-        uint256 exactPtOut
-    ) internal returns (uint256) {
+    function _swapYtForExactPt(SwapPTAndYTData memory data, uint256 exactPtOut)
+        internal
+        returns (uint256)
+    {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(data.market).readTokens();
         MarketState memory state = IPMarket(data.market).readState(false);
 
@@ -108,10 +110,10 @@ abstract contract ActionPTAndYTBase is ActionType {
         return netYtIn;
     }
 
-    function _swapExactYtForPt(
-        SwapPTAndYTData memory data,
-        uint256 exactYTIn
-    ) internal returns (uint256) {
+    function _swapExactYtForPt(SwapPTAndYTData memory data, uint256 exactYTIn)
+        internal
+        returns (uint256)
+    {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(data.market).readTokens();
         MarketState memory state = IPMarket(data.market).readState(false);
 

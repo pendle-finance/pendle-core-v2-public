@@ -78,9 +78,9 @@ library MarketAddSingleLib {
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = MarketApproxLib.updateSlope(
+                comp,
                 market.totalPt,
                 slot.ptInGuess,
-                comp,
                 largestGoodSlope
             );
             if (!isSlopeNonNeg) {
@@ -172,9 +172,9 @@ library MarketAddSingleLib {
             /// CHECK SLOPE
             /// ------------------------------------------------------------
             (isSlopeNonNeg, largestGoodSlope) = MarketApproxLib.updateSlope(
+                comp,
                 market.totalPt,
                 slot.ptInGuess,
-                comp,
                 largestGoodSlope
             );
             if (!isSlopeNonNeg) {
