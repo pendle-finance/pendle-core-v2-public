@@ -89,7 +89,7 @@ abstract contract ActionSCYAndPTBase {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
 
-        IPMarket(market).removeLiquidity(receiver, lpToRemove, abi.encode()); // ignore return
+        IPMarket(market).removeLiquidity(receiver, receiver, lpToRemove, abi.encode()); // ignore return
     }
 
     /**
@@ -324,7 +324,7 @@ abstract contract ActionSCYAndPTBase {
         if (doPull) {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
-        (uint256 netScyRemoved,) = IPMarket(market).removeLiquidity(
+        (uint256 netScyRemoved, ) = IPMarket(market).removeLiquidity(
             receiver,
             market,
             lpToRemove,

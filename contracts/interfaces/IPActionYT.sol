@@ -35,7 +35,7 @@ interface IPActionYT {
     function swapExactYtForPt(
         address receiver,
         address market,
-        uint256 exactYTIn,
+        uint256 exactYtIn,
         ApproxParams memory approx
     ) external returns (uint256);
 

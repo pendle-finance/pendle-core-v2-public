@@ -46,10 +46,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 ptIn,
         uint256 minLpOut,
-        ApproxParams memory approx,
-        bool doPull
+        ApproxParams memory approx
     ) external returns (uint256) {
-        return _addLiquiditySinglePT(receiver, market, ptIn, minLpOut, approx, doPull);
+        return _addLiquiditySinglePT(receiver, market, ptIn, minLpOut, approx, true);
     }
 
     function addLiquiditySingleSCY(
@@ -57,10 +56,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 scyIn,
         uint256 minLpOut,
-        ApproxParams memory approx,
-        bool doPull
+        ApproxParams memory approx
     ) external returns (uint256) {
-        return _addLiquiditySingleSCY(receiver, market, scyIn, minLpOut, approx, doPull);
+        return _addLiquiditySingleSCY(receiver, market, scyIn, minLpOut, approx, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -79,20 +77,18 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 lpToRemove,
         uint256 minPtOut,
-        ApproxParams memory approx,
-        bool doPull
+        ApproxParams memory approx
     ) external returns (uint256) {
-        return _removeLiquiditySinglePT(receiver, market, lpToRemove, minPtOut, approx, doPull);
+        return _removeLiquiditySinglePT(receiver, market, lpToRemove, minPtOut, approx, true);
     }
 
     function removeLiquiditySingleSCY(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 minScyOut,
-        bool doPull
+        uint256 minScyOut
     ) external returns (uint256) {
-        return _removeLiquiditySingleSCY(receiver, market, lpToRemove, minScyOut, doPull);
+        return _removeLiquiditySingleSCY(receiver, market, lpToRemove, minScyOut, true);
     }
 
     /// @dev docs can be found in the internal function
