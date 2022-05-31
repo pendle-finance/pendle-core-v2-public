@@ -120,6 +120,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         _mint(receiver, lpToAccount);
 
+        _writeState(market);
+
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
                 receiver,
@@ -132,8 +134,6 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
         require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
-
-        _writeState(market);
 
         emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
     }
@@ -160,6 +160,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         IERC20(SCY).safeTransfer(receiverScy, scyToAccount);
         IERC20(PT).safeTransfer(receiverPt, ptToAccount);
 
+        _writeState(market);
+
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
                 receiverScy,
@@ -173,7 +175,6 @@ contract PendleMarket is PendleBaseToken, IPMarket {
 
         _burn(address(this), lpToRemove);
 
-        _writeState(market);
         emit RemoveLiquidity(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
     }
 
@@ -208,13 +209,14 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
+        _writeState(market);
+
         if (data.length > 0) {
             IPMarketSwapCallback(msg.sender).swapCallback(exactPtIn.neg(), netScyOut.Int(), data);
         }
 
         // have received enough PT
         require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
-        _writeState(market);
 
         emit Swap(receiver, exactPtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
@@ -249,13 +251,14 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
+        _writeState(market);
+
         if (data.length > 0) {
             IPMarketSwapCallback(msg.sender).swapCallback(exactPtOut.Int(), netScyIn.neg(), data);
         }
 
         // have received enough SCY
         require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
-        _writeState(market);
 
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
