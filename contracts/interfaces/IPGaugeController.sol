@@ -10,9 +10,9 @@ interface IPGaugeController {
         external
         view
         returns (
-            uint256 pendlePerSec,
-            uint256,
-            uint256,
-            uint256
+            uint128 pendlePerSec,
+            uint128,
+            uint128,
+            uint128
         );
 }

@@ -2,13 +2,13 @@
 pragma solidity 0.8.9;
 
 struct VeBalance {
-    uint256 bias;
-    uint256 slope;
+    uint128 bias;
+    uint128 slope;
 }
 
 struct Checkpoint {
     VeBalance balance;
-    uint256 timestamp;
+    uint128 timestamp;
 }
 
 library VeBalanceLib {
@@ -32,34 +32,31 @@ library VeBalanceLib {
 
     function sub(
         VeBalance memory a,
-        uint256 slope,
-        uint256 expiry
+        uint128 slope,
+        uint128 expiry
     ) internal pure returns (VeBalance memory res) {
         res.slope = a.slope - slope;
         res.bias = a.bias - slope * expiry;
     }
 
     function isExpired(VeBalance memory a) internal view returns (bool) {
-        return a.slope * block.timestamp >= a.bias;
+        return a.slope * uint128(block.timestamp) >= a.bias;
     }
 
-    function getValueAt(VeBalance memory a, uint256 t) internal pure returns (uint256) {
+    function getValueAt(VeBalance memory a, uint128 t) internal pure returns (uint128) {
         return a.bias - a.slope * t;
     }
 
-    function getCurrentValue(VeBalance memory a) internal view returns (uint256) {
+    function getCurrentValue(VeBalance memory a) internal view returns (uint128) {
         if (isExpired(a)) return 0;
-        return getValueAt(a, block.timestamp);
+        return getValueAt(a, uint128(block.timestamp));
     }
 
-    function getExpiry(VeBalance memory a) internal pure returns (uint256) {
+    function getExpiry(VeBalance memory a) internal pure returns (uint128) {
         require(a.slope > 0, "invalid VeBalance");
         return a.bias / a.slope; // this is guaranteed to be true
     }
 
     // hmm I'm not the biggest fan of the random hooks, very hard to rmb when to call
     // and this is not "isValid"
-    function isValid(VeBalance memory a) internal view returns (bool) {
-        return a.slope > 0 && getExpiry(a) > block.timestamp;
-    }
 }

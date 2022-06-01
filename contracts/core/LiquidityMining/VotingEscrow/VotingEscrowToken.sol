@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 
-import "../../interfaces/IPVeToken.sol";
-import "../../libraries/VeBalanceLib.sol";
+import "../../../interfaces/IPVeToken.sol";
+import "../../../libraries/VeBalanceLib.sol";
 
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
@@ -21,25 +21,26 @@ abstract contract VotingEscrowToken is IPVeToken {
     // wrong name, should be VotingEscrowPendle
     using VeBalanceLib for VeBalance;
 
-    uint256 public constant WEEK = 1 weeks;
-    uint256 public constant MAX_LOCK_TIME = 104 weeks;
+    uint128 public constant WEEK = 1 weeks;
+    uint128 public constant MAX_LOCK_TIME = 104 weeks;
 
     struct LockedPosition {
-        uint256 amount;
-        uint256 expiry; // confirm can't use 2 slots
+        uint128 amount;
+        uint128 expiry; // confirm can't use 2 slots
     }
 
     VeBalance internal _totalSupply;
-    uint256 public lastSupplyUpdatedAt;
+    uint128 public lastSupplyUpdatedAt;
+
     mapping(address => LockedPosition) public positionData;
 
     constructor() {
-        lastSupplyUpdatedAt = (block.timestamp / WEEK - 1) * WEEK;
+        lastSupplyUpdatedAt = (_getBlocktimestamp() / WEEK - 1) * WEEK;
     }
 
-    function balanceOf(address user) public view virtual returns (uint256) {
+    function balanceOf(address user) public view virtual returns (uint128) {
         // if this will be overriden, just don't write it here
-        if (isPositionExpired(user)) return 0; // is this necessary?
+        if (isPositionExpired(user)) return 0; // is this necessary? : yes, to be used in sidechain
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
 
@@ -47,24 +48,21 @@ abstract contract VotingEscrowToken is IPVeToken {
      * @dev There will be a short delay every start of the week where this function
      * will be reverted, on both mainchain & sidechain. This also implies Gauge pause.
      * This will be resolved as soon as broadcastSupply is called on mainchain
-     * @dev Gauges will use updateAndGetTotalSupply to get totalSupply, this will
+     * @dev Gauges will use totalSupplyCurrent to get totalSupply, this will
      * prevent the pause for gauges on mainchain.
      */
     // hmm I don't like this pause
-    function totalSupply() public view virtual returns (uint256) {
-        // I really don't like the low-level logic here
-        // Overall these kinds of logics should be abstracted out
-        require(
-            lastSupplyUpdatedAt >= (block.timestamp / WEEK) * WEEK,
-            "paused: total supply unupdated"
-        );
+    function totalSupply() public view virtual returns (uint128) {
         return _totalSupply.getCurrentValue();
     }
+        // I really don't like the low-level logic here
+        // Overall these kinds of logics should be abstracted out
+    
 
-    function updateAndGetTotalSupply() external virtual returns (uint256);
+    function totalSupplyCurrent() external virtual returns (uint128);
 
     function isPositionExpired(address user) public view returns (bool) {
-        return positionData[user].expiry < block.timestamp;
+        return positionData[user].expiry < _getBlocktimestamp();
     }
 
     function convertToVeBalance(LockedPosition memory position)
@@ -75,5 +73,9 @@ abstract contract VotingEscrowToken is IPVeToken {
         res.slope = position.amount / MAX_LOCK_TIME;
         require(res.slope > 0, "invalid slope");
         res.bias = res.slope * position.expiry;
+    }
+
+    function _getBlocktimestamp() internal view returns (uint128) {
+        return uint128(_getBlocktimestamp());
     }
 }

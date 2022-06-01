@@ -8,11 +8,11 @@ import "./IPVeToken.sol";
 interface IPVotingEscrow {
     // ============= ACTIONS =============
 
-    function lock(uint256 expiry, uint256 amount) external payable returns (uint256);
+    function lock(uint128 expiry, uint128 amount) external returns (uint128);
 
-    function increaseLockAmount(address receiver, uint256 amount) external payable returns (uint256);
+    function increaseLockAmount(uint128 amount) external returns (uint128);
 
-    function increaseLockDuration(uint256 duration) external payable returns (uint256);
+    function increaseLockDuration(uint128 duration) external returns (uint128);
 
-    function withdraw(address user) external returns (uint256);
+    function withdraw(address user) external returns (uint128);
 }

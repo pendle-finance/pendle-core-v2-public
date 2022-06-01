@@ -16,11 +16,11 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
     }
 
     function updateVotingResults(
-        uint256 epochStart,
+        uint128 timestamp,
         address[] memory markets,
-        uint256[] memory pendleSpeeds
+        uint128[] memory pendleSpeeds
     ) external {
         require(msg.sender == votingController, "not voting controller");
-        _receiveVotingResults(epochStart, markets, pendleSpeeds);
+        _receiveVotingResults(timestamp, markets, pendleSpeeds);
     }
 }

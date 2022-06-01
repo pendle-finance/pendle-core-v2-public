@@ -5,6 +5,7 @@ import "../../../interfaces/ICelerMessageBus.sol";
 import "../../../periphery/PermissionsV2Upg.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
+// solhint-disable no-empty-blocks
 abstract contract CelerSender is PermissionsV2Upg {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 

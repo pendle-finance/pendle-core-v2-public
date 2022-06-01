@@ -10,13 +10,6 @@ import "../../SuperComposableYield/implementations/RewardManager.sol";
 import "../../libraries/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/**
- * @dev this contract will have the rewardTokens property a little different from its original meaning
- * The first N-1 reward tokens will be market's scy reward tokens
- * The N-th reward token will be pendle, but represented by address(0)
- * This design aims to avoid the case when pendle is actually one of the rewardTokens in SCY
- */
-// comments are wrong here
 abstract contract PendleGauge is RewardManager {
     using Math for uint256;
     using SafeERC20 for IERC20;
@@ -56,18 +49,18 @@ abstract contract PendleGauge is RewardManager {
     function _updateUserActiveBalance(address user) internal {
         uint256 lpBalance = _stakedBalance(user);
         uint256 vePendleBalance = vePendle.balanceOf(user);
-        uint256 vePendleSupply = vePendle.updateAndGetTotalSupply();
+        uint256 vePendleSupply = vePendle.totalSupplyCurrent();
         // Inspired by Curve's Gauge
-        uint256 newActiveBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
+        uint256 veBoostedLpBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {
-            newActiveBalance +=
+            veBoostedLpBalance +=
                 // Hmm will _totalStaked << vePendleSupply?
                 (((_totalStaked() * vePendleBalance) / vePendleSupply) *
                     (100 - TOKENLESS_PRODUCTION)) /
                 100;
         }
         // I really hate the reuse of variables like this
-        newActiveBalance = Math.min(newActiveBalance, lpBalance);
+        uint256 newActiveBalance = Math.min(veBoostedLpBalance, lpBalance);
 
         totalActiveSupply = totalActiveSupply - activeBalance[user] + newActiveBalance;
         activeBalance[user] = newActiveBalance;

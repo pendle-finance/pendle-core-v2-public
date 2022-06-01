@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "../../../interfaces/ICelerMessageReceiverApp.sol";
 import "../../../periphery/PermissionsV2Upg.sol";
 
+// solhint-disable no-empty-blocks
 abstract contract CelerReceiver is ICelerMessageReceiverApp, PermissionsV2Upg {
     address public celerMessageBus;
     address public originAddress;
@@ -27,7 +28,10 @@ abstract contract CelerReceiver is ICelerMessageReceiverApp, PermissionsV2Upg {
         address /* executor */
     ) external payable returns (ExecutionStatus) {
         // if the message sender is not celer bus, there is no harm to have the transcation failed
-        require(msg.sender == celerMessageBus, "only allow celer message bus");
+        require(
+            msg.sender == celerMessageBus || msg.sender == _governance(),
+            "only celer message bus or gov"
+        );
 
         if (_sender != originAddress || _srcChainId != originChainId) {
             return ExecutionStatus.Fail;

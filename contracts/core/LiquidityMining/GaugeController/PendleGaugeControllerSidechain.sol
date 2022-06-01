@@ -2,8 +2,9 @@
 pragma solidity 0.8.9;
 
 import "./PendleGaugeController.sol";
-import "./CelerAbstracts/CelerReceiver.sol";
+import "../CelerAbstracts/CelerReceiver.sol";
 
+// solhint-disable no-empty-blocks
 contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver {
 
     constructor(
@@ -13,10 +14,10 @@ contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver 
     ) PendleGaugeController(_pendle, _marketFactory) CelerReceiver(_governanceManager) {}
 
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint256 epochStart, address[] memory markets, uint256[] memory pendleSpeeds) = abi.decode(
+        (uint128 timestamp, address[] memory markets, uint128[] memory incentives) = abi.decode(
             message,
-            (uint256, address[], uint256[])
+            (uint128, address[], uint128[])
         );
-        _receiveVotingResults(epochStart, markets, pendleSpeeds);
+        _receiveVotingResults(timestamp, markets, incentives);
     }
 }

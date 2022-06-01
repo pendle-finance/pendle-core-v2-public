@@ -6,13 +6,13 @@ pragma abicoder v2;
 interface IPVeToken {
     // ============= USER INFO =============
 
-    function balanceOf(address user) external view returns (uint256);
+    function balanceOf(address user) external view returns (uint128);
 
-    function positionData(address user) external view returns (uint256 amount, uint256 expiry);
+    function positionData(address user) external view returns (uint128 amount, uint128 expiry);
 
     // ============= META DATA =============
 
-    function totalSupply() external view returns (uint256);
+    function totalSupply() external view returns (uint128);
 
-    function updateAndGetTotalSupply() external returns (uint256);
+    function totalSupplyCurrent() external returns (uint128);
 }
