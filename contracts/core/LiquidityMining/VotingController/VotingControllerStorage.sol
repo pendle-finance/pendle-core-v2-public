@@ -96,11 +96,16 @@ abstract contract VotingControllerStorage {
      */
     function _removeUserPoolVote(address user, address pool) internal {
         VeBalance memory oldUVote = userPoolVotes[user][pool].vote;
-        if (oldUVote.slope > 0 && oldUVote.getExpiry() > poolInfos[pool].timestamp) {
+        if (
+            _isPoolActive(pool) &&
+            oldUVote.slope > 0 &&
+            oldUVote.getExpiry() > poolInfos[pool].timestamp
+        ) {
             poolInfos[pool].vote = poolInfos[pool].vote.sub(oldUVote);
             poolSlopeChangesAt[pool][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
+        userPoolVotes[user][pool].vote = VeBalance(0, 0);
         userVotedWeight[user] -= userPoolVotes[user][pool].weight;
         userPoolVotes[user][pool].weight = 0;
     }
@@ -111,6 +116,7 @@ abstract contract VotingControllerStorage {
         uint64 weight
     ) internal {
         require(userPoolVotes[user][pool].weight == 0, "vote already set");
+        require(weight > 0, "zero weight");
         VeBalance memory vote = _getUserBalanceByWeight(user, weight);
 
         poolInfos[pool].vote = poolInfos[pool].vote.add(vote);
@@ -128,4 +134,8 @@ abstract contract VotingControllerStorage {
         view
         virtual
         returns (VeBalance memory res);
+
+    function _isPoolActive(address pool) internal view returns (bool) {
+        return poolInfos[pool].timestamp != 0;
+    }
 }

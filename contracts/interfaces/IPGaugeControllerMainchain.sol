@@ -5,7 +5,7 @@ import "./IPGaugeController.sol";
 
 interface IPGaugeControllerMainchain is IPGaugeController {
     function updateVotingResults(
-        uint256 timestamp,
+        uint128 timestamp,
         address[] calldata markets,
         uint256[] calldata pendleSpeeds
     ) external;

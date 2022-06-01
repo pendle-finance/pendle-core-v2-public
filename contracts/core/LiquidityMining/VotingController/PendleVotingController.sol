@@ -48,7 +48,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function addPool(uint64 chainId, address pool) external onlyGovernance {
-        require(poolInfos[pool].timestamp == 0, "pool already added");
+        require(!_isPoolActive(pool), "pool already added");
         poolInfos[pool] = PoolInfo({
             chainId: chainId,
             timestamp: _getCurrentEpochStart(),
@@ -59,7 +59,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function removePool(address pool) external onlyGovernance {
-        require(poolInfos[pool].timestamp != 0, "invalid pool");
+        require(_isPoolActive(pool), "invalid pool");
         uint64 chainId = poolInfos[pool].chainId;
         chainPools[chainId].remove(pool);
         allPools.remove(pool);
@@ -67,7 +67,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function vote(address pool, uint64 weight) external {
-        require(poolInfos[pool].timestamp != 0, "invalid pool");
+        require(_isPoolActive(pool), "invalid pool");
         address user = msg.sender;
         _removeUserPoolVote(user, pool);
         _setUserVote(user, pool, weight);
@@ -89,8 +89,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
      * on every of its iteration. Therefore, reusing code here is not possible.
      */
     function getPoolVotesCurrentEpoch(address pool) public view returns (uint256) {
+        require(_isPoolActive(pool), "invalid pool");
         uint128 timestamp = poolInfos[pool].timestamp;
-        require(timestamp != 0, "invalid pool");
 
         VeBalance memory votes = poolInfos[pool].vote;
         while (timestamp + WEEK <= block.timestamp) {
@@ -102,7 +102,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
     function updatePoolVotes(address pool) public {
         uint128 timestamp = poolInfos[pool].timestamp;
-        require(timestamp != 0, "invalid pool");
+        require(_isPoolActive(pool), "invalid pool");
 
         if (timestamp + WEEK > block.timestamp) {
             return;
@@ -118,8 +118,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         poolInfos[pool].timestamp = timestamp;
     }
 
-    function finalizeVotingResults(uint128 timestamp) external validateTimestamp(timestamp) {
-        require(timestamp <= _getCurrentEpochStart(), "invalid timestamp");
+    function finalizeVotingResults() external {
+        uint128 timestamp = _getCurrentEpochStart();
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
             address pool = allPools.at(i);
@@ -171,9 +171,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         }
 
         require(expiry > block.timestamp, "user position expired");
-        amount = (amount * uint128(weight)) / MAX_WEIGHT / MAX_LOCK_TIME;
-        res.slope = amount;
-        res.bias = amount * expiry;
+        res.slope = ((amount / MAX_LOCK_TIME) * weight) / MAX_WEIGHT;
+        res.bias = res.slope * expiry;
     }
 
     function _broadcastVotingResults(
@@ -185,12 +184,17 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         address[] memory pools = chainPools[chainId].values();
         uint256[] memory incentives = new uint256[](length);
 
+        uint256 totalVotes = getTotalVotesAt(timestamp);
+        if (totalVotes == 0) {
+            return;
+        }
+
         for (uint256 i = 0; i < length; ++i) {
             // poolVotes can be as large as pendle supply ~ 1e27
             // pendle per sec can be as large as 1e20
             // casting to uint256 here to prevent overflow
             uint256 pendleSpeed = (uint256(pendlePerSec) * getPoolVotesAt(pools[i], timestamp)) /
-                getTotalVotesAt(timestamp);
+                totalVotes;
             incentives[i] = pendleSpeed * WEEK;
         }
 

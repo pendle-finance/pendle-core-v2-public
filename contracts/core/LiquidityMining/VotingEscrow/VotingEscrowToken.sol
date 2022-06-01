@@ -76,6 +76,6 @@ abstract contract VotingEscrowToken is IPVeToken {
     }
 
     function _getBlocktimestamp() internal view returns (uint128) {
-        return uint128(_getBlocktimestamp());
+        return uint128(block.timestamp);
     }
 }

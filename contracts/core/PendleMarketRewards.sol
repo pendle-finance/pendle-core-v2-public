@@ -33,6 +33,11 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
 
     function getRewardTokens() public view override returns (address[] memory rewardTokens) {
         address[] memory SCYRewards = ISuperComposableYield(SCY).getRewardTokens();
+        for(uint256 i = 0; i < SCYRewards.length; ++i) {
+            if (SCYRewards[i] == pendle) {
+                return SCYRewards;
+            }
+        }
         rewardTokens = new address[](SCYRewards.length + 1);
         rewardTokens[0] = pendle;
         for (uint256 i = 0; i < SCYRewards.length; ++i) {

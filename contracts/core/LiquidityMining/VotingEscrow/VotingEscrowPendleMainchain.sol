@@ -89,7 +89,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         }
     }
 
-    function broadcastUserPoisition(uint256[] calldata chainIds) external payable {
+    function broadcastUserPoisition(address user, uint256[] calldata chainIds) external payable {
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
@@ -99,7 +99,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
                 chainId,
                 timestamp,
                 supply,
-                abi.encode(msg.sender, positionData[msg.sender])
+                abi.encode(user, positionData[user])
             );
         }
     }
@@ -164,6 +164,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         _totalSupply = supply;
         lastSupplyUpdatedAt = timestamp;
+
+        return (supply, lastSupplyUpdatedAt);
     }
 
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
