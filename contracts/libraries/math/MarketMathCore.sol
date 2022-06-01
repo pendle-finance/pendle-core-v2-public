@@ -27,7 +27,7 @@ struct MarketPreCompute {
     int256 rateScalar;
     int256 totalAsset;
     int256 rateAnchor;
-    int256 lnFeeRate;
+    int256 feeRate;
 }
 
 // solhint-disable ordering
@@ -188,7 +188,7 @@ library MarketMathCore {
             res.rateScalar,
             timeToExpiry
         );
-        res.lnFeeRate = _getExchangeRateFromImpliedRate(market.lnFeeRateRoot, timeToExpiry);
+        res.feeRate = _getExchangeRateFromImpliedRate(market.lnFeeRateRoot, timeToExpiry);
     }
 
     function calcTrade(
@@ -205,7 +205,7 @@ library MarketMathCore {
         );
 
         int256 preFeeAssetToAccount = netPtToAccount.divDown(preFeeExchangeRate).neg();
-        int256 fee = comp.lnFeeRate;
+        int256 fee = comp.feeRate;
 
         if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
