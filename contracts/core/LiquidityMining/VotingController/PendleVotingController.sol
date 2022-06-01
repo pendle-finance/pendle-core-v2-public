@@ -127,10 +127,6 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         isEpochFinalized[timestamp] = true;
     }
 
-    /**
-     * @dev It is required to broadcast all pools at once
-     * @dev Each epoch, it is allowed to broadcast only once, and expected to be done by governance
-     */
     function broadcastVotingResults(uint64 chainId) external payable {
         uint128 timestamp = _getCurrentEpochStart();
         require(isEpochFinalized[timestamp], "epoch not finalized");

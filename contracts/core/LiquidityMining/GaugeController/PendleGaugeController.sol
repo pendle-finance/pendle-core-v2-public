@@ -74,7 +74,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         }
     }
 
-    function fundPendle(uint256 amount) external {
+    function fundPendle(uint256 amount) external onlyGovernance {
         IERC20(pendle).safeTransferFrom(msg.sender, address(this), amount);
     }
 
@@ -82,7 +82,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         IERC20(pendle).safeTransfer(msg.sender, amount);
     }
 
-    function _updateMarketIncentives(address market) internal returns (PoolRewardData memory) {
+    function _updateMarketIncentives(address market) internal view returns (PoolRewardData memory) {
         PoolRewardData memory rwd = rewardData[market]; // just do storage is not more expensive I think
         uint128 newAccumulatedTimestamp = uint128(
             Math.min(_getBlockTimestamp(), rwd.incentiveEndsAt)
@@ -110,7 +110,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     function _receiveVotingResults(
         uint128 timestamp,
         address[] memory markets,
-        uint128[] memory incentives
+        uint256[] memory incentives
     ) internal {
         if (epochRewardReceived[timestamp]) return;
         // hmm I don't like these kinds of asserts. We will have to evaluate cases that due to Celer stop functioning
@@ -119,7 +119,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
 
         for (uint256 i = 0; i < markets.length; ++i) {
             address market = markets[i];
-            uint128 amount = incentives[i];
+            uint128 amount = uint128(incentives[i]);
 
             PoolRewardData memory rwd = _updateMarketIncentives(market);
             uint128 leftover = (rwd.incentiveEndsAt - rwd.accumulatedTimestamp) * rwd.pendlePerSec;

@@ -18,7 +18,7 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
     function updateVotingResults(
         uint128 timestamp,
         address[] memory markets,
-        uint128[] memory pendleSpeeds
+        uint256[] memory pendleSpeeds
     ) external {
         require(msg.sender == votingController, "not voting controller");
         _receiveVotingResults(timestamp, markets, pendleSpeeds);
