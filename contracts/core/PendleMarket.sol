@@ -73,6 +73,8 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         PT = _PT;
         SCY = IPPrincipalToken(_PT).SCY();
         YT = IPPrincipalToken(_PT).YT();
+
+        require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
         _storage._reentrancyStatus = _NOT_ENTERED;
