@@ -77,7 +77,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
         ISuperComposableYield _SCY = ISuperComposableYield(SCY);
 
-        uint8 assetDecimals = _SCY.assetDecimals();
+        (, , uint8 assetDecimals) = _SCY.assetInfo();
 
         PT = address(
             new PendlePrincipalToken(

@@ -5,7 +5,7 @@ import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
-import "../../SuperComposableYield/SCYUtils.sol";
+import "../../libraries/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
 import "../../libraries/math/MarketMathAux.sol";
 import "./base/ActionSCYAndPYBase.sol";
@@ -85,7 +85,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         uint256 scyReceived = scyToAccount.Uint();
 
         // ptOwed = totalAsset
-        uint256 scyIndex = SCY.scyIndexCurrent();
+        uint256 scyIndex = SCY.exchangeRateCurrent();
         uint256 scyNeedTotal = SCYUtils.assetToScy(scyIndex, ptOwed);
         scyNeedTotal += scyIndex.rawDivUp(SCYUtils.ONE);
 
@@ -142,7 +142,7 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
         (ISuperComposableYield SCY, IERC20 PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
-        uint256 scyIndex = SCY.scyIndexCurrent();
+        uint256 scyIndex = SCY.exchangeRateCurrent();
         uint256 scyOwed = scyToAccount.neg().Uint();
         uint256 assetOwed = SCYUtils.scyToAsset(scyIndex, scyOwed);
 

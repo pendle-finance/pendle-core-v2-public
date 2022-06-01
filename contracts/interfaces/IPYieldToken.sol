@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.9;
 import "./IPBaseToken.sol";
-import "../SuperComposableYield/implementations/IRewardManager.sol";
+import "./IRewardManager.sol";
 
 interface IPYieldToken is IPBaseToken, IRewardManager {
     event RedeemReward(address indexed user, uint256[] amountRewardsOut);
@@ -23,16 +23,16 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     function redeemDueRewards(address user) external returns (uint256[] memory rewardsOut);
 
-    function updateGlobalReward() external;
+    function updateAndDistributeReward(address user) external;
 
-    function updateUserReward(address user) external;
-
-    function updateUserInterest(address user) external;
+    function updateAndDistributeInterest(address user) external;
 
     function getInterestData(address user)
         external
         view
         returns (uint256 lastScyIndex, uint256 dueInterest);
+
+    function getRewardTokens() external view returns (address[] memory);
 
     function getScyIndex() external returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry);
 

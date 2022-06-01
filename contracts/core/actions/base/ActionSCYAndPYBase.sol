@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../periphery/PendleJoeSwapHelperUpg.sol";
-import "../../../SuperComposableYield/ISuperComposableYield.sol";
+import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
 // solhint-disable no-empty-blocks
@@ -74,7 +74,7 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         }
 
         address baseToken = path[path.length - 1];
-        netScyOut = ISuperComposableYield(SCY).mintNoPull(receiver, baseToken, minScyOut);
+        netScyOut = ISuperComposableYield(SCY).deposit(receiver, baseToken, 0, minScyOut);
         emit MintScyFromRawToken(msg.sender, path[0], netRawTokenIn, SCY, netScyOut);
     }
 
@@ -103,14 +103,16 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
 
         address baseToken = path[0];
         if (path.length == 1) {
-            netRawTokenOut = ISuperComposableYield(SCY).redeemNoPull(
+            netRawTokenOut = ISuperComposableYield(SCY).redeem(
                 receiver,
+                0,
                 baseToken,
                 minRawTokenOut
             );
         } else {
-            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeemNoPull(
+            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeem(
                 _getFirstPair(path),
+                0,
                 baseToken,
                 1
             );

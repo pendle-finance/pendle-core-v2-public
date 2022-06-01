@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../SuperComposableYield/SCYUtils.sol";
+import "../../../libraries/SCYIndex.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "../../../libraries/math/MarketMathAux.sol";
 import "./ActionSCYAndPYBase.sol";

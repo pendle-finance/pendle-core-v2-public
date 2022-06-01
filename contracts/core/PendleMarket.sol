@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./PendleBaseToken.sol";
 import "../interfaces/IPPrincipalToken.sol";
-import "../SuperComposableYield/ISuperComposableYield.sol";
+import "../interfaces/ISuperComposableYield.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
@@ -268,7 +268,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     /// @dev this function is just a place holder. Later on the rewards will be transferred to the liquidity minining
     /// instead
     function redeemScyReward() external returns (uint256[] memory outAmounts) {
-        outAmounts = ISuperComposableYield(SCY).redeemReward(address(this));
+        outAmounts = ISuperComposableYield(SCY).claimRewards(address(this));
         address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
         address treasury = IPMarketFactory(factory).treasury();
         for (uint256 i = 0; i < rewardTokens.length; i++) {

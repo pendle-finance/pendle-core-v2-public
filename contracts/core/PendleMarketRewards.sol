@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 import "./PendleBaseToken.sol";
 import "../interfaces/IPPrincipalToken.sol";
-import "../SuperComposableYield/ISuperComposableYield.sol";
+import "../interfaces/ISuperComposableYield.sol";
 import "./LiquidityMining/PendleGauge.sol";
 import "./PendleMarket.sol";
 
@@ -31,7 +31,7 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         address _gaugeController
     ) PendleMarket(_PT, _scalarRoot, _initialAnchor) PendleGauge(_vePendle, _gaugeController) {}
 
-    function getRewardTokens() public view override returns (address[] memory rewardTokens) {
+    function _getRewardTokens() internal view override returns (address[] memory rewardTokens) {
         address[] memory SCYRewards = ISuperComposableYield(SCY).getRewardTokens();
         for(uint256 i = 0; i < SCYRewards.length; ++i) {
             if (SCYRewards[i] == pendle) {
@@ -69,7 +69,7 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
     }
 
     function _redeemExternalReward() internal override {
-        ISuperComposableYield(SCY).redeemReward(address(this));
+        ISuperComposableYield(SCY).claimRewards(address(this));
         super._redeemExternalReward();
     }
 
@@ -79,13 +79,9 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         uint256
     ) internal override {
         if (_removeEmergency) return;
-        _updateGlobalReward();
-        if (from != address(0)) {
-            _updateUserRewardSkipGlobal(from);
-        }
-        if (to != address(0)) {
-            _updateUserRewardSkipGlobal(to);
-        }
+        _updateRewardIndex();
+        if (from != address(0) && from != address(this)) _distributeUserReward(from);
+        if (to != address(0) && to != address(this)) _distributeUserReward(to);
     }
 
     function _afterTokenTransfer(

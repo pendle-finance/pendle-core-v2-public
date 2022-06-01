@@ -5,8 +5,8 @@ import "../../interfaces/IPGauge.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPGaugeController.sol";
 import "../../interfaces/IPVeToken.sol";
-import "../../SuperComposableYield/ISuperComposableYield.sol";
-import "../../SuperComposableYield/implementations/RewardManager.sol";
+import "../../interfaces/ISuperComposableYield.sol";
+import "../../SuperComposableYield/base-implementations/RewardManager.sol";
 import "../../libraries/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -34,9 +34,9 @@ abstract contract PendleGauge is RewardManager {
     function redeemReward(address receiver) external returns (uint256[] memory) {
         // Change to allow redeeming for others
         address user = msg.sender;
-        _updateUserReward(user);
+        _updateAndDistributeRewards(user);
         _updateUserActiveBalance(user);
-        return _doTransferOutRewardsForUser(user, receiver);
+        return _doTransferOutRewards(user, receiver);
     }
 
     function _stakedBalance(address user) internal view virtual returns (uint256);
@@ -81,10 +81,10 @@ abstract contract PendleGauge is RewardManager {
     function _beforeEmergencyRemoveLiquidity(address user) internal {
         activeBalance[user] = 0;
 
-        address[] memory rewardTokens = getRewardTokens();
+        address[] memory rewardTokens = _getRewardTokens();
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
-            userReward[user][token].accruedReward = 0;
+            userRewardAccrued[user][token] = 0;
         }
     }
 }
