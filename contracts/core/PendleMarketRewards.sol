@@ -51,7 +51,7 @@ contract PendleMarketRewards is PendleGauge, PendleMarket {
         _removeEmergency = true;
 
         // consider making an internal removeLiquidity?
-        (scyToAccount, ptToAccount) = removeLiquidity(receiver, balance, data);
+        (scyToAccount, ptToAccount) = removeLiquidity(receiver, receiver, balance, data);
         _removeEmergency = false;
     }
 

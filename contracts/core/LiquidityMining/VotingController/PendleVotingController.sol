@@ -10,7 +10,6 @@ import "../../../interfaces/IPGaugeControllerMainchain.sol";
 // no reentracy protection yet?
 // Should VotingController and stuff become upgradeable?
 
-
 /*
 Voting accounting:
     - For gauge controller, it will consider each message from voting controller
@@ -50,7 +49,11 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
     function addPool(uint64 chainId, address pool) external onlyGovernance {
         require(poolInfos[pool].timestamp == 0, "pool already added");
-        poolInfos[pool] = PoolInfo({ chainId: chainId, timestamp: _getCurrentEpochStart() });
+        poolInfos[pool] = PoolInfo({
+            chainId: chainId,
+            timestamp: _getCurrentEpochStart(),
+            vote: VeBalance(0, 0)
+        });
         chainPools[chainId].add(pool);
         allPools.add(pool);
     }
@@ -60,7 +63,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         uint64 chainId = poolInfos[pool].chainId;
         chainPools[chainId].remove(pool);
         allPools.remove(pool);
-        poolInfos[pool] = PoolInfo(0, 0);
+        poolInfos[pool] = PoolInfo(0, 0, VeBalance(0, 0));
     }
 
     function vote(address pool, uint64 weight) external {
@@ -89,7 +92,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         uint128 timestamp = poolInfos[pool].timestamp;
         require(timestamp != 0, "invalid pool");
 
-        VeBalance memory votes = poolVotes[pool];
+        VeBalance memory votes = poolInfos[pool].vote;
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
             votes = votes.sub(poolSlopeChangesAt[pool][timestamp], timestamp);
@@ -105,13 +108,13 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
             return;
         }
 
-        VeBalance memory votes = poolVotes[pool];
+        VeBalance memory votes = poolInfos[pool].vote;
         while (timestamp + WEEK <= block.timestamp) {
             timestamp += WEEK;
             votes = votes.sub(poolSlopeChangesAt[pool][timestamp], timestamp);
             _setPoolVoteAt(pool, timestamp, votes.getValueAt(timestamp));
         }
-        poolVotes[pool] = votes;
+        poolInfos[pool].vote = votes;
         poolInfos[pool].timestamp = timestamp;
     }
 
@@ -166,7 +169,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         } else {
             (amount, expiry) = vePendle.positionData(user);
         }
-        
+
         require(expiry > block.timestamp, "user position expired");
         amount = (amount * uint128(weight)) / MAX_WEIGHT / MAX_LOCK_TIME;
         res.slope = amount;
@@ -193,7 +196,11 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
         if (chainId == block.chainid) {
             address gaugeController = sidechainContracts.get(uint256(chainId));
-            IPGaugeControllerMainchain(gaugeController).updateVotingResults(timestamp, pools, incentives);
+            IPGaugeControllerMainchain(gaugeController).updateVotingResults(
+                timestamp,
+                pools,
+                incentives
+            );
         } else {
             _sendMessage(chainId, abi.encode(timestamp, pools, incentives));
         }

@@ -11,8 +11,9 @@ abstract contract VotingControllerStorage {
     using VeBalanceLib for VeBalance;
 
     struct PoolInfo {
-        uint128 timestamp;
         uint64 chainId;
+        uint128 timestamp;
+        VeBalance vote;
     }
 
     struct UserPoolInfo {
@@ -21,7 +22,6 @@ abstract contract VotingControllerStorage {
     }
 
     uint64 public constant MAX_WEIGHT = 10**18;
-
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
 
@@ -30,9 +30,6 @@ abstract contract VotingControllerStorage {
     // pool infos
     EnumerableSet.AddressSet internal allPools;
     mapping(address => PoolInfo) public poolInfos;
-
-    // [pool] => [VeBalance vote]
-    mapping(address => VeBalance) public poolVotes;
 
     // [pool, timestamp] => [uint128 vote]
     mapping(address => mapping(uint128 => uint128)) private poolVotesAt;
@@ -55,7 +52,7 @@ abstract contract VotingControllerStorage {
     // broadcast chain info
     mapping(uint128 => uint128) private totalVotesAt;
 
-    // [pool][timestamp] 
+    // [pool][timestamp]
     mapping(uint128 => bool) internal isEpochFinalized;
 
     modifier validateTimestamp(uint128 timestamp) {
@@ -94,13 +91,13 @@ abstract contract VotingControllerStorage {
 
     /**
      * @dev There is not a need to call updatePoolVotes on this function
-     * If user's vote is not yet expired compared to the pool's timestamp 
+     * If user's vote is not yet expired compared to the pool's timestamp
      * it can be directly subtracted from the pool's vote
      */
     function _removeUserPoolVote(address user, address pool) internal {
         VeBalance memory oldUVote = userPoolVotes[user][pool].vote;
         if (oldUVote.slope > 0 && oldUVote.getExpiry() > poolInfos[pool].timestamp) {
-            poolVotes[pool] = poolVotes[pool].sub(oldUVote);
+            poolInfos[pool].vote = poolInfos[pool].vote.sub(oldUVote);
             poolSlopeChangesAt[pool][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
@@ -116,7 +113,7 @@ abstract contract VotingControllerStorage {
         require(userPoolVotes[user][pool].weight == 0, "vote already set");
         VeBalance memory vote = _getUserBalanceByWeight(user, weight);
 
-        poolVotes[pool] = poolVotes[pool].add(vote);
+        poolInfos[pool].vote = poolInfos[pool].vote.add(vote);
         poolSlopeChangesAt[pool][vote.getExpiry()] += vote.slope;
 
         userVotedWeight[user] += weight;
