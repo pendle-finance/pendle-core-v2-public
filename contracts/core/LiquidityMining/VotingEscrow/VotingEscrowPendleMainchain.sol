@@ -96,7 +96,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         }
     }
 
-    function broadcastUserPoisition(address user, uint256[] calldata chainIds) external payable {
+    function broadcastUserPosition(address user, uint256[] calldata chainIds) external payable {
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
 
         for (uint256 i = 0; i < chainIds.length; ++i) {

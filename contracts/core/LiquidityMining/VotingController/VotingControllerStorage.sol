@@ -87,8 +87,7 @@ abstract contract VotingControllerStorage {
         address pool,
         uint128 timestamp,
         uint128 newVote
-    ) internal validateTimestamp(timestamp) {
-        require(poolVotesAt[pool][timestamp] == 0, "pool vote already recorded");
+    ) internal {
         totalVotesAt[timestamp] += newVote;
         poolVotesAt[pool][timestamp] = newVote;
     }

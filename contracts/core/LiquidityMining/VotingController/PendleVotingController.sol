@@ -70,8 +70,9 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         require(weight != 0, "zero weight");
         require(_isPoolActive(pool), "invalid pool");
         require(!vePendle.isPositionExpired(msg.sender), "user position expired");
-
         address user = msg.sender;
+
+        updatePoolVotes(pool);
         _removeUserPoolVote(user, pool);
         _setUserVote(user, pool, weight);
     }
@@ -80,6 +81,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         // Not unactive, inactive
         // good idea: All operations that require touching multiple mapping together, should be done through functions
         // Idea of separating storage contract from logic is not new, but interesting
+        updatePoolVotes(pool);
         _removeUserPoolVote(msg.sender, pool);
     }
 
@@ -119,10 +121,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         uint128 timestamp = WeekMath.getCurrentWeekStartTimestamp();
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
-            address pool = allPools.at(i);
-            if (poolInfos[pool].timestamp < timestamp) {
-                updatePoolVotes(pool);
-            }
+            updatePoolVotes(allPools.at(i));
         }
         isEpochFinalized[timestamp] = true;
     }
@@ -172,7 +171,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     function _broadcastVotingResults(
         uint64 chainId,
         uint128 timestamp,
-        uint128 pendlePerSec
+        uint128 totalPendlePerSec
     ) internal {
         uint256 length = chainPools[chainId].length();
         address[] memory pools = chainPools[chainId].values();
@@ -187,9 +186,9 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
             // poolVotes can be as large as pendle supply ~ 1e27
             // pendle per sec can be as large as 1e20
             // casting to uint256 here to prevent overflow
-            uint256 pendleSpeed = (uint256(pendlePerSec) * getPoolVotesAt(pools[i], timestamp)) /
+            uint256 pendlePerSec = (uint256(totalPendlePerSec) * getPoolVotesAt(pools[i], timestamp)) /
                 totalVotes;
-            incentives[i] = pendleSpeed * WEEK;
+            incentives[i] = pendlePerSec * WEEK;
         }
 
         if (chainId == block.chainid) {
