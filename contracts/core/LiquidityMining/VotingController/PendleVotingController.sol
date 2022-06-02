@@ -51,7 +51,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         require(!_isPoolActive(pool), "pool already added");
         poolInfos[pool] = PoolInfo({
             chainId: chainId,
-            timestamp: _getCurrentEpochStart(),
+            timestamp: WeekMath.getCurrentWeekStartTimestamp(),
             vote: VeBalance(0, 0)
         });
         chainPools[chainId].add(pool);
@@ -67,7 +67,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function vote(address pool, uint64 weight) external {
+        require(weight != 0, "zero weight");
         require(_isPoolActive(pool), "invalid pool");
+        require(!vePendle.isPositionExpired(msg.sender), "user position expired");
+
         address user = msg.sender;
         _removeUserPoolVote(user, pool);
         _setUserVote(user, pool, weight);
@@ -80,20 +83,13 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         _removeUserPoolVote(msg.sender, pool);
     }
 
-    /**
-     * @dev This function is aimed to be used by broadcast function, which will broadcast every pool
-     * at once. So it is implemented so that no SSTORE is executed to save gas for broadcasting.
-     *
-     * @dev the updating code seems reusable by two functions getCurrentPoolVotes and updatePoolVotes
-     * But one of them should be view, and the other should update the checkpoint for poolVote
-     * on every of its iteration. Therefore, reusing code here is not possible.
-     */
     function getPoolVotesCurrentEpoch(address pool) public view returns (uint256) {
         require(_isPoolActive(pool), "invalid pool");
         uint128 timestamp = poolInfos[pool].timestamp;
+        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
 
         VeBalance memory votes = poolInfos[pool].vote;
-        while (timestamp + WEEK <= block.timestamp) {
+        while (timestamp < currentWeekStart) {
             timestamp += WEEK;
             votes = votes.sub(poolSlopeChangesAt[pool][timestamp], timestamp);
         }
@@ -102,14 +98,16 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
     function updatePoolVotes(address pool) public {
         uint128 timestamp = poolInfos[pool].timestamp;
+        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
+
         require(_isPoolActive(pool), "invalid pool");
 
-        if (timestamp + WEEK > block.timestamp) {
+        if (timestamp >= currentWeekStart) {
             return;
         }
 
         VeBalance memory votes = poolInfos[pool].vote;
-        while (timestamp + WEEK <= block.timestamp) {
+        while (timestamp < currentWeekStart) {
             timestamp += WEEK;
             votes = votes.sub(poolSlopeChangesAt[pool][timestamp], timestamp);
             _setPoolVoteAt(pool, timestamp, votes.getValueAt(timestamp));
@@ -119,7 +117,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function finalizeVotingResults() external {
-        uint128 timestamp = _getCurrentEpochStart();
+        uint128 timestamp = WeekMath.getCurrentWeekStartTimestamp();
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
             address pool = allPools.at(i);
@@ -131,7 +129,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function broadcastVotingResults(uint64 chainId) external payable {
-        uint128 timestamp = _getCurrentEpochStart();
+        uint128 timestamp = WeekMath.getCurrentWeekStartTimestamp();
         require(isEpochFinalized[timestamp], "epoch not finalized");
         _broadcastVotingResults(chainId, timestamp, pendlePerSec);
     }
@@ -149,11 +147,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         pendlePerSec = newPendlePerSec;
     }
 
-    function _getCurrentEpochStart() internal view returns (uint128) {
-        return (uint128(block.timestamp) / WEEK) * WEEK;
-    }
-
-    function _getUserBalanceByWeight(address user, uint64 weight)
+    function _getVotingPowerByWeight(address user, uint64 weight)
         internal
         view
         virtual
@@ -165,14 +159,15 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
         if (user == _governance()) {
             amount = GOVERNANCE_PENDLE_VOTE;
-            expiry = ((uint128(block.timestamp) + MAX_LOCK_TIME) / WEEK) * WEEK;
+            expiry = WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME);
         } else {
             (amount, expiry) = vePendle.positionData(user);
         }
 
-        require(expiry > block.timestamp, "user position expired");
-        res.slope = ((amount / MAX_LOCK_TIME) * weight) / MAX_WEIGHT;
-        res.bias = res.slope * expiry;
+        (res.bias, res.slope) = vePendle.convertToVeBalance(
+            uint128((uint256(amount) * weight) / MAX_WEIGHT),
+            expiry
+        );
     }
 
     function _broadcastVotingResults(

@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 
 import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
+import "../../../libraries/math/WeekMath.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 // no reentracy protection yet?
@@ -56,7 +57,10 @@ abstract contract VotingControllerStorage {
     mapping(uint128 => bool) internal isEpochFinalized;
 
     modifier validateTimestamp(uint128 timestamp) {
-        require(timestamp % WEEK == 0, "invalid timestamp");
+        require(
+            timestamp == WeekMath.getWeekStartTimestamp(timestamp),
+            "not week start timestamp"
+        );
         _;
     }
 
@@ -105,9 +109,9 @@ abstract contract VotingControllerStorage {
             poolSlopeChangesAt[pool][oldUVote.getExpiry()] -= oldUVote.slope;
         }
 
-        userPoolVotes[user][pool].vote = VeBalance(0, 0);
         userVotedWeight[user] -= userPoolVotes[user][pool].weight;
         userPoolVotes[user][pool].weight = 0;
+        userPoolVotes[user][pool].vote = VeBalance(0, 0);
     }
 
     function _setUserVote(
@@ -115,9 +119,7 @@ abstract contract VotingControllerStorage {
         address pool,
         uint64 weight
     ) internal {
-        require(userPoolVotes[user][pool].weight == 0, "vote already set");
-        require(weight > 0, "zero weight");
-        VeBalance memory vote = _getUserBalanceByWeight(user, weight);
+        VeBalance memory vote = _getVotingPowerByWeight(user, weight);
 
         poolInfos[pool].vote = poolInfos[pool].vote.add(vote);
         poolSlopeChangesAt[pool][vote.getExpiry()] += vote.slope;
@@ -129,7 +131,7 @@ abstract contract VotingControllerStorage {
         );
     }
 
-    function _getUserBalanceByWeight(address user, uint64 weight)
+    function _getVotingPowerByWeight(address user, uint64 weight)
         internal
         view
         virtual

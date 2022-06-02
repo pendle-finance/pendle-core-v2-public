@@ -8,7 +8,7 @@ import "../interfaces/IPPrincipalToken.sol";
 import "../libraries/math/Math.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../libraries/SCYUtils.sol";
-import "contracts/SuperComposableYield/base-implementations/RewardManager.sol";
+import "../SuperComposableYield/base-implementations/RewardManager.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 

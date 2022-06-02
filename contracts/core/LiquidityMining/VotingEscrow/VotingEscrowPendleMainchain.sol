@@ -30,8 +30,11 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
     function lock(uint128 amount, uint128 expiry) external returns (uint128) {
         address user = msg.sender;
-        require(expiry % WEEK == 0 && expiry > block.timestamp, "invalid expiry");
-        // as long as users' amount = 0, their expiry will also be 0
+        require(
+            expiry == WeekMath.getWeekStartTimestamp(expiry) && expiry > block.timestamp,
+            "invalid expiry"
+        );
+        require(expiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
         require(positionData[user].amount == 0, "lock not withdrawed"); // inappropriate comments
         require(amount > 0, "zero amount");
 
@@ -45,7 +48,11 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     function increaseLockDuration(uint128 duration) external returns (uint128) {
         address user = msg.sender;
         require(!isPositionExpired(user), "user position expired");
-        require(duration > 0 && duration % WEEK == 0, "invalid duration"); // duration % WEEK check looks meh
+        require(duration > 0 && WeekMath.isValidDuration(duration), "invalid duration"); // duration % WEEK check looks meh
+        require(
+            positionData[user].expiry + duration <= block.timestamp + MAX_LOCK_TIME,
+            "max lock time exceeded"
+        );
 
         return _increasePosition(user, duration, 0);
     }
@@ -95,12 +102,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         for (uint256 i = 0; i < chainIds.length; ++i) {
             uint256 chainId = chainIds[i];
             require(sidechainContracts.contains(chainId), "not supported chain");
-            _broadcast(
-                chainId,
-                timestamp,
-                supply,
-                abi.encode(user, positionData[user])
-            );
+            _broadcast(chainId, timestamp, supply, abi.encode(user, positionData[user]));
         }
     }
 
@@ -114,10 +116,13 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         uint128 amountToIncrease
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
-        if (oldPosition.expiry < block.timestamp) {
-            // this should not happen as the initial value and the after-withdraw value of
-            // lockedPosition are always (0, 0)
-            assert(oldPosition.expiry == 0 && oldPosition.amount == 0);
+
+        (VeBalance memory supply, ) = _updateGlobalSupply();
+        if (oldPosition.expiry > block.timestamp) {
+            // remove old position not yet expired
+            VeBalance memory oldBalance = convertToVeBalance(oldPosition);
+            supply = supply.sub(oldBalance);
+            slopeChanges[oldPosition.expiry] -= oldBalance.slope;
         }
 
         LockedPosition memory newPosition = LockedPosition(
@@ -125,38 +130,30 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             oldPosition.expiry + expiryToIncrease
         );
 
-        require(newPosition.expiry - block.timestamp <= MAX_LOCK_TIME, "max lock time exceed");
-
-        (VeBalance memory supply, ) = _updateGlobalSupply();
-        if (oldPosition.expiry > block.timestamp) {
-            // remove old position not yet expired
-            supply = supply.sub(convertToVeBalance(oldPosition));
-            slopeChanges[oldPosition.expiry] -= oldPosition.amount / MAX_LOCK_TIME;
-        }
-
-        VeBalance memory veBalance = convertToVeBalance(newPosition);
+        VeBalance memory newBalance = convertToVeBalance(newPosition);
         {
             // add new position
-            slopeChanges[newPosition.expiry] += veBalance.slope;
-            supply = supply.add(veBalance);
+            slopeChanges[newPosition.expiry] += newBalance.slope;
+            supply = supply.add(newBalance);
         }
 
         _totalSupply = supply;
         positionData[user] = newPosition;
-        userCheckpoints[user].push(Checkpoint(veBalance, uint128(block.timestamp)));
-        return veBalance.getCurrentValue();
+        userCheckpoints[user].push(Checkpoint(newBalance, uint128(block.timestamp)));
+        return newBalance.getCurrentValue();
     }
 
     function _updateGlobalSupply() internal returns (VeBalance memory, uint128) {
         // this looks damn confusing, supply & timestamp is reused
         VeBalance memory supply = _totalSupply;
         uint128 timestamp = lastSupplyUpdatedAt;
+        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
 
-        if (timestamp + WEEK > block.timestamp) {
+        if (timestamp >= currentWeekStart) {
             return (supply, timestamp);
         }
 
-        while (timestamp + WEEK <= block.timestamp) {
+        while (timestamp < currentWeekStart) {
             timestamp += WEEK;
             supply = supply.sub(slopeChanges[timestamp], timestamp);
             totalSupplyAt[timestamp] = supply.getValueAt(timestamp);

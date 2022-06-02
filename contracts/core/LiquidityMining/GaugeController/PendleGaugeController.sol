@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "../../../interfaces/IPGaugeController.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/math/Math.sol";
+import "../../../libraries/math/WeekMath.sol";
 import "../../../interfaces/IPGauge.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
@@ -56,13 +57,13 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
-        broadcastedEpochTimestamp = _getEpochStartTimestamp();
+        broadcastedEpochTimestamp = WeekMath.getCurrentWeekStartTimestamp();
     }
 
     /**
      * @dev this function is restricted to be called by gauge only
      */
-    function pullMarketReward() external onlyMarket {
+    function claimMarketReward() external onlyMarket {
         // should do modifier here
         address market = msg.sender;
         updateMarketIncentive(market);
@@ -82,10 +83,14 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         IERC20(pendle).safeTransfer(msg.sender, amount);
     }
 
-    function _updateMarketIncentives(address market) internal view returns (PoolRewardData memory) {
+    function _getUpdatedMarketIncentives(address market)
+        internal
+        view
+        returns (PoolRewardData memory)
+    {
         PoolRewardData memory rwd = rewardData[market]; // just do storage is not more expensive I think
         uint128 newAccumulatedTimestamp = uint128(
-            Math.min(_getBlockTimestamp(), rwd.incentiveEndsAt)
+            Math.min(uint128(block.timestamp), rwd.incentiveEndsAt)
         );
         rwd.accumulatedPendle +=
             rwd.pendlePerSec *
@@ -94,16 +99,8 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         return rwd;
     }
 
-    function _getEpochStartTimestamp() internal view returns (uint128) {
-        return (_getBlockTimestamp() / WEEK) * WEEK;
-    }
-
-    function _getBlockTimestamp() internal view returns (uint128) {
-        return uint128(block.timestamp);
-    }
-
     function updateMarketIncentive(address market) public {
-        rewardData[market] = _updateMarketIncentives(market);
+        rewardData[market] = _getUpdatedMarketIncentives(market);
     }
 
     // @TODO Think of what solution there is when these assert actually fails
@@ -121,7 +118,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
             address market = markets[i];
             uint128 amount = uint128(incentives[i]);
 
-            PoolRewardData memory rwd = _updateMarketIncentives(market);
+            PoolRewardData memory rwd = _getUpdatedMarketIncentives(market);
             uint128 leftover = (rwd.incentiveEndsAt - rwd.accumulatedTimestamp) * rwd.pendlePerSec;
             uint128 newSpeed = (leftover + amount) / WEEK;
             rewardData[market] = PoolRewardData({

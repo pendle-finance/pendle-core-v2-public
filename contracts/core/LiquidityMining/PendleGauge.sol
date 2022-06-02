@@ -67,7 +67,7 @@ abstract contract PendleGauge is RewardManager {
     }
 
     function _redeemExternalReward() internal virtual override {
-        IPGaugeController(gaugeController).pullMarketReward();
+        IPGaugeController(gaugeController).claimMarketReward();
     }
 
     function _rewardSharesTotal() internal virtual override returns (uint256) {

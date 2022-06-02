@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 
 import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
+import "../../../libraries/math/WeekMath.sol";
 
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
@@ -35,7 +36,7 @@ abstract contract VotingEscrowToken is IPVeToken {
     mapping(address => LockedPosition) public positionData;
 
     constructor() {
-        lastSupplyUpdatedAt = (_getBlocktimestamp() / WEEK - 1) * WEEK;
+        lastSupplyUpdatedAt = WeekMath.getCurrentWeekStartTimestamp();
     }
 
     function balanceOf(address user) public view virtual returns (uint128) {
@@ -55,14 +56,14 @@ abstract contract VotingEscrowToken is IPVeToken {
     function totalSupply() public view virtual returns (uint128) {
         return _totalSupply.getCurrentValue();
     }
-        // I really don't like the low-level logic here
-        // Overall these kinds of logics should be abstracted out
-    
+
+    // I really don't like the low-level logic here
+    // Overall these kinds of logics should be abstracted out
 
     function totalSupplyCurrent() external virtual returns (uint128);
 
     function isPositionExpired(address user) public view returns (bool) {
-        return positionData[user].expiry < _getBlocktimestamp();
+        return positionData[user].expiry < uint128(block.timestamp);
     }
 
     function convertToVeBalance(LockedPosition memory position)
@@ -71,11 +72,16 @@ abstract contract VotingEscrowToken is IPVeToken {
         returns (VeBalance memory res)
     {
         res.slope = position.amount / MAX_LOCK_TIME;
-        require(res.slope > 0, "invalid slope");
+        require(res.slope > 0, "zero slope");
         res.bias = res.slope * position.expiry;
     }
 
-    function _getBlocktimestamp() internal view returns (uint128) {
-        return uint128(block.timestamp);
+    function convertToVeBalance(uint128 amount, uint128 expiry)
+        public
+        pure
+        returns (uint128, uint128)
+    {
+        VeBalance memory balance = convertToVeBalance(LockedPosition(amount, expiry));
+        return (balance.bias, balance.slope);
     }
 }

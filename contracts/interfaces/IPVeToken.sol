@@ -15,4 +15,11 @@ interface IPVeToken {
     function totalSupply() external view returns (uint128);
 
     function totalSupplyCurrent() external returns (uint128);
+
+    function convertToVeBalance(uint128 amount, uint128 expiry)
+        external
+        pure
+        returns (uint128, uint128);
+    
+    function isPositionExpired(address user) external view returns (bool);
 }
