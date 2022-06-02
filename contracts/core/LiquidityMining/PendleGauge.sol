@@ -77,14 +77,4 @@ abstract contract PendleGauge is RewardManager {
     function _rewardSharesUser(address user) internal virtual override returns (uint256) {
         return activeBalance[user];
     }
-
-    function _beforeEmergencyRemoveLiquidity(address user) internal {
-        activeBalance[user] = 0;
-
-        address[] memory rewardTokens = _getRewardTokens();
-        for (uint256 i = 0; i < rewardTokens.length; ++i) {
-            address token = rewardTokens[i];
-            userRewardAccrued[user][token] = 0;
-        }
-    }
 }
