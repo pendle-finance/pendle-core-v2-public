@@ -65,13 +65,15 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         nonReentrant
         returns (uint256 amountPYOut)
     {
-        uint256 amountToTokenize = _receiveSCY();
+        uint256 amountToTokenize = _getAmountScyToMint();
 
         amountPYOut = _calcAmountToMint(amountToTokenize);
 
         _mint(receiverYT, amountPYOut);
 
         IPPrincipalToken(PT).mintByYT(receiverPT, amountPYOut);
+
+        _updateScyBalance();
     }
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
@@ -91,7 +93,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         totalInterestPostExpiry += amountScyToTreasury;
 
         IERC20(SCY).safeTransfer(receiver, amountScyOut);
-        _afterTransferOutSCY();
+
+        _updateScyBalance();
     }
 
     /**
@@ -213,7 +216,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         interestOut = interestPreFee - feeAmount;
         IERC20(SCY).safeTransfer(user, interestOut);
-        _afterTransferOutSCY();
+        _updateScyBalance();
     }
 
     function _redeemExternalReward() internal virtual override {
@@ -222,7 +225,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     /// @dev to be overriden if there is rewards
     function _rewardSharesTotal() internal virtual override returns (uint256) {
-        return IERC20(SCY).balanceOf(address(this));
+        return lastScyBalance;
     }
 
     /// @dev to be overriden if there is rewards
@@ -273,7 +276,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         if (totalScyFee > 0) {
             IERC20(SCY).safeTransfer(treasury, totalScyFee);
-            _afterTransferOutSCY();
+            _updateScyBalance();
         }
         emit WithdrawFeeToTreasury(amountRewardsOut, totalScyFee);
     }
@@ -293,19 +296,20 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         amountToTreasury = totalRedeemable - amountToUser;
     }
 
-    function _receiveSCY() internal returns (uint256 amount) {
-        uint256 balanceScy = IERC20(SCY).balanceOf(address(this));
-        amount = balanceScy - lastScyBalance;
+    function _getAmountScyToMint() internal view returns (uint256 amount) {
+        amount = IERC20(SCY).balanceOf(address(this)) - lastScyBalance;
         require(amount > 0, "RECEIVE_ZERO");
-        lastScyBalance = balanceScy;
     }
 
-    function _afterTransferOutSCY() internal {
+    function _updateScyBalance() internal {
         lastScyBalance = IERC20(SCY).balanceOf(address(this));
     }
 
     function getImpliedScyBalance(address user) public view returns (uint256) {
         uint256 scyIndex = interestData[user].lastScyIndex;
+        if (scyIndex == 0) {
+            return 0;
+        }
         return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + interestData[user].dueInterest;
     }
 

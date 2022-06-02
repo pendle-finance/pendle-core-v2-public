@@ -14,7 +14,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         string memory _symbol,
         address _yieldToken
     )
-        SCYBase(_name, _symbol, yieldToken) // solhint-disable-next-line no-empty-blocks
+        SCYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
     {}
 
     /*///////////////////////////////////////////////////////////////
