@@ -97,11 +97,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
     }
 
     function updatePoolVotes(address pool) public {
-        uint128 timestamp = poolInfos[pool].timestamp;
-        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
-
         require(_isPoolActive(pool), "invalid pool");
 
+        uint128 timestamp = poolInfos[pool].timestamp;
+        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
         if (timestamp >= currentWeekStart) {
             return;
         }
