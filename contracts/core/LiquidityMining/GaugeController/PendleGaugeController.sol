@@ -32,7 +32,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    struct PoolRewardData {
+    struct MarketRewardData {
         // 4 uint256, damn. pendlePerSec is at most <= 1e18, accumulatedPendle <= 10 mil * 1e18 ...
         uint128 pendlePerSec;
         uint128 accumulatedPendle;
@@ -46,7 +46,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     IPMarketFactory internal immutable marketFactory; // public
 
     uint256 private broadcastedEpochTimestamp;
-    mapping(address => PoolRewardData) public rewardData;
+    mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) internal epochRewardReceived;
 
     modifier onlyMarket() {
@@ -57,7 +57,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
-        broadcastedEpochTimestamp = WeekMath.getCurrentWeekStartTimestamp();
+        broadcastedEpochTimestamp = WeekMath.getCurrentWeekStart();
     }
 
     /**
@@ -66,7 +66,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     function claimMarketReward() external onlyMarket {
         // should do modifier here
         address market = msg.sender;
-        updateMarketIncentive(market);
+        updateMarketData(market);
 
         uint256 amount = rewardData[market].accumulatedPendle;
         if (amount != 0) {
@@ -83,12 +83,16 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         IERC20(pendle).safeTransfer(msg.sender, amount);
     }
 
-    function _getUpdatedMarketIncentives(address market)
+    function updateMarketData(address market) public {
+        rewardData[market] = _getUpdatedMarketData(market);
+    }
+
+    function _getUpdatedMarketData(address market)
         internal
         view
-        returns (PoolRewardData memory)
+        returns (MarketRewardData memory)
     {
-        PoolRewardData memory rwd = rewardData[market]; // just do storage is not more expensive I think
+        MarketRewardData memory rwd = rewardData[market]; // just do storage is not more expensive I think
         uint128 newAccumulatedTimestamp = uint128(
             Math.min(uint128(block.timestamp), rwd.incentiveEndsAt)
         );
@@ -97,10 +101,6 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
             (newAccumulatedTimestamp - rwd.accumulatedTimestamp);
         rwd.accumulatedTimestamp = newAccumulatedTimestamp;
         return rwd;
-    }
-
-    function updateMarketIncentive(address market) public {
-        rewardData[market] = _getUpdatedMarketIncentives(market);
     }
 
     // @TODO Think of what solution there is when these assert actually fails
@@ -115,19 +115,20 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         require(markets.length == incentives.length, "invalid markets length");
 
         for (uint256 i = 0; i < markets.length; ++i) {
-            address market = markets[i];
-            uint128 amount = uint128(incentives[i]);
-
-            PoolRewardData memory rwd = _getUpdatedMarketIncentives(market);
-            uint128 leftover = (rwd.incentiveEndsAt - rwd.accumulatedTimestamp) * rwd.pendlePerSec;
-            uint128 newSpeed = (leftover + amount) / WEEK;
-            rewardData[market] = PoolRewardData({
-                pendlePerSec: newSpeed,
-                accumulatedPendle: rwd.accumulatedPendle,
-                accumulatedTimestamp: uint128(block.timestamp),
-                incentiveEndsAt: uint128(block.timestamp) + WEEK
-            });
+            _incentivizeMarket(markets[i], uint128(incentives[i]));
         }
         epochRewardReceived[timestamp] = true;
+    }
+
+    function _incentivizeMarket(address market, uint128 amount) internal {
+        MarketRewardData memory rwd = _getUpdatedMarketData(market);
+        uint128 leftover = (rwd.incentiveEndsAt - rwd.accumulatedTimestamp) * rwd.pendlePerSec;
+        uint128 newSpeed = (leftover + amount) / WEEK;
+        rewardData[market] = MarketRewardData({
+            pendlePerSec: newSpeed,
+            accumulatedPendle: rwd.accumulatedPendle,
+            accumulatedTimestamp: uint128(block.timestamp),
+            incentiveEndsAt: uint128(block.timestamp) + WEEK
+        });
     }
 }

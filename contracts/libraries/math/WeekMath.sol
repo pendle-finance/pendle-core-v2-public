@@ -8,7 +8,7 @@ library WeekMath {
         return timestamp / WEEK * WEEK;
     }
 
-    function getCurrentWeekStartTimestamp() internal view returns (uint128) {
+    function getCurrentWeekStart() internal view returns (uint128) {
         return getWeekStartTimestamp(uint128(block.timestamp));
     }
 

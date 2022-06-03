@@ -15,12 +15,16 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
         votingController = _votingController;
     }
 
+    modifier onlyVotingController() {
+        require(msg.sender == votingController, "not voting controller");
+        _;
+    }
+
     function updateVotingResults(
         uint128 timestamp,
         address[] memory markets,
         uint256[] memory pendleSpeeds
-    ) external {
-        require(msg.sender == votingController, "not voting controller");
+    ) external onlyVotingController {
         _receiveVotingResults(timestamp, markets, pendleSpeeds);
     }
 }

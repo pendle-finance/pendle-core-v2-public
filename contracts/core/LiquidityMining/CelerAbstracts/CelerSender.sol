@@ -18,10 +18,7 @@ abstract contract CelerSender is PermissionsV2Upg {
         celerMessageBus = ICelerMessageBus(_celerMessageBus);
     }
 
-    function _sendMessage(
-        uint256 chainId,
-        bytes memory message
-    ) internal {
+    function _sendMessage(uint256 chainId, bytes memory message) internal {
         assert(sidechainContracts.contains(chainId));
         address toAddr = sidechainContracts.get(chainId);
         uint256 fee = celerMessageBus.calcFee(message);

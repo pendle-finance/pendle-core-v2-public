@@ -36,7 +36,7 @@ abstract contract VotingEscrowToken is IPVeToken {
     mapping(address => LockedPosition) public positionData;
 
     constructor() {
-        lastSupplyUpdatedAt = WeekMath.getCurrentWeekStartTimestamp();
+        lastSupplyUpdatedAt = WeekMath.getCurrentWeekStart();
     }
 
     function balanceOf(address user) public view virtual returns (uint128) {
@@ -53,7 +53,7 @@ abstract contract VotingEscrowToken is IPVeToken {
      * prevent the pause for gauges on mainchain.
      */
     // hmm I don't like this pause
-    function totalSupply() public view virtual returns (uint128) {
+    function totalSupplyStored() public view virtual returns (uint128) {
         return _totalSupply.getCurrentValue();
     }
 

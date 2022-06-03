@@ -12,6 +12,14 @@ abstract contract CelerReceiver is ICelerMessageReceiverApp, PermissionsV2Upg {
 
     constructor(address _governanceManager) PermissionsV2Upg(_governanceManager) {}
 
+    modifier onlyCelerOrGov() {
+        require(
+            msg.sender == celerMessageBus || msg.sender == _governance(),
+            "only celer message bus or gov"
+        );
+        _;
+    }
+
     function setOrigin(address _addr, uint256 _chainId) external onlyGovernance {
         originAddress = _addr;
         originChainId = _chainId;
@@ -26,13 +34,8 @@ abstract contract CelerReceiver is ICelerMessageReceiverApp, PermissionsV2Upg {
         uint64 _srcChainId,
         bytes calldata _message,
         address /* executor */
-    ) external payable returns (ExecutionStatus) {
+    ) external payable onlyCelerOrGov returns (ExecutionStatus) {
         // if the message sender is not celer bus, there is no harm to have the transcation failed
-        require(
-            msg.sender == celerMessageBus || msg.sender == _governance(),
-            "only celer message bus or gov"
-        );
-
         if (_sender != originAddress || _srcChainId != originChainId) {
             return ExecutionStatus.Fail;
         }

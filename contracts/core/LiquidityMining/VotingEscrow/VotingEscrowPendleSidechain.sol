@@ -3,6 +3,7 @@
 pragma solidity 0.8.9;
 
 import "../../../libraries/VeBalanceLib.sol";
+import "../../../libraries/math/WeekMath.sol";
 import "./VotingEscrowToken.sol";
 import "../CelerAbstracts/CelerReceiver.sol";
 
@@ -13,7 +14,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
     constructor(address _governanceManager) CelerReceiver(_governanceManager) {}
 
     function totalSupplyCurrent() external view virtual override returns (uint128) {
-        return totalSupply();
+        return totalSupplyStored();
     }
 
     /**
@@ -49,7 +50,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
 
     function _setNewTotalSupply(uint128 timestamp, VeBalance memory supply) internal {
         // this should never happen
-        assert(timestamp % WEEK == 0);
+        assert(timestamp == WeekMath.getWeekStartTimestamp(timestamp));
         lastSupplyUpdatedAt = timestamp;
         _totalSupply = supply;
     }

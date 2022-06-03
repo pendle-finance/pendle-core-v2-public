@@ -28,24 +28,29 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         pendle = _pendle;
     }
 
-    function lock(uint128 amount, uint128 expiry) external returns (uint128) {
-        address user = msg.sender;
+    function lock(uint128 amountToPull, uint128 expiry) external returns (uint128 newVeBalance) {
         require(
             expiry == WeekMath.getWeekStartTimestamp(expiry) && expiry > block.timestamp,
             "invalid expiry"
         );
         require(expiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
-        require(positionData[user].amount == 0, "lock not withdrawed"); // inappropriate comments
-        require(amount > 0, "zero amount");
 
-        pendle.safeTransferFrom(user, address(this), amount);
-        return _increasePosition(user, expiry, amount);
+        address user = msg.sender;
+        require(isPositionExpired(user), "old lock not expired"); // inappropriate comments
+
+        uint128 amountToLock = amountToPull + _getRenewingLockAmount(user);
+        require(amountToLock > 0, "zero amount");
+
+        if (amountToPull > 0) {
+            pendle.safeTransferFrom(user, address(this), amountToPull);
+        }
+        newVeBalance = _increasePosition(user, expiry, amountToLock);
     }
 
     /**
      * @dev strict condition, user can only increase lock duration for themselves
      */
-    function increaseLockDuration(uint128 duration) external returns (uint128) {
+    function increaseLockDuration(uint128 duration) external returns (uint128 newVeBalance) {
         address user = msg.sender;
         require(!isPositionExpired(user), "user position expired");
         require(duration > 0 && WeekMath.isValidDuration(duration), "invalid duration"); // duration % WEEK check looks meh
@@ -54,7 +59,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             "max lock time exceeded"
         );
 
-        return _increasePosition(user, duration, 0);
+        newVeBalance = _increasePosition(user, duration, 0);
     }
 
     /**
@@ -67,7 +72,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         require(amount > 0, "zero amount");
         pendle.safeTransferFrom(user, address(this), amount);
-        return _increasePosition(user, 0, amount);
+        newVeBalance = _increasePosition(user, 0, amount);
     }
 
     /**
@@ -77,7 +82,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(isPositionExpired(user), "user position not expired"); // not expired, not unexpired
         amount = positionData[user].amount; // should require amount != 0
         require(amount > 0, "position already withdrawed");
-        positionData[user] = LockedPosition(0, 0);
+        delete positionData[user];
         pendle.safeTransfer(user, amount);
     }
 
@@ -107,12 +112,12 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     /**
-     * @dev in case of creating a new position, position should already be set to (0, 0), and expiryToIncrease = expiry
-     * @dev in other cases, expiryToIncrease = additional-duration and amountToIncrease = additional-pendle
+     * @dev in case of creating a new position, position should already be set to (0, 0), and durationToIncrease = expiry
+     * @dev in other cases, durationToIncrease = additional-duration and amountToIncrease = additional-pendle
      */
     function _increasePosition(
         address user,
-        uint128 expiryToIncrease,
+        uint128 durationToIncrease,
         uint128 amountToIncrease
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
@@ -127,14 +132,14 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         LockedPosition memory newPosition = LockedPosition(
             oldPosition.amount + amountToIncrease,
-            oldPosition.expiry + expiryToIncrease
+            oldPosition.expiry + durationToIncrease
         );
 
         VeBalance memory newBalance = convertToVeBalance(newPosition);
         {
             // add new position
-            slopeChanges[newPosition.expiry] += newBalance.slope;
             supply = supply.add(newBalance);
+            slopeChanges[newPosition.expiry] += newBalance.slope;
         }
 
         _totalSupply = supply;
@@ -147,7 +152,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         // this looks damn confusing, supply & timestamp is reused
         VeBalance memory supply = _totalSupply;
         uint128 timestamp = lastSupplyUpdatedAt;
-        uint128 currentWeekStart = WeekMath.getCurrentWeekStartTimestamp();
+        uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
         if (timestamp >= currentWeekStart) {
             return (supply, timestamp);
@@ -177,5 +182,10 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         bytes memory userData
     ) internal {
         _sendMessage(chainId, abi.encode(timestamp, supply, userData));
+    }
+
+    function _getRenewingLockAmount(address user) internal returns (uint128 amount) {
+        amount = positionData[user].amount;
+        positionData[user] = LockedPosition(0, 0);
     }
 }

@@ -12,7 +12,7 @@ interface IPVeToken {
 
     // ============= META DATA =============
 
-    function totalSupply() external view returns (uint128);
+    function totalSupplyStored() external view returns (uint128);
 
     function totalSupplyCurrent() external returns (uint128);
 
