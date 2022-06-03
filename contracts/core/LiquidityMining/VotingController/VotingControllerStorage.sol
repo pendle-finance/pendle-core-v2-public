@@ -70,6 +70,10 @@ abstract contract VotingControllerStorage {
         return weekData[timestamp].totalVotes;
     }
 
+    function getUserPoolVote(address user, address pool) public view returns (UserPoolInfo memory) {
+        return userDatas[user].voteForPools[pool];
+    }
+
     function _addPool(uint64 chainId, address pool) internal {
         poolInfos[pool].chainId = chainId;
         poolInfos[pool].timestamp = WeekMath.getCurrentWeekStart();

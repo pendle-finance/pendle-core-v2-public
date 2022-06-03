@@ -72,7 +72,11 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         // Not unactive, inactive
         // good idea: All operations that require touching multiple mapping together, should be done through functions
         // Idea of separating storage contract from logic is not new, but interesting
-        updatePoolVotes(pool);
+
+        // This is to allow removing vote from an unactive pool
+        if (_isPoolActive(pool)) {
+            updatePoolVotes(pool);  
+        } 
         _unvote(msg.sender, pool, true);
     }
 
