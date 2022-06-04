@@ -45,6 +45,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             pendle.safeTransferFrom(user, address(this), amountToPull);
         }
         newVeBalance = _increasePosition(user, expiry, amountToLock);
+
+        emit Lock(user, amountToLock, expiry);
     }
 
     /**
@@ -60,6 +62,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         );
 
         newVeBalance = _increasePosition(user, duration, 0);
+
+        emit IncreaseLockDuration(user, duration);
     }
 
     /**
@@ -72,6 +76,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(amount > 0, "zero amount");
         pendle.safeTransferFrom(user, address(this), amount);
         newVeBalance = _increasePosition(user, 0, amount);
+
+        emit IncreaseLockAmount(user, amount);
     }
 
     /**
@@ -83,6 +89,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         require(amount > 0, "position already withdrawed");
         delete positionData[user];
         pendle.safeTransfer(user, amount);
+        emit Withdraw(user, amount);
     }
 
     function totalSupplyCurrent() external virtual override returns (uint128) {
@@ -108,6 +115,11 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             require(sidechainContracts.contains(chainId), "not supported chain");
             _broadcast(chainId, timestamp, supply, abi.encode(user, positionData[user]));
         }
+        emit BroadcastUserPosition(user, chainIds);
+    }
+
+    function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
+        return VeBalanceLib.getCheckpointValueAt(userCheckpoints[user], timestamp);
     }
 
     /**

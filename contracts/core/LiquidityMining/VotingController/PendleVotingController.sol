@@ -6,6 +6,7 @@ import "../CelerAbstracts/CelerSender.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../interfaces/IPGaugeControllerMainchain.sol";
+import "../../../interfaces/IPVotingController.sol";
 
 // no reentracy protection yet?
 // Should VotingController and stuff become upgradeable?
@@ -33,7 +34,7 @@ Cons:
     - Does not guarantee the reward will be distributed on epoch start and end
 */
 
-contract PendleVotingController is CelerSender, VotingControllerStorage {
+contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotingController {
     using VeBalanceLib for VeBalance;
     using Math for uint256;
     using Math for int256;
@@ -192,6 +193,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         if (doCreateCheckpoint) {
             _addUserPoolCheckpoint(user, pool, VeBalance(0, 0));
         }
+        emit Unvote(user, pool, oldUVote);
     }
 
     function _vote(
@@ -203,6 +205,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
         _addToPoolVote(pool, votingPower);
         _setUserPoolVote(user, pool, weight, votingPower);
         _addUserPoolCheckpoint(user, pool, votingPower);
+
+        emit Vote(user, pool, weight, votingPower);
     }
 
     function _getVotingPowerByWeight(address user, uint64 weight)

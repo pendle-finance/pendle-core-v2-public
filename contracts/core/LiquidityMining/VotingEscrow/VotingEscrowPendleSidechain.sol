@@ -9,6 +9,12 @@ import "../CelerAbstracts/CelerReceiver.sol";
 
 // solhint-disable no-empty-blocks
 contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
+    event SetNewDelegator(address delegator, address receiver);
+
+    event SetNewTotalSupply(VeBalance totalSupply);
+
+    event SetNewUserPosition(LockedPosition position);
+
     mapping(address => address) internal delegatorOf;
 
     constructor(address _governanceManager) CelerReceiver(_governanceManager) {}
@@ -23,6 +29,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
      */
     function setDelegatorFor(address receiver, address delegator) external onlyGovernance {
         delegatorOf[receiver] = delegator;
+        emit SetNewDelegator(delegator, receiver);
     }
 
     /**
@@ -36,16 +43,17 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
         );
         _setNewTotalSupply(timestamp, supply);
         if (userData.length > 0) {
-            _executeUpdateUserBalance(userData);
+            _setNewUserPosition(userData);
         }
     }
 
-    function _executeUpdateUserBalance(bytes memory userData) internal {
+    function _setNewUserPosition(bytes memory userData) internal {
         (address userAddr, LockedPosition memory position) = abi.decode(
             userData,
             (address, LockedPosition)
         );
         positionData[userAddr] = position;
+        emit SetNewUserPosition(position);
     }
 
     function _setNewTotalSupply(uint128 timestamp, VeBalance memory supply) internal {
@@ -53,6 +61,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
         assert(timestamp == WeekMath.getWeekStartTimestamp(timestamp));
         lastSupplyUpdatedAt = timestamp;
         _totalSupply = supply;
+        emit SetNewTotalSupply(supply);
     }
 
     function balanceOf(address user) public view virtual override returns (uint128) {
