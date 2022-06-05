@@ -11,15 +11,24 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
     uint256 public lastRewardBlock;
 
     struct RewardState {
-        uint256 index;
-        uint256 lastBalance;
+        uint128 index;
+        uint128 lastBalance;
+    }
+
+    struct UserReward {
+        uint128 index;
+        uint128 accrued;
     }
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
     mapping(address => RewardState) public rewardState;
-    mapping(address => mapping(address => uint256)) public userRewardAccrued;
-    mapping(address => mapping(address => uint256)) public userRewardIndex;
+    // user -> token -> reward state
+    mapping(address => mapping(address => UserReward)) public userReward;
+
+    function userRewardAccrued(address token, address user) external view returns (uint128) {
+        return userReward[token][user].index;
+    }
 
     function _getRewardTokens() internal view virtual returns (address[] memory);
 
@@ -49,7 +58,10 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
             if (rewardIndex == 0) rewardIndex = INITIAL_REWARD_INDEX;
             if (totalShares != 0) rewardIndex += rewardAccrued.divDown(totalShares);
 
-            rewardState[token] = RewardState({ index: rewardIndex, lastBalance: currentBalance });
+            rewardState[token] = RewardState({
+                index: rewardIndex.Uint128(),
+                lastBalance: currentBalance.Uint128()
+            });
         }
     }
 
@@ -62,7 +74,7 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
             address token = rewardTokens[i];
 
             uint256 rewardIndex = rewardState[token].index;
-            uint256 userIndex = userRewardIndex[user][token];
+            uint256 userIndex = userReward[token][user].index;
 
             if (userIndex == 0 && rewardIndex > 0) {
                 userIndex = INITIAL_REWARD_INDEX;
@@ -70,10 +82,12 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
 
             uint256 deltaIndex = rewardIndex - userIndex;
             uint256 rewardDelta = userShares.mulDown(deltaIndex);
-            uint256 rewardAccrued = userRewardAccrued[user][token] + rewardDelta;
+            uint256 rewardAccrued = userReward[token][user].accrued + rewardDelta;
 
-            userRewardAccrued[user][token] = rewardAccrued;
-            userRewardIndex[user][token] = rewardIndex;
+            userReward[token][user] = UserReward({
+                index: rewardIndex.Uint128(),
+                accrued: rewardAccrued.Uint128()
+            });
         }
     }
 
@@ -88,10 +102,10 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
 
-            rewardAmounts[i] = userRewardAccrued[user][token];
-            userRewardAccrued[user][token] = 0;
+            rewardAmounts[i] = userReward[token][user].accrued;
+            userReward[token][user].accrued = 0;
 
-            rewardState[token].lastBalance -= rewardAmounts[i];
+            rewardState[token].lastBalance -= rewardAmounts[i].Uint128();
 
             if (rewardAmounts[i] != 0) {
                 _transferOut(token, receiver, rewardAmounts[i]);

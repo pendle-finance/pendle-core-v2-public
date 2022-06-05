@@ -202,7 +202,10 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
                 rewardIndex += rewardAccrued.divDown(totalShares);
             }
 
-            rewardState[token] = RewardState({ index: rewardIndex, lastBalance: currentBalance });
+            rewardState[token] = RewardState({
+                index: rewardIndex.Uint128(),
+                lastBalance: currentBalance.Uint128()
+            });
         }
     }
 
