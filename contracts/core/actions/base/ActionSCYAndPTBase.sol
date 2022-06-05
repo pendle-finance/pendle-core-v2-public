@@ -173,8 +173,7 @@ abstract contract ActionSCYAndPTBase {
         (netScyIn, ) = state.swapScyForExactPt(
             SCYIndexLib.newIndex(SCY),
             exactPtOut,
-            block.timestamp,
-            false
+            block.timestamp
         );
         require(netScyIn <= maxScyIn, "exceed limit scy in");
 

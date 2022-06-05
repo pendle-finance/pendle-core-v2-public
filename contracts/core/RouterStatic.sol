@@ -64,8 +64,7 @@ contract RouterStatic is IPRouterStatic {
         (netScyOut, netScyFee) = state.swapExactPtForScy(
             scyIndex(market),
             exactPtIn,
-            block.timestamp,
-            false
+            block.timestamp
         );
     }
 
@@ -77,8 +76,7 @@ contract RouterStatic is IPRouterStatic {
         (netScyIn, netScyFee) = state.swapScyForExactPt(
             scyIndex(market),
             exactPtOut,
-            block.timestamp,
-            false
+            block.timestamp
         );
     }
 

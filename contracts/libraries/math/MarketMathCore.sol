@@ -129,8 +129,7 @@ library MarketMathCore {
         MarketState memory market,
         SCYIndex index,
         int256 netPtToAccount,
-        uint256 blockTime,
-        bool updateState
+        uint256 blockTime
     ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         /// ------------------------------------------------------------
         /// CHECKS
@@ -155,16 +154,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        if (updateState) {
-            _setNewMarketStateTrade(
-                market,
-                comp,
-                index,
-                netPtToAccount,
-                netScyToAccount,
-                blockTime
-            );
-        }
+        _setNewMarketStateTrade(market, comp, index, netPtToAccount, netScyToAccount, blockTime);
     }
 
     function getMarketPreCompute(

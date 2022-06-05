@@ -203,8 +203,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         (netScyOut, netScyToReserve) = market.swapExactPtForScy(
             SCYIndexLib.newIndex(SCY),
             exactPtIn,
-            block.timestamp,
-            true
+            block.timestamp
         );
         require(netScyOut >= minScyOut, "insufficient scy out");
 
@@ -245,8 +244,7 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         (netScyIn, netScyToReserve) = market.swapScyForExactPt(
             SCYIndexLib.newIndex(SCY),
             exactPtOut,
-            block.timestamp,
-            true
+            block.timestamp
         );
         require(netScyIn <= maxScyIn, "scy in exceed limit");
 
