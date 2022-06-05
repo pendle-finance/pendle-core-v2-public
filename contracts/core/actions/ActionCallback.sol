@@ -109,17 +109,17 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         bytes calldata data
     ) internal {
         (, address receiver) = abi.decode(data, (ACTION_TYPE, address));
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 scyOwed = scyToAccount.neg().Uint();
 
-        uint256 netScyReceived = YT.redeemPY(address(this));
+        address[] memory receivers = new address[](2);
+        uint256[] memory amounts = new uint256[](2);
 
-        SCY.safeTransfer(market, scyOwed);
+        (receivers[0], amounts[0]) = (market, scyOwed);
+        (receivers[1], amounts[1]) = (receiver, type(uint256).max);
 
-        if (receiver != address(this)) {
-            SCY.safeTransfer(receiver, netScyReceived - scyOwed);
-        }
+        YT.redeemPY(receivers, amounts);
     }
 
     function _swapPtForYt_callback(

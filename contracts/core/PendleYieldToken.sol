@@ -78,23 +78,19 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
     function redeemPY(address receiver) external nonReentrant returns (uint256 amountScyOut) {
-        // minimum of PT & YT balance
-        uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
-        if (!isExpired()) {
-            amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
-            _burn(address(this), amountPYToRedeem);
-        }
+        address[] memory receivers = new address[](1);
+        uint256[] memory amounts = new uint256[](1);
+        (receivers[0], amounts[0]) = (receiver, type(uint256).max);
 
-        IPPrincipalToken(PT).burnByYT(address(this), amountPYToRedeem);
+        amountScyOut = _redeemPY(receivers, amounts);
+    }
 
-        uint256 amountScyToTreasury;
-        (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
-
-        totalInterestPostExpiry += amountScyToTreasury;
-
-        IERC20(SCY).safeTransfer(receiver, amountScyOut);
-
-        _updateScyBalance();
+    function redeemPY(address[] memory receivers, uint256[] memory amounts)
+        external
+        nonReentrant
+        returns (uint256 amountScyOut)
+    {
+        amountScyOut = _redeemPY(receivers, amounts);
     }
 
     /**
@@ -143,6 +139,34 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     function updateAndDistributeInterest(address user) external nonReentrant {
         _updateAndDistributeInterest(user);
+    }
+
+    function _redeemPY(address[] memory receivers, uint256[] memory amounts)
+        internal
+        returns (uint256 amountScyOut)
+    {
+        // minimum of PT & YT balance
+        uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
+        if (!isExpired()) {
+            amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
+            _burn(address(this), amountPYToRedeem);
+        }
+
+        IPPrincipalToken(PT).burnByYT(address(this), amountPYToRedeem);
+
+        uint256 amountScyToTreasury;
+        (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
+
+        totalInterestPostExpiry += amountScyToTreasury;
+
+        uint256 totalAmountRemains = amountScyOut;
+        for (uint256 i = 0; i < receivers.length; i++) {
+            uint256 amount = Math.min(totalAmountRemains, amounts[i]);
+            totalAmountRemains -= amount;
+            if (amount != 0) IERC20(SCY).safeTransfer(receivers[i], amount);
+        }
+
+        _updateScyBalance();
     }
 
     function _updateAndDistributeInterest(address user) internal {

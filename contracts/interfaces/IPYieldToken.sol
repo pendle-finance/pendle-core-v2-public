@@ -13,6 +13,10 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     function redeemPY(address receiver) external returns (uint256 amountScyOut);
 
+    function redeemPY(address[] memory receivers, uint256[] memory amounts)
+        external
+        returns (uint256 amountScyOut);
+
     // minimum of PT & YT balance
 
     function redeemDueInterestAndRewards(address user)
