@@ -80,6 +80,11 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
                 userIndex = INITIAL_REWARD_INDEX;
             }
 
+            if (rewardIndex == userIndex) {
+                // shortcut since deltaIndex == 0
+                continue;
+            }
+
             uint256 deltaIndex = rewardIndex - userIndex;
             uint256 rewardDelta = userShares.mulDown(deltaIndex);
             uint256 rewardAccrued = userReward[token][user].accrued + rewardDelta;
