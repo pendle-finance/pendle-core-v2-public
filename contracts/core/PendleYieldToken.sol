@@ -192,7 +192,9 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         uint256 amountScyToTreasury;
         (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
 
-        totalInterestPostExpiry += amountScyToTreasury;
+        if (amountScyToTreasury != 0) {
+            totalInterestPostExpiry += amountScyToTreasury;
+        }
 
         uint256 totalAmountRemains = amountScyOut;
         for (uint256 i = 0; i < receivers.length; i++) {
