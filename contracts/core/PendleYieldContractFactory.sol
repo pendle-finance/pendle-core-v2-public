@@ -27,21 +27,28 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../libraries/helpers/ExpiryUtilsLib.sol";
 import "../libraries/helpers/LibRLP.sol";
+import "../libraries/helpers/MiniDeployer.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
-contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory {
+/// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
+contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldContractFactory {
     using ExpiryUtils for string;
 
     string public constant PT_PREFIX = "PT";
     string public constant YT_PREFIX = "YT";
 
+    address public immutable pendleYtCreationCodePointer;
+
     uint256 public expiryDivisor;
     uint256 public interestFeeRate;
     address public treasury;
+
+    /// number of contracts that have been deployed from this address
+    /// must be increased everytime a new contract is deployed
     uint256 public numContractDeployed;
 
     // SCY => expiry => address
@@ -54,7 +61,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         uint256 _expiryDivisor,
         uint256 _interestFeeRate,
         address _treasury,
-        address _governanceManager
+        address _governanceManager,
+        bytes memory _pendleYtCreationCode
     ) PermissionsV2Upg(_governanceManager) {
         require(_expiryDivisor != 0, "zero value");
         require(_treasury != address(0), "zero address");
@@ -62,6 +70,8 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
         expiryDivisor = _expiryDivisor;
         interestFeeRate = _interestFeeRate;
         treasury = _treasury;
+        pendleYtCreationCodePointer = _setCreationCode(_pendleYtCreationCode);
+        numContractDeployed++;
     }
 
     /**
@@ -95,10 +105,11 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
             )
         );
 
-        require(PT == predictedPTAddress, "internal error");
+        require(PT == predictedPTAddress, "internal error 1");
 
-        YT = address(
-            new PendleYieldToken(
+        YT = _deployWithArgs(
+            pendleYtCreationCodePointer,
+            abi.encode(
                 SCY,
                 predictedPTAddress,
                 YT_PREFIX.concat(_SCY.name(), expiry, " "),
@@ -108,7 +119,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
             )
         );
 
-        require(YT == predictedYTAddress, "internal error");
+        require(YT == predictedYTAddress, "internal error 2");
 
         getPT[SCY][expiry] = PT;
         getYT[SCY][expiry] = YT;
