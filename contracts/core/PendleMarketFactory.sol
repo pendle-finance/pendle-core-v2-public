@@ -7,8 +7,9 @@ import "../interfaces/IPMarketFactory.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
 import "./LiquidityMining/PendleGauge.sol";
+import "../libraries/helpers/MiniDeployer.sol";
 
-contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
+contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketConfig {
@@ -25,6 +26,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
     address public immutable yieldContractFactory;
     address public vePendle;
     address public gaugeController;
+    address public immutable marketCreationCodePointer;
 
     uint256 public immutable maxLnFeeRateRoot;
     uint256 public constant minRateOracleTimeWindow = 300 seconds;
@@ -36,7 +38,8 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         address _treasury,
         uint96 _lnFeeRateRoot,
         uint32 _rateOracleTimeWindow,
-        uint8 _reserveFeePercent
+        uint8 _reserveFeePercent,
+        bytes memory _marketCreationCode
     ) PermissionsV2Upg(_governanceManager) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
@@ -46,6 +49,7 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         setlnFeeRateRoot(_lnFeeRateRoot);
         setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
+        marketCreationCodePointer = _setCreationCode(_marketCreationCode);
     }
 
     /**
@@ -61,8 +65,9 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         require(vePendle != address(0), "vePendle unset");
         require(gaugeController != address(0), "gaugeController unset");
 
-        market = address(
-            new PendleMarket(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
+        market = _deployWithArgs(
+            marketCreationCodePointer,
+            abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
         require(markets[PT].add(market), "market add failed");
 
