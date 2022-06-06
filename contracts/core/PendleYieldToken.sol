@@ -36,11 +36,6 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     uint256 public lastScyBalance;
     uint256 public lastScyIndexBeforeExpiry;
 
-    /// params to do fee accounting
-    mapping(address => uint256) public totalRewardsPostExpiry;
-    uint256 public totalInterestPostExpiry;
-    uint256 public totalProtocolFee;
-
     mapping(address => InterestData) internal interestData;
 
     constructor(
@@ -141,41 +136,6 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         _updateAndDistributeInterest(user);
     }
 
-    /**
-     * @dev In case the pool is expired and there is left some SCY not yet redeemed from the contract, the rewards should
-     * be claimed before withdrawing to treasury.
-     *
-     * @dev And since the reward distribution (which based on users' dueInterest) stopped at the scyIndexBeforeExpiry, it is not
-     * necessary to updateAndDistributeRewandDistributeInterest along with reward here.
-     */
-    function withdrawFeeToTreasury() external nonReentrant {
-        address[] memory rewardTokens = _getRewardTokens();
-        if (isExpired()) {
-            _updateRewardIndex(); // as refered to the doc above
-        }
-
-        uint256 length = rewardTokens.length;
-        address treasury = IPYieldContractFactory(factory).treasury();
-        uint256[] memory amountRewardsOut = new uint256[](length);
-
-        for (uint256 i = 0; i < length; i++) {
-            address token = rewardTokens[i];
-            uint256 outAmount = totalRewardsPostExpiry[token];
-            if (outAmount > 0) IERC20(rewardTokens[i]).safeTransfer(treasury, outAmount);
-            totalRewardsPostExpiry[token] = 0;
-            amountRewardsOut[i] = outAmount;
-        }
-
-        uint256 totalScyFee = totalProtocolFee + totalInterestPostExpiry;
-        totalProtocolFee = totalInterestPostExpiry = 0;
-
-        if (totalScyFee > 0) {
-            IERC20(SCY).safeTransfer(treasury, totalScyFee);
-            _updateScyBalance();
-        }
-        emit WithdrawFeeToTreasury(amountRewardsOut, totalScyFee);
-    }
-
     function _redeemPY(address[] memory receivers, uint256[] memory amounts)
         internal
         returns (uint256 amountScyOut)
@@ -193,7 +153,10 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
 
         if (amountScyToTreasury != 0) {
-            totalInterestPostExpiry += amountScyToTreasury;
+            IERC20(SCY).safeTransfer(
+                IPYieldContractFactory(factory).treasury(),
+                amountScyToTreasury
+            );
         }
 
         uint256 totalAmountRemains = amountScyOut;
@@ -238,35 +201,27 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
+        if (!isExpired()) {
+            super._updateRewardIndex();
+            return;
+        }
+
+        // For the case of expired YT
         if (lastRewardBlock == block.number) return;
         lastRewardBlock = block.number;
 
         _redeemExternalReward();
 
-        uint256 totalShares = _rewardSharesTotal();
-
         address[] memory rewardTokens = _getRewardTokens();
+        address treasury = IPYieldContractFactory(factory).treasury();
 
-        bool _isExpired = isExpired();
-        for (uint256 i = 0; i < rewardTokens.length; ++i) {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
             address token = rewardTokens[i];
-
-            uint256 rewardIndex = rewardState[token].index;
 
             uint256 currentBalance = _selfBalance(token);
             uint256 rewardAccrued = currentBalance - rewardState[token].lastBalance;
 
-            if (rewardIndex == 0) rewardIndex = INITIAL_REWARD_INDEX;
-            if (_isExpired) {
-                totalRewardsPostExpiry[token] += rewardAccrued;
-            } else if (totalShares != 0) {
-                rewardIndex += rewardAccrued.divDown(totalShares);
-            }
-
-            rewardState[token] = RewardState({
-                index: rewardIndex.Uint128(),
-                lastBalance: currentBalance.Uint128()
-            });
+            _transferOut(token, treasury, rewardAccrued);
         }
     }
 
@@ -276,7 +231,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
         uint256 feeAmount = interestPreFee.mulDown(feeRate);
-        totalProtocolFee += feeAmount;
+
+        IERC20(SCY).safeTransfer(IPYieldContractFactory(factory).treasury(), feeAmount);
 
         interestOut = interestPreFee - feeAmount;
         IERC20(SCY).safeTransfer(user, interestOut);

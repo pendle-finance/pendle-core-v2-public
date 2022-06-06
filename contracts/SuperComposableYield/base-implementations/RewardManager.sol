@@ -50,10 +50,10 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
 
-            uint256 rewardIndex = rewardState[token].index;
-
             uint256 currentBalance = _selfBalance(token);
             uint256 rewardAccrued = currentBalance - rewardState[token].lastBalance;
+
+            uint256 rewardIndex = rewardState[token].index;
 
             if (rewardIndex == 0) rewardIndex = INITIAL_REWARD_INDEX;
             if (totalShares != 0) rewardIndex += rewardAccrued.divDown(totalShares);
