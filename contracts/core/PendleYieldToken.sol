@@ -25,13 +25,13 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     using SafeERC20 for IERC20;
 
     struct UserInterest {
-        uint256 index;
-        uint256 accrued;
+        uint128 index;
+        uint128 accrued;
     }
 
     struct InterestState {
-        uint256 lastIndexBeforeExpiry;
-        uint256 lastBalance;
+        uint128 lastIndexBeforeExpiry;
+        uint128 lastBalance;
     }
 
     address public immutable SCY;
@@ -178,7 +178,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         if (prevIndex == currentIndexBeforeExpiry) return;
         if (prevIndex == 0) {
-            userInterest[user].index = currentIndexBeforeExpiry;
+            userInterest[user].index = currentIndexBeforeExpiry.Uint128();
             return;
         }
 
@@ -188,8 +188,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
             prevIndex * currentIndexBeforeExpiry
         );
 
-        userInterest[user].accrued += interestFromYT;
-        userInterest[user].index = currentIndexBeforeExpiry;
+        userInterest[user].accrued += interestFromYT.Uint128();
+        userInterest[user].index = currentIndexBeforeExpiry.Uint128();
     }
 
     function getInterestData(address user)
@@ -264,7 +264,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         if (isExpired()) {
             lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {
-            interestState.lastIndexBeforeExpiry = lastIndexBeforeExpiry = currentIndex;
+            lastIndexBeforeExpiry = currentIndex;
+            interestState.lastIndexBeforeExpiry = lastIndexBeforeExpiry.Uint128();
         }
     }
 
@@ -289,7 +290,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     function _updateScyBalance() internal {
-        interestState.lastBalance = IERC20(SCY).balanceOf(address(this));
+        interestState.lastBalance = IERC20(SCY).balanceOf(address(this)).Uint128();
     }
 
     function getImpliedScyBalance(address user) public view returns (uint256) {
