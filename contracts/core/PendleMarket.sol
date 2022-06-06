@@ -13,10 +13,11 @@ import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/Math.sol";
 import "../libraries/math/MarketMathAux.sol";
 
+import "./LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // solhint-disable reason-string
-contract PendleMarket is PendleBaseToken, IPMarket {
+contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
     using Math for uint128;
@@ -68,8 +69,13 @@ contract PendleMarket is PendleBaseToken, IPMarket {
     constructor(
         address _PT,
         int256 _scalarRoot,
-        int256 _initialAnchor
-    ) PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_PT).expiry()) {
+        int256 _initialAnchor,
+        address _vePendle,
+        address _gaugeController
+    )
+        PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_PT).expiry())
+        PendleGauge(IPPrincipalToken(_PT).SCY(), _vePendle, _gaugeController)
+    {
         PT = _PT;
         SCY = IPPrincipalToken(_PT).SCY();
         YT = IPPrincipalToken(_PT).YT();
@@ -322,5 +328,31 @@ contract PendleMarket is PendleBaseToken, IPMarket {
         _storage.oracleRate = market.oracleRate.Uint96();
         _storage.lastTradeTime = market.lastTradeTime.Uint32();
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
+    }
+
+    function _stakedBalance(address user) internal view override returns (uint256) {
+        return balanceOf(user);
+    }
+
+    function _totalStaked() internal view override returns (uint256) {
+        return totalSupply();
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, PendleGauge) {
+        // ERC20 by default does not have any hooks
+        PendleGauge._beforeTokenTransfer(from, to, amount);
+    }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, PendleGauge) {
+        // ERC20 by default does not have any hooks
+        PendleGauge._afterTokenTransfer(from, to, amount);
     }
 }

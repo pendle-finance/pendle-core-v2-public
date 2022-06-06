@@ -6,7 +6,6 @@ import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
-import "./PendleMarketRewards.sol";
 import "./LiquidityMining/PendleGauge.sol";
 
 contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
@@ -59,23 +58,11 @@ contract PendleMarketFactory is PermissionsV2Upg, IPMarketFactory {
         int256 initialAnchor
     ) external returns (address market) {
         _verifyPT(PT);
-        market = address(new PendleMarket(PT, scalarRoot, initialAnchor));
-        require(markets[PT].add(market), "market add failed");
-
-        emit CreateNewMarket(PT, scalarRoot, initialAnchor);
-    }
-
-    function createNewMarketRewards(
-        address PT,
-        int256 scalarRoot,
-        int256 initialAnchor
-    ) external returns (address market) {
-        _verifyPT(PT);
         require(vePendle != address(0), "vePendle unset");
         require(gaugeController != address(0), "gaugeController unset");
 
         market = address(
-            new PendleMarketRewards(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
+            new PendleMarket(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
         require(markets[PT].add(market), "market add failed");
 
