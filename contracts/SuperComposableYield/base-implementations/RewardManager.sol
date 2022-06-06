@@ -23,7 +23,7 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
     mapping(address => RewardState) public rewardState;
-    // user -> token -> reward state
+    // token -> user -> reward state
     mapping(address => mapping(address => UserReward)) public userReward;
 
     function userRewardAccrued(address token, address user) external view returns (uint128) {
