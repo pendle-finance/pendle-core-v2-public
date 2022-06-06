@@ -24,19 +24,21 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     using Math for uint256;
     using SafeERC20 for IERC20;
 
-    struct InterestData {
-        uint256 lastScyIndex;
-        uint256 dueInterest;
+    struct UserInterest {
+        uint256 index;
+        uint256 accrued;
+    }
+
+    struct InterestState {
+        uint256 lastIndexBeforeExpiry;
+        uint256 lastBalance;
     }
 
     address public immutable SCY;
     address public immutable PT;
 
-    /// params to do interests & rewards accounting
-    uint256 public lastScyBalance;
-    uint256 public lastScyIndexBeforeExpiry;
-
-    mapping(address => InterestData) internal interestData;
+    InterestState public interestState;
+    mapping(address => UserInterest) internal userInterest;
 
     constructor(
         address _SCY,
@@ -170,13 +172,13 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     function _updateAndDistributeInterest(address user) internal {
-        uint256 prevIndex = interestData[user].lastScyIndex;
+        uint256 prevIndex = userInterest[user].index;
 
         (, uint256 currentIndexBeforeExpiry) = getScyIndex();
 
         if (prevIndex == currentIndexBeforeExpiry) return;
         if (prevIndex == 0) {
-            interestData[user].lastScyIndex = currentIndexBeforeExpiry;
+            userInterest[user].index = currentIndexBeforeExpiry;
             return;
         }
 
@@ -186,8 +188,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
             prevIndex * currentIndexBeforeExpiry
         );
 
-        interestData[user].dueInterest += interestFromYT;
-        interestData[user].lastScyIndex = currentIndexBeforeExpiry;
+        userInterest[user].accrued += interestFromYT;
+        userInterest[user].index = currentIndexBeforeExpiry;
     }
 
     function getInterestData(address user)
@@ -195,7 +197,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         view
         returns (uint256 lastScyIndex, uint256 dueInterest)
     {
-        return (interestData[user].lastScyIndex, interestData[user].dueInterest);
+        return (userInterest[user].index, userInterest[user].accrued);
     }
 
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
@@ -226,8 +228,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     function _doTransferOutInterest(address user) internal returns (uint256 interestOut) {
-        uint256 interestPreFee = interestData[user].dueInterest;
-        interestData[user].dueInterest = 0;
+        uint256 interestPreFee = userInterest[user].accrued;
+        userInterest[user].accrued = 0;
 
         uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
         uint256 feeAmount = interestPreFee.mulDown(feeRate);
@@ -245,7 +247,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     /// @dev to be overriden if there is rewards
     function _rewardSharesTotal() internal virtual override returns (uint256) {
-        return lastScyBalance;
+        return interestState.lastBalance;
     }
 
     /// @dev to be overriden if there is rewards
@@ -260,9 +262,9 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
         currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
         if (isExpired()) {
-            lastIndexBeforeExpiry = lastScyIndexBeforeExpiry;
+            lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {
-            lastScyIndexBeforeExpiry = lastIndexBeforeExpiry = currentIndex;
+            interestState.lastIndexBeforeExpiry = lastIndexBeforeExpiry = currentIndex;
         }
     }
 
@@ -282,20 +284,20 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     }
 
     function _getAmountScyToMint() internal view returns (uint256 amount) {
-        amount = IERC20(SCY).balanceOf(address(this)) - lastScyBalance;
+        amount = IERC20(SCY).balanceOf(address(this)) - interestState.lastBalance;
         require(amount > 0, "RECEIVE_ZERO");
     }
 
     function _updateScyBalance() internal {
-        lastScyBalance = IERC20(SCY).balanceOf(address(this));
+        interestState.lastBalance = IERC20(SCY).balanceOf(address(this));
     }
 
     function getImpliedScyBalance(address user) public view returns (uint256) {
-        uint256 scyIndex = interestData[user].lastScyIndex;
+        uint256 scyIndex = userInterest[user].index;
         if (scyIndex == 0) {
             return 0;
         }
-        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + interestData[user].dueInterest;
+        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + userInterest[user].accrued;
     }
 
     function getRewardTokens() external view returns (address[] memory) {
