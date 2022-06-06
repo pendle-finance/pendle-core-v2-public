@@ -29,6 +29,21 @@ abstract contract TokenHelper {
         }
     }
 
+    function _transferOut(
+        address[] memory tokens,
+        address to,
+        uint256[] memory amounts
+    ) internal {
+        uint256 numTokens = tokens.length;
+        require(numTokens == amounts.length, "length mismatch");
+        for (uint256 i = 0; i < numTokens; ) {
+            _transferOut(tokens[i], to, amounts[i]);
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     function _selfBalance(address token) internal view returns (uint256) {
         return (token == NATIVE) ? address(this).balance : IERC20(token).balanceOf(address(this));
     }
