@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.9;
+pragma solidity 0.8.14;
 
 import "./PendleGaugeController.sol";
 import "../CelerAbstracts/CelerReceiver.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver {
-
     constructor(
         address _pendle,
         address _marketFactory,

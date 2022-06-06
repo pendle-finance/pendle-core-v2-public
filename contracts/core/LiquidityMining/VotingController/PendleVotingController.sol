@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.9;
+pragma solidity 0.8.14;
 
 import "./VotingControllerStorage.sol";
 import "../CelerAbstracts/CelerSender.sol";
@@ -17,8 +17,8 @@ Voting accounting:
     - If the reward duration for the last pack of money has not ended, it will combine
     the leftover reward with the current reward to distribute.
 
-    - In the very extreme case where no one broadcast the result of week x, and at week x+1, 
-    the results for both are now broadcasted, then the WEEK of (block.timestamp -> WEEK) 
+    - In the very extreme case where no one broadcast the result of week x, and at week x+1,
+    the results for both are now broadcasted, then the WEEK of (block.timestamp -> WEEK)
     will receive both of the reward pack
     - Each pack of money will has it own id as timestamp, a gauge controller does not
     receive a pack of money with the same id twice, this allow governance to rebroadcast
@@ -75,8 +75,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage {
 
         // This is to allow removing vote from an unactive pool
         if (_isPoolActive(pool)) {
-            updatePoolVotes(pool);  
-        } 
+            updatePoolVotes(pool);
+        }
         _unvote(msg.sender, pool, true);
     }
 

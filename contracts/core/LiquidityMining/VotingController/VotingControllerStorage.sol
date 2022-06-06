@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.9;
+pragma solidity 0.8.14;
 
 import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
@@ -70,7 +70,11 @@ abstract contract VotingControllerStorage {
         return weekData[timestamp].totalVotes;
     }
 
-    function getUserPoolVote(address user, address pool) public view returns (UserPoolInfo memory) {
+    function getUserPoolVote(address user, address pool)
+        public
+        view
+        returns (UserPoolInfo memory)
+    {
         return userDatas[user].voteForPools[pool];
     }
 

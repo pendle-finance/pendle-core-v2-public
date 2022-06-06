@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.9;
-pragma abicoder v2;
+pragma solidity 0.8.14;
 
 interface IPVeToken {
     // ============= USER INFO =============
@@ -20,6 +19,6 @@ interface IPVeToken {
         external
         pure
         returns (uint128, uint128);
-    
+
     function isPositionExpired(address user) external view returns (bool);
 }

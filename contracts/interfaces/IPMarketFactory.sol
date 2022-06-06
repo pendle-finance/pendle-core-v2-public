@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.9;
+pragma solidity 0.8.14;
 
 interface IPMarketFactory {
     event CreateNewMarket(address indexed PT, int256 scalarRoot, int256 initialAnchor);
@@ -18,5 +18,4 @@ interface IPMarketFactory {
             uint32 rateOracleTimeWindow,
             uint8 reserveFeePercent
         );
-    
 }
