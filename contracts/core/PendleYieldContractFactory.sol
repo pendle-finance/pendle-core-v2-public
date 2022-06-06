@@ -26,6 +26,7 @@ pragma solidity 0.8.14;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../libraries/helpers/ExpiryUtilsLib.sol";
+import "../libraries/helpers/LibRLP.sol";
 import "../periphery/PermissionsV2Upg.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 
@@ -41,6 +42,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
     uint256 public expiryDivisor;
     uint256 public interestFeeRate;
     address public treasury;
+    uint256 public numContractDeployed;
 
     // SCY => expiry => address
     mapping(address => mapping(uint256 => address)) public getPT;
@@ -79,9 +81,13 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
 
         (, , uint8 assetDecimals) = _SCY.assetInfo();
 
+        address predictedPTAddress = LibRLP.computeAddress(address(this), ++numContractDeployed);
+        address predictedYTAddress = LibRLP.computeAddress(address(this), ++numContractDeployed);
+
         PT = address(
             new PendlePrincipalToken(
                 SCY,
+                predictedYTAddress,
                 PT_PREFIX.concat(_SCY.name(), expiry, " "),
                 PT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
@@ -89,10 +95,12 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
             )
         );
 
+        require(PT == predictedPTAddress, "internal error");
+
         YT = address(
             new PendleYieldToken(
                 SCY,
-                PT,
+                predictedPTAddress,
                 YT_PREFIX.concat(_SCY.name(), expiry, " "),
                 YT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
@@ -100,7 +108,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, IPYieldContractFactory 
             )
         );
 
-        IPPrincipalToken(PT).initialize(YT);
+        require(YT == predictedYTAddress, "internal error");
 
         getPT[SCY][expiry] = PT;
         getYT[SCY][expiry] = YT;

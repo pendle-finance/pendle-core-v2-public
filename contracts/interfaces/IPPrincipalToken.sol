@@ -3,8 +3,6 @@ pragma solidity 0.8.14;
 import "./IPBaseToken.sol";
 
 interface IPPrincipalToken is IPBaseToken {
-    function initialize(address _YT) external;
-
     function burnByYT(address user, uint256 amount) external;
 
     function mintByYT(address user, uint256 amount) external;
