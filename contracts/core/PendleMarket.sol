@@ -68,6 +68,11 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         _storage._reentrancyStatus = _NOT_ENTERED;
     }
 
+    modifier notExpired() {
+        require(!isExpired(), "market expired");
+        _;
+    }
+
     constructor(
         address _PT,
         int256 _scalarRoot,
@@ -105,6 +110,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     )
         external
         nonReentrant
+        notExpired
         returns (
             uint256 lpToAccount,
             uint256 scyUsed,
@@ -162,7 +168,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address receiverPt,
         uint256 lpToRemove,
         bytes calldata data
-    ) public nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
+    ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
         MarketState memory market = readState(true);
 
         (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
@@ -201,9 +207,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address receiver,
         uint256 exactPtIn,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netScyOut, uint256 netScyToReserve) {
-        require(block.timestamp < expiry, "MARKET_EXPIRED");
-
+    ) external nonReentrant notExpired returns (uint256 netScyOut, uint256 netScyToReserve) {
         MarketState memory market = readState(true);
 
         (netScyOut, netScyToReserve) = market.swapExactPtForScy(
@@ -240,9 +244,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address receiver,
         uint256 exactPtOut,
         bytes calldata data
-    ) external nonReentrant returns (uint256 netScyIn, uint256 netScyToReserve) {
-        require(block.timestamp < expiry, "MARKET_EXPIRED");
-
+    ) external nonReentrant notExpired returns (uint256 netScyIn, uint256 netScyToReserve) {
         MarketState memory market = readState(true);
 
         (netScyIn, netScyToReserve) = market.swapScyForExactPt(
