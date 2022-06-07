@@ -65,9 +65,10 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address receiver,
         address market,
         uint256 exactScyOut,
+        uint256 maxPtIn,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapPtForExactScy(receiver, market, exactScyOut, approx, true);
+        return _swapPtForExactScy(receiver, market, exactScyOut, maxPtIn, approx, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -85,9 +86,10 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address receiver,
         address market,
         uint256 exactScyIn,
+        uint256 minPtOut,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapExactScyForPt(receiver, market, exactScyIn, approx, true);
+        return _swapExactScyForPt(receiver, market, exactScyIn, minPtOut, approx, true);
     }
 
     /// @dev docs can be found in the internal function
@@ -136,24 +138,34 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
 
     /// @dev docs can be found in the internal function
     function swapExactRawTokenForPt(
-        uint256 exactRawTokenIn,
         address receiver,
-        address[] calldata path,
         address market,
+        uint256 exactRawTokenIn,
+        uint256 minPtOut,
+        address[] calldata path,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapExactRawTokenForPt(exactRawTokenIn, receiver, path, market, approx, true);
+        return
+            _swapExactRawTokenForPt(
+                receiver,
+                market,
+                exactRawTokenIn,
+                minPtOut,
+                path,
+                approx,
+                true
+            );
     }
 
     /// @dev docs can be found in the internal function
     function swapExactPtForRawToken(
-        uint256 exactPtIn,
         address receiver,
-        address[] calldata path,
         address market,
-        uint256 minRawTokenOut
-    ) external returns (uint256 netRawTokenOut) {
-        return _swapExactPtForRawToken(exactPtIn, receiver, path, market, minRawTokenOut, true);
+        uint256 exactPtIn,
+        uint256 minRawTokenOut,
+        address[] calldata path
+    ) external returns (uint256) {
+        return _swapExactPtForRawToken(receiver, market, exactPtIn, minRawTokenOut, path, true);
     }
 
     function redeemDueIncome(

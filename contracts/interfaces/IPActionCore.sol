@@ -37,6 +37,7 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyOut,
+        uint256 maxPtIn,
         ApproxParams memory approx
     ) external returns (uint256);
 
@@ -51,6 +52,7 @@ interface IPActionCore {
         address receiver,
         address market,
         uint256 exactScyIn,
+        uint256 minPtOut,
         ApproxParams memory approx
     ) external returns (uint256);
 
@@ -87,20 +89,21 @@ interface IPActionCore {
     ) external returns (uint256);
 
     function swapExactRawTokenForPt(
-        uint256 exactRawTokenIn,
         address receiver,
-        address[] calldata path,
         address market,
+        uint256 exactRawTokenIn,
+        uint256 minPtOut,
+        address[] calldata path,
         ApproxParams memory approx
-    ) external returns (uint256 netPtOut);
+    ) external returns (uint256);
 
     function swapExactPtForRawToken(
-        uint256 exactPtIn,
         address receiver,
-        address[] calldata path,
         address market,
-        uint256 minRawTokenOut
-    ) external returns (uint256 netRawTokenOut);
+        uint256 exactPtIn,
+        uint256 minRawTokenOut,
+        address[] calldata path
+    ) external returns (uint256);
 
     function redeemDueIncome(
         address user,

@@ -17,6 +17,8 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     using SafeERC20 for IERC20;
     using SCYIndexLib for ISuperComposableYield;
 
+    bytes private constant EMPTY_BYTES = abi.encode();
+
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
 
     /**
@@ -52,6 +54,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             false
         );
 
+        // early-check
         require(netLpOut >= minLpOut, "insufficient lp out");
 
         if (doPull) {
@@ -59,7 +62,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
         }
 
-        IPMarket(market).addLiquidity(receiver, ptDesired, scyDesired, abi.encode()); // ignore return
+        (netLpOut, , ) = IPMarket(market).addLiquidity(
+            receiver,
+            ptDesired,
+            scyDesired,
+            EMPTY_BYTES
+        );
+
+        // fail-safe
+        require(netLpOut >= minLpOut, "FS insufficient lp out");
     }
 
     /**
@@ -81,14 +92,25 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         MarketState memory state = IPMarket(market).readState(false);
 
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
-        require(netScyOut >= scyOutMin, "insufficient scy out");
-        require(netPtOut >= ptOutMin, "insufficient pt out");
+
+        // early-check
+        require(netScyOut >= scyOutMin, "insufficient SCY out");
+        require(netPtOut >= ptOutMin, "insufficient PT out");
 
         if (doPull) {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
 
-        IPMarket(market).removeLiquidity(receiver, receiver, lpToRemove, abi.encode()); // ignore return
+        (netScyOut, netPtOut) = IPMarket(market).removeLiquidity(
+            receiver,
+            receiver,
+            lpToRemove,
+            EMPTY_BYTES
+        );
+
+        // fail-safe
+        require(netScyOut >= scyOutMin, "FS insufficient SCY out");
+        require(netPtOut >= ptOutMin, "FS insufficient PT out");
     }
 
     /**
@@ -111,14 +133,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
         }
 
-        (netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, exactPtIn, abi.encode());
+        (netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, exactPtIn, EMPTY_BYTES);
 
-        require(netScyOut >= minScyOut, "insufficient scy out");
+        require(netScyOut >= minScyOut, "insufficient SCY out");
     }
 
     /**
      * @notice swap PT for exact SCY, with receiver receiving SCY before msg.sender is required to
      transfer the owed PT
+     * @notice note that the amount of SCY out will be a bit more than exactScyOut, since an approximation is being run
      * @dev inner working of this function is similar to swapExactPtForScy
      * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtIn
      */
@@ -126,6 +149,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyOut,
+        uint256 maxPtIn,
         ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netPtIn) {
@@ -138,12 +162,16 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             block.timestamp,
             approx
         );
+        require(netPtIn <= maxPtIn, "exceed limit PT in");
 
         if (doPull) {
             IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
         }
 
-        IPMarket(market).swapExactPtForScy(receiver, netPtIn, abi.encode()); // ignore return
+        (uint256 netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, netPtIn, EMPTY_BYTES);
+
+        // fail-safe
+        require(netScyOut >= exactScyOut, "FS insufficient SCY out");
     }
 
     /**
@@ -165,13 +193,16 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         (netScyIn, ) = state.swapScyForExactPt(SCY.newIndex(), exactPtOut, block.timestamp);
-        require(netScyIn <= maxScyIn, "exceed limit scy in");
+
+        require(netScyIn <= maxScyIn, "exceed limit SCY in");
 
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, EMPTY_BYTES); // ignore return
+
+        // no fail-safe since exactly netScyIn will go into the market
     }
 
     /**
@@ -186,6 +217,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         address receiver,
         address market,
         uint256 exactScyIn,
+        uint256 minPtOut,
         ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netPtOut) {
@@ -199,11 +231,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             approx
         );
 
+        require(netPtOut >= minPtOut, "insufficient PT out");
+
         if (doPull) {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactPt(receiver, netPtOut, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, netPtOut, EMPTY_BYTES); // ignore return
+
+        // no fail-safe since exactly netPtOut >= minPtOut will be out
     }
 
     /**
@@ -216,10 +252,11 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
     */
     function _swapExactRawTokenForPt(
-        uint256 exactRawTokenIn,
         address receiver,
-        address[] calldata path,
         address market,
+        uint256 exactRawTokenIn,
+        uint256 minPtOut,
+        address[] calldata path,
         ApproxParams memory approx,
         bool doPull
     ) internal returns (uint256 netPtOut) {
@@ -234,7 +271,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             doPull
         );
 
-        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, approx, false);
+        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, minPtOut, approx, false);
     }
 
     /**
@@ -242,11 +279,11 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
      * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
      */
     function _swapExactPtForRawToken(
-        uint256 exactPtIn,
         address receiver,
-        address[] calldata path,
         address market,
+        uint256 exactPtIn,
         uint256 minRawTokenOut,
+        address[] calldata path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();

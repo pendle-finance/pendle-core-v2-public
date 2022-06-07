@@ -62,9 +62,10 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         address receiver,
         address market,
         uint256 exactScyIn,
+        uint256 minYtOut,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapExactScyForYt(receiver, market, exactScyIn, approx, true);
+        return _swapExactScyForYt(receiver, market, exactScyIn, minYtOut, approx, true);
     }
 
     /**
@@ -76,30 +77,41 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         address receiver,
         address market,
         uint256 exactScyOut,
+        uint256 maxYtIn,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapYtForExactScy(receiver, market, exactScyOut, approx, true);
+        return _swapYtForExactScy(receiver, market, exactScyOut, maxYtIn, approx, true);
     }
 
     /// @dev docs can be found in the internal function
     function swapExactRawTokenForYt(
-        uint256 exactRawTokenIn,
         address receiver,
-        address[] calldata path,
         address market,
+        uint256 exactRawTokenIn,
+        uint256 minYtOut,
+        address[] calldata path,
         ApproxParams memory approx
     ) external returns (uint256) {
-        return _swapExactRawTokenForYt(exactRawTokenIn, receiver, path, market, approx, true);
+        return
+            _swapExactRawTokenForYt(
+                receiver,
+                market,
+                exactRawTokenIn,
+                minYtOut,
+                path,
+                approx,
+                true
+            );
     }
 
     /// @dev docs can be found in the internal function
     function swapExactYtForRawToken(
-        uint256 exactYtIn,
         address receiver,
-        address[] calldata path,
         address market,
-        uint256 minRawTokenOut
+        uint256 exactYtIn,
+        uint256 minRawTokenOut,
+        address[] calldata path
     ) external returns (uint256) {
-        return _swapExactYtForRawToken(exactYtIn, receiver, path, market, minRawTokenOut, true);
+        return _swapExactYtForRawToken(receiver, market, exactYtIn, minRawTokenOut, path, true);
     }
 }

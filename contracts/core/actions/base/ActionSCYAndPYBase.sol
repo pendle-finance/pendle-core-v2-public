@@ -139,9 +139,12 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         bool doPull
     ) internal returns (uint256 netPyOut) {
         address SCY = IPYieldToken(YT).SCY();
+
         _mintScyFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
+
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         require(netPyOut >= minPyOut, "insufficient PY out");
+
         emit MintPyFromRawToken(msg.sender, path[0], netRawTokenIn, YT, netPyOut);
     }
 
@@ -165,9 +168,9 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         address SCY = IPYieldToken(YT).SCY();
 
         if (doPull) {
-            bool isNeedToBurnYt = (!IPBaseToken(YT).isExpired());
+            bool needToBurnYt = (!IPBaseToken(YT).isExpired());
             IERC20(PT).safeTransferFrom(msg.sender, YT, netPyIn);
-            if (isNeedToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
+            if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }
 
         IPYieldToken(YT).redeemPY(SCY); // ignore return
