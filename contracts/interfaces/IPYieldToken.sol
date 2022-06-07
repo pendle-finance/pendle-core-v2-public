@@ -4,7 +4,7 @@ import "./IPBaseToken.sol";
 import "./IRewardManager.sol";
 
 interface IPYieldToken is IPBaseToken, IRewardManager {
-    event RedeemReward(address indexed user, uint256[] amountRewardsOut);
+    event RedeemRewards(address indexed user, uint256[] amountRewardsOut);
     event RedeemInterest(address indexed user, uint256 interestOut);
 
     event WithdrawFeeToTreasury(uint256[] amountRewardsOut, uint256 scyOut);

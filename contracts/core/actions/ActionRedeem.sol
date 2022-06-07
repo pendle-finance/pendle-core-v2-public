@@ -11,14 +11,15 @@ contract ActionRedeem is IPActionRedeem {
     function redeemDueIncome(
         address user,
         address[] calldata scys,
-        address[] calldata yieldTokens,
-        address[] calldata /*gauges*/
+        address[] calldata yts,
+        address[] calldata markets
     )
         external
         returns (
             uint256[][] memory scyRewards,
             uint256[] memory ytInterests,
-            uint256[][] memory ytRewards
+            uint256[][] memory ytRewards,
+            uint256[][] memory marketRewards
         )
     {
         scyRewards = new uint256[][](scys.length);
@@ -26,11 +27,17 @@ contract ActionRedeem is IPActionRedeem {
             scyRewards[i] = ISuperComposableYield(scys[i]).claimRewards(user);
         }
 
-        ytInterests = new uint256[](yieldTokens.length);
-        ytRewards = new uint256[][](yieldTokens.length);
-        for (uint256 i = 0; i < yieldTokens.length; ++i) {
-            (ytInterests[i], ytRewards[i]) = IPYieldToken(yieldTokens[i])
-                .redeemDueInterestAndRewards(user);
+        ytInterests = new uint256[](yts.length);
+        ytRewards = new uint256[][](yts.length);
+        for (uint256 i = 0; i < yts.length; ++i) {
+            (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i]).redeemDueInterestAndRewards(
+                user
+            );
+        }
+
+        marketRewards = new uint256[][](markets.length);
+        for (uint256 i = 0; i < markets.length; ++i) {
+            marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
         }
     }
 }

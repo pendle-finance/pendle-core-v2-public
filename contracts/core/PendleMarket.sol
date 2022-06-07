@@ -268,6 +268,14 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
 
+    function redeemRewards(address user) external nonReentrant returns (uint256[] memory) {
+        return _redeemRewards(user);
+    }
+
+    function getRewardTokens() external view returns (address[] memory) {
+        return _getRewardTokens();
+    }
+
     // force balances to match reserves
     function skim() external nonReentrant {
         MarketState memory market = readState(true);
@@ -275,17 +283,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         uint256 excessScy = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
         IERC20(PT).safeTransfer(market.treasury, excessPt);
         IERC20(SCY).safeTransfer(market.treasury, excessScy);
-    }
-
-    /// @dev this function is just a place holder. Later on the rewards will be transferred to the liquidity minining
-    /// instead
-    function redeemScyReward() external returns (uint256[] memory outAmounts) {
-        outAmounts = ISuperComposableYield(SCY).claimRewards(address(this));
-        address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
-        address treasury = IPMarketFactory(factory).treasury();
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransfer(treasury, outAmounts[i]);
-        }
     }
 
     function readTokens()

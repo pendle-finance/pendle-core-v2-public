@@ -5,7 +5,6 @@ import "../../../interfaces/IPGaugeController.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../libraries/math/WeekMath.sol";
-import "../../../interfaces/IPGauge.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../periphery/PermissionsV2Upg.sol";

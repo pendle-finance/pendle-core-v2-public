@@ -104,7 +104,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         rewardsOut = _doTransferOutRewards(user, user);
         interestOut = _doTransferOutInterest(user);
 
-        emit RedeemReward(user, rewardsOut);
+        emit RedeemRewards(user, rewardsOut);
         emit RedeemInterest(user, interestOut);
     }
 
@@ -127,7 +127,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         _updateAndDistributeRewards(user);
 
         rewardsOut = _doTransferOutRewards(user, user);
-        emit RedeemReward(user, rewardsOut);
+        emit RedeemRewards(user, rewardsOut);
     }
 
     function updateAndDistributeReward(address user) external nonReentrant {
