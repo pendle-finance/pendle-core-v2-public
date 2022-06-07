@@ -7,7 +7,7 @@ import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionCore.sol";
 
-contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
+contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     using MarketMathCore for MarketState;
     using Math for uint256;
     using Math for int256;
@@ -134,40 +134,18 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         return _redeemPyToRawToken(YT, netPyIn, minRawTokenOut, receiver, path, true);
     }
 
-    /**
-    * @dev netPtOutGuessMin & netPtOutGuessMax the minimum & maximum possible guess for the netPtOut
-    the correct ptOut must lie between this range, else the function will revert.
-    * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
-    to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
-    guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
-    * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-    * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
-    */
+    /// @dev docs can be found in the internal function
     function swapExactRawTokenForPt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
         address market,
         ApproxParams memory approx
-    ) external returns (uint256 netPtOut) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-
-        uint256 netScyUseToBuyPt = _mintScyFromRawToken(
-            exactRawTokenIn,
-            address(SCY),
-            1,
-            market,
-            path,
-            true
-        );
-
-        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, approx, false);
+    ) external returns (uint256) {
+        return _swapExactRawTokenForPt(exactRawTokenIn, receiver, path, market, approx, true);
     }
 
-    /**
-     * @notice sell all Pt for RawToken
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     */
+    /// @dev docs can be found in the internal function
     function swapExactPtForRawToken(
         uint256 exactPtIn,
         address receiver,
@@ -175,17 +153,39 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        return _swapExactPtForRawToken(exactPtIn, receiver, path, market, minRawTokenOut, true);
+    }
 
-        _swapExactPtForScy(address(SCY), market, exactPtIn, 1, true);
+    function redeemDueIncome(
+        address user,
+        address[] calldata scys,
+        address[] calldata yts,
+        address[] calldata markets
+    )
+        external
+        returns (
+            uint256[][] memory scyRewards,
+            uint256[] memory ytInterests,
+            uint256[][] memory ytRewards,
+            uint256[][] memory marketRewards
+        )
+    {
+        scyRewards = new uint256[][](scys.length);
+        for (uint256 i = 0; i < scys.length; ++i) {
+            scyRewards[i] = ISuperComposableYield(scys[i]).claimRewards(user);
+        }
 
-        netRawTokenOut = _redeemScyToRawToken(
-            address(SCY),
-            0,
-            minRawTokenOut,
-            receiver,
-            path,
-            false
-        );
+        ytInterests = new uint256[](yts.length);
+        ytRewards = new uint256[][](yts.length);
+        for (uint256 i = 0; i < yts.length; ++i) {
+            (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i]).redeemDueInterestAndRewards(
+                user
+            );
+        }
+
+        marketRewards = new uint256[][](markets.length);
+        for (uint256 i = 0; i < markets.length; ++i) {
+            marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
+        }
     }
 }

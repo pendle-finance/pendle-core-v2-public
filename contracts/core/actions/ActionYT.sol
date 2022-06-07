@@ -77,68 +77,29 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         address market,
         uint256 exactScyOut,
         ApproxParams memory approx
-    ) external returns (uint256 netYtIn) {
+    ) external returns (uint256) {
         return _swapYtForExactScy(receiver, market, exactScyOut, approx, true);
     }
 
-    /**
-     * @dev netYtOutGuessMin & Max can be used in the same way as RawTokenPT
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - mintScyFromRawToken is invoked, except the YT contract will receive all the outcome SCY
-     - market.swapExactPtToScy is called, which will transfer SCY to the YT contract, and callback is invoked
-     - callback will do call YT.mintPT, which will mint PT to the market & YT to the receiver
-     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtOut
-     */
+    /// @dev docs can be found in the internal function
     function swapExactRawTokenForYt(
         uint256 exactRawTokenIn,
         address receiver,
         address[] calldata path,
         address market,
         ApproxParams memory approx
-    ) external returns (uint256 netYtOut) {
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-
-        uint256 netScyUsedToBuyYT = _mintScyFromRawToken(
-            exactRawTokenIn,
-            address(SCY),
-            1,
-            address(YT),
-            path,
-            true
-        );
-
-        netYtOut = _swapExactScyForYt(receiver, market, netScyUsedToBuyYT, approx, false);
+    ) external returns (uint256) {
+        return _swapExactRawTokenForYt(exactRawTokenIn, receiver, path, market, approx, true);
     }
 
-    /**
-     * @notice swap YT -> SCY -> baseToken -> rawToken
-     * @notice the algorithm to swap will guarantee to swap all the YT available
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - YT is transferred to the YT contract
-     - market.swapScyForExactPt is called, which will transfer PT directly to the YT contract, and callback is invoked
-     - callback will do call YT.redeemPY, which will redeem the outcome SCY to this router, then
-        all SCY owed to the market will be paid, the rest is used to feed redeemScyToRawToken
-     */
+    /// @dev docs can be found in the internal function
     function swapExactYtForRawToken(
         uint256 exactYtIn,
         address receiver,
         address[] calldata path,
         address market,
         uint256 minRawTokenOut
-    ) external returns (uint256 netRawTokenOut) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-
-        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, exactYtIn, 1, true);
-
-        netRawTokenOut = _redeemScyToRawToken(
-            address(SCY),
-            netScyOut,
-            minRawTokenOut,
-            receiver,
-            path,
-            false
-        );
+    ) external returns (uint256) {
+        return _swapExactYtForRawToken(exactYtIn, receiver, path, market, minRawTokenOut, true);
     }
 }

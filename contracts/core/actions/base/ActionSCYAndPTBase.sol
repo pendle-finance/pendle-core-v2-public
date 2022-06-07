@@ -7,8 +7,9 @@ import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./ActionSCYAndPYBase.sol";
 
-abstract contract ActionSCYAndPTBase {
+abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -203,5 +204,62 @@ abstract contract ActionSCYAndPTBase {
         }
 
         IPMarket(market).swapScyForExactPt(receiver, netPtOut, abi.encode()); // ignore return
+    }
+
+    /**
+    * @dev netPtOutGuessMin & netPtOutGuessMax the minimum & maximum possible guess for the netPtOut
+    the correct ptOut must lie between this range, else the function will revert.
+    * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
+    to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
+    guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
+    * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+    * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
+    */
+    function _swapExactRawTokenForPt(
+        uint256 exactRawTokenIn,
+        address receiver,
+        address[] calldata path,
+        address market,
+        ApproxParams memory approx,
+        bool doPull
+    ) internal returns (uint256 netPtOut) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        uint256 netScyUseToBuyPt = _mintScyFromRawToken(
+            exactRawTokenIn,
+            address(SCY),
+            1,
+            market,
+            path,
+            doPull
+        );
+
+        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, approx, false);
+    }
+
+    /**
+     * @notice sell all Pt for RawToken
+     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     */
+    function _swapExactPtForRawToken(
+        uint256 exactPtIn,
+        address receiver,
+        address[] calldata path,
+        address market,
+        uint256 minRawTokenOut,
+        bool doPull
+    ) internal returns (uint256 netRawTokenOut) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        _swapExactPtForScy(address(SCY), market, exactPtIn, 1, doPull);
+
+        netRawTokenOut = _redeemScyToRawToken(
+            address(SCY),
+            0,
+            minRawTokenOut,
+            receiver,
+            path,
+            false
+        );
     }
 }

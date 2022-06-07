@@ -101,4 +101,18 @@ interface IPActionCore {
         address market,
         uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut);
+
+    function redeemDueIncome(
+        address user,
+        address[] calldata scys,
+        address[] calldata yieldTokens,
+        address[] calldata markets
+    )
+        external
+        returns (
+            uint256[][] memory scyRewards,
+            uint256[] memory ytInterests,
+            uint256[][] memory ytRewards,
+            uint256[][] memory marketRewards
+        );
 }
