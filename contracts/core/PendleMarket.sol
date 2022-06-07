@@ -17,6 +17,8 @@ import "./LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // solhint-disable reason-string
+/// Invariances to maintain:
+/// - Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
 contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
@@ -132,7 +134,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
-                receiver,
                 lpToAccount,
                 scyUsed,
                 ptUsed,
@@ -140,6 +141,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
             );
         }
 
+        // have received enough SCY & PT
         require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
         require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
 
@@ -172,8 +174,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
 
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
-                receiverScy,
-                receiverPt,
                 lpToRemove,
                 scyToAccount,
                 ptToAccount,
@@ -181,6 +181,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
             );
         }
 
+        // this checks enough lp has been transferred in
         _burn(address(this), lpToRemove);
 
         emit RemoveLiquidity(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
