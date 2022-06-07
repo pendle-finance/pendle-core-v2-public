@@ -38,8 +38,8 @@ import "./PendleYieldToken.sol";
 contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldContractFactory {
     using ExpiryUtils for string;
 
-    string public constant PT_PREFIX = "PT";
-    string public constant YT_PREFIX = "YT";
+    string private constant PT_PREFIX = "PT";
+    string private constant YT_PREFIX = "YT";
 
     address public immutable pendleYtCreationCodePointer;
 
@@ -64,12 +64,9 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
         address _governanceManager,
         bytes memory _pendleYtCreationCode
     ) PermissionsV2Upg(_governanceManager) {
-        require(_expiryDivisor != 0, "zero value");
-        require(_treasury != address(0), "zero address");
-
-        expiryDivisor = _expiryDivisor;
-        interestFeeRate = _interestFeeRate;
-        treasury = _treasury;
+        setExpiryDivisor(_expiryDivisor);
+        setInterestFeeRate(_interestFeeRate);
+        setTreasury(_treasury);
         pendleYtCreationCodePointer = _setCreationCode(_pendleYtCreationCode);
         numContractDeployed++;
     }
@@ -81,11 +78,11 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
         external
         returns (address PT, address YT)
     {
-        require(expiry > block.timestamp, "invalid expiry");
+        require(expiry > block.timestamp, "expiry must be in the future");
 
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 
-        require(getPT[SCY][expiry] == address(0), "PT_EXISTED");
+        require(getPT[SCY][expiry] == address(0), "PT already existed");
 
         ISuperComposableYield _SCY = ISuperComposableYield(SCY);
 
@@ -105,7 +102,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
             )
         );
 
-        require(PT == predictedPTAddress, "internal error 1");
+        require(PT == predictedPTAddress, "IE predictedPTAddress");
 
         YT = _deployWithArgs(
             pendleYtCreationCodePointer,
@@ -119,7 +116,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
             )
         );
 
-        require(YT == predictedYTAddress, "internal error 2");
+        require(YT == predictedYTAddress, "IE predictedYTAddress");
 
         getPT[SCY][expiry] = PT;
         getYT[SCY][expiry] = YT;
@@ -129,18 +126,18 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
         emit CreateYieldContract(SCY, PT, YT, expiry);
     }
 
-    function setExpiryDivisor(uint256 newExpiryDivisor) external onlyGovernance {
+    function setExpiryDivisor(uint256 newExpiryDivisor) public onlyGovernance {
         require(newExpiryDivisor != 0, "zero value");
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
 
-    function setInterestFeeRate(uint256 newInterestFeeRate) external onlyGovernance {
+    function setInterestFeeRate(uint256 newInterestFeeRate) public onlyGovernance {
         interestFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
-    function setTreasury(address newTreasury) external onlyGovernance {
+    function setTreasury(address newTreasury) public onlyGovernance {
         require(newTreasury != address(0), "zero address");
         treasury = newTreasury;
         emit SetTreasury(treasury);
