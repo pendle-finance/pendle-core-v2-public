@@ -5,7 +5,6 @@ import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
 import "../../../libraries/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
-import "../../../libraries/math/MarketMathAux.sol";
 import "./ActionSCYAndPYBase.sol";
 import "./ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,7 +13,6 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
-    using MarketMathAux for MarketState;
     using MarketApproxLib for MarketState;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;

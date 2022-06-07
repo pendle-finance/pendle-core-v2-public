@@ -11,7 +11,6 @@ import "../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../libraries/math/LogExpMath.sol";
 import "../libraries/math/Math.sol";
-import "../libraries/math/MarketMathAux.sol";
 
 import "./LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -22,7 +21,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
-    using MarketMathAux for MarketState;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
 

@@ -5,11 +5,9 @@ import "./base/ActionSCYAndYTBase.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPActionYT.sol";
-import "../../libraries/math/MarketMathAux.sol";
 
 contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     using MarketMathCore for MarketState;
-    using MarketMathAux for MarketState;
     using Math for uint256;
     using Math for int256;
 

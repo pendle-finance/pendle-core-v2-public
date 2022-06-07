@@ -7,13 +7,11 @@ import "../interfaces/IPRouterStatic.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
-import "../libraries/math/MarketMathAux.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract RouterStatic is IPRouterStatic {
     using MarketMathCore for MarketState;
-    using MarketMathAux for MarketState;
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;

@@ -7,7 +7,6 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../../libraries/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
-import "../../libraries/math/MarketMathAux.sol";
 import "./base/ActionSCYAndPYBase.sol";
 import "./base/ActionType.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
