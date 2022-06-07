@@ -8,10 +8,10 @@ import "../../interfaces/IPMarketSwapCallback.sol";
 import "../../libraries/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
 import "./base/ActionSCYAndPYBase.sol";
-import "./base/ActionType.sol";
+import "./base/CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ActionCallback is IPMarketSwapCallback, ActionType {
+contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
     address public immutable marketFactory;
     using Math for int256;
     using Math for uint256;
@@ -41,28 +41,26 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         bytes calldata data
     ) external override onlyPendleMarket(msg.sender) {
         address market = msg.sender;
-        (ACTION_TYPE swapType, ) = abi.decode(data, (ACTION_TYPE, address));
-        if (swapType == ACTION_TYPE.SwapExactScyForYt) {
-            _swapExactScyForYt_callback(market, ptToAccount, scyToAccount, data);
-        } else if (swapType == ACTION_TYPE.SwapSCYForExactYt) {
-            _swapScyForExactYt_callback(market, ptToAccount, scyToAccount, data);
-        } else if (
-            swapType == ACTION_TYPE.SwapYtForExactScy || swapType == ACTION_TYPE.SwapExactYtForScy
-        ) {
-            _swapYtForScy_callback(market, ptToAccount, scyToAccount, data);
+        ActionType swapType = _getActionType(data);
+        if (swapType == ActionType.SwapExactScyForYt) {
+            _callbackSwapExactScyForYt(market, ptToAccount, scyToAccount, data);
+        } else if (swapType == ActionType.SwapScyForExactYt) {
+            _callbackSwapScyForExactYt(market, ptToAccount, scyToAccount, data);
+        } else if (swapType == ActionType.SwapYtForScy) {
+            _callbackSwapYtForScy(market, ptToAccount, scyToAccount, data);
         } else {
             require(false, "unknown swapType");
         }
     }
 
-    function _swapExactScyForYt_callback(
+    function _callbackSwapExactScyForYt(
         address market,
         int256 ptToAccount,
         int256, /*scyToAccount*/
         bytes calldata data
     ) internal {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        (, address receiver, uint256 minYtOut) = abi.decode(data, (ACTION_TYPE, address, uint256));
+        (address receiver, uint256 minYtOut) = _decodeSwapExactScyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
         uint256 amountPYout = YT.mintPY(market, receiver);
@@ -77,17 +75,14 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
         uint256 maxScyToPull;
     }
 
-    function _swapScyForExactYt_callback(
+    function _callbackSwapScyForExactYt(
         address market,
         int256 ptToAccount,
         int256 scyToAccount,
         bytes calldata data
     ) internal {
         VarsSwapScyForExactYt memory vars;
-        (, vars.payer, vars.receiver, vars.maxScyToPull) = abi.decode(
-            data,
-            (ACTION_TYPE, address, address, uint256)
-        );
+        (vars.payer, vars.receiver, vars.maxScyToPull) = _decodeSwapScyForExactYt(data);
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         /// ------------------------------------------------------------
@@ -118,16 +113,13 @@ contract ActionCallback is IPMarketSwapCallback, ActionType {
     /**
     @dev receive PT -> pair with YT to redeem SCY -> payback SCY
     */
-    function _swapYtForScy_callback(
+    function _callbackSwapYtForScy(
         address market,
         int256, /*ptToAccount*/
         int256 scyToAccount,
         bytes calldata data
     ) internal {
-        (, address receiver, uint256 minScyOut) = abi.decode(
-            data,
-            (ACTION_TYPE, address, uint256)
-        );
+        (address receiver, uint256 minScyOut) = _decodeSwapYtForScy(data);
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 scyOwed = scyToAccount.neg().Uint();

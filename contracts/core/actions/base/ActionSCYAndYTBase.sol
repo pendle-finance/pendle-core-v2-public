@@ -6,10 +6,10 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../libraries/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "./ActionSCYAndPYBase.sol";
-import "./ActionType.sol";
+import "./CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
+abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -48,7 +48,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapExactPtForScy(
             address(YT),
             netYtOut, // exactPtIn = netYtOut
-            abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver, minYtOut)
+            _encodeSwapExactScyForYt(receiver, minYtOut)
         );
 
         emit SwapYTAndSCY(receiver, netYtOut.Int(), exactScyIn.neg());
@@ -79,12 +79,10 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapScyForExactPt(
             address(YT),
             exactYtIn, // exactPtOut = exactYtIn
-            abi.encode(ACTION_TYPE.SwapExactYtForScy, receiver, minScyOut)
+            _encodeSwapYtForScy(receiver, minScyOut)
         ); // ignore return
 
-        // no check in callback because
         netScyOut = SCY.balanceOf(receiver) - preScyBalance;
-        require(netScyOut >= minScyOut, "insufficient SCY out");
 
         emit SwapYTAndSCY(receiver, exactYtIn.neg(), netScyOut.Int());
     }
@@ -105,7 +103,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapExactPtForScy(
             address(YT),
             exactYtOut, // exactPtIn = exactYtOut
-            abi.encode(ACTION_TYPE.SwapSCYForExactYt, msg.sender, receiver, maxScyIn)
+            _encodeSwapScyForExactYt(msg.sender, receiver, maxScyIn)
         );
 
         emit SwapYTAndSCY(receiver, exactYtOut.Int(), netScyIn.neg());
@@ -138,7 +136,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapScyForExactPt(
             address(YT),
             netYtIn, // exactPtOut = netYtIn
-            abi.encode(ACTION_TYPE.SwapYtForExactScy, receiver, exactScyOut)
+            _encodeSwapYtForScy(receiver, exactScyOut)
         ); // ignore return
 
         emit SwapYTAndSCY(receiver, netYtIn.neg(), exactScyOut.Int());
