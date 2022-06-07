@@ -14,6 +14,7 @@ abstract contract ActionSCYAndPTBase {
     using MarketMathCore for MarketState;
     using MarketApproxLib for MarketState;
     using SafeERC20 for IERC20;
+    using SCYIndexLib for ISuperComposableYield;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
 
@@ -44,7 +45,7 @@ abstract contract ActionSCYAndPTBase {
 
         MarketState memory state = IPMarket(market).readState(false);
         (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             scyDesired,
             ptDesired,
             false
@@ -131,7 +132,7 @@ abstract contract ActionSCYAndPTBase {
         (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         (netPtIn, ) = state.approxSwapPtForExactScy(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactScyOut,
             block.timestamp,
             approx
@@ -162,11 +163,7 @@ abstract contract ActionSCYAndPTBase {
         MarketState memory state = IPMarket(market).readState(false);
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        (netScyIn, ) = state.swapScyForExactPt(
-            SCYIndexLib.newIndex(SCY),
-            exactPtOut,
-            block.timestamp
-        );
+        (netScyIn, ) = state.swapScyForExactPt(SCY.newIndex(), exactPtOut, block.timestamp);
         require(netScyIn <= maxScyIn, "exceed limit scy in");
 
         if (doPull) {
@@ -195,7 +192,7 @@ abstract contract ActionSCYAndPTBase {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         (netPtOut, ) = state.approxSwapExactScyForPt(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactScyIn,
             block.timestamp,
             approx

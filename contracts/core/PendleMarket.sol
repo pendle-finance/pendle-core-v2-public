@@ -23,6 +23,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     using Math for int256;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
+    using SCYIndexLib for ISuperComposableYield;
 
     struct MarketStorage {
         int128 totalPt;
@@ -41,9 +42,9 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
 
-    address internal immutable PT;
-    address internal immutable SCY;
-    address internal immutable YT;
+    IPPrincipalToken internal immutable PT;
+    ISuperComposableYield internal immutable SCY;
+    IPYieldToken internal immutable YT;
 
     int256 public immutable scalarRoot;
     int256 public immutable initialAnchor;
@@ -79,9 +80,9 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_PT).expiry())
         PendleGauge(IPPrincipalToken(_PT).SCY(), _vePendle, _gaugeController)
     {
-        PT = _PT;
-        SCY = IPPrincipalToken(_PT).SCY();
-        YT = IPPrincipalToken(_PT).YT();
+        PT = IPPrincipalToken(_PT);
+        SCY = ISuperComposableYield(PT.SCY());
+        YT = IPYieldToken(PT.YT());
 
         require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
@@ -114,7 +115,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         )
     {
         MarketState memory market = readState(true);
-        SCYIndex index = SCYIndexLib.newIndex(SCY);
+        SCYIndex index = SCY.newIndex();
 
         uint256 lpToReserve;
         (lpToReserve, lpToAccount, scyUsed, ptUsed) = market.addLiquidity(
@@ -207,7 +208,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         MarketState memory market = readState(true);
 
         (netScyOut, netScyToReserve) = market.swapExactPtForScy(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactPtIn,
             block.timestamp
         );
@@ -244,7 +245,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         MarketState memory market = readState(true);
 
         (netScyIn, netScyToReserve) = market.swapScyForExactPt(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactPtOut,
             block.timestamp
         );
@@ -290,18 +291,16 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
             IPYieldToken _YT
         )
     {
-        _SCY = ISuperComposableYield(SCY);
-        _PT = IPPrincipalToken(PT);
-        _YT = IPYieldToken(YT);
+        _SCY = SCY;
+        _PT = PT;
+        _YT = YT;
     }
 
     function readState(bool updateRateOracle) public view returns (MarketState memory market) {
-        MarketStorage memory local = _storage;
-
-        market.totalPt = local.totalPt;
-        market.totalScy = local.totalScy;
+        market.totalPt = _storage.totalPt;
+        market.totalScy = _storage.totalScy;
         market.totalLp = totalSupply().Int();
-        market.oracleRate = local.oracleRate;
+        market.oracleRate = _storage.oracleRate;
 
         (
             market.treasury,
@@ -313,8 +312,8 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
 
-        market.lastLnImpliedRate = local.lastLnImpliedRate;
-        market.lastTradeTime = local.lastTradeTime;
+        market.lastLnImpliedRate = _storage.lastLnImpliedRate;
+        market.lastTradeTime = _storage.lastTradeTime;
 
         if (updateRateOracle) {
             // must happen after lastLnImpliedRate & lastTradeTime is filled

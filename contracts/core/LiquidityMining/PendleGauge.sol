@@ -14,9 +14,10 @@ abstract contract PendleGauge is RewardManager {
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
 
-    uint256 private constant TOKENLESS_PRODUCTION = 40;
     address private immutable SCY;
-    address private immutable PENDLE;
+
+    uint256 internal constant TOKENLESS_PRODUCTION = 40;
+    address internal immutable PENDLE;
 
     IPVeToken public immutable vePENDLE;
     address public immutable gaugeController;

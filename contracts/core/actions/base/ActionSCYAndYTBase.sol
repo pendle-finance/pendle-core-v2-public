@@ -16,6 +16,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
     using MarketApproxLib for MarketState;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
+    using SCYIndexLib for ISuperComposableYield;
 
     event SwapYTAndSCY(address indexed user, int256 ytToAccount, int256 scyToAccount);
 
@@ -30,7 +31,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         MarketState memory state = IPMarket(market).readState(false);
 
         (netYtOut, ) = state.approxSwapExactScyForYt(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactScyIn,
             block.timestamp,
             approx
@@ -122,7 +123,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netYtIn, ) = state.approxSwapYtForExactScy(
-            SCYIndexLib.newIndex(SCY),
+            SCY.newIndex(),
             exactScyOut,
             block.timestamp,
             approx
