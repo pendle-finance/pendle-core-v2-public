@@ -115,7 +115,7 @@ contract RouterStatic is IPRouterStatic {
         userPYInfo.ytBalance = YT.balanceOf(user);
         userPYInfo.ptBalance = IPPrincipalToken(userPYInfo.pt).balanceOf(user);
         userPYInfo.unclaimedInterest.token = YT.SCY();
-        (, userPYInfo.unclaimedInterest.amount) = YT.getInterestData(user);
+        (, userPYInfo.unclaimedInterest.amount) = YT.userInterest(user);
         address[] memory rewardTokens = YT.getRewardTokens();
         TokenAmount[] memory unclaimedRewards = new TokenAmount[](rewardTokens.length);
         uint256 length = 0;

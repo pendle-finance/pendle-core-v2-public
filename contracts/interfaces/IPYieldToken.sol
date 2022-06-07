@@ -31,10 +31,10 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
 
     function updateAndDistributeInterest(address user) external;
 
-    function getInterestData(address user)
+    function userInterest(address user)
         external
         view
-        returns (uint256 lastScyIndex, uint256 dueInterest);
+        returns (uint128 lastScyIndex, uint128 accruedInterest);
 
     function getRewardTokens() external view returns (address[] memory);
 

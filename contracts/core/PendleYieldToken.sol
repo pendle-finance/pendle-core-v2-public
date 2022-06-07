@@ -31,14 +31,19 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     struct InterestState {
         uint128 lastIndexBeforeExpiry;
-        uint128 lastBalance;
+        uint128 scyReserve;
+    }
+
+    modifier updateScyReserve() {
+        _;
+        _updateScyReserve();
     }
 
     address public immutable SCY;
     address public immutable PT;
 
     InterestState public interestState;
-    mapping(address => UserInterest) internal userInterest;
+    mapping(address => UserInterest) public userInterest;
 
     constructor(
         address _SCY,
@@ -60,21 +65,25 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     function mintPY(address receiverPT, address receiverYT)
         external
         nonReentrant
+        updateScyReserve
         returns (uint256 amountPYOut)
     {
-        uint256 amountToTokenize = _getAmountScyToMint();
+        uint256 amountToTokenize = _getFloatingScyAmount();
 
         amountPYOut = _calcAmountToMint(amountToTokenize);
 
         _mint(receiverYT, amountPYOut);
 
         IPPrincipalToken(PT).mintByYT(receiverPT, amountPYOut);
-
-        _updateScyBalance();
     }
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
-    function redeemPY(address receiver) external nonReentrant returns (uint256 amountScyOut) {
+    function redeemPY(address receiver)
+        external
+        nonReentrant
+        updateScyReserve
+        returns (uint256 amountScyOut)
+    {
         address[] memory receivers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         (receivers[0], amounts[0]) = (receiver, type(uint256).max);
@@ -85,6 +94,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     function redeemPY(address[] memory receivers, uint256[] memory amounts)
         external
         nonReentrant
+        updateScyReserve
         returns (uint256 amountScyOut)
     {
         amountScyOut = _redeemPY(receivers, amounts);
@@ -96,6 +106,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     function redeemDueInterestAndRewards(address user)
         external
         nonReentrant
+        updateScyReserve
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
         // redeemDueRewards before redeemDueInterest
@@ -111,14 +122,21 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     /**
      * @dev as mentioned in doc, _updateAndDistributeRewards should be placed strictly before every _updateAndDistributeInterest
      */
-    function redeemDueInterest(address user) external nonReentrant returns (uint256 interestOut) {
+    function redeemDueInterest(address user)
+        external
+        nonReentrant
+        updateScyReserve
+        returns (uint256 interestOut)
+    {
         _updateAndDistributeRewards(user); /// strictly required, see above for explanation
-
         _updateAndDistributeInterest(user);
+
         interestOut = _doTransferOutInterest(user);
+
         emit RedeemInterest(user, interestOut);
     }
 
+    /// @dev no updateScyReserve since this function doesn't change the SCY reserve
     function redeemDueRewards(address user)
         external
         nonReentrant
@@ -127,21 +145,45 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         _updateAndDistributeRewards(user);
 
         rewardsOut = _doTransferOutRewards(user, user);
+
         emit RedeemRewards(user, rewardsOut);
     }
 
+    /// @dev no updateScyReserve since this function doesn't change the SCY reserve
     function updateAndDistributeReward(address user) external nonReentrant {
         _updateAndDistributeRewards(user);
     }
 
+    /// @dev no updateScyReserve since this function doesn't change the SCY reserve
     function updateAndDistributeInterest(address user) external nonReentrant {
         _updateAndDistributeInterest(user);
+    }
+
+    /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
+    function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
+        currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
+        if (isExpired()) {
+            lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
+        } else {
+            lastIndexBeforeExpiry = currentIndex;
+            interestState.lastIndexBeforeExpiry = lastIndexBeforeExpiry.Uint128();
+        }
+    }
+
+    function getImpliedScyBalance(address user) public view returns (uint256) {
+        uint256 scyIndex = userInterest[user].index;
+        if (scyIndex == 0) return 0;
+        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + userInterest[user].accrued;
     }
 
     function _redeemPY(address[] memory receivers, uint256[] memory amounts)
         internal
         returns (uint256 amountScyOut)
     {
+        /// ------------------------------------------------------------
+        /// burn PT & YT
+        /// ------------------------------------------------------------
+
         // minimum of PT & YT balance
         uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
         if (!isExpired()) {
@@ -150,6 +192,10 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         }
 
         IPPrincipalToken(PT).burnByYT(address(this), amountPYToRedeem);
+
+        /// ------------------------------------------------------------
+        /// transfer tokens out
+        /// ------------------------------------------------------------
 
         uint256 amountScyToTreasury;
         (amountScyOut, amountScyToTreasury) = _calcAmountToRedeem(amountPYToRedeem);
@@ -161,14 +207,18 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
             );
         }
 
+        uint256 numReceivers = receivers.length;
+        require(numReceivers == amounts.length, "invalid length");
+
         uint256 totalAmountRemains = amountScyOut;
-        for (uint256 i = 0; i < receivers.length; i++) {
+        for (uint256 i = 0; i < numReceivers; ) {
             uint256 amount = Math.min(totalAmountRemains, amounts[i]);
             totalAmountRemains -= amount;
             if (amount != 0) IERC20(SCY).safeTransfer(receivers[i], amount);
+            unchecked {
+                i++;
+            }
         }
-
-        _updateScyBalance();
     }
 
     function _updateAndDistributeInterest(address user) internal {
@@ -192,12 +242,17 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         userInterest[user].index = currentIndexBeforeExpiry.Uint128();
     }
 
-    function getInterestData(address user)
-        external
-        view
-        returns (uint256 lastScyIndex, uint256 dueInterest)
-    {
-        return (userInterest[user].index, userInterest[user].accrued);
+    function _doTransferOutInterest(address user) internal returns (uint256 interestOut) {
+        uint256 interestPreFee = userInterest[user].accrued;
+        userInterest[user].accrued = 0;
+
+        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
+        uint256 feeAmount = interestPreFee.mulDown(feeRate);
+
+        IERC20(SCY).safeTransfer(IPYieldContractFactory(factory).treasury(), feeAmount);
+
+        interestOut = interestPreFee - feeAmount;
+        IERC20(SCY).safeTransfer(user, interestOut);
     }
 
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
@@ -227,46 +282,24 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         }
     }
 
-    function _doTransferOutInterest(address user) internal returns (uint256 interestOut) {
-        uint256 interestPreFee = userInterest[user].accrued;
-        userInterest[user].accrued = 0;
-
-        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
-        uint256 feeAmount = interestPreFee.mulDown(feeRate);
-
-        IERC20(SCY).safeTransfer(IPYieldContractFactory(factory).treasury(), feeAmount);
-
-        interestOut = interestPreFee - feeAmount;
-        IERC20(SCY).safeTransfer(user, interestOut);
-        _updateScyBalance();
-    }
-
     function _redeemExternalReward() internal virtual override {
         ISuperComposableYield(SCY).claimRewards(address(this)); // ignore return
     }
 
-    /// @dev to be overriden if there is rewards
     function _rewardSharesTotal() internal virtual override returns (uint256) {
-        return interestState.lastBalance;
+        return interestState.scyReserve;
     }
 
-    /// @dev to be overriden if there is rewards
     function _rewardSharesUser(address user) internal virtual override returns (uint256) {
         return getImpliedScyBalance(user);
     }
 
-    function _getRewardTokens() internal view override returns (address[] memory) {
-        return ISuperComposableYield(SCY).getRewardTokens();
+    function getRewardTokens() external view returns (address[] memory) {
+        return _getRewardTokens();
     }
 
-    function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
-        currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
-        if (isExpired()) {
-            lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
-        } else {
-            lastIndexBeforeExpiry = currentIndex;
-            interestState.lastIndexBeforeExpiry = lastIndexBeforeExpiry.Uint128();
-        }
+    function _getRewardTokens() internal view override returns (address[] memory) {
+        return ISuperComposableYield(SCY).getRewardTokens();
     }
 
     function _calcAmountToMint(uint256 amount) internal returns (uint256) {
@@ -284,25 +317,13 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         amountToTreasury = totalRedeemable - amountToUser;
     }
 
-    function _getAmountScyToMint() internal view returns (uint256 amount) {
-        amount = IERC20(SCY).balanceOf(address(this)) - interestState.lastBalance;
+    function _getFloatingScyAmount() internal view returns (uint256 amount) {
+        amount = IERC20(SCY).balanceOf(address(this)) - interestState.scyReserve;
         require(amount > 0, "RECEIVE_ZERO");
     }
 
-    function _updateScyBalance() internal {
-        interestState.lastBalance = IERC20(SCY).balanceOf(address(this)).Uint128();
-    }
-
-    function getImpliedScyBalance(address user) public view returns (uint256) {
-        uint256 scyIndex = userInterest[user].index;
-        if (scyIndex == 0) {
-            return 0;
-        }
-        return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + userInterest[user].accrued;
-    }
-
-    function getRewardTokens() external view returns (address[] memory) {
-        return _getRewardTokens();
+    function _updateScyReserve() internal virtual {
+        interestState.scyReserve = IERC20(SCY).balanceOf(address(this)).Uint128();
     }
 
     function _beforeTokenTransfer(
