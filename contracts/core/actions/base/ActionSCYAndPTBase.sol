@@ -111,12 +111,7 @@ abstract contract ActionSCYAndPTBase {
             IERC20(PT).safeTransferFrom(msg.sender, market, exactPtIn);
         }
 
-        (netScyOut, ) = IPMarket(market).swapExactPtForScy(
-            receiver,
-            exactPtIn,
-            minScyOut,
-            abi.encode()
-        );
+        (netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, exactPtIn, abi.encode());
 
         require(netScyOut >= minScyOut, "insufficient scy out");
     }
@@ -148,7 +143,7 @@ abstract contract ActionSCYAndPTBase {
             IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
         }
 
-        IPMarket(market).swapExactPtForScy(receiver, netPtIn, exactScyOut, abi.encode()); // ignore return
+        IPMarket(market).swapExactPtForScy(receiver, netPtIn, abi.encode()); // ignore return
     }
 
     /**
@@ -180,7 +175,7 @@ abstract contract ActionSCYAndPTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
         }
 
-        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, maxScyIn, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, abi.encode()); // ignore return
     }
 
     /**
@@ -212,6 +207,6 @@ abstract contract ActionSCYAndPTBase {
             IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
         }
 
-        IPMarket(market).swapScyForExactPt(receiver, netPtOut, exactScyIn, abi.encode()); // ignore return
+        IPMarket(market).swapScyForExactPt(receiver, netPtOut, abi.encode()); // ignore return
     }
 }

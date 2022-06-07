@@ -54,14 +54,12 @@ interface IPMarket is IPBaseToken {
     function swapExactPtForScy(
         address receiver,
         uint256 exactPtIn,
-        uint256 minScyOut,
         bytes calldata data
     ) external returns (uint256 netScyOut, uint256 netScyToReserve);
 
     function swapScyForExactPt(
         address receiver,
         uint256 exactPtOut,
-        uint256 maxScyIn,
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 

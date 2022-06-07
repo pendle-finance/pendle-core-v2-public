@@ -200,7 +200,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     function swapExactPtForScy(
         address receiver,
         uint256 exactPtIn,
-        uint256 minScyOut,
         bytes calldata data
     ) external nonReentrant returns (uint256 netScyOut, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
@@ -212,7 +211,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
             exactPtIn,
             block.timestamp
         );
-        require(netScyOut >= minScyOut, "insufficient scy out");
 
         IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
@@ -241,7 +239,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     function swapScyForExactPt(
         address receiver,
         uint256 exactPtOut,
-        uint256 maxScyIn,
         bytes calldata data
     ) external nonReentrant returns (uint256 netScyIn, uint256 netScyToReserve) {
         require(block.timestamp < expiry, "MARKET_EXPIRED");
@@ -253,7 +250,6 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
             exactPtOut,
             block.timestamp
         );
-        require(netScyIn <= maxScyIn, "scy in exceed limit");
 
         IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);

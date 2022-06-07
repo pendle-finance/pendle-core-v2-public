@@ -45,7 +45,6 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapExactPtForScy(
             address(YT),
             netYtOut, // exactPtIn = netYtOut
-            1,
             abi.encode(ACTION_TYPE.SwapExactScyForYt, receiver)
         ); // ignore-return
 
@@ -77,7 +76,6 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapScyForExactPt(
             address(YT),
             exactYtIn, // exactPtOut = exactYtIn
-            type(uint256).max,
             abi.encode(ACTION_TYPE.SwapExactYtForScy, receiver)
         ); // ignore return
 
@@ -105,13 +103,12 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapExactPtForScy(
             address(YT),
             exactYtOut, // exactPtIn = exactYtOut
-            1,
             abi.encode(ACTION_TYPE.SwapSCYForExactYt, msg.sender, receiver)
         ); // ignore return
 
         netScyIn = preBalanceScy - SCY.balanceOf(receiver);
 
-        require(netScyIn <= maxScyIn, "exceed out limit");
+        require(netScyIn <= maxScyIn, "exceed in limit");
 
         emit SwapYTAndSCY(receiver, exactYtOut.Int(), netScyIn.neg());
     }
@@ -140,7 +137,6 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, ActionType {
         IPMarket(market).swapScyForExactPt(
             address(YT),
             netYtIn, // exactPtOut = netYtIn
-            type(uint256).max,
             abi.encode(ACTION_TYPE.SwapYtForExactScy, receiver)
         ); // ignore return
 
