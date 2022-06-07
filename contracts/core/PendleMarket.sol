@@ -268,6 +268,15 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
 
+    // force balances to match reserves
+    function skim() external nonReentrant {
+        MarketState memory market = readState(true);
+        uint256 excessPt = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
+        uint256 excessScy = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
+        IERC20(PT).safeTransfer(market.treasury, excessPt);
+        IERC20(SCY).safeTransfer(market.treasury, excessScy);
+    }
+
     /// @dev this function is just a place holder. Later on the rewards will be transferred to the liquidity minining
     /// instead
     function redeemScyReward() external returns (uint256[] memory outAmounts) {
