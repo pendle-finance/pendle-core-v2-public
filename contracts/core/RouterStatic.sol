@@ -81,7 +81,9 @@ contract RouterStatic is IPRouterStatic {
     }
 
     function scyIndex(address market) public returns (SCYIndex index) {
-        return SCYIndexLib.newIndex(IPMarket(market).SCY());
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        return SCYIndexLib.newIndex(SCY);
     }
 
     function getPtImpliedYield(address market) public view returns (int256) {
@@ -177,8 +179,10 @@ contract RouterStatic is IPRouterStatic {
         )
     {
         IPMarket _market = IPMarket(market);
-        pt = _market.PT();
-        scy = _market.SCY();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+
+        pt = address(PT);
+        scy = address(SCY);
         state = _market.readState(true);
         impliedYield = getPtImpliedYield(market);
         exchangeRate = 0; // TODO: get the actual exchange rate
@@ -193,8 +197,10 @@ contract RouterStatic is IPRouterStatic {
         userMarketInfo.market = market;
         userMarketInfo.lpBalance = _market.balanceOf(user);
         // TODO: Is there a way to convert LP to PT and SCY?
-        userMarketInfo.ptBalance = TokenAmount(_market.PT(), 0);
-        userMarketInfo.scyBalance = TokenAmount(_market.SCY(), 0);
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+
+        userMarketInfo.ptBalance = TokenAmount(address(PT), 0);
+        userMarketInfo.scyBalance = TokenAmount(address(SCY), 0);
         // TODO: Get this from SCY once it is in the interface
         userMarketInfo.assetBalance = TokenAmount(address(0), 0);
     }

@@ -152,15 +152,17 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         ApproxParams memory approx
     ) external returns (uint256 netPtOut) {
-        address SCY = IPMarket(market).SCY();
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
         uint256 netScyUseToBuyPt = _mintScyFromRawToken(
             exactRawTokenIn,
-            SCY,
+            address(SCY),
             1,
             market,
             path,
             true
         );
+
         netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, approx, false);
     }
 
@@ -175,8 +177,17 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase, ActionSCYAndPYBase {
         address market,
         uint256 minRawTokenOut
     ) external returns (uint256 netRawTokenOut) {
-        address SCY = IPMarket(market).SCY();
-        _swapExactPtForScy(SCY, market, exactPtIn, 1, true);
-        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        _swapExactPtForScy(address(SCY), market, exactPtIn, 1, true);
+
+        netRawTokenOut = _redeemScyToRawToken(
+            address(SCY),
+            0,
+            minRawTokenOut,
+            receiver,
+            path,
+            false
+        );
     }
 }

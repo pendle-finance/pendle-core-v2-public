@@ -65,12 +65,6 @@ interface IPMarket is IPBaseToken {
 
     function readState(bool updateRateOracle) external view returns (MarketState memory market);
 
-    function PT() external view returns (address);
-
-    function YT() external view returns (address);
-
-    function SCY() external view returns (address);
-
     function readTokens()
         external
         view

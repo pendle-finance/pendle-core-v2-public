@@ -107,8 +107,8 @@ abstract contract ActionSCYAndPTBase {
         bool doPull
     ) internal returns (uint256 netScyOut) {
         if (doPull) {
-            address PT = IPMarket(market).PT();
-            IERC20(PT).safeTransferFrom(msg.sender, market, exactPtIn);
+            (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+            IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
         }
 
         (netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, exactPtIn, abi.encode());
@@ -162,7 +162,7 @@ abstract contract ActionSCYAndPTBase {
         bool doPull
     ) internal returns (uint256 netScyIn) {
         MarketState memory state = IPMarket(market).readState(false);
-        address SCY = IPMarket(market).SCY();
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         (netScyIn, ) = state.swapScyForExactPt(
             SCYIndexLib.newIndex(SCY),
@@ -194,7 +194,7 @@ abstract contract ActionSCYAndPTBase {
         bool doPull
     ) internal returns (uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
-        address SCY = IPMarket(market).SCY();
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         (netPtOut, ) = state.approxSwapExactScyForPt(
             SCYIndexLib.newIndex(SCY),

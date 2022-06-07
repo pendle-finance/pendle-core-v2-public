@@ -75,8 +75,8 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
     }
 
     function isValidMarket(address market) external view returns (bool) {
-        address PT = IPMarket(market).PT();
-        return markets[PT].contains(market);
+        (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        return markets[address(PT)].contains(market);
     }
 
     function treasury() external view returns (address) {

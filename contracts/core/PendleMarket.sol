@@ -22,8 +22,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
-    using Math for uint128;
-    using LogExpMath for uint256;
     using MarketMathAux for MarketState;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
@@ -45,9 +43,9 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
 
-    address public immutable PT;
-    address public immutable SCY;
-    address public immutable YT;
+    address internal immutable PT;
+    address internal immutable SCY;
+    address internal immutable YT;
 
     int256 public immutable scalarRoot;
     int256 public immutable initialAnchor;
