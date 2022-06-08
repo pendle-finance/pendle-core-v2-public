@@ -7,8 +7,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/SCYUtils.sol";
 import "../../libraries/TokenHelper.sol";
+import "../../../contracts/core/PendleERC20.sol";
 
-abstract contract SCYBase is ISuperComposableYield, ERC20, ReentrancyGuard, TokenHelper {
+abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
     using Math for uint256;
 
     address public immutable yieldToken;
@@ -24,7 +25,7 @@ abstract contract SCYBase is ISuperComposableYield, ERC20, ReentrancyGuard, Toke
         string memory _name,
         string memory _symbol,
         address _yieldToken
-    ) ERC20(_name, _symbol) {
+    ) PendleERC20(_name, _symbol, 18) {
         yieldToken = _yieldToken;
     }
 
@@ -69,7 +70,10 @@ abstract contract SCYBase is ISuperComposableYield, ERC20, ReentrancyGuard, Toke
     ) external nonReentrant updateReserve returns (uint256 amountTokenOut) {
         require(isValidBaseToken(tokenOut), "SCY: invalid tokenOut");
 
-        if (amountSharesToPull != 0) transferFrom(msg.sender, address(this), amountSharesToPull);
+        if (amountSharesToPull != 0) {
+            _spendAllowance(msg.sender, address(this), amountSharesToPull);
+            _transfer(msg.sender, address(this), amountSharesToPull);
+        }
 
         uint256 amountSharesToRedeem = _getFloatingAmount(address(this));
 
@@ -172,13 +176,6 @@ abstract contract SCYBase is ISuperComposableYield, ERC20, ReentrancyGuard, Toke
     /*///////////////////////////////////////////////////////////////
                 MISC METADATA FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice See {ISuperComposableYield-decimals}
-     */
-    function decimals() public view virtual override(ERC20, IERC20Metadata) returns (uint8) {
-        return 18;
-    }
 
     /**
      * @notice See {ISuperComposableYield-getBaseTokens}

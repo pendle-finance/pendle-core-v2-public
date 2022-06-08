@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleBaseToken.sol";
+import "./PendleERC20.sol";
 import "../interfaces/ISuperComposableYield.sol";
 import "../interfaces/IPYieldToken.sol";
 import "../interfaces/IPPrincipalToken.sol";
@@ -9,7 +9,6 @@ import "../libraries/math/Math.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../libraries/SCYUtils.sol";
 import "../SuperComposableYield/base-implementations/RewardManager.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /*
@@ -20,7 +19,7 @@ It has been proven and tested that impliedScyBalance will not change over time, 
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
-contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, ReentrancyGuard {
+contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     using Math for uint256;
     using SafeERC20 for IERC20;
 
@@ -41,6 +40,8 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     address public immutable SCY;
     address public immutable PT;
+    address public immutable factory;
+    uint256 public immutable expiry;
 
     InterestState public interestState;
     mapping(address => UserInterest) public userInterest;
@@ -52,10 +53,12 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
+    ) PendleERC20(_name, _symbol, __decimals) {
         require(_SCY != address(0) && _PT != address(0), "zero address");
         SCY = _SCY;
         PT = _PT;
+        expiry = _expiry;
+        factory = msg.sender;
     }
 
     /**
@@ -162,7 +165,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
         currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
-        if (isExpired()) {
+        if (_isExpired()) {
             lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {
             lastIndexBeforeExpiry = currentIndex;
@@ -186,7 +189,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
         // minimum of PT & YT balance
         uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
-        if (!isExpired()) {
+        if (!_isExpired()) {
             amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
             _burn(address(this), amountPYToRedeem);
         }
@@ -258,7 +261,7 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
-        if (!isExpired()) {
+        if (!_isExpired()) {
             super._updateRewardIndex();
             return;
         }
@@ -324,6 +327,10 @@ contract PendleYieldToken is PendleBaseToken, RewardManager, IPYieldToken, Reent
 
     function _updateScyReserve() internal virtual {
         interestState.scyReserve = IERC20(SCY).balanceOf(address(this)).Uint128();
+    }
+
+    function _isExpired() internal view virtual returns (bool) {
+        return block.timestamp >= expiry;
     }
 
     function _beforeTokenTransfer(

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
-import "./IPBaseToken.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IRewardManager.sol";
 
-interface IPYieldToken is IPBaseToken, IRewardManager {
+interface IPYieldToken is IERC20Metadata, IRewardManager {
     event RedeemRewards(address indexed user, uint256[] amountRewardsOut);
     event RedeemInterest(address indexed user, uint256 interestOut);
 
@@ -43,4 +43,8 @@ interface IPYieldToken is IPBaseToken, IRewardManager {
     function SCY() external view returns (address);
 
     function PT() external view returns (address);
+
+    function factory() external view returns (address);
+
+    function expiry() external view returns (uint256);
 }

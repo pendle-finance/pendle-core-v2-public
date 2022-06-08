@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleBaseToken.sol";
+import "./PendleERC20.sol";
 import "../interfaces/IPPrincipalToken.sol";
 import "../interfaces/ISuperComposableYield.sol";
 import "../interfaces/IPMarket.sol";
@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // solhint-disable reason-string
 /// Invariances to maintain:
 /// - Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
-contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
+contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -32,8 +32,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         uint96 lastLnImpliedRate;
         uint96 oracleRate;
         uint32 lastTradeTime;
-        uint8 _reentrancyStatus;
-        // 1 SLOT = 232 bits
+        // 1 SLOT = 224 bits
     }
 
     uint8 private constant _NOT_ENTERED = 1;
@@ -46,27 +45,15 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
     ISuperComposableYield internal immutable SCY;
     IPYieldToken internal immutable YT;
 
+    address public immutable factory;
+    uint256 public immutable expiry;
     int256 public immutable scalarRoot;
     int256 public immutable initialAnchor;
 
     MarketStorage public _storage;
 
-    modifier nonReentrant() {
-        // On the first call to nonReentrant, _notEntered will be true
-        require(_storage._reentrancyStatus != _ENTERED, "ReentrancyGuard: reentrant call");
-
-        // Any calls to nonReentrant after this point will fail
-        _storage._reentrancyStatus = _ENTERED;
-
-        _;
-
-        // By storing the original value once again, a refund is triggered (see
-        // https://eips.ethereum.org/EIPS/eip-2200)
-        _storage._reentrancyStatus = _NOT_ENTERED;
-    }
-
     modifier notExpired() {
-        require(!isExpired(), "market expired");
+        require(!_isExpired(), "market expired");
         _;
     }
 
@@ -77,7 +64,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address _vePendle,
         address _gaugeController
     )
-        PendleBaseToken(NAME, SYMBOL, 18, IPPrincipalToken(_PT).expiry())
+        PendleERC20(NAME, SYMBOL, 18)
         PendleGauge(IPPrincipalToken(_PT).SCY(), _vePendle, _gaugeController)
     {
         PT = IPPrincipalToken(_PT);
@@ -87,7 +74,8 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
-        _storage._reentrancyStatus = _NOT_ENTERED;
+        expiry = IPPrincipalToken(_PT).expiry();
+        factory = msg.sender;
     }
 
     /**
@@ -321,6 +309,10 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         }
     }
 
+    function _isExpired() internal view virtual returns (bool) {
+        return block.timestamp >= expiry;
+    }
+
     function _writeState(MarketState memory market) internal {
         _storage.totalPt = market.totalPt.Int128();
         _storage.totalScy = market.totalScy.Int128();
@@ -342,8 +334,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address from,
         address to,
         uint256 amount
-    ) internal override(ERC20, PendleGauge) {
-        // ERC20 by default does not have any hooks
+    ) internal override(PendleERC20, PendleGauge) {
         PendleGauge._beforeTokenTransfer(from, to, amount);
     }
 
@@ -351,8 +342,7 @@ contract PendleMarket is PendleBaseToken, PendleGauge, IPMarket {
         address from,
         address to,
         uint256 amount
-    ) internal override(ERC20, PendleGauge) {
-        // ERC20 by default does not have any hooks
+    ) internal override(PendleERC20, PendleGauge) {
         PendleGauge._afterTokenTransfer(from, to, amount);
     }
 }

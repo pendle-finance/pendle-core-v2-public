@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleBaseToken.sol";
+import "./PendleERC20.sol";
 import "../interfaces/IPPrincipalToken.sol";
 import "../interfaces/IPYieldToken.sol";
 
-contract PendlePrincipalToken is PendleBaseToken, IPPrincipalToken {
+contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
     address public immutable SCY;
     address public immutable YT;
+    address public immutable factory;
+    uint256 public immutable expiry;
 
     modifier onlyYT() {
         require(msg.sender == address(YT), "ONLY_YT");
@@ -21,9 +23,11 @@ contract PendlePrincipalToken is PendleBaseToken, IPPrincipalToken {
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleBaseToken(_name, _symbol, __decimals, _expiry) {
+    ) PendleERC20(_name, _symbol, __decimals) {
         SCY = _SCY;
         YT = _YT;
+        expiry = _expiry;
+        factory = msg.sender;
     }
 
     /**

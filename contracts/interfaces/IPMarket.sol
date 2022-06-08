@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./IPBaseToken.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
 import "../libraries/math/MarketMathCore.sol";
 
-interface IPMarket is IPBaseToken {
+interface IPMarket is IERC20Metadata {
     event AddLiquidity(
         address indexed receiver,
         uint256 lpToAccount,
