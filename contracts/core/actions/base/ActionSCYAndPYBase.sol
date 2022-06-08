@@ -2,7 +2,7 @@
 pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../../libraries/TraderJoe/PendleJoeSwapHelperUpg.sol";
+import "../../../libraries/traderjoe/PendleJoeSwapHelperUpg.sol";
 import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
