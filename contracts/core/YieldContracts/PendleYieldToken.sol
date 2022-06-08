@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleERC20.sol";
-import "../interfaces/ISuperComposableYield.sol";
-import "../interfaces/IPYieldToken.sol";
-import "../interfaces/IPPrincipalToken.sol";
-import "../libraries/math/Math.sol";
-import "../interfaces/IPYieldContractFactory.sol";
-import "../libraries/SCYUtils.sol";
-import "../SuperComposableYield/base-implementations/RewardManager.sol";
+import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IPYieldToken.sol";
+import "../../interfaces/IPPrincipalToken.sol";
+
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import "../../libraries/math/Math.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../libraries/SCYUtils.sol";
+
+import "../PendleERC20.sol";
+import "../../SuperComposableYield/base-implementations/RewardManager.sol";
 
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should

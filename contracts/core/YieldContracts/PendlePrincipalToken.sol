@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleERC20.sol";
-import "../interfaces/IPPrincipalToken.sol";
-import "../interfaces/IPYieldToken.sol";
+import "../../interfaces/IPPrincipalToken.sol";
+import "../../interfaces/IPYieldToken.sol";
+
+import "../PendleERC20.sol";
 
 contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
     address public immutable SCY;

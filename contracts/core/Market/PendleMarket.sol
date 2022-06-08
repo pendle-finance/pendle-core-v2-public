@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleERC20.sol";
-import "../interfaces/IPPrincipalToken.sol";
-import "../interfaces/ISuperComposableYield.sol";
-import "../interfaces/IPMarket.sol";
-import "../interfaces/IPMarketFactory.sol";
-import "../interfaces/IPMarketSwapCallback.sol";
-import "../interfaces/IPMarketAddRemoveCallback.sol";
+import "../PendleERC20.sol";
+import "../../interfaces/IPPrincipalToken.sol";
+import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPMarketFactory.sol";
+import "../../interfaces/IPMarketSwapCallback.sol";
+import "../../interfaces/IPMarketAddRemoveCallback.sol";
 
-import "../libraries/math/LogExpMath.sol";
-import "../libraries/math/Math.sol";
+import "../../libraries/math/LogExpMath.sol";
+import "../../libraries/math/Math.sol";
 
-import "./LiquidityMining/PendleGauge.sol";
+import "../LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // solhint-disable reason-string

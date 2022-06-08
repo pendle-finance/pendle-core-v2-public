@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "../interfaces/IPMarket.sol";
-import "../interfaces/IPYieldContractFactory.sol";
-import "../interfaces/IPMarketFactory.sol";
-import "../periphery/PermissionsV2Upg.sol";
+
+import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPMarketFactory.sol";
+
+import "../../libraries/helpers/MiniDeployer.sol";
+import "../../periphery/PermissionsV2Upg.sol";
+
 import "./PendleMarket.sol";
-import "./LiquidityMining/PendleGauge.sol";
-import "../libraries/helpers/MiniDeployer.sol";
+import "../LiquidityMining/PendleGauge.sol";
 
 contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
