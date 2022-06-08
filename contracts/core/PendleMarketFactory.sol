@@ -68,11 +68,10 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
         require(vePendle != address(0), "vePendle unset");
         require(gaugeController != address(0), "gaugeController unset");
-        // TODO: Reenable this check
-        // require(
-        //     markets[PT][scalarRoot][initialAnchor] == address(0),
-        //     "duplicated creation params"
-        // );
+        require(
+            markets[PT][scalarRoot][initialAnchor] == address(0),
+            "duplicated creation params"
+        );
 
         market = _deployWithArgs(
             marketCreationCodePointer,
