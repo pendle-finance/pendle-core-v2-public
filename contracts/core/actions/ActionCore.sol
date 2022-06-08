@@ -21,7 +21,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         ActionSCYAndPYBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
     {}
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function addLiquidity(
         address receiver,
         address market,
@@ -31,120 +31,120 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     )
         external
         returns (
-            uint256,
-            uint256,
-            uint256
+            uint256 netLpOut,
+            uint256 scyUsed,
+            uint256 ptUsed
         )
     {
         return _addLiquidity(receiver, market, scyDesired, ptDesired, minLpOut, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function removeLiquidity(
         address receiver,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
         uint256 ptOutMin
-    ) external returns (uint256, uint256) {
+    ) external returns (uint256 netScyOut, uint256 netPtOut) {
         return _removeLiquidity(receiver, market, lpToRemove, scyOutMin, ptOutMin, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactPtForScy(
         address receiver,
         address market,
         uint256 exactPtIn,
         uint256 minScyOut
-    ) external returns (uint256) {
+    ) external returns (uint256 netScyOut) {
         return _swapExactPtForScy(receiver, market, exactPtIn, minScyOut, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapPtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         uint256 maxPtIn,
-        ApproxParams memory approx
-    ) external returns (uint256) {
-        return _swapPtForExactScy(receiver, market, exactScyOut, maxPtIn, approx, true);
+        ApproxParams memory guessPtIn
+    ) external returns (uint256 netPtIn) {
+        return _swapPtForExactScy(receiver, market, exactScyOut, maxPtIn, guessPtIn, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapScyForExactPt(
         address receiver,
         address market,
         uint256 exactPtOut,
         uint256 maxScyIn
-    ) external returns (uint256) {
+    ) external returns (uint256 netScyIn) {
         return _swapScyForExactPt(receiver, market, exactPtOut, maxScyIn, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactScyForPt(
         address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minPtOut,
-        ApproxParams memory approx
-    ) external returns (uint256) {
-        return _swapExactScyForPt(receiver, market, exactScyIn, minPtOut, approx, true);
+        ApproxParams memory guessPtOut
+    ) external returns (uint256 netPtOut) {
+        return _swapExactScyForPt(receiver, market, exactScyIn, minPtOut, guessPtOut, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function mintScyFromRawToken(
-        uint256 netRawTokenIn,
-        address SCY,
-        uint256 minScyOut,
         address receiver,
+        address SCY,
+        uint256 netRawTokenIn,
+        uint256 minScyOut,
         address[] calldata path
-    ) external returns (uint256) {
-        return _mintScyFromRawToken(netRawTokenIn, SCY, minScyOut, receiver, path, true);
+    ) external returns (uint256 netScyOut) {
+        return _mintScyFromRawToken(receiver, SCY, netRawTokenIn, minScyOut, path, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function redeemScyToRawToken(
+        address receiver,
         address SCY,
         uint256 netScyIn,
         uint256 minRawTokenOut,
-        address receiver,
         address[] memory path
-    ) external returns (uint256) {
-        return _redeemScyToRawToken(SCY, netScyIn, minRawTokenOut, receiver, path, true);
+    ) external returns (uint256 netRawTokenOut) {
+        return _redeemScyToRawToken(receiver, SCY, netScyIn, minRawTokenOut, path, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function mintPyFromRawToken(
-        uint256 netRawTokenIn,
-        address YT,
-        uint256 minPyOut,
         address receiver,
+        address YT,
+        uint256 netRawTokenIn,
+        uint256 minPyOut,
         address[] calldata path
-    ) external returns (uint256) {
-        return _mintPyFromRawToken(netRawTokenIn, YT, minPyOut, receiver, path, true);
+    ) external returns (uint256 netPyOut) {
+        return _mintPyFromRawToken(receiver, YT, netRawTokenIn, minPyOut, path, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function redeemPyToRawToken(
+        address receiver,
         address YT,
         uint256 netPyIn,
         uint256 minRawTokenOut,
-        address receiver,
         address[] memory path
-    ) external returns (uint256) {
-        return _redeemPyToRawToken(YT, netPyIn, minRawTokenOut, receiver, path, true);
+    ) external returns (uint256 netRawTokenOut) {
+        return _redeemPyToRawToken(receiver, YT, netPyIn, minRawTokenOut, path, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactRawTokenForPt(
         address receiver,
         address market,
         uint256 exactRawTokenIn,
         uint256 minPtOut,
         address[] calldata path,
-        ApproxParams memory approx
-    ) external returns (uint256) {
+        ApproxParams memory guessPtOut
+    ) external returns (uint256 netPtOut) {
         return
             _swapExactRawTokenForPt(
                 receiver,
@@ -152,19 +152,19 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
                 exactRawTokenIn,
                 minPtOut,
                 path,
-                approx,
+                guessPtOut,
                 true
             );
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactPtForRawToken(
         address receiver,
         address market,
         uint256 exactPtIn,
         uint256 minRawTokenOut,
         address[] calldata path
-    ) external returns (uint256) {
+    ) external returns (uint256 netRawTokenOut) {
         return _swapExactPtForRawToken(receiver, market, exactPtIn, minRawTokenOut, path, true);
     }
 

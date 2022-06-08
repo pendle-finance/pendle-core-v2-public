@@ -21,14 +21,9 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
 
-    /**
-     * @notice addLiquidity to the market, using both SCY & PT, the receiver will receive LP before
-     msg.sender is required to pay SCY & PT
-     * @dev inner working of this function:
-     - market.addLiquidity is called
-     - LP is minted to the receiver, and this router's addLiquidityCallback is invoked
-     - the router will transfer the necessary scy & pt from msg.sender to the market, and finish the callback
-     */
+    /// @dev For doPull: if doPull is true, this function will do transferFrom as necessary from msg.sender. Else, it will
+    /// assume tokens have already been transferred in.
+
     function _addLiquidity(
         address receiver,
         address market,
@@ -73,14 +68,6 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netLpOut >= minLpOut, "FS insufficient lp out");
     }
 
-    /**
-     * @notice removeLiquidity from the market to receive both SCY & PT. The receiver will receive
-     SCY & PT before msg.sender is required to transfer in the necessary LP
-     * @dev inner working of this function:
-     - market.removeLiquidity is called
-     - SCY & PT is transferred to the receiver, and the router's callback is invoked
-     - the router will transfer the necessary LP from msg.sender to the market, and finish the callback
-     */
     function _removeLiquidity(
         address receiver,
         address market,
@@ -113,14 +100,6 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netPtOut >= ptOutMin, "FS insufficient PT out");
     }
 
-    /**
-     * @notice swap exact PT for SCY, with receiver receiving SCY before msg.sender is required to
-     transfer the owed PT
-     * @dev inner working of this function:
-     - market.swap is called
-     - SCY is transferred to the receiver, and the router's callback is invoked
-     - the router will transfer the necessary PT from msg.sender to the market, and finish the callback
-     */
     function _swapExactPtForScy(
         address receiver,
         address market,
@@ -139,18 +118,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     }
 
     /**
-     * @notice swap PT for exact SCY, with receiver receiving SCY before msg.sender is required to
-     transfer the owed PT
-     * @notice note that the amount of SCY out will be a bit more than exactScyOut, since an approximation is being run
-     * @dev inner working of this function is similar to swapExactPtForScy
-     * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtIn
+     * @notice Note that the amount of SCY out will be a bit more than `exactScyOut`, since an approximation is used. It's
+        guaranteed that the `netScyOut` is at least `exactScyOut`
      */
     function _swapPtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         uint256 maxPtIn,
-        ApproxParams memory approx,
+        ApproxParams memory guessPtIn,
         bool doPull
     ) internal returns (uint256 netPtIn) {
         MarketState memory state = IPMarket(market).readState(false);
@@ -160,7 +136,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             SCY.newIndex(),
             exactScyOut,
             block.timestamp,
-            approx
+            guessPtIn
         );
         require(netPtIn <= maxPtIn, "exceed limit PT in");
 
@@ -174,14 +150,6 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netScyOut >= exactScyOut, "FS insufficient SCY out");
     }
 
-    /**
-     * @notice swap SCY for exact PT, with receiver receiving PT before msg.sender is required to
-     transfer the owed SCY
-     * @dev inner working of this function:
-     - market.swap is called
-     - PT is transferred to the receiver, and the router's callback is invoked
-     - the router will transfer the necessary SCY from msg.sender to the market, and finish the callback
-     */
     function _swapScyForExactPt(
         address receiver,
         address market,
@@ -206,19 +174,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     }
 
     /**
-     * @dev swap exact amount of Scy to PT
-     * @dev inner working steps:
-       - The outcome amount of PT in is approximated
-       - market.swapExactPtToScy() is called, user will receive their PT
-       - The approximated amount of PT is transferred from msg.sender to market via router
-     * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
+     * @notice Note that although we will only use almost all of the `exactScyIn`, we will still transfer all in so that
+        not to leave dust behind
      */
     function _swapExactScyForPt(
         address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minPtOut,
-        ApproxParams memory approx,
+        ApproxParams memory guessPtOut,
         bool doPull
     ) internal returns (uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
@@ -228,7 +192,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             SCY.newIndex(),
             exactScyIn,
             block.timestamp,
-            approx
+            guessPtOut
         );
 
         require(netPtOut >= minPtOut, "insufficient PT out");
@@ -243,40 +207,45 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     }
 
     /**
-    * @dev netPtOutGuessMin & netPtOutGuessMax the minimum & maximum possible guess for the netPtOut
-    the correct ptOut must lie between this range, else the function will revert.
-    * @dev the smaller the range, the fewer iterations it will take (hence less gas). The expected way
-    to create the guess is to run this function with min = 0, max = type(uint256.max) to trigger the widest
-    guess range. After getting the result, min = result * (1-eps) & max = result * (1+eps)
-    * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-    * @param approx params to approx. Guess params will be the min, max & offchain guess for netPtOut
-    */
+     * @notice swap from any ERC20 tokens, through Uniswap's forks, to get baseTokens to make SCY, then swap
+        from SCY to PT
+     * @dev simply a combination of _mintScyFromRawToken & _swapExactScyForPt
+     */
     function _swapExactRawTokenForPt(
         address receiver,
         address market,
         uint256 exactRawTokenIn,
         uint256 minPtOut,
         address[] calldata path,
-        ApproxParams memory approx,
+        ApproxParams memory guessPtOut,
         bool doPull
     ) internal returns (uint256 netPtOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
+        // all output SCY is transferred directly to the market
         uint256 netScyUseToBuyPt = _mintScyFromRawToken(
-            exactRawTokenIn,
-            address(SCY),
-            1,
             market,
+            address(SCY),
+            exactRawTokenIn,
+            1,
             path,
             doPull
         );
 
-        netPtOut = _swapExactScyForPt(receiver, market, netScyUseToBuyPt, minPtOut, approx, false);
+        // SCY is already in the market, hence doPull = false
+        netPtOut = _swapExactScyForPt(
+            receiver,
+            market,
+            netScyUseToBuyPt,
+            minPtOut,
+            guessPtOut,
+            false
+        );
     }
 
     /**
-     * @notice sell all Pt for RawToken
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
+     * @notice swap from PT to SCY, then redeem SCY to baseToken & swap through Uniswap's forks to get rawTokenOut
+     * @dev simply a combination of _swapExactPtForScy & _redeemScyToRawToken
      */
     function _swapExactPtForRawToken(
         address receiver,
@@ -288,13 +257,15 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     ) internal returns (uint256 netRawTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
+        // all output SCY is directly transferred to the SCY contract
         _swapExactPtForScy(address(SCY), market, exactPtIn, 1, doPull);
 
+        // since all SCY is already at the SCY contract, doPull = false
         netRawTokenOut = _redeemScyToRawToken(
+            receiver,
             address(SCY),
             0,
             minRawTokenOut,
-            receiver,
             path,
             false
         );

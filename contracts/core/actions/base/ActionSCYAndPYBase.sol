@@ -47,20 +47,17 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         PendleJoeSwapHelperUpg(_joeRouter, _joeFactory)
     {}
 
+    /// @dev for Path. If no swap is needed, path = [token]
+    /// else, path = [inputToken, token0, token1, ...., outputToken]
+
     /**
-     * @notice swap rawToken to baseToken -> baseToken to mint SCY
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - if [rawToken == baseToken], rawToken is transferred to SCY contract
-       else, it is transferred to the first pair of path, swap is called, and the output token is transferred
-            to SCY contract
-     - SCY.mint is called, minting SCY directly to receiver
+     * @notice swap rawToken to baseToken through Uniswap's forks & use it to mint SCY
      */
     function _mintScyFromRawToken(
-        uint256 netRawTokenIn,
-        address SCY,
-        uint256 minScyOut,
         address receiver,
+        address SCY,
+        uint256 netRawTokenIn,
+        uint256 minScyOut,
         address[] calldata path,
         bool doPull
     ) internal returns (uint256 netScyOut) {
@@ -79,21 +76,13 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
     }
 
     /**
-    * @notice redeem SCY to baseToken -> swap baseToken to rawToken
-    * @dev path[0] will be the baseToken that SCY is redeemed to, and path[path.length-1] is the
-    final rawToken output
-    * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-    * @dev inner working of this function:
-     - SCY is transferred to SCY contract
-     - if [rawToken == baseToken], SCY.redeem is called & directly redeem tokens to the receiver
-       else, SCY.redeem is called with receiver = first pair in the path,
-        and swap is called, and the output token is transferred to receiver
+     * @notice redeem SCY to baseToken -> swap baseToken to rawToken through Uniswap's forks
      */
     function _redeemScyToRawToken(
+        address receiver,
         address SCY,
         uint256 netScyIn,
         uint256 minRawTokenOut,
-        address receiver,
         address[] memory path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
@@ -124,23 +113,19 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
     }
 
     /**
-     * @notice swap rawToken to baseToken -> convert to SCY -> convert to PT + YT
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - same as mintScyFromRawToken, except the receiver of SCY will be the YT contract, then mintPY
-     will be called, minting PT + YT directly to receiver
+     * @notice swap rawToken to baseToken through Uniswap's forks -> convert to SCY -> convert to PT + YT
      */
     function _mintPyFromRawToken(
-        uint256 netRawTokenIn,
-        address YT,
-        uint256 minPyOut,
         address receiver,
+        address YT,
+        uint256 netRawTokenIn,
+        uint256 minPyOut,
         address[] calldata path,
         bool doPull
     ) internal returns (uint256 netPyOut) {
         address SCY = IPYieldToken(YT).SCY();
 
-        _mintScyFromRawToken(netRawTokenIn, SCY, 1, YT, path, doPull);
+        _mintScyFromRawToken(YT, SCY, netRawTokenIn, 1, path, doPull);
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         require(netPyOut >= minPyOut, "insufficient PY out");
@@ -149,18 +134,14 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
     }
 
     /**
-     * @notice redeem PT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to rawToken
-     * @param path the path to swap from rawToken to baseToken. path = [baseToken] if no swap is needed
-     * @dev inner working of this function:
-     - PT (+ YT if not expired) is transferred to the YT contract
-     - redeemPY is called, redeem all outcome SCY to the SCY contract
-     - The rest is the same as redeemScyToRawToken (except the first SCY transfer is skipped)
+     * @notice redeem PT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to rawToken through Uniswap's forks.
+        If the YT hasn't expired, both PT & YT will be needed to redeem. Else, only PT is needed
      */
     function _redeemPyToRawToken(
+        address receiver,
         address YT,
         uint256 netPyIn,
         uint256 minRawTokenOut,
-        address receiver,
         address[] memory path,
         bool doPull
     ) internal returns (uint256 netRawTokenOut) {
@@ -176,7 +157,7 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
 
         IPYieldToken(YT).redeemPY(SCY); // ignore return
 
-        netRawTokenOut = _redeemScyToRawToken(SCY, 0, minRawTokenOut, receiver, path, false);
+        netRawTokenOut = _redeemScyToRawToken(receiver, SCY, 0, minRawTokenOut, path, false);
 
         emit RedeemPyToRawToken(msg.sender, YT, netPyIn, path[path.length - 1], netRawTokenOut);
     }

@@ -19,79 +19,57 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
 
     }
 
-    /**
-     * @dev Take in a fixed amount of YT and returns receiver a corresponding amount of SCY
-     * @dev inner working step
-       - Transfer exactYtIn amount of YT to YT
-       - market.swapScyToExactPt is called, the receiver of PT is YT
-       - YT.redeemPY is called, burning exactYtIn YT & PT to SCY
-       - Return the owed Scy for contract, the rest is transferred to user
-     */
+    /// @dev refer to the internal function
     function swapExactYtForScy(
         address receiver,
         address market,
         uint256 exactYtIn,
         uint256 minScyOut
-    ) external returns (uint256) {
+    ) external returns (uint256 netScyOut) {
         return _swapExactYtForScy(receiver, market, exactYtIn, minScyOut, true);
     }
 
-    /**
-     * @dev Take in a corresponding amount of SCY & return receiver a fixed amount of YT
-     * @dev inner working step
-       - Input SCY is transferred to YT address
-       - swap.swapExactPtForScy is called the receiver is YT
-       - YT.mintPY is called, granting router exactYtOut YT & PT
-       - The owed PT is paid by setting the PT receiver is market, YT receiver is $receiver
-     */
+    /// @dev refer to the internal function
     function swapScyForExactYt(
         address receiver,
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
-    ) external returns (uint256) {
+    ) external returns (uint256 netScyIn) {
         return _swapScyForExactYt(receiver, market, exactYtOut, maxScyIn);
     }
 
-    /**
-     * @dev Take in a fixed a mount of SCY and return receiver the corresponding amount of YT
-     * @dev can refer to the doc of swapExactRawTokenForYt
-     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtOut
-     */
+    /// @dev refer to the internal function
     function swapExactScyForYt(
         address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
-        ApproxParams memory approx
-    ) external returns (uint256) {
-        return _swapExactScyForYt(receiver, market, exactScyIn, minYtOut, approx, true);
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut) {
+        return _swapExactScyForYt(receiver, market, exactScyIn, minYtOut, guessYtOut, true);
     }
 
-    /**
-     * @dev take in a correesponding amount of YT & return an exactScyOut amount of SCY
-     * @dev can refer to the doc of swapExactYtForRawToken
-     * @param approx params to approx. Guess params will be the min, max & offchain guess for netYtIn
-     */
+    /// @dev refer to the internal function
     function swapYtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         uint256 maxYtIn,
-        ApproxParams memory approx
-    ) external returns (uint256) {
-        return _swapYtForExactScy(receiver, market, exactScyOut, maxYtIn, approx, true);
+        ApproxParams memory guessYtIn
+    ) external returns (uint256 netYtIn) {
+        return _swapYtForExactScy(receiver, market, exactScyOut, maxYtIn, guessYtIn, true);
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactRawTokenForYt(
         address receiver,
         address market,
         uint256 exactRawTokenIn,
         uint256 minYtOut,
         address[] calldata path,
-        ApproxParams memory approx
-    ) external returns (uint256) {
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut) {
         return
             _swapExactRawTokenForYt(
                 receiver,
@@ -99,19 +77,19 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
                 exactRawTokenIn,
                 minYtOut,
                 path,
-                approx,
+                guessYtOut,
                 true
             );
     }
 
-    /// @dev docs can be found in the internal function
+    /// @dev refer to the internal function
     function swapExactYtForRawToken(
         address receiver,
         address market,
         uint256 exactYtIn,
         uint256 minRawTokenOut,
         address[] calldata path
-    ) external returns (uint256) {
+    ) external returns (uint256 netRawTokenOut) {
         return _swapExactYtForRawToken(receiver, market, exactYtIn, minRawTokenOut, path, true);
     }
 }

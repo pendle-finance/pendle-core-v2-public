@@ -12,14 +12,15 @@ import "./base/CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
-    address public immutable marketFactory;
     using Math for int256;
     using Math for uint256;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
     using SafeERC20 for IERC20;
-    using SCYIndexLib for ISuperComposableYield;
     using SCYIndexLib for SCYIndex;
+    using SCYIndexLib for ISuperComposableYield;
+
+    address public immutable marketFactory;
 
     modifier onlyPendleMarket(address market) {
         require(IPMarketFactory(marketFactory).isValidMarket(market), "INVALID_MARKET");
@@ -53,6 +54,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         }
     }
 
+    /// @dev refer to _swapExactScyForYt
     function _callbackSwapExactScyForYt(
         address market,
         int256 ptToAccount,
@@ -75,6 +77,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         uint256 maxScyToPull;
     }
 
+    /// @dev refer to _swapScyForExactYt
     function _callbackSwapScyForExactYt(
         address market,
         int256 ptToAccount,
@@ -110,9 +113,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         require(amountPYout >= ptOwed, "insufficient pt to pay");
     }
 
-    /**
-    @dev receive PT -> pair with YT to redeem SCY -> payback SCY
-    */
+    /// @dev refer to _swapExactYtForScy or _swapYtForExactScy
     function _callbackSwapYtForScy(
         address market,
         int256, /*ptToAccount*/

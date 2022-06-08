@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * - add nonReentrancy protection to transfer / transferFrom functions
  * - allow decimals to by passed in
  * - block self-transfer by default
- *
  */
 contract PendleERC20 is Context, IERC20, IERC20Metadata {
     uint8 private constant _NOT_ENTERED = 1;

@@ -23,16 +23,16 @@ interface IPActionYT {
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
-        ApproxParams memory approx
-    ) external returns (uint256);
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut);
 
     function swapYtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         uint256 maxYtIn,
-        ApproxParams memory approx
-    ) external returns (uint256);
+        ApproxParams memory guessYtIn
+    ) external returns (uint256 netYtIn);
 
     function swapExactRawTokenForYt(
         address receiver,
@@ -40,8 +40,8 @@ interface IPActionYT {
         uint256 exactRawTokenIn,
         uint256 minYtOut,
         address[] calldata path,
-        ApproxParams memory approx
-    ) external returns (uint256);
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut);
 
     function swapExactYtForRawToken(
         address receiver,
@@ -49,5 +49,5 @@ interface IPActionYT {
         uint256 exactYtIn,
         uint256 minRawTokenOut,
         address[] calldata path
-    ) external returns (uint256);
+    ) external returns (uint256 netRawTokenOut);
 }
