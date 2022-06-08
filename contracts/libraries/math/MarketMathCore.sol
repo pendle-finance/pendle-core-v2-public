@@ -48,7 +48,7 @@ library MarketMathCore {
     using Math for int256;
 
     /*///////////////////////////////////////////////////////////////
-                    UINT FUNCTIONS TO PROXY TO CORE FUNCTIONS
+                UINT FUNCTIONS TO PROXY TO CORE FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function addLiquidity(

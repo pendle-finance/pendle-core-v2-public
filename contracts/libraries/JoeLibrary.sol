@@ -4,6 +4,7 @@ pragma solidity 0.8.13;
 
 import "../interfaces/IJoePair.sol";
 
+// almost-copied from TraderJoe
 library JoeLibrary {
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB)

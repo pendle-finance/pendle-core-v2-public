@@ -10,6 +10,7 @@ import "../interfaces/IPMarketFactory.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+/// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is IPRouterStatic {
     using MarketMathCore for MarketState;
     using Math for uint256;

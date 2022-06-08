@@ -3,12 +3,10 @@ pragma solidity 0.8.13;
 import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IRewardManager.sol";
 import "../../libraries/math/Math.sol";
-import "../../libraries/TokenHelper.sol";
+import "../../libraries/helpers/TokenHelper.sol";
 
 abstract contract RewardManager is IRewardManager, TokenHelper {
     using Math for uint256;
-
-    uint256 public lastRewardBlock;
 
     struct RewardState {
         uint128 index;
@@ -22,6 +20,8 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
 
     uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
+    uint256 public lastRewardBlock;
+
     mapping(address => RewardState) public rewardState;
     // token -> user -> reward state
     mapping(address => mapping(address => UserReward)) public userReward;
@@ -29,8 +29,6 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
     function userRewardAccrued(address token, address user) external view returns (uint128) {
         return userReward[token][user].index;
     }
-
-    function _getRewardTokens() internal view virtual returns (address[] memory);
 
     function _updateAndDistributeRewards(address user) internal virtual {
         _updateRewardIndex();
@@ -121,11 +119,11 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
     /// @dev to be overriden if there is rewards
     function _redeemExternalReward() internal virtual;
 
-    /// @dev to be overriden if there is rewards
-    function _rewardSharesTotal() internal virtual returns (uint256);
+    function _rewardSharesTotal() internal view virtual returns (uint256);
 
-    /// @dev to be overriden if there is rewards
     function _rewardSharesUser(
         address /*user*/
-    ) internal virtual returns (uint256);
+    ) internal view virtual returns (uint256);
+
+    function _getRewardTokens() internal view virtual returns (address[] memory);
 }

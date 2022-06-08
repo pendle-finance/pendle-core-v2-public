@@ -76,7 +76,6 @@ library MarketApproxLib {
                 guessMin = netPtIn;
         */
 
-        // TODO: guarantee guessMin<=guessMax at all time
         require(isValidApproxParams(approx), "invalid approx approx");
 
         VarsSwapPtForExactScy memory vars;
@@ -418,6 +417,9 @@ library MarketApproxLib {
         returns (uint256)
     {
         if (iteration == 0 && approx.guessOffchain != 0) return approx.guessOffchain;
-        else return (approx.guessMin + approx.guessMax) / 2;
+        else {
+            if (approx.guessMin > approx.guessMax) return approx.guessMax;
+            return (approx.guessMin + approx.guessMax) / 2;
+        }
     }
 }

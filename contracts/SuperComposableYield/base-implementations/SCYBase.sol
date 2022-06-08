@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/SCYUtils.sol";
-import "../../libraries/TokenHelper.sol";
+import "../../libraries/helpers/TokenHelper.sol";
 import "../../../contracts/core/PendleERC20.sol";
 
 abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {

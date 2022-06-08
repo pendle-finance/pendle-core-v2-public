@@ -16,6 +16,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * - allow decimals to by passed in
  * - block self-transfer by default
  */
+// solhint-disable
 contract PendleERC20 is Context, IERC20, IERC20Metadata {
     uint8 private constant _NOT_ENTERED = 1;
     uint8 private constant _ENTERED = 2;

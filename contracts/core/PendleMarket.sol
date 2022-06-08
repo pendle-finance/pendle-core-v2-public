@@ -253,21 +253,21 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
 
-    function redeemRewards(address user) external nonReentrant returns (uint256[] memory) {
-        return _redeemRewards(user);
-    }
-
-    function getRewardTokens() external view returns (address[] memory) {
-        return _getRewardTokens();
-    }
-
-    // force balances to match reserves
+    /// @notice force balances to match reserves
     function skim() external nonReentrant {
         MarketState memory market = readState(true);
         uint256 excessPt = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
         uint256 excessScy = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
         IERC20(PT).safeTransfer(market.treasury, excessPt);
         IERC20(SCY).safeTransfer(market.treasury, excessScy);
+    }
+
+    function redeemRewards(address user) external nonReentrant returns (uint256[] memory) {
+        return _redeemRewards(user);
+    }
+
+    function getRewardTokens() external view returns (address[] memory) {
+        return _getRewardTokens();
     }
 
     function readTokens()
@@ -284,6 +284,11 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         _YT = YT;
     }
 
+    /**
+     * @notice read the state of the market from storage into memory for gas-efficient manipulation
+     * @param updateRateOracle if set to true, the oracleRate will be updated, which will take ~6k of gas. If router wants
+        to do external calculations, normally this can be set to false
+     */
     function readState(bool updateRateOracle) public view returns (MarketState memory market) {
         market.totalPt = _storage.totalPt;
         market.totalScy = _storage.totalScy;
@@ -309,10 +314,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         }
     }
 
-    function _isExpired() internal view virtual returns (bool) {
-        return block.timestamp >= expiry;
-    }
-
+    /// @notice write back the state of the market from memory to storage
     function _writeState(MarketState memory market) internal {
         _storage.totalPt = market.totalPt.Int128();
         _storage.totalScy = market.totalScy.Int128();
@@ -322,6 +324,14 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
     }
 
+    function _isExpired() internal view virtual returns (bool) {
+        return block.timestamp >= expiry;
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    PENDLE GAUGE - RELATED
+    //////////////////////////////////////////////////////////////*/
+
     function _stakedBalance(address user) internal view override returns (uint256) {
         return balanceOf(user);
     }
@@ -330,6 +340,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         return totalSupply();
     }
 
+    // solhint-disable-next-line ordering
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -338,6 +349,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         PendleGauge._beforeTokenTransfer(from, to, amount);
     }
 
+    // solhint-disable-next-line ordering
     function _afterTokenTransfer(
         address from,
         address to,

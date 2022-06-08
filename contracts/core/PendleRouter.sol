@@ -74,9 +74,9 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         require(false, "invalid market sig");
     }
 
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
+
     function _implementation() internal view override returns (address) {
         return getRouterImplementation(msg.sig);
     }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
 }

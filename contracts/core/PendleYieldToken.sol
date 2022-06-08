@@ -33,11 +33,6 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         uint128 scyReserve;
     }
 
-    modifier updateScyReserve() {
-        _;
-        _updateScyReserve();
-    }
-
     address public immutable SCY;
     address public immutable PT;
     address public immutable factory;
@@ -45,6 +40,11 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
     InterestState public interestState;
     mapping(address => UserInterest) public userInterest;
+
+    modifier updateScyReserve() {
+        _;
+        _updateScyReserve();
+    }
 
     constructor(
         address _SCY,
@@ -162,6 +162,10 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         _updateAndDistributeInterest(user);
     }
 
+    function getRewardTokens() external view returns (address[] memory) {
+        return _getRewardTokens();
+    }
+
     /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
         currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
@@ -258,6 +262,21 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         IERC20(SCY).safeTransfer(user, interestOut);
     }
 
+    function _calcAmountToMint(uint256 amount) internal returns (uint256) {
+        (, uint256 lastIndexBeforeExpiry) = getScyIndex();
+        return SCYUtils.scyToAsset(lastIndexBeforeExpiry, amount);
+    }
+
+    function _calcAmountToRedeem(uint256 amount)
+        internal
+        returns (uint256 amountToUser, uint256 amountToTreasury)
+    {
+        (uint256 currentIndex, uint256 lastIndexBeforeExpiry) = getScyIndex();
+        uint256 totalRedeemable = SCYUtils.assetToScy(lastIndexBeforeExpiry, amount);
+        amountToUser = SCYUtils.assetToScy(currentIndex, amount);
+        amountToTreasury = totalRedeemable - amountToUser;
+    }
+
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
@@ -289,35 +308,8 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         ISuperComposableYield(SCY).claimRewards(address(this)); // ignore return
     }
 
-    function _rewardSharesTotal() internal virtual override returns (uint256) {
-        return interestState.scyReserve;
-    }
-
-    function _rewardSharesUser(address user) internal virtual override returns (uint256) {
-        return getImpliedScyBalance(user);
-    }
-
-    function getRewardTokens() external view returns (address[] memory) {
-        return _getRewardTokens();
-    }
-
-    function _getRewardTokens() internal view override returns (address[] memory) {
-        return ISuperComposableYield(SCY).getRewardTokens();
-    }
-
-    function _calcAmountToMint(uint256 amount) internal returns (uint256) {
-        (, uint256 lastIndexBeforeExpiry) = getScyIndex();
-        return SCYUtils.scyToAsset(lastIndexBeforeExpiry, amount);
-    }
-
-    function _calcAmountToRedeem(uint256 amount)
-        internal
-        returns (uint256 amountToUser, uint256 amountToTreasury)
-    {
-        (uint256 currentIndex, uint256 lastIndexBeforeExpiry) = getScyIndex();
-        uint256 totalRedeemable = SCYUtils.assetToScy(lastIndexBeforeExpiry, amount);
-        amountToUser = SCYUtils.assetToScy(currentIndex, amount);
-        amountToTreasury = totalRedeemable - amountToUser;
+    function _updateScyReserve() internal virtual {
+        interestState.scyReserve = IERC20(SCY).balanceOf(address(this)).Uint128();
     }
 
     function _getFloatingScyAmount() internal view returns (uint256 amount) {
@@ -325,14 +317,23 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         require(amount > 0, "RECEIVE_ZERO");
     }
 
-    function _updateScyReserve() internal virtual {
-        interestState.scyReserve = IERC20(SCY).balanceOf(address(this)).Uint128();
+    function _rewardSharesTotal() internal view virtual override returns (uint256) {
+        return interestState.scyReserve;
+    }
+
+    function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
+        return getImpliedScyBalance(user);
+    }
+
+    function _getRewardTokens() internal view override returns (address[] memory) {
+        return ISuperComposableYield(SCY).getRewardTokens();
     }
 
     function _isExpired() internal view virtual returns (bool) {
         return block.timestamp >= expiry;
     }
 
+    //solhint-disable-next-line ordering
     function _beforeTokenTransfer(
         address from,
         address to,
