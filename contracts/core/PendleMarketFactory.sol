@@ -21,15 +21,19 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         // 1 SLOT = 40 bits
     }
 
-    mapping(address => EnumerableSet.AddressSet) internal markets;
+    uint256 private constant MIN_RATE_ORACLE_TIME_WINDOW = 300 seconds;
 
     address public immutable yieldContractFactory;
+    address public immutable marketCreationCodePointer;
+    uint256 public immutable maxLnFeeRateRoot;
+
+    // PT -> scalarRoot -> initialAnchor
+    mapping(address => mapping(int256 => mapping(int256 => address))) internal markets;
+    EnumerableSet.AddressSet internal allMarkets;
+
     address public vePendle;
     address public gaugeController;
-    address public immutable marketCreationCodePointer;
 
-    uint256 public immutable maxLnFeeRateRoot;
-    uint256 public constant minRateOracleTimeWindow = 300 seconds;
     MarketConfig public marketConfig;
 
     constructor(
@@ -61,22 +65,28 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         int256 scalarRoot,
         int256 initialAnchor
     ) external returns (address market) {
-        _verifyPT(PT);
+        require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
         require(vePendle != address(0), "vePendle unset");
         require(gaugeController != address(0), "gaugeController unset");
+        // TODO: Reenable this check
+        // require(
+        //     markets[PT][scalarRoot][initialAnchor] == address(0),
+        //     "duplicated creation params"
+        // );
 
         market = _deployWithArgs(
             marketCreationCodePointer,
             abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
-        require(markets[PT].add(market), "market add failed");
+
+        markets[PT][scalarRoot][initialAnchor] = market;
+        require(allMarkets.add(market) == true, "IE market can't be added");
 
         emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
 
     function isValidMarket(address market) external view returns (bool) {
-        (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
-        return markets[address(PT)].contains(market);
+        return allMarkets.contains(market);
     }
 
     function treasury() external view returns (address) {
@@ -94,7 +104,7 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
     }
 
     function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {
-        require(newRateOracleTimeWindow >= minRateOracleTimeWindow, "invalid time window");
+        require(newRateOracleTimeWindow >= MIN_RATE_ORACLE_TIME_WINDOW, "invalid time window");
         marketConfig.rateOracleTimeWindow = newRateOracleTimeWindow;
     }
 
@@ -104,17 +114,8 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
     }
 
     function setVeParams(address newVePendle, address newGaugeController) public onlyGovernance {
+        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
-    }
-
-    function _verifyPT(address PT) internal view {
-        address SCY = IPPrincipalToken(PT).SCY();
-        uint256 expiry = IPPrincipalToken(PT).expiry();
-
-        require(
-            IPYieldContractFactory(yieldContractFactory).getPT(SCY, expiry) == PT,
-            "INVALID_PT"
-        );
     }
 }
