@@ -52,7 +52,6 @@ abstract contract VotingEscrowToken is IPVeToken {
      * @dev Gauges will use totalSupplyCurrent to get totalSupply, this will
      * prevent the pause for gauges on mainchain.
      */
-    // hmm I don't like this pause
     function totalSupplyStored() public view virtual returns (uint128) {
         return _totalSupply.getCurrentValue();
     }

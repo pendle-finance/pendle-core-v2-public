@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
-import "../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/ISuperComposableYield.sol";
 import "./SCYUtils.sol";
-import "./math/Math.sol";
+import "../math/Math.sol";
 
 type SCYIndex is uint256;
 

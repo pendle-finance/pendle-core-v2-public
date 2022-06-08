@@ -64,7 +64,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
     /**
      * @dev anyone can top up one user's pendle locked amount
-     // I don't like this, it's a surprising behavior
      */
     function increaseLockAmount(uint128 amount) external returns (uint128 newVeBalance) {
         address user = msg.sender;

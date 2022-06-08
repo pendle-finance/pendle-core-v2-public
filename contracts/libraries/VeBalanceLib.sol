@@ -43,20 +43,17 @@ library VeBalanceLib {
         return a.slope * uint128(block.timestamp) >= a.bias;
     }
 
-    function getValueAt(VeBalance memory a, uint128 t) internal pure returns (uint128) {
-        return a.bias - a.slope * t;
-    }
-
     function getCurrentValue(VeBalance memory a) internal view returns (uint128) {
         if (isExpired(a)) return 0;
         return getValueAt(a, uint128(block.timestamp));
+    }
+
+    function getValueAt(VeBalance memory a, uint128 t) internal pure returns (uint128) {
+        return a.bias - a.slope * t;
     }
 
     function getExpiry(VeBalance memory a) internal pure returns (uint128) {
         require(a.slope > 0, "invalid VeBalance");
         return a.bias / a.slope; // this is guaranteed to be true
     }
-
-    // hmm I'm not the biggest fan of the random hooks, very hard to rmb when to call
-    // and this is not "isValid"
 }

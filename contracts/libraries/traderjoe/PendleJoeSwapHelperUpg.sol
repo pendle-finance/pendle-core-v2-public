@@ -22,8 +22,8 @@
  */
 
 pragma solidity 0.8.13;
-import "../interfaces/IJoeRouter01.sol";
-import "../libraries/JoeLibrary.sol";
+import "../../interfaces/IJoeRouter01.sol";
+import "./JoeLibrary.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -36,10 +36,6 @@ abstract contract PendleJoeSwapHelperUpg {
     constructor(address _joeRouter, address _joeFactory) {
         joeRouter = _joeRouter;
         joeFactory = _joeFactory;
-    }
-
-    function _getFirstPair(address[] memory path) internal view returns (address pair) {
-        return JoeLibrary.pairFor(joeFactory, path[0], path[1]);
     }
 
     /**
@@ -78,5 +74,9 @@ abstract contract PendleJoeSwapHelperUpg {
                 new bytes(0)
             );
         }
+    }
+
+    function _getFirstPair(address[] memory path) internal view returns (address pair) {
+        return JoeLibrary.pairFor(joeFactory, path[0], path[1]);
     }
 }

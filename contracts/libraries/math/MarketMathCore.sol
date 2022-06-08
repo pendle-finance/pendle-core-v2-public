@@ -3,7 +3,7 @@ pragma solidity 0.8.13;
 
 import "./Math.sol";
 import "./LogExpMath.sol";
-import "../SCYIndex.sol";
+import "../SCY/SCYIndex.sol";
 
 struct MarketState {
     int256 totalPt;

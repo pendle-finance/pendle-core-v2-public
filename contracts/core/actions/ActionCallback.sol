@@ -5,7 +5,7 @@ import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
-import "../../libraries/SCYUtils.sol";
+import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
 import "./base/ActionSCYAndPYBase.sol";
 import "./base/CallbackHelper.sol";

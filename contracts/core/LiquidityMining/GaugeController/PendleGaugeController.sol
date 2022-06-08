@@ -109,8 +109,6 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         uint256[] memory incentives
     ) internal {
         if (epochRewardReceived[timestamp]) return;
-        // hmm I don't like these kinds of asserts. We will have to evaluate cases that due to Celer stop functioning
-        // the entire system is halted forever (due to permanent state mismatch)
         require(markets.length == incentives.length, "invalid markets length");
 
         for (uint256 i = 0; i < markets.length; ++i) {

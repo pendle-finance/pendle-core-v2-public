@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
-import "./SSTORE2.sol";
+import "../solmate/SSTORE2.sol";
 
+/// @dev save creation code of a contract onchain, and load it when necessary
 abstract contract MiniDeployer {
     function _setCreationCode(bytes memory newCreationCode) internal returns (address pointer) {
         require(newCreationCode.length > 0, "zero length");

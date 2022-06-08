@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.13;
 
-import "../interfaces/IJoePair.sol";
+import "../../interfaces/IJoePair.sol";
 
 // almost-copied from TraderJoe
 library JoeLibrary {
