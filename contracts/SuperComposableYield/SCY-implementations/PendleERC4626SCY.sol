@@ -51,7 +51,7 @@ contract PendleERC4626SCY is SCYBase {
             amountTokenOut = IERC4626(yieldToken).redeem(
                 amountSharesToRedeem,
                 address(this),
-                msg.sender
+                address(this)
             );
         }
     }
