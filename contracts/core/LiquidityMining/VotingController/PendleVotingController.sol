@@ -43,32 +43,9 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         CelerSender(_governanceManager)
     {}
 
-    /**
-     * @notice add a pool to allow users to vote. Can only be done by governance
-     * @dev pre-condition: pool must not have been added before
-     * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
-     * @dev state changes expected:
-        - add to allPools & chainPools
-        - set params in poolInfo
-     */
-    function addPool(uint64 chainId, address pool) external onlyGovernance {
-        require(!_isPoolVotable(pool), "pool already added");
-        _addPool(chainId, pool);
-    }
-
-    /**
-     * @notice remove a pool from voting. Can only be done by governance
-     * @dev pre-condition: pool must have been added before
-     * @dev state changes expected:
-        - update weekData (if any)
-        - remove from allPools & chainPools
-        - clear info in poolInfo
-     */
-    function removePool(address pool) external onlyGovernance {
-        require(_isPoolVotable(pool), "invalid pool");
-        updatePoolVotes(pool);
-        _removePool(pool);
-    }
+    /*///////////////////////////////////////////////////////////////
+                FUNCTIONS CAN BE CALLED BY ANYONE
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice set a new voting weight for the target pool
@@ -167,6 +144,42 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         _broadcastResults(chainId, timestamp, pendlePerSec);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                    GOVERNANCE-ONLY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice add a pool to allow users to vote. Can only be done by governance
+     * @dev pre-condition: pool must not have been added before
+     * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
+     * @dev state changes expected:
+        - add to allPools & chainPools
+        - set params in poolInfo
+     */
+    function addPool(uint64 chainId, address pool) external onlyGovernance {
+        require(!_isPoolVotable(pool), "pool already added");
+        _addPool(chainId, pool);
+        emit AddPool(chainId, pool);
+    }
+
+    /**
+     * @notice remove a pool from voting. Can only be done by governance
+     * @dev pre-condition: pool must have been added before
+     * @dev state changes expected:
+        - update weekData (if any)
+        - remove from allPools & chainPools
+        - clear info in poolInfo
+     */
+    function removePool(address pool) external onlyGovernance {
+        require(_isPoolVotable(pool), "invalid pool");
+        uint64 chainId = poolInfo[pool].chainId;
+
+        updatePoolVotes(pool);
+        _removePool(pool);
+
+        emit RemovePool(chainId, pool);
+    }
+
     /**
      * @notice use the gov-privilege to force broadcast a message in case there are issues with Celer
      * @dev it's intentional for this function to have minimal checks since we assume gov has done the
@@ -175,7 +188,6 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
      * @dev state changes expected:
         - the gaugeController receives the new pendle allocation
      */
-
     function forceBroadcastResults(
         uint64 chainId,
         uint128 timestamp,
@@ -186,6 +198,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
 
     function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
+        emit SetPendlePerSec(newPendlePerSec);
     }
 
     function _broadcastResults(
@@ -221,6 +234,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         } else {
             _sendMessage(chainId, abi.encode(timestamp, pools, incentives));
         }
+
+        emit BroadcastResults(chainId, timestamp, totalPendlePerSec);
     }
 
     function _unvote(
