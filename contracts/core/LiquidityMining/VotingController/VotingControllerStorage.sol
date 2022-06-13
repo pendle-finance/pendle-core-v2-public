@@ -12,9 +12,11 @@ abstract contract VotingControllerStorage {
     using VeBalanceLib for VeBalance;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
+
     struct PoolInfo {
         uint64 chainId;
-        uint128 timestamp;
+        uint128 lastUpdated;
         VeBalance vote;
         mapping(uint128 => uint128) slopeChanges;
     }
@@ -40,28 +42,37 @@ abstract contract VotingControllerStorage {
 
     uint128 public pendlePerSec;
 
-    // pool infos
     EnumerableSet.AddressSet internal allPools;
-    mapping(address => PoolInfo) public poolInfos;
-
-    // [timestamp] => WeekData
-    mapping(uint128 => WeekData) public weekData;
 
     // [chainId] => [pool]
     mapping(uint64 => EnumerableSet.AddressSet) internal chainPools;
 
+    // [poolAddress] -> PoolInfo
+    mapping(address => PoolInfo) public poolInfo;
+
+    // [timestamp] => WeekData
+    mapping(uint128 => WeekData) public weekData;
+
     // user voting info
-    mapping(address => UserData) public userDatas;
+    mapping(address => UserData) public userData;
 
     // [pool][timestamp]
-    mapping(uint128 => bool) internal isEpochFinalized;
+    mapping(uint128 => bool) public isEpochFinalized;
 
     // [user][pool] => checkpoint
     mapping(address => mapping(address => Checkpoint[])) public userPoolCheckpoints;
 
+    function getAllPools() public view returns (address[] memory) {
+        return allPools.values();
+    }
+
+    function getChainPools(uint64 chainId) public view returns (address[] memory) {
+        return chainPools[chainId].values();
+    }
+
     function getPoolVotesAt(address pool, uint128 timestamp) public view returns (uint128) {
         require(timestamp == WeekMath.getWeekStartTimestamp(timestamp), "invalid timestamp");
-        require(poolInfos[pool].timestamp >= timestamp, "pool not updated");
+        require(poolInfo[pool].lastUpdated >= timestamp, "pool not updated");
         return weekData[timestamp].poolVotes[pool];
     }
 
@@ -75,7 +86,7 @@ abstract contract VotingControllerStorage {
         view
         returns (UserPoolInfo memory)
     {
-        return userDatas[user].voteForPools[pool];
+        return userData[user].voteForPools[pool];
     }
 
     function getUserPoolVoteAt(
@@ -86,70 +97,89 @@ abstract contract VotingControllerStorage {
         return VeBalanceLib.getCheckpointValueAt(userPoolCheckpoints[user][pool], timestamp);
     }
 
+    /**
+    * @dev expected behavior:
+        - add to allPools, chainPools
+        - set params in poolInfo
+     */
     function _addPool(uint64 chainId, address pool) internal {
-        poolInfos[pool].chainId = chainId;
-        poolInfos[pool].timestamp = WeekMath.getCurrentWeekStart();
-        chainPools[chainId].add(pool);
-        allPools.add(pool);
+        poolInfo[pool].chainId = chainId;
+        poolInfo[pool].lastUpdated = WeekMath.getCurrentWeekStart();
+        require(chainPools[chainId].add(pool), "IE: chainPools duplicated");
+        require(allPools.add(pool), "IE: allPools duplicated");
     }
 
+    /**
+    * @dev expected behavior:
+        - remove from allPools, chainPools
+        - clear all params in poolInfo
+     */
     function _removePool(address pool) internal {
-        uint64 chainId = poolInfos[pool].chainId;
-        chainPools[chainId].remove(pool);
-        allPools.remove(pool);
-        delete poolInfos[pool];
+        uint64 chainId = poolInfo[pool].chainId;
+        require(chainPools[chainId].remove(pool), "IE: chainPools removal failed");
+        require(allPools.remove(pool), "IE: allPools removal failed");
+        delete poolInfo[pool];
     }
 
-    function _setPoolVoteAt(
+    /**
+     * @notice set the final pool vote for weekData
+     * @dev assumption: weekData[timestamp].poolVotes[pool] == 0
+     */
+    function _setFinalPoolVoteForWeek(
         address pool,
         uint128 timestamp,
         uint128 vote
     ) internal {
-        // THIS WILL NEVER HAPPEN
-        // assert(weekData[timestamp].poolVotes[pool] == 0);
         weekData[timestamp].totalVotes += vote;
         weekData[timestamp].poolVotes[pool] = vote;
     }
 
+    /// @dev assumption: poolInfo[pool].vote == 0
     function _setPoolVote(address pool, VeBalance memory vote) internal {
-        poolInfos[pool].vote = vote;
+        poolInfo[pool].vote = vote;
     }
 
-    function _setPoolTimestamp(address pool, uint128 timestamp) internal {
-        poolInfos[pool].timestamp = timestamp;
+    /// @dev assumption: poolInfo[pool].vote == 0
+    function _setPoolLastUpdated(address pool, uint128 timestamp) internal {
+        poolInfo[pool].lastUpdated = timestamp;
     }
 
+    /// @dev only applicable for current pool, hence no changes for weekData
     function _subtractFromPoolVote(address pool, VeBalance memory vote) internal {
-        PoolInfo storage pInfo = poolInfos[pool];
-        pInfo.vote = poolInfos[pool].vote.sub(vote);
+        PoolInfo storage pInfo = poolInfo[pool];
+        pInfo.vote = poolInfo[pool].vote.sub(vote);
         pInfo.slopeChanges[vote.getExpiry()] -= vote.slope;
     }
 
+    /// @dev only applicable for current pool, hence no changes for weekData
     function _addToPoolVote(address pool, VeBalance memory vote) internal {
-        PoolInfo storage pInfo = poolInfos[pool];
-        pInfo.vote = poolInfos[pool].vote.add(vote);
+        PoolInfo storage pInfo = poolInfo[pool];
+        pInfo.vote = poolInfo[pool].vote.add(vote);
         pInfo.slopeChanges[vote.getExpiry()] += vote.slope;
     }
 
     function _unsetUserPoolVote(address user, address pool) internal {
-        UserData storage uData = userDatas[user];
+        UserData storage uData = userData[user];
         uData.totalVotedWeight -= uData.voteForPools[pool].weight;
         delete uData.voteForPools[pool];
     }
 
+    /// @dev assumption: uData.voteForPools[pool] hasn't been set before
+    /// @dev post-condition: totalVotedWeight <= USER_VOTE_MAX_WEIGHT
     function _setUserPoolVote(
         address user,
         address pool,
         uint64 weight,
         VeBalance memory vote
     ) internal {
-        UserData storage uData = userDatas[user];
-        // THIS WILL NEVER HAPPEN
-        // assert(uData.voteForPools[pools].weight == 0);
+        UserData storage uData = userData[user];
         uData.totalVotedWeight += weight;
+        require(uData.totalVotedWeight <= USER_VOTE_MAX_WEIGHT, "exceeded max weight");
+
         uData.voteForPools[pool] = UserPoolInfo({ weight: weight, vote: vote });
     }
 
+    /// @dev post-condition: timestamp is in increasing order (for binary search)
     function _addUserPoolCheckpoint(
         address user,
         address pool,
@@ -160,13 +190,14 @@ abstract contract VotingControllerStorage {
         );
     }
 
-    function _isPoolActive(address pool) internal view returns (bool) {
-        return poolInfos[pool].timestamp != 0;
+    /// @notice check if a pool is votable on by checking the lastUpdated time
+    function _isPoolVotable(address pool) internal view returns (bool) {
+        return poolInfo[pool].lastUpdated != 0;
     }
 
+    /// @notice check if a vote still counts by checking if the vote is not (x,0) (in case the
+    /// weight of the vote is too small) & the expiry is after the current time
     function _isVoteActive(VeBalance memory vote) internal view returns (bool) {
-        // vote.slope > 0 is a voting controller thing, so this function should not be in
-        // VeBalance lib
-        return vote.slope > 0 && vote.getExpiry() > block.timestamp;
+        return vote.slope != 0 && block.timestamp < vote.getExpiry();
     }
 }

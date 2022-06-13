@@ -8,9 +8,6 @@ import "../../../libraries/math/Math.sol";
 import "../../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../../interfaces/IPVotingController.sol";
 
-// no reentracy protection yet?
-// Should VotingController and stuff become upgradeable?
-
 /*
 Voting accounting:
     - For gauge controller, it will consider each message from voting controller
@@ -48,73 +45,110 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         vePendle = IPVeToken(_vePendle);
     }
 
+    /**
+     * @notice add a pool to allow users to vote. Can only be done by governance
+     * @dev pre-condition: pool must not have been added before
+     * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
+     * @dev state changes expected:
+        - add to allPools & chainPools
+        - set params in poolInfo
+     */
     function addPool(uint64 chainId, address pool) external onlyGovernance {
-        require(!_isPoolActive(pool), "pool already added");
+        require(!_isPoolVotable(pool), "pool already added");
         _addPool(chainId, pool);
     }
 
+    /**
+     * @notice remove a pool from voting. Can only be done by governance
+     * @dev pre-condition: pool must have been added before
+     * @dev state changes expected:
+        - update weekData (if any)
+        - remove from allPools & chainPools
+        - clear info in poolInfo
+     */
     function removePool(address pool) external onlyGovernance {
-        require(_isPoolActive(pool), "invalid pool");
+        require(_isPoolVotable(pool), "invalid pool");
+        updatePoolVotes(pool);
         _removePool(pool);
     }
 
+    /**
+     * @notice set a new voting weight for the target pool
+     * @dev pre-condition:
+        - pool must have been added before
+        - the vePENDLE position must still be active
+     * @dev state changes expected:
+        - update weekData (if any)
+        - update poolInfo, userData to reflect the new vote
+        - add 1 check point for both the unvote & new vote
+     * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
+        negative weight
+     */
     function vote(address pool, uint64 weight) external {
-        require(weight != 0, "zero weight");
-        require(_isPoolActive(pool), "invalid pool");
-        require(!vePendle.isPositionExpired(msg.sender), "user position expired");
         address user = msg.sender;
+
+        require(weight != 0, "zero weight");
+        require(_isPoolVotable(pool), "invalid pool");
+        require(!vePendle.isPositionExpired(user), "user position expired");
 
         updatePoolVotes(pool);
         _unvote(user, pool, false);
         _vote(user, pool, weight);
     }
 
-    function removeVote(address pool) external {
-        // Not unactive, inactive
-        // good idea: All operations that require touching multiple mapping together, should be done through functions
-        // Idea of separating storage contract from logic is not new, but interesting
-
-        // This is to allow removing vote from an unactive pool
-        if (_isPoolActive(pool)) {
+    /**
+     * @notice remove the vote from the current pool
+     * @dev no pre-condition since this function just clears all the data
+     * @dev allow removing vote from a non-votable pool BY not requiring pool to be votable
+     * @dev state changes expected:
+        - update weekData (if any)
+        - update poolInfo, userData to reflect the new vote
+        - add 1 check point for the unvote
+     */
+    function unvote(address pool) external {
+        if (_isPoolVotable(pool)) {
             updatePoolVotes(pool);
         }
         _unvote(msg.sender, pool, true);
     }
 
-    function getPoolVotesCurrentEpoch(address pool) public view returns (uint256) {
-        require(_isPoolActive(pool), "invalid pool");
-        uint128 timestamp = poolInfos[pool].timestamp;
-        uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
-
-        VeBalance memory currentVote = poolInfos[pool].vote;
-        while (timestamp < currentWeekStart) {
-            timestamp += WEEK;
-            currentVote = currentVote.sub(poolInfos[pool].slopeChanges[timestamp], timestamp);
-        }
-        return currentVote.getValueAt(timestamp);
-    }
-
+    /**
+     * @notice Process all the slopeChanges that haven't been processed & update these data into
+        poolInfo
+     * @dev pre-condition: the pool must be votable
+     * @dev state changes expected:
+        - update weekData
+        - update poolInfo
+     */
     function updatePoolVotes(address pool) public {
-        require(_isPoolActive(pool), "invalid pool");
+        require(_isPoolVotable(pool), "invalid pool");
 
-        uint128 timestamp = poolInfos[pool].timestamp;
+        uint128 timestamp = poolInfo[pool].lastUpdated;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
-        if (timestamp >= currentWeekStart) {
-            return;
-        }
 
-        VeBalance memory currentVote = poolInfos[pool].vote;
+        // no state changes are expected
+        if (timestamp >= currentWeekStart) return;
+
+        VeBalance memory currentVote = poolInfo[pool].vote;
         while (timestamp < currentWeekStart) {
             timestamp += WEEK;
-            currentVote = currentVote.sub(poolInfos[pool].slopeChanges[timestamp], timestamp);
-            _setPoolVoteAt(pool, timestamp, currentVote.getValueAt(timestamp));
+            currentVote = currentVote.sub(poolInfo[pool].slopeChanges[timestamp], timestamp);
+            _setFinalPoolVoteForWeek(pool, timestamp, currentVote.getValueAt(timestamp));
         }
 
         _setPoolVote(pool, currentVote);
-        _setPoolTimestamp(pool, timestamp);
+        _setPoolLastUpdated(pool, timestamp);
     }
 
-    function finalizeVotingResults() public {
+    /**
+     * @notice finalize the voting results of all pools, up to the current epoch
+     * @dev state changes expected:
+        - weekData, poolInfo is updated for all pools in allPools
+        - isEpochFinalized[timestamp] is set to true
+     * @dev this function might take a lot of gas, but can be mitigated by calling updatePoolVotes
+        separately, hence reduce the number of states to be updated
+     */
+    function finalizeEpoch() public {
         uint128 timestamp = WeekMath.getCurrentWeekStart();
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
@@ -123,10 +157,17 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         isEpochFinalized[timestamp] = true;
     }
 
-    function broadcastVotingResults(uint64 chainId) external payable {
+    /**
+     * @notice broadcast the voting results of the current week to the chain with chainId. Can be
+        called by anyone
+     * @dev pre-condition: the epoch must have already been finalized by finalizeEpoch
+     * @dev state changes expected:
+        - the gaugeController receives the new pendle allocation
+     */
+    function broadcastResults(uint64 chainId) external payable {
         uint128 timestamp = WeekMath.getCurrentWeekStart();
         require(isEpochFinalized[timestamp], "epoch not finalized");
-        _broadcastVotingResults(chainId, timestamp, pendlePerSec);
+        _broadcastResults(chainId, timestamp, pendlePerSec);
     }
 
     function forceBroadcastResults(
@@ -135,28 +176,28 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         uint128 forcedPendlePerSec
     ) external payable onlyGovernance {
         if (!isEpochFinalized[timestamp]) {
-            finalizeVotingResults();
+            finalizeEpoch();
         }
-        _broadcastVotingResults(chainId, timestamp, forcedPendlePerSec);
+        _broadcastResults(chainId, timestamp, forcedPendlePerSec);
     }
 
     function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
     }
 
-    function _broadcastVotingResults(
+    function _broadcastResults(
         uint64 chainId,
         uint128 timestamp,
         uint128 totalPendlePerSec
     ) internal {
+        uint256 totalVotes = getTotalVotesAt(timestamp);
+        if (totalVotes == 0) return;
+
         uint256 length = chainPools[chainId].length();
+        if (length == 0) return;
+
         address[] memory pools = chainPools[chainId].values();
         uint256[] memory incentives = new uint256[](length);
-
-        uint256 totalVotes = getTotalVotesAt(timestamp);
-        if (totalVotes == 0) {
-            return;
-        }
 
         for (uint256 i = 0; i < length; ++i) {
             // poolVotes can be as large as pendle supply ~ 1e27
@@ -184,8 +225,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         address pool,
         bool doCreateCheckpoint
     ) internal {
-        VeBalance memory oldUVote = userDatas[user].voteForPools[pool].vote;
-        if (_isPoolActive(pool) && _isVoteActive(oldUVote)) {
+        VeBalance memory oldUVote = userData[user].voteForPools[pool].vote;
+        if (_isPoolVotable(pool) && _isVoteActive(oldUVote)) {
             _subtractFromPoolVote(pool, oldUVote);
         }
         _unsetUserPoolVote(user, pool);

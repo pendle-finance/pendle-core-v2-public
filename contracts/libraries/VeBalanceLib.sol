@@ -53,7 +53,7 @@ library VeBalanceLib {
     }
 
     function getExpiry(VeBalance memory a) internal pure returns (uint128) {
-        require(a.slope > 0, "invalid VeBalance");
+        require(a.slope != 0, "zero slope");
         return a.bias / a.slope; // this is guaranteed to be true
     }
 
