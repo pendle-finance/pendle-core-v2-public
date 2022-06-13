@@ -21,11 +21,7 @@ import "../../../libraries/math/WeekMath.sol";
 abstract contract VotingEscrowToken is IPVeToken {
     // wrong name, should be VotingEscrowPendle
     using VeBalanceLib for VeBalance;
-
-    struct LockedPosition {
-        uint128 amount;
-        uint128 expiry;
-    }
+    using VeBalanceLib for LockedPosition;
 
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
@@ -41,7 +37,7 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     function balanceOf(address user) public view virtual returns (uint128) {
         if (isPositionExpired(user)) return 0;
-        return convertToVeBalance(positionData[user]).getCurrentValue();
+        return positionData[user].convertToVeBalance().getCurrentValue();
     }
 
     function totalSupplyStored() public view virtual returns (uint128) {
@@ -52,24 +48,5 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     function isPositionExpired(address user) public view returns (bool) {
         return positionData[user].expiry < uint128(block.timestamp);
-    }
-
-    function convertToVeBalance(LockedPosition memory position)
-        public
-        pure
-        returns (VeBalance memory res)
-    {
-        res.slope = position.amount / MAX_LOCK_TIME;
-        require(res.slope > 0, "zero slope");
-        res.bias = res.slope * position.expiry;
-    }
-
-    function convertToVeBalance(uint128 amount, uint128 expiry)
-        public
-        pure
-        returns (uint128, uint128)
-    {
-        VeBalance memory balance = convertToVeBalance(LockedPosition(amount, expiry));
-        return (balance.bias, balance.slope);
     }
 }

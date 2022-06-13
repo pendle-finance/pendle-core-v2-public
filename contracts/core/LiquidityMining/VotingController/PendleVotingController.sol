@@ -310,7 +310,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
             (amount, expiry) = vePendle.positionData(user);
         }
 
-        (res.bias, res.slope) = vePendle.convertToVeBalance(
+        (res.bias, res.slope) = VeBalanceLib.convertToVeBalance(
             uint128((uint256(amount) * weight) / USER_VOTE_MAX_WEIGHT),
             expiry
         );

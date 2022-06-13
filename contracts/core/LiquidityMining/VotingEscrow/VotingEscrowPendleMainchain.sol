@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, CelerSender {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
+    using VeBalanceLib for LockedPosition;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     bytes private constant EMPTY_BYTES = abi.encode();
@@ -154,7 +155,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         if (oldPosition.expiry > block.timestamp) {
             // remove old position not yet expired
-            VeBalance memory oldBalance = convertToVeBalance(oldPosition);
+            VeBalance memory oldBalance = oldPosition.convertToVeBalance();
             newSupply = newSupply.sub(oldBalance);
             slopeChanges[oldPosition.expiry] -= oldBalance.slope;
         }
@@ -164,7 +165,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
             oldPosition.expiry + durationToIncrease
         );
 
-        VeBalance memory newBalance = convertToVeBalance(newPosition);
+        VeBalance memory newBalance = newPosition.convertToVeBalance();
         // add new position
         newSupply = newSupply.add(newBalance);
         slopeChanges[newPosition.expiry] += newBalance.slope;

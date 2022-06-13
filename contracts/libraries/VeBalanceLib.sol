@@ -6,12 +6,19 @@ struct VeBalance {
     uint128 slope;
 }
 
+struct LockedPosition {
+    uint128 amount;
+    uint128 expiry;
+}
+
 struct Checkpoint {
     VeBalance balance;
     uint128 timestamp;
 }
 
 library VeBalanceLib {
+    uint128 internal constant MAX_LOCK_TIME = 104 weeks;
+
     function add(VeBalance memory a, VeBalance memory b)
         internal
         pure
@@ -84,5 +91,24 @@ library VeBalanceLib {
         } else {
             return getValueAt(bal, timestamp);
         }
+    }
+
+    function convertToVeBalance(LockedPosition memory position)
+        public
+        pure
+        returns (VeBalance memory res)
+    {
+        res.slope = position.amount / MAX_LOCK_TIME;
+        require(res.slope > 0, "zero slope");
+        res.bias = res.slope * position.expiry;
+    }
+
+    function convertToVeBalance(uint128 amount, uint128 expiry)
+        public
+        pure
+        returns (uint128, uint128)
+    {
+        VeBalance memory balance = convertToVeBalance(LockedPosition(amount, expiry));
+        return (balance.bias, balance.slope);
     }
 }

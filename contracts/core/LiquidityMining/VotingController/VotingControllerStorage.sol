@@ -35,9 +35,9 @@ abstract contract VotingControllerStorage {
         mapping(address => uint128) poolVotes;
     }
 
+    uint128 internal constant MAX_LOCK_TIME = 104 weeks;
     uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
     uint128 public constant WEEK = 1 weeks;
-    uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
 
     IPVeToken public immutable vePendle;
