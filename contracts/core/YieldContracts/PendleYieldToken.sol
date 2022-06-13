@@ -197,7 +197,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
         // minimum of PT & YT balance
         uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
-        if (!_isExpired()) {
+        if (!MiniHelpers.isCurrentlyExpired(expiry)) {
             amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
             _burn(address(this), amountPYToRedeem);
         }
@@ -284,7 +284,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
-        if (!MiniHelpers.isCurrentlyExpired(expiry))) {
+        if (!MiniHelpers.isCurrentlyExpired(expiry)) {
             super._updateRewardIndex();
             return;
         }
