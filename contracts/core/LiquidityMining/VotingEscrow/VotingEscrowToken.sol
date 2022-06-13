@@ -22,13 +22,13 @@ abstract contract VotingEscrowToken is IPVeToken {
     // wrong name, should be VotingEscrowPendle
     using VeBalanceLib for VeBalance;
 
-    uint128 public constant WEEK = 1 weeks;
-    uint128 public constant MAX_LOCK_TIME = 104 weeks;
-
     struct LockedPosition {
         uint128 amount;
-        uint128 expiry; // confirm can't use 2 slots
+        uint128 expiry;
     }
+
+    uint128 public constant WEEK = 1 weeks;
+    uint128 public constant MAX_LOCK_TIME = 104 weeks;
 
     VeBalance internal _totalSupply;
     uint128 public lastSupplyUpdatedAt;

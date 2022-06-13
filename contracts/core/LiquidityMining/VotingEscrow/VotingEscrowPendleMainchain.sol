@@ -15,9 +15,11 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
     IERC20 public immutable pendle;
 
-    mapping(uint128 => uint128) private slopeChanges;
+    // [timestamp] => slopeChanges
+    mapping(uint128 => uint128) public slopeChanges;
 
     // Saving totalSupply checkpoint for each week, later can be used for reward accounting
+    // [timestamp] => totalSupply
     mapping(uint128 => uint128) public totalSupplyAt;
 
     // Saving VeBalance checkpoint for users of each week, can later use binary search
@@ -28,22 +30,32 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         pendle = _pendle;
     }
 
+    /**
+     * @notice create a new lock for PENDLE. Only usable when there is no existing position or the
+        current position has expired
+     * @dev expected state changes:
+        - a new lock with amount = amountToPull + amountExpired, expiry = expiry is created for msg.sender in positionData
+        - pendle is taken in
+        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt is updated
+        - a checkpoint is added
+     */
     function lock(uint128 amountToPull, uint128 expiry) external returns (uint128 newVeBalance) {
+        address user = msg.sender;
         require(
             expiry == WeekMath.getWeekStartTimestamp(expiry) && expiry > block.timestamp,
             "invalid expiry"
         );
         require(expiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
+        require(isPositionExpired(user), "current position is still active");
 
-        address user = msg.sender;
-        require(isPositionExpired(user), "old lock not expired"); // inappropriate comments
-
-        uint128 amountToLock = amountToPull + _getRenewingLockAmount(user);
+        uint128 amountExpired = _resetCurrentPosition(user);
+        uint128 amountToLock = amountToPull + amountExpired;
         require(amountToLock > 0, "zero amount");
 
         if (amountToPull > 0) {
             pendle.safeTransferFrom(user, address(this), amountToPull);
         }
+
         newVeBalance = _increasePosition(user, expiry, amountToLock);
 
         emit Lock(user, amountToLock, expiry);
@@ -160,7 +172,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function _updateGlobalSupply() internal returns (VeBalance memory, uint128) {
-        // this looks damn confusing, supply & timestamp is reused
         VeBalance memory supply = _totalSupply;
         uint128 timestamp = lastSupplyUpdatedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
@@ -195,7 +206,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         _sendMessage(chainId, abi.encode(timestamp, supply, userData));
     }
 
-    function _getRenewingLockAmount(address user) internal returns (uint128 amount) {
+    function _resetCurrentPosition(address user) internal returns (uint128 amount) {
         amount = positionData[user].amount;
         positionData[user] = LockedPosition(0, 0);
     }
