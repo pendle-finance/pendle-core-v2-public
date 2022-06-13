@@ -13,10 +13,10 @@ contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver 
     ) PendleGaugeController(_pendle, _marketFactory) CelerReceiver(_governanceManager) {}
 
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint128 timestamp, address[] memory markets, uint256[] memory incentives) = abi.decode(
+        (uint128 timestamp, address[] memory markets, uint256[] memory pendleAmounts) = abi.decode(
             message,
             (uint128, address[], uint256[])
         );
-        _receiveVotingResults(timestamp, markets, incentives);
+        _receiveVotingResults(timestamp, markets, pendleAmounts);
     }
 }

@@ -227,12 +227,12 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         if (length == 0) return;
 
         address[] memory pools = chainPools[chainId].values();
-        uint256[] memory incentives = new uint256[](length);
+        uint256[] memory totalPendleAmounts = new uint256[](length);
 
         for (uint256 i = 0; i < length; ++i) {
             uint256 poolVotes = weekData[timestamp].poolVotes[pools[i]];
             uint256 pendlePerSec = (uint256(totalPendlePerSec) * poolVotes) / totalVotes;
-            incentives[i] = pendlePerSec * WEEK;
+            totalPendleAmounts[i] = pendlePerSec * WEEK;
         }
 
         if (chainId == block.chainid) {
@@ -240,10 +240,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
             IPGaugeControllerMainchain(gaugeController).updateVotingResults(
                 timestamp,
                 pools,
-                incentives
+                totalPendleAmounts
             );
         } else {
-            _sendMessage(chainId, abi.encode(timestamp, pools, incentives));
+            _sendMessage(chainId, abi.encode(timestamp, pools, totalPendleAmounts));
         }
 
         emit BroadcastResults(chainId, timestamp, totalPendlePerSec);

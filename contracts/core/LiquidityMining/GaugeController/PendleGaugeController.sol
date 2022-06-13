@@ -11,10 +11,6 @@ import "../../../periphery/PermissionsV2Upg.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
- * @TODO: Have voting controller inherit this?
- */
-
-/**
  * @dev Gauge controller provides no write function to any party other than voting controller
  * @dev Gauge controller will receive (lpTokens[], pendle per sec[]) from voting controller and
  * set it directly to contract state
@@ -24,31 +20,27 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  *
  * @dev no more pause
  */
-
 abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
-    // this contract doesn't have mechanism to withdraw tokens out? And should we do upgradeable here?
     using SafeERC20 for IERC20;
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketRewardData {
-        // 4 uint256, damn. pendlePerSec is at most <= 1e18, accumulatedPendle <= 10 mil * 1e18 ...
         uint128 pendlePerSec;
         uint128 accumulatedPendle;
-        uint128 accumulatedTimestamp;
+        uint128 lastUpdateTimestamp;
         uint128 incentiveEndsAt;
     }
 
     uint128 public constant WEEK = 1 weeks;
 
     address public immutable pendle;
-    IPMarketFactory internal immutable marketFactory; // public
+    IPMarketFactory public immutable marketFactory;
 
-    uint256 private broadcastedEpochTimestamp;
     mapping(address => MarketRewardData) public rewardData;
-    mapping(uint128 => bool) internal epochRewardReceived;
+    mapping(uint128 => bool) public epochRewardReceived;
 
-    modifier onlyMarket() {
+    modifier onlyPendleMarket() {
         require(marketFactory.isValidMarket(msg.sender), "invalid market");
         _;
     }
@@ -56,16 +48,18 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     constructor(address _pendle, address _marketFactory) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
-        broadcastedEpochTimestamp = WeekMath.getCurrentWeekStart();
     }
 
     /**
-     * @dev this function is restricted to be called by gauge only
+     * @notice claim the rewards allocated by gaugeController
+     * @dev pre-condition: onlyPendleMarket can call it
+     * @dev state changes expected:
+        - rewardData[market] is updated with the data up to now
+        - all accumulatedPendle is transferred out & the accumulatedPendle is set to 0
      */
-    function claimMarketReward() external onlyMarket {
-        // should do modifier here
+    function claimMarketReward() external onlyPendleMarket {
         address market = msg.sender;
-        updateMarketData(market);
+        rewardData[market] = _getUpdatedMarketReward(market);
 
         uint256 amount = rewardData[market].accumulatedPendle;
         if (amount != 0) {
@@ -76,7 +70,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         emit MarketClaimReward(market, amount);
     }
 
-    function fundPendle(uint256 amount) external onlyGovernance {
+    function fundPendle(uint256 amount) external {
         IERC20(pendle).safeTransferFrom(msg.sender, address(this), amount);
     }
 
@@ -84,52 +78,68 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         IERC20(pendle).safeTransfer(msg.sender, amount);
     }
 
-    function updateMarketData(address market) public {
-        rewardData[market] = _getUpdatedMarketData(market);
+    /**
+     * @notice receive voting results from VotingController. Can handle duplicated messages fine by only accepting the first
+     message for that timestamp
+     * @dev state changes expected:
+        - epochRewardReceived is marked as true
+        - rewardData is updated for all markets in markets[]
+     */
+    function _receiveVotingResults(
+        uint128 timestamp,
+        address[] memory markets,
+        uint256[] memory pendleAmounts
+    ) internal {
+        require(markets.length == pendleAmounts.length, "invalid markets length");
+
+        if (epochRewardReceived[timestamp]) return; // only accept the first message for the timestamp
+        epochRewardReceived[timestamp] = true;
+
+        for (uint256 i = 0; i < markets.length; ++i) {
+            _addRewardsToMarket(markets[i], uint128(pendleAmounts[i]));
+        }
+
+        emit ReceiveVotingResults(timestamp, markets, pendleAmounts);
     }
 
-    function _getUpdatedMarketData(address market)
+    /**
+     * @notice merge the additional rewards with the existing rewards
+     * @dev this function will calc the total amount of Pendle that hasn't been factored into accumulatedPendle yet,
+        combined them with the additional pendleAmount, then divide them equally over the next one week
+     * @dev expected state changes:
+        - rewardData of the market is updated
+     */
+    function _addRewardsToMarket(address market, uint128 pendleAmount) internal {
+        MarketRewardData memory rwd = _getUpdatedMarketReward(market);
+        uint128 leftover = (rwd.incentiveEndsAt - rwd.lastUpdateTimestamp) * rwd.pendlePerSec;
+        uint128 newSpeed = (leftover + pendleAmount) / WEEK;
+
+        rewardData[market] = MarketRewardData({
+            pendlePerSec: newSpeed,
+            accumulatedPendle: rwd.accumulatedPendle,
+            lastUpdateTimestamp: uint128(block.timestamp),
+            incentiveEndsAt: uint128(block.timestamp) + WEEK
+        });
+    }
+
+    /**
+     * @notice get the updated state of the market, to the current time with all the undistributed Pendle distributed to the
+        accumulatedPendle
+     * @dev expect to update accumulatedPendle & lastUpdateTimestamp in MarketRewardData
+     */
+    function _getUpdatedMarketReward(address market)
         internal
         view
         returns (MarketRewardData memory)
     {
-        MarketRewardData memory rwd = rewardData[market]; // just do storage is not more expensive I think
-        uint128 newAccumulatedTimestamp = uint128(
+        MarketRewardData memory rwd = rewardData[market];
+        uint128 newLastUpdateTimestamp = uint128(
             Math.min(uint128(block.timestamp), rwd.incentiveEndsAt)
         );
         rwd.accumulatedPendle +=
             rwd.pendlePerSec *
-            (newAccumulatedTimestamp - rwd.accumulatedTimestamp);
-        rwd.accumulatedTimestamp = newAccumulatedTimestamp;
+            (newLastUpdateTimestamp - rwd.lastUpdateTimestamp);
+        rwd.lastUpdateTimestamp = newLastUpdateTimestamp;
         return rwd;
-    }
-
-    // @TODO Think of what solution there is when these assert actually fails
-    function _receiveVotingResults(
-        uint128 timestamp,
-        address[] memory markets,
-        uint256[] memory incentives
-    ) internal {
-        if (epochRewardReceived[timestamp]) return;
-        require(markets.length == incentives.length, "invalid markets length");
-
-        for (uint256 i = 0; i < markets.length; ++i) {
-            _incentivizeMarket(markets[i], uint128(incentives[i]));
-        }
-        epochRewardReceived[timestamp] = true;
-
-        emit ReceiveVotingResult(timestamp, markets, incentives);
-    }
-
-    function _incentivizeMarket(address market, uint128 amount) internal {
-        MarketRewardData memory rwd = _getUpdatedMarketData(market);
-        uint128 leftover = (rwd.incentiveEndsAt - rwd.accumulatedTimestamp) * rwd.pendlePerSec;
-        uint128 newSpeed = (leftover + amount) / WEEK;
-        rewardData[market] = MarketRewardData({
-            pendlePerSec: newSpeed,
-            accumulatedPendle: rwd.accumulatedPendle,
-            accumulatedTimestamp: uint128(block.timestamp),
-            incentiveEndsAt: uint128(block.timestamp) + WEEK
-        });
     }
 }

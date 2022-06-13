@@ -6,6 +6,11 @@ import "./PendleGaugeController.sol";
 contract PendleGaugeControllerMainchain is PendleGaugeController {
     address public immutable votingController;
 
+    modifier onlyVotingController() {
+        require(msg.sender == votingController, "not voting controller");
+        _;
+    }
+
     constructor(
         address _votingController,
         address _pendle,
@@ -13,11 +18,6 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
         address _governanceManager
     ) PendleGaugeController(_pendle, _marketFactory) PermissionsV2Upg(_governanceManager) {
         votingController = _votingController;
-    }
-
-    modifier onlyVotingController() {
-        require(msg.sender == votingController, "not voting controller");
-        _;
     }
 
     function updateVotingResults(
