@@ -40,24 +40,13 @@ abstract contract VotingEscrowToken is IPVeToken {
     }
 
     function balanceOf(address user) public view virtual returns (uint128) {
-        // if this will be overriden, just don't write it here
-        if (isPositionExpired(user)) return 0; // is this necessary? : yes, to be used in sidechain
+        if (isPositionExpired(user)) return 0;
         return convertToVeBalance(positionData[user]).getCurrentValue();
     }
 
-    /**
-     * @dev There will be a short delay every start of the week where this function
-     * will be reverted, on both mainchain & sidechain. This also implies Gauge pause.
-     * This will be resolved as soon as broadcastSupply is called on mainchain
-     * @dev Gauges will use totalSupplyCurrent to get totalSupply, this will
-     * prevent the pause for gauges on mainchain.
-     */
     function totalSupplyStored() public view virtual returns (uint128) {
         return _totalSupply.getCurrentValue();
     }
-
-    // I really don't like the low-level logic here
-    // Overall these kinds of logics should be abstracted out
 
     function totalSupplyCurrent() external virtual returns (uint128);
 

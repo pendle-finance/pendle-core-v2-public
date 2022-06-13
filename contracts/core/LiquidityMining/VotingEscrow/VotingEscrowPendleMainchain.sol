@@ -109,22 +109,39 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return supply.getCurrentValue();
     }
 
+    /**
+     * @notice broadcast the totalSupply to different chains
+     * @dev state changes expected:
+        - all chains in chainIds receive the new totalSupply
+     */
     function broadcastTotalSupply(uint256[] calldata chainIds) public payable {
         _broadcastPosition(address(0), chainIds);
     }
 
+    /**
+     * @notice broadcast the position of users to different chains
+     * @dev state changes expected:
+        - all chains in chainIds receive the new totalSupply & user's new position
+     */
     function broadcastUserPosition(address user, uint256[] calldata chainIds) public payable {
         require(user != address(0), "zero address user");
         _broadcastPosition(user, chainIds);
     }
 
+    /// @notice binary search to find balance at a timestamp. This timestamp does not need to be divisible by week
     function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
         return VeBalanceLib.getCheckpointValueAt(userCheckpoints[user], timestamp);
     }
 
     /**
-     * @dev in case of creating a new position, position should already be set to (0, 0), and durationToIncrease = expiry
-     * @dev in other cases, durationToIncrease = additional-duration and amountToIncrease = additional-pendle
+     * @notice increase the locking position of the user
+     * @dev it works by simply removing the old position from all relevant data (as if the user has never locked) and
+        then add in the new position
+      * @dev expected state changes:
+        - a new lock with the amount & expiry increase accordingly
+        - pendle is taken in if necessary
+        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt is updated
+        - a checkpoint is added
      */
     function _increasePosition(
         address user,
@@ -133,11 +150,12 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
 
-        (VeBalance memory supply, ) = _updateTotalSupply();
+        (VeBalance memory newSupply, ) = _updateTotalSupply();
+
         if (oldPosition.expiry > block.timestamp) {
             // remove old position not yet expired
             VeBalance memory oldBalance = convertToVeBalance(oldPosition);
-            supply = supply.sub(oldBalance);
+            newSupply = newSupply.sub(oldBalance);
             slopeChanges[oldPosition.expiry] -= oldBalance.slope;
         }
 
@@ -147,18 +165,22 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         );
 
         VeBalance memory newBalance = convertToVeBalance(newPosition);
-        {
-            // add new position
-            supply = supply.add(newBalance);
-            slopeChanges[newPosition.expiry] += newBalance.slope;
-        }
+        // add new position
+        newSupply = newSupply.add(newBalance);
+        slopeChanges[newPosition.expiry] += newBalance.slope;
 
-        _totalSupply = supply;
+        _totalSupply = newSupply;
         positionData[user] = newPosition;
         userCheckpoints[user].push(Checkpoint(newBalance, uint128(block.timestamp)));
         return newBalance.getCurrentValue();
     }
 
+    /**
+     * @notice update the totalSupply, processing all slope changes of past weeks. At the same time, set the finalized
+        totalSupplyAt
+     * @dev state changes expected:
+        - _totalSupply, lastSupplyUpdatedAt, totalSupplyAt is updated
+     */
     function _updateTotalSupply() internal returns (VeBalance memory, uint128) {
         VeBalance memory supply = _totalSupply;
         uint128 timestamp = lastSupplyUpdatedAt;
@@ -180,6 +202,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return (supply, lastSupplyUpdatedAt);
     }
 
+    /// @notice broadcast position to all chains in chainIds
     function _broadcastPosition(address user, uint256[] calldata chainIds) public payable {
         require(chainIds.length != 0, "empty chainIds");
 

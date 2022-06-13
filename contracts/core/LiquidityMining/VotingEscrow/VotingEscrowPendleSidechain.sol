@@ -9,13 +9,13 @@ import "../CelerAbstracts/CelerReceiver.sol";
 
 // solhint-disable no-empty-blocks
 contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
+    mapping(address => address) internal delegatorOf;
+
     event SetNewDelegator(address delegator, address receiver);
 
     event SetNewTotalSupply(VeBalance totalSupply);
 
     event SetNewUserPosition(LockedPosition position);
-
-    mapping(address => address) internal delegatorOf;
 
     constructor(address _governanceManager) CelerReceiver(_governanceManager) {}
 
@@ -57,7 +57,6 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
     }
 
     function _setNewTotalSupply(uint128 timestamp, VeBalance memory supply) internal {
-        // this should never happen
         assert(timestamp == WeekMath.getWeekStartTimestamp(timestamp));
         lastSupplyUpdatedAt = timestamp;
         _totalSupply = supply;
