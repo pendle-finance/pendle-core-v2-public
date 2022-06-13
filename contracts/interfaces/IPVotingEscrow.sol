@@ -3,11 +3,14 @@
 pragma solidity 0.8.13;
 
 import "./IPVeToken.sol";
+import "../libraries/VeBalanceLib.sol";
 
 interface IPVotingEscrow {
     event NewLockPosition(address indexed user, uint128 amount, uint128 expiry);
 
     event Withdraw(address indexed user, uint128 amount);
+
+    event BroadcastTotalSupply(VeBalance newTotalSupply, uint256[] chainIds);
 
     event BroadcastUserPosition(address indexed user, uint256[] chainIds);
 

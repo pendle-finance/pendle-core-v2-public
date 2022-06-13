@@ -82,7 +82,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         - positionData is cleared
         - pendle is transferred out
         - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt all doesn't need to be updated
-            since these data will automatically hold true when _updateGlobalSupply() is called
+            since these data will automatically hold true when _updateTotalSupply() is called
         - no checkpoint is added
      * @dev broadcast is not bundled since it can be done anytime after
      */
@@ -101,34 +101,21 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
     /**
      * @notice update & return the current totalSupply
+     * @dev state changes expected:
+        - _totalSupply & lastSupplyUpdatedAt is updated
      */
     function totalSupplyCurrent() external virtual override returns (uint128) {
-        (VeBalance memory supply, ) = _updateGlobalSupply();
+        (VeBalance memory supply, ) = _updateTotalSupply();
         return supply.getCurrentValue();
     }
 
-    function broadcastTotalSupply() public payable {
-        (VeBalance memory supply, uint128 timestamp) = _updateGlobalSupply();
-        uint256 length = sidechainContracts.length();
-
-        for (uint256 i = 0; i < length; ++i) {
-            (uint256 chainId, ) = sidechainContracts.at(i);
-            _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
-        }
+    function broadcastTotalSupply(uint256[] calldata chainIds) public payable {
+        _broadcastPosition(address(0), chainIds);
     }
 
     function broadcastUserPosition(address user, uint256[] calldata chainIds) public payable {
-        require(chainIds.length != 0, "empty chainIds");
         require(user != address(0), "zero address user");
-
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
-
-        for (uint256 i = 0; i < chainIds.length; ++i) {
-            uint256 chainId = chainIds[i];
-            require(sidechainContracts.contains(chainId), "not supported chain");
-            _broadcast(chainId, timestamp, supply, abi.encode(user, positionData[user]));
-        }
-        emit BroadcastUserPosition(user, chainIds);
+        _broadcastPosition(user, chainIds);
     }
 
     function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
@@ -146,7 +133,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
 
-        (VeBalance memory supply, ) = _updateGlobalSupply();
+        (VeBalance memory supply, ) = _updateTotalSupply();
         if (oldPosition.expiry > block.timestamp) {
             // remove old position not yet expired
             VeBalance memory oldBalance = convertToVeBalance(oldPosition);
@@ -172,7 +159,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return newBalance.getCurrentValue();
     }
 
-    function _updateGlobalSupply() internal returns (VeBalance memory, uint128) {
+    function _updateTotalSupply() internal returns (VeBalance memory, uint128) {
         VeBalance memory supply = _totalSupply;
         uint128 timestamp = lastSupplyUpdatedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
@@ -193,8 +180,28 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         return (supply, lastSupplyUpdatedAt);
     }
 
+    function _broadcastPosition(address user, uint256[] calldata chainIds) public payable {
+        require(chainIds.length != 0, "empty chainIds");
+
+        (VeBalance memory supply, uint256 timestamp) = _updateTotalSupply();
+
+        bytes memory userData = (
+            user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
+        );
+
+        for (uint256 i = 0; i < chainIds.length; ++i) {
+            require(sidechainContracts.contains(chainIds[i]), "not supported chain");
+            _broadcast(chainIds[i], timestamp, supply, userData);
+            if (user != address(0)) {
+                emit BroadcastUserPosition(user, chainIds);
+            }
+        }
+
+        emit BroadcastTotalSupply(supply, chainIds);
+    }
+
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
+        (VeBalance memory supply, uint256 timestamp) = _updateTotalSupply();
         _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
     }
 
