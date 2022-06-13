@@ -94,7 +94,7 @@ library VeBalanceLib {
     }
 
     function convertToVeBalance(LockedPosition memory position)
-        public
+        internal
         pure
         returns (VeBalance memory res)
     {
@@ -104,7 +104,7 @@ library VeBalanceLib {
     }
 
     function convertToVeBalance(uint128 amount, uint128 expiry)
-        public
+        internal
         pure
         returns (uint128, uint128)
     {
