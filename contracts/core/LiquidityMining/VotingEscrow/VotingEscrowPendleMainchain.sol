@@ -30,80 +30,78 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         pendle = _pendle;
     }
 
+    /// @notice basically a proxy function to call increaseLockPosition & broadcastUserPosition at the same time
+    function increaseLockPositionAndBroadcast(
+        uint128 additionalAmountToLock,
+        uint128 newExpiry,
+        uint256[] calldata chainIds
+    ) external payable returns (uint128 newVeBalance) {
+        newVeBalance = increaseLockPosition(additionalAmountToLock, newExpiry);
+        broadcastUserPosition(msg.sender, chainIds);
+    }
+
     /**
-     * @notice create a new lock for PENDLE. Only usable when there is no existing position or the
+     * @notice increase the lock position of an user. Applicable even when user has no position or the
         current position has expired
      * @dev expected state changes:
         - a new lock with amount = amountToPull + amountExpired, expiry = expiry is created for msg.sender in positionData
-        - pendle is taken in
+        - pendle is taken in if necessary
         - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt is updated
         - a checkpoint is added
+     * @dev broadcast is not bundled since it can be done anytime after
      */
-    function lock(uint128 amountToPull, uint128 expiry) external returns (uint128 newVeBalance) {
+    function increaseLockPosition(uint128 additionalAmountToLock, uint128 newExpiry)
+        public
+        returns (uint128 newVeBalance)
+    {
         address user = msg.sender;
         require(
-            expiry == WeekMath.getWeekStartTimestamp(expiry) && expiry > block.timestamp,
-            "invalid expiry"
+            newExpiry == WeekMath.getWeekStartTimestamp(newExpiry) && newExpiry > block.timestamp,
+            "invalid newExpiry"
         );
-        require(expiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
-        require(isPositionExpired(user), "current position is still active");
 
-        uint128 amountExpired = _resetCurrentPosition(user);
-        uint128 amountToLock = amountToPull + amountExpired;
-        require(amountToLock > 0, "zero amount");
+        require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
 
-        if (amountToPull > 0) {
-            pendle.safeTransferFrom(user, address(this), amountToPull);
+        uint128 newTotalAmountLocked = additionalAmountToLock + positionData[user].amount;
+        require(newTotalAmountLocked > 0, "zero total amount locked");
+
+        uint128 additionalDurationToLock = newExpiry - positionData[user].expiry;
+
+        if (additionalAmountToLock > 0) {
+            pendle.safeTransferFrom(user, address(this), additionalAmountToLock);
         }
 
-        newVeBalance = _increasePosition(user, expiry, amountToLock);
+        newVeBalance = _increasePosition(user, additionalDurationToLock, additionalAmountToLock);
 
-        emit Lock(user, amountToLock, expiry);
+        emit NewLockPosition(user, newTotalAmountLocked, newExpiry);
     }
 
     /**
-     * @dev strict condition, user can only increase lock duration for themselves
-     */
-    function increaseLockDuration(uint128 duration) external returns (uint128 newVeBalance) {
-        address user = msg.sender;
-        require(!isPositionExpired(user), "user position expired");
-        require(duration > 0 && WeekMath.isValidDuration(duration), "invalid duration"); // duration % WEEK check looks meh
-        require(
-            positionData[user].expiry + duration <= block.timestamp + MAX_LOCK_TIME,
-            "max lock time exceeded"
-        );
-
-        newVeBalance = _increasePosition(user, duration, 0);
-
-        emit IncreaseLockDuration(user, duration);
-    }
-
-    /**
-     * @dev anyone can top up one user's pendle locked amount
-     */
-    function increaseLockAmount(uint128 amount) external returns (uint128 newVeBalance) {
-        address user = msg.sender;
-        require(!isPositionExpired(user), "user position expired");
-
-        require(amount > 0, "zero amount");
-        pendle.safeTransferFrom(user, address(this), amount);
-        newVeBalance = _increasePosition(user, 0, amount);
-
-        emit IncreaseLockAmount(user, amount);
-    }
-
-    /**
-     * @dev there is not a need for broadcasting in withdrawing thanks to the definition of _totalSupply
+     * @notice withdraw an expired lock position, get back all locked PENDLE
+     * @dev expected state changes:
+        - positionData is cleared
+        - pendle is transferred out
+        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt all doesn't need to be updated
+            since these data will automatically hold true when _updateGlobalSupply() is called
+        - no checkpoint is added
+     * @dev broadcast is not bundled since it can be done anytime after
      */
     function withdraw(address user) external returns (uint128 amount) {
-        require(isPositionExpired(user), "user position not expired"); // not expired, not unexpired
-        amount = positionData[user].amount; // should require amount != 0
-        require(amount > 0, "position already withdrawed");
+        require(isPositionExpired(user), "position not expired");
+        amount = positionData[user].amount;
+
+        require(amount > 0, "zero position");
+
         delete positionData[user];
+
         pendle.safeTransfer(user, amount);
+
         emit Withdraw(user, amount);
     }
 
+    /**
+     * @notice update & return the current totalSupply
+     */
     function totalSupplyCurrent() external virtual override returns (uint128) {
         (VeBalance memory supply, ) = _updateGlobalSupply();
         return supply.getCurrentValue();
@@ -119,7 +117,10 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         }
     }
 
-    function broadcastUserPosition(address user, uint256[] calldata chainIds) external payable {
+    function broadcastUserPosition(address user, uint256[] calldata chainIds) public payable {
+        require(chainIds.length != 0, "empty chainIds");
+        require(user != address(0), "zero address user");
+
         (VeBalance memory supply, uint256 timestamp) = _updateGlobalSupply();
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
@@ -204,10 +205,5 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
         bytes memory userData
     ) internal {
         _sendMessage(chainId, abi.encode(timestamp, supply, userData));
-    }
-
-    function _resetCurrentPosition(address user) internal returns (uint128 amount) {
-        amount = positionData[user].amount;
-        positionData[user] = LockedPosition(0, 0);
     }
 }
