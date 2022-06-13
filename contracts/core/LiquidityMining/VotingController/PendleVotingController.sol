@@ -38,12 +38,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
-    IPVeToken public immutable vePendle;
-
-    constructor(address _vePendle, address _governanceManager) CelerSender(_governanceManager) {
-        vePendle = IPVeToken(_vePendle);
-    }
+    constructor(address _vePendle, address _governanceManager)
+        VotingControllerStorage(_vePendle)
+        CelerSender(_governanceManager)
+    {}
 
     /**
      * @notice add a pool to allow users to vote. Can only be done by governance
@@ -149,12 +147,11 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         separately, hence reduce the number of states to be updated
      */
     function finalizeEpoch() public {
-        uint128 timestamp = WeekMath.getCurrentWeekStart();
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
             updatePoolVotes(allPools.at(i));
         }
-        isEpochFinalized[timestamp] = true;
+        _setAllPastEpochsAsFinalized();
     }
 
     /**
@@ -170,14 +167,20 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         _broadcastResults(chainId, timestamp, pendlePerSec);
     }
 
+    /**
+     * @notice use the gov-privilege to force broadcast a message in case there are issues with Celer
+     * @dev it's intentional for this function to have minimal checks since we assume gov has done the
+        due dilligence
+     * @dev gov should always call finalizeEpoch beforehand
+     * @dev state changes expected:
+        - the gaugeController receives the new pendle allocation
+     */
+
     function forceBroadcastResults(
         uint64 chainId,
         uint128 timestamp,
         uint128 forcedPendlePerSec
     ) external payable onlyGovernance {
-        if (!isEpochFinalized[timestamp]) {
-            finalizeEpoch();
-        }
         _broadcastResults(chainId, timestamp, forcedPendlePerSec);
     }
 

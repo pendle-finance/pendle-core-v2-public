@@ -39,8 +39,13 @@ abstract contract VotingControllerStorage {
     uint64 public constant MAX_WEIGHT = 10**18;
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
+    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
+
+    IPVeToken public immutable vePendle;
 
     uint128 public pendlePerSec;
+
+    uint128 public deployedTimestamp; // divisible by WEEK
 
     EnumerableSet.AddressSet internal allPools;
 
@@ -61,6 +66,11 @@ abstract contract VotingControllerStorage {
 
     // [user][pool] => checkpoint
     mapping(address => mapping(address => Checkpoint[])) public userPoolCheckpoints;
+
+    constructor(address _vePendle) {
+        vePendle = IPVeToken(_vePendle);
+        deployedTimestamp = WeekMath.getCurrentWeekStart();
+    }
 
     function getAllPools() public view returns (address[] memory) {
         return allPools.values();
@@ -188,6 +198,14 @@ abstract contract VotingControllerStorage {
         userPoolCheckpoints[user][pool].push(
             Checkpoint({ balance: vote, timestamp: uint128(block.timestamp) })
         );
+    }
+
+    function _setAllPastEpochsAsFinalized() internal {
+        uint128 timestamp = WeekMath.getCurrentWeekStart();
+        while (timestamp >= deployedTimestamp && isEpochFinalized[timestamp] == false) {
+            isEpochFinalized[timestamp] = true;
+            timestamp -= deployedTimestamp;
+        }
     }
 
     /// @notice check if a pool is votable on by checking the lastUpdated time
