@@ -294,6 +294,11 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         emit Vote(user, pool, weight, votingPower);
     }
 
+    /**
+     * @notice return the corresponding voting power of an user given the weight. Basically his voting power
+        will be vePendle * weight / USER_VOTE_MAX_WEIGHT
+     * @notice governance will always has the vePendle equivalent to 1M PENDLE locked for MAX_LOCK_TIME
+     */
     function _getVotingPowerByWeight(address user, uint64 weight)
         internal
         view

@@ -4,6 +4,7 @@ pragma solidity 0.8.13;
 import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
+import "../../../libraries/helpers/MiniHelpers.sol";
 
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
@@ -47,6 +48,6 @@ abstract contract VotingEscrowToken is IPVeToken {
     function totalSupplyCurrent() external virtual returns (uint128);
 
     function isPositionExpired(address user) public view returns (bool) {
-        return positionData[user].expiry < uint128(block.timestamp);
+        return MiniHelpers.isCurrentlyExpired(positionData[user].expiry);
     }
 }

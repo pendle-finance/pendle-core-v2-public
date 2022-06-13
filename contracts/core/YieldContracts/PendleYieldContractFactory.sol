@@ -31,6 +31,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../../libraries/helpers/ExpiryUtilsLib.sol";
 import "../../libraries/solmate/LibRLP.sol";
 import "../../libraries/helpers/MiniDeployer.sol";
+import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../../periphery/PermissionsV2Upg.sol";
 
@@ -81,7 +82,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
         external
         returns (address PT, address YT)
     {
-        require(expiry > block.timestamp, "expiry must be in the future");
+        require(!MiniHelpers.isTimeInThePast(expiry), "expiry must be in the future");
 
         require(expiry % expiryDivisor == 0, "must be multiple of divisor");
 

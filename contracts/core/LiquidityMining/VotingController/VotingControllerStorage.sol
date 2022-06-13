@@ -4,6 +4,7 @@ pragma solidity 0.8.13;
 import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
+import "../../../libraries/helpers/MiniHelpers.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 // no reentracy protection yet?
@@ -218,6 +219,6 @@ abstract contract VotingControllerStorage {
     /// @notice check if a vote still counts by checking if the vote is not (x,0) (in case the
     /// weight of the vote is too small) & the expiry is after the current time
     function _isVoteActive(VeBalance memory vote) internal view returns (bool) {
-        return vote.slope != 0 && block.timestamp < vote.getExpiry();
+        return vote.slope != 0 && !MiniHelpers.isCurrentlyExpired(vote.getExpiry());
     }
 }

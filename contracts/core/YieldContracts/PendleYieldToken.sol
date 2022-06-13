@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../libraries/math/Math.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../libraries/SCY/SCYUtils.sol";
+import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../PendleERC20.sol";
 import "../../SuperComposableYield/base-implementations/RewardManager.sol";
@@ -172,7 +173,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
         currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
-        if (_isExpired()) {
+        if (MiniHelpers.isCurrentlyExpired(expiry)) {
             lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {
             lastIndexBeforeExpiry = currentIndex;
@@ -283,7 +284,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
-        if (!_isExpired()) {
+        if (!MiniHelpers.isCurrentlyExpired(expiry))) {
             super._updateRewardIndex();
             return;
         }
@@ -330,10 +331,6 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
     function _getRewardTokens() internal view override returns (address[] memory) {
         return ISuperComposableYield(SCY).getRewardTokens();
-    }
-
-    function _isExpired() internal view virtual returns (bool) {
-        return block.timestamp >= expiry;
     }
 
     //solhint-disable-next-line ordering

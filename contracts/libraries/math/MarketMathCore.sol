@@ -4,6 +4,7 @@ pragma solidity 0.8.13;
 import "./Math.sol";
 import "./LogExpMath.sol";
 import "../SCY/SCYIndex.sol";
+import "../helpers/MiniHelpers.sol";
 
 struct MarketState {
     int256 totalPt;
@@ -223,7 +224,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(blockTime < market.expiry, "market expired");
+        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
         require(market.totalPt > netPtToAccount, "insufficient liquidity");
 
         /// ------------------------------------------------------------
@@ -251,7 +252,7 @@ library MarketMathCore {
         SCYIndex index,
         uint256 blockTime
     ) internal pure returns (MarketPreCompute memory res) {
-        require(blockTime < market.expiry, "market expired");
+        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
 
         uint256 timeToExpiry = market.expiry - blockTime;
 

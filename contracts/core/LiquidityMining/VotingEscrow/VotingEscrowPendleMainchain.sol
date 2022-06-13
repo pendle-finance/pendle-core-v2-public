@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 import "../../../interfaces/IPVotingEscrow.sol";
+import "../../../libraries/helpers/MiniHelpers.sol";
 import "./VotingEscrowToken.sol";
 import "../CelerAbstracts/CelerSender.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -57,7 +58,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     {
         address user = msg.sender;
         require(
-            WeekMath.isValidWTime(newExpiry) && newExpiry > block.timestamp,
+            WeekMath.isValidWTime(newExpiry) && !MiniHelpers.isTimeInThePast(newExpiry),
             "invalid newExpiry"
         );
 
@@ -153,7 +154,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         (VeBalance memory newSupply, ) = _updateTotalSupply();
 
-        if (oldPosition.expiry > block.timestamp) {
+        if (!MiniHelpers.isCurrentlyExpired(oldPosition.expiry)) {
             // remove old position not yet expired
             VeBalance memory oldBalance = oldPosition.convertToVeBalance();
             newSupply = newSupply.sub(oldBalance);

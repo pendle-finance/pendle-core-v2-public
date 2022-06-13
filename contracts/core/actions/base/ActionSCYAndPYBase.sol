@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/traderjoe/PendleJoeSwapHelperUpg.sol";
+import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
@@ -149,7 +150,7 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         address SCY = IPYieldToken(YT).SCY();
 
         if (doPull) {
-            bool isExpired = IPYieldToken(YT).expiry() <= block.timestamp;
+            bool isExpired = MiniHelpers.isCurrentlyExpired(IPYieldToken(YT).expiry());
             bool needToBurnYt = (!isExpired);
             IERC20(PT).safeTransferFrom(msg.sender, YT, netPyIn);
             if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);

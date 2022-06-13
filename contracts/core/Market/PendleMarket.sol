@@ -11,6 +11,7 @@ import "../../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../../libraries/math/LogExpMath.sol";
 import "../../libraries/math/Math.sol";
+import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -53,7 +54,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     MarketStorage public _storage;
 
     modifier notExpired() {
-        require(!_isExpired(), "market expired");
+        require(!MiniHelpers.isCurrentlyExpired(expiry), "market expired");
         _;
     }
 
@@ -322,10 +323,6 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         _storage.oracleRate = market.oracleRate.Uint96();
         _storage.lastTradeTime = market.lastTradeTime.Uint32();
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
-    }
-
-    function _isExpired() internal view virtual returns (bool) {
-        return block.timestamp >= expiry;
     }
 
     /*///////////////////////////////////////////////////////////////
