@@ -35,4 +35,18 @@ abstract contract CelerSender is PermissionsV2Upg {
         sidechainContracts.set(_chainId, _address);
         _afterAddSidechainContract(_address, _chainId);
     }
+
+    function getAllSidechainContracts()
+        public
+        view
+        returns (uint256[] memory chainIds, address[] memory addrs)
+    {
+        uint256 length = sidechainContracts.length();
+        chainIds = new uint256[](length);
+        addrs = new address[](length);
+
+        for (uint256 i = 0; i < length; ++i) {
+            (chainIds[i], addrs[i]) = sidechainContracts.at(i);
+        }
+    }
 }
