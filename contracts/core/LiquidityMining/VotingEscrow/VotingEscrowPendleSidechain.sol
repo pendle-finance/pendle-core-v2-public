@@ -33,15 +33,15 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
     }
 
     /**
-     * @dev Both two types of message will contain VeBalance supply & timestamp
+     * @dev Both two types of message will contain VeBalance supply & wTime
      * @dev If the message also contains some users' position, we should update it
      */
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint128 timestamp, VeBalance memory supply, bytes memory userData) = abi.decode(
+        (uint128 wTime, VeBalance memory supply, bytes memory userData) = abi.decode(
             message,
             (uint128, VeBalance, bytes)
         );
-        _setNewTotalSupply(timestamp, supply);
+        _setNewTotalSupply(wTime, supply);
         if (userData.length > 0) {
             _setNewUserPosition(userData);
         }
@@ -56,9 +56,9 @@ contract VotingEscrowPendleSidechain is VotingEscrowToken, CelerReceiver {
         emit SetNewUserPosition(position);
     }
 
-    function _setNewTotalSupply(uint128 timestamp, VeBalance memory supply) internal {
-        assert(timestamp == WeekMath.getWeekStartTimestamp(timestamp));
-        lastSupplyUpdatedAt = timestamp;
+    function _setNewTotalSupply(uint128 wTime, VeBalance memory supply) internal {
+        assert(wTime == WeekMath.getWeekStartTimestamp(wTime));
+        lastSupplyUpdatedAt = wTime;
         _totalSupply = supply;
         emit SetNewTotalSupply(supply);
     }

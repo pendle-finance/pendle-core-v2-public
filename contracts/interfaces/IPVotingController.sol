@@ -15,7 +15,7 @@ interface IPVotingController {
 
     event BroadcastResults(
         uint64 indexed chainId,
-        uint128 indexed timestamp,
+        uint128 indexed wTime,
         uint128 totalPendlePerSec
     );
 }

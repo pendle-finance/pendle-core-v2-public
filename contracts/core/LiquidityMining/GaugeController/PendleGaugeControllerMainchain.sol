@@ -21,10 +21,10 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
     }
 
     function updateVotingResults(
-        uint128 timestamp,
+        uint128 wTime,
         address[] memory markets,
         uint256[] memory pendleSpeeds
     ) external onlyVotingController {
-        _receiveVotingResults(timestamp, markets, pendleSpeeds);
+        _receiveVotingResults(wTime, markets, pendleSpeeds);
     }
 }

@@ -13,7 +13,7 @@ library WeekMath {
         return getWeekStartTimestamp(uint128(block.timestamp));
     }
 
-    function isValidDuration(uint128 duration) internal pure returns (bool) {
-        return duration % WEEK == 0;
+    function isValidWTime(uint128 time) internal pure returns (bool) {
+        return time % WEEK == 0;
     }
 }

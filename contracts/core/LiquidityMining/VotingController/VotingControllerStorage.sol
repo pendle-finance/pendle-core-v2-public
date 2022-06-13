@@ -16,7 +16,7 @@ abstract contract VotingControllerStorage {
         uint64 chainId;
         uint128 lastUpdated;
         VeBalance vote;
-        // timestamp => slopeChange value
+        // wTime => slopeChange value
         mapping(uint128 => uint128) slopeChanges;
     }
 
@@ -44,7 +44,7 @@ abstract contract VotingControllerStorage {
 
     uint128 public pendlePerSec;
 
-    uint128 public immutable deployedTimestamp; // divisible by WEEK
+    uint128 public immutable deployedWTime; // divisible by WEEK
 
     EnumerableSet.AddressSet internal allPools;
 
@@ -54,13 +54,13 @@ abstract contract VotingControllerStorage {
     // [poolAddress] -> PoolInfo
     mapping(address => PoolInfo) public poolInfo;
 
-    // [timestamp] => WeekData
+    // [wTime] => WeekData
     mapping(uint128 => WeekData) public weekData;
 
     // user voting info
     mapping(address => UserData) public userData;
 
-    // timestamp => bool
+    // wTime => bool
     mapping(uint128 => bool) public isEpochFinalized;
 
     // [user][pool] => checkpoint
@@ -68,7 +68,7 @@ abstract contract VotingControllerStorage {
 
     constructor(address _vePendle) {
         vePendle = IPVeToken(_vePendle);
-        deployedTimestamp = WeekMath.getCurrentWeekStart();
+        deployedWTime = WeekMath.getCurrentWeekStart();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -94,13 +94,15 @@ abstract contract VotingControllerStorage {
         return userData[user].voteForPools[pool];
     }
 
-    /// @dev binary search to get the vote of an user on a pool at a specific timestamp
+    /**
+     * @dev binary search to get the vote of an user on a pool at a specific timestamp
+     * @param timestamp can be any time, not necessary divisible by week
+     */
     function getUserPoolVoteAt(
         address user,
         address pool,
         uint128 timestamp
     ) external view returns (uint128) {
-        require(timestamp == WeekMath.getWeekStartTimestamp(timestamp), "invalid timestamp");
         return VeBalanceLib.getCheckpointValueAt(userPoolCheckpoints[user][pool], timestamp);
     }
 
@@ -134,24 +136,24 @@ abstract contract VotingControllerStorage {
 
     /**
      * @notice set the final pool vote for weekData
-     * @dev assumption: weekData[timestamp].poolVotes[pool] == 0
+     * @dev assumption: weekData[wTime].poolVotes[pool] == 0
      */
     function _setFinalPoolVoteForWeek(
         address pool,
-        uint128 timestamp,
+        uint128 wTime,
         uint128 vote
     ) internal {
-        weekData[timestamp].totalVotes += vote;
-        weekData[timestamp].poolVotes[pool] = vote;
+        weekData[wTime].totalVotes += vote;
+        weekData[wTime].poolVotes[pool] = vote;
     }
 
     function _setNewVotePoolInfo(
         address pool,
         VeBalance memory vote,
-        uint128 timestamp
+        uint128 wTime
     ) internal {
         poolInfo[pool].vote = vote;
-        poolInfo[pool].lastUpdated = timestamp;
+        poolInfo[pool].lastUpdated = wTime;
     }
 
     /// @dev only applicable for current pool, hence no changes for weekData
@@ -201,10 +203,10 @@ abstract contract VotingControllerStorage {
     }
 
     function _setAllPastEpochsAsFinalized() internal {
-        uint128 timestamp = WeekMath.getCurrentWeekStart();
-        while (timestamp >= deployedTimestamp && isEpochFinalized[timestamp] == false) {
-            isEpochFinalized[timestamp] = true;
-            timestamp -= deployedTimestamp;
+        uint128 wTime = WeekMath.getCurrentWeekStart();
+        while (wTime >= deployedWTime && isEpochFinalized[wTime] == false) {
+            isEpochFinalized[wTime] = true;
+            wTime -= deployedWTime;
         }
     }
 

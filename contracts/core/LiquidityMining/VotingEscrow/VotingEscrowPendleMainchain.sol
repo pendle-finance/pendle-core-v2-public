@@ -16,15 +16,15 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
     IERC20 public immutable pendle;
 
-    // [timestamp] => slopeChanges
+    // [wTime] => slopeChanges
     mapping(uint128 => uint128) public slopeChanges;
 
     // Saving totalSupply checkpoint for each week, later can be used for reward accounting
-    // [timestamp] => totalSupply
+    // [wTime] => totalSupply
     mapping(uint128 => uint128) public totalSupplyAt;
 
     // Saving VeBalance checkpoint for users of each week, can later use binary search
-    // to ask for their vePendle balance at any timestamp
+    // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoint[]) public userCheckpoints;
 
     constructor(IERC20 _pendle, address _governanceManager) CelerSender(_governanceManager) {
@@ -57,7 +57,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     {
         address user = msg.sender;
         require(
-            newExpiry == WeekMath.getWeekStartTimestamp(newExpiry) && newExpiry > block.timestamp,
+            WeekMath.isValidWTime(newExpiry) && newExpiry > block.timestamp,
             "invalid newExpiry"
         );
 
@@ -184,21 +184,21 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
      */
     function _updateTotalSupply() internal returns (VeBalance memory, uint128) {
         VeBalance memory supply = _totalSupply;
-        uint128 timestamp = lastSupplyUpdatedAt;
+        uint128 wTime = lastSupplyUpdatedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
-        if (timestamp >= currentWeekStart) {
-            return (supply, timestamp);
+        if (wTime >= currentWeekStart) {
+            return (supply, wTime);
         }
 
-        while (timestamp < currentWeekStart) {
-            timestamp += WEEK;
-            supply = supply.sub(slopeChanges[timestamp], timestamp);
-            totalSupplyAt[timestamp] = supply.getValueAt(timestamp);
+        while (wTime < currentWeekStart) {
+            wTime += WEEK;
+            supply = supply.sub(slopeChanges[wTime], wTime);
+            totalSupplyAt[wTime] = supply.getValueAt(wTime);
         }
 
         _totalSupply = supply;
-        lastSupplyUpdatedAt = timestamp;
+        lastSupplyUpdatedAt = wTime;
 
         return (supply, lastSupplyUpdatedAt);
     }
@@ -207,7 +207,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     function _broadcastPosition(address user, uint256[] calldata chainIds) public payable {
         require(chainIds.length != 0, "empty chainIds");
 
-        (VeBalance memory supply, uint256 timestamp) = _updateTotalSupply();
+        (VeBalance memory supply, uint256 wTime) = _updateTotalSupply();
 
         bytes memory userData = (
             user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
@@ -215,7 +215,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
             require(sidechainContracts.contains(chainIds[i]), "not supported chain");
-            _broadcast(chainIds[i], timestamp, supply, userData);
+            _broadcast(chainIds[i], wTime, supply, userData);
             if (user != address(0)) {
                 emit BroadcastUserPosition(user, chainIds);
             }
@@ -225,16 +225,16 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     }
 
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint256 timestamp) = _updateTotalSupply();
-        _broadcast(chainId, timestamp, supply, EMPTY_BYTES);
+        (VeBalance memory supply, uint256 wTime) = _updateTotalSupply();
+        _broadcast(chainId, wTime, supply, EMPTY_BYTES);
     }
 
     function _broadcast(
         uint256 chainId,
-        uint256 timestamp,
+        uint256 wTime,
         VeBalance memory supply,
         bytes memory userData
     ) internal {
-        _sendMessage(chainId, abi.encode(timestamp, supply, userData));
+        _sendMessage(chainId, abi.encode(wTime, supply, userData));
     }
 }

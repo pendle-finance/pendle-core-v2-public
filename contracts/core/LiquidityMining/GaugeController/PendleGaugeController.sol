@@ -28,7 +28,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     struct MarketRewardData {
         uint128 pendlePerSec;
         uint128 accumulatedPendle;
-        uint128 lastUpdateTimestamp;
+        uint128 lastUpdated;
         uint128 incentiveEndsAt;
     }
 
@@ -86,20 +86,20 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         - rewardData is updated for all markets in markets[]
      */
     function _receiveVotingResults(
-        uint128 timestamp,
+        uint128 wTime,
         address[] memory markets,
         uint256[] memory pendleAmounts
     ) internal {
         require(markets.length == pendleAmounts.length, "invalid markets length");
 
-        if (epochRewardReceived[timestamp]) return; // only accept the first message for the timestamp
-        epochRewardReceived[timestamp] = true;
+        if (epochRewardReceived[wTime]) return; // only accept the first message for the wTime
+        epochRewardReceived[wTime] = true;
 
         for (uint256 i = 0; i < markets.length; ++i) {
             _addRewardsToMarket(markets[i], uint128(pendleAmounts[i]));
         }
 
-        emit ReceiveVotingResults(timestamp, markets, pendleAmounts);
+        emit ReceiveVotingResults(wTime, markets, pendleAmounts);
     }
 
     /**
@@ -111,13 +111,13 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
      */
     function _addRewardsToMarket(address market, uint128 pendleAmount) internal {
         MarketRewardData memory rwd = _getUpdatedMarketReward(market);
-        uint128 leftover = (rwd.incentiveEndsAt - rwd.lastUpdateTimestamp) * rwd.pendlePerSec;
+        uint128 leftover = (rwd.incentiveEndsAt - rwd.lastUpdated) * rwd.pendlePerSec;
         uint128 newSpeed = (leftover + pendleAmount) / WEEK;
 
         rewardData[market] = MarketRewardData({
             pendlePerSec: newSpeed,
             accumulatedPendle: rwd.accumulatedPendle,
-            lastUpdateTimestamp: uint128(block.timestamp),
+            lastUpdated: uint128(block.timestamp),
             incentiveEndsAt: uint128(block.timestamp) + WEEK
         });
     }
@@ -125,7 +125,7 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
     /**
      * @notice get the updated state of the market, to the current time with all the undistributed Pendle distributed to the
         accumulatedPendle
-     * @dev expect to update accumulatedPendle & lastUpdateTimestamp in MarketRewardData
+     * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
     function _getUpdatedMarketReward(address market)
         internal
@@ -133,13 +133,9 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
         returns (MarketRewardData memory)
     {
         MarketRewardData memory rwd = rewardData[market];
-        uint128 newLastUpdateTimestamp = uint128(
-            Math.min(uint128(block.timestamp), rwd.incentiveEndsAt)
-        );
-        rwd.accumulatedPendle +=
-            rwd.pendlePerSec *
-            (newLastUpdateTimestamp - rwd.lastUpdateTimestamp);
-        rwd.lastUpdateTimestamp = newLastUpdateTimestamp;
+        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
+        rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);
+        rwd.lastUpdated = newLastUpdated;
         return rwd;
     }
 }

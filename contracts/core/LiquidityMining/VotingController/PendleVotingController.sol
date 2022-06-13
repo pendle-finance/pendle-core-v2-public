@@ -98,27 +98,27 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
     function updatePoolVotes(address pool) public {
         require(_isPoolVotable(pool), "invalid pool");
 
-        uint128 timestamp = poolInfo[pool].lastUpdated;
+        uint128 wTime = poolInfo[pool].lastUpdated;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
         // no state changes are expected
-        if (timestamp >= currentWeekStart) return;
+        if (wTime >= currentWeekStart) return;
 
         VeBalance memory currentVote = poolInfo[pool].vote;
-        while (timestamp < currentWeekStart) {
-            timestamp += WEEK;
-            currentVote = currentVote.sub(poolInfo[pool].slopeChanges[timestamp], timestamp);
-            _setFinalPoolVoteForWeek(pool, timestamp, currentVote.getValueAt(timestamp));
+        while (wTime < currentWeekStart) {
+            wTime += WEEK;
+            currentVote = currentVote.sub(poolInfo[pool].slopeChanges[wTime], wTime);
+            _setFinalPoolVoteForWeek(pool, wTime, currentVote.getValueAt(wTime));
         }
 
-        _setNewVotePoolInfo(pool, currentVote, timestamp);
+        _setNewVotePoolInfo(pool, currentVote, wTime);
     }
 
     /**
      * @notice finalize the voting results of all pools, up to the current epoch
      * @dev state changes expected:
         - weekData, poolInfo is updated for all pools in allPools
-        - isEpochFinalized[timestamp] is set to true
+        - isEpochFinalized is set to true for all epochs since the last time until now
      * @dev this function might take a lot of gas, but can be mitigated by calling updatePoolVotes
         separately, hence reduce the number of states to be updated
      */
@@ -138,9 +138,9 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         - the gaugeController receives the new pendle allocation
      */
     function broadcastResults(uint64 chainId) external payable {
-        uint128 timestamp = WeekMath.getCurrentWeekStart();
-        require(isEpochFinalized[timestamp], "epoch not finalized");
-        _broadcastResults(chainId, timestamp, pendlePerSec);
+        uint128 wTime = WeekMath.getCurrentWeekStart();
+        require(isEpochFinalized[wTime], "epoch not finalized");
+        _broadcastResults(chainId, wTime, pendlePerSec);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -189,10 +189,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
      */
     function forceBroadcastResults(
         uint64 chainId,
-        uint128 timestamp,
+        uint128 wTime,
         uint128 forcedPendlePerSec
     ) external payable onlyGovernance {
-        _broadcastResults(chainId, timestamp, forcedPendlePerSec);
+        _broadcastResults(chainId, wTime, forcedPendlePerSec);
     }
 
     /**
@@ -217,10 +217,10 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
      */
     function _broadcastResults(
         uint64 chainId,
-        uint128 timestamp,
+        uint128 wTime,
         uint128 totalPendlePerSec
     ) internal {
-        uint256 totalVotes = weekData[timestamp].totalVotes;
+        uint256 totalVotes = weekData[wTime].totalVotes;
         if (totalVotes == 0) return;
 
         uint256 length = chainPools[chainId].length();
@@ -230,7 +230,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         uint256[] memory totalPendleAmounts = new uint256[](length);
 
         for (uint256 i = 0; i < length; ++i) {
-            uint256 poolVotes = weekData[timestamp].poolVotes[pools[i]];
+            uint256 poolVotes = weekData[wTime].poolVotes[pools[i]];
             uint256 pendlePerSec = (uint256(totalPendlePerSec) * poolVotes) / totalVotes;
             totalPendleAmounts[i] = pendlePerSec * WEEK;
         }
@@ -238,15 +238,15 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         if (chainId == block.chainid) {
             address gaugeController = sidechainContracts.get(uint256(chainId));
             IPGaugeControllerMainchain(gaugeController).updateVotingResults(
-                timestamp,
+                wTime,
                 pools,
                 totalPendleAmounts
             );
         } else {
-            _sendMessage(chainId, abi.encode(timestamp, pools, totalPendleAmounts));
+            _sendMessage(chainId, abi.encode(wTime, pools, totalPendleAmounts));
         }
 
-        emit BroadcastResults(chainId, timestamp, totalPendlePerSec);
+        emit BroadcastResults(chainId, wTime, totalPendlePerSec);
     }
 
     /**
