@@ -12,12 +12,11 @@ abstract contract VotingControllerStorage {
     using VeBalanceLib for VeBalance;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
-
     struct PoolInfo {
         uint64 chainId;
         uint128 lastUpdated;
         VeBalance vote;
+        // timestamp => slopeChange value
         mapping(uint128 => uint128) slopeChanges;
     }
 
@@ -36,7 +35,7 @@ abstract contract VotingControllerStorage {
         mapping(address => uint128) poolVotes;
     }
 
-    uint64 public constant MAX_WEIGHT = 10**18;
+    uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
@@ -45,7 +44,7 @@ abstract contract VotingControllerStorage {
 
     uint128 public pendlePerSec;
 
-    uint128 public deployedTimestamp; // divisible by WEEK
+    uint128 public immutable deployedTimestamp; // divisible by WEEK
 
     EnumerableSet.AddressSet internal allPools;
 
@@ -61,7 +60,7 @@ abstract contract VotingControllerStorage {
     // user voting info
     mapping(address => UserData) public userData;
 
-    // [pool][timestamp]
+    // timestamp => bool
     mapping(uint128 => bool) public isEpochFinalized;
 
     // [user][pool] => checkpoint
@@ -72,25 +71,21 @@ abstract contract VotingControllerStorage {
         deployedTimestamp = WeekMath.getCurrentWeekStart();
     }
 
-    function getAllPools() public view returns (address[] memory) {
+    /*///////////////////////////////////////////////////////////////
+                            VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev trivial view function
+    function getAllPools() external view returns (address[] memory) {
         return allPools.values();
     }
 
-    function getChainPools(uint64 chainId) public view returns (address[] memory) {
+    /// @dev trivial view function
+    function getChainPools(uint64 chainId) external view returns (address[] memory) {
         return chainPools[chainId].values();
     }
 
-    function getPoolVotesAt(address pool, uint128 timestamp) public view returns (uint128) {
-        require(timestamp == WeekMath.getWeekStartTimestamp(timestamp), "invalid timestamp");
-        require(poolInfo[pool].lastUpdated >= timestamp, "pool not updated");
-        return weekData[timestamp].poolVotes[pool];
-    }
-
-    function getTotalVotesAt(uint128 timestamp) public view returns (uint128) {
-        require(timestamp == WeekMath.getWeekStartTimestamp(timestamp), "invalid timestamp");
-        return weekData[timestamp].totalVotes;
-    }
-
+    /// @dev trivial view function
     function getUserPoolVote(address user, address pool)
         external
         view
@@ -99,13 +94,19 @@ abstract contract VotingControllerStorage {
         return userData[user].voteForPools[pool];
     }
 
+    /// @dev binary search to get the vote of an user on a pool at a specific timestamp
     function getUserPoolVoteAt(
         address user,
         address pool,
         uint128 timestamp
     ) external view returns (uint128) {
+        require(timestamp == WeekMath.getWeekStartTimestamp(timestamp), "invalid timestamp");
         return VeBalanceLib.getCheckpointValueAt(userPoolCheckpoints[user][pool], timestamp);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            INTERNAL DATA MANIPULATION FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /**
     * @dev expected behavior:
@@ -144,31 +145,30 @@ abstract contract VotingControllerStorage {
         weekData[timestamp].poolVotes[pool] = vote;
     }
 
-    /// @dev assumption: poolInfo[pool].vote == 0
-    function _setPoolVote(address pool, VeBalance memory vote) internal {
+    function _setNewVotePoolInfo(
+        address pool,
+        VeBalance memory vote,
+        uint128 timestamp
+    ) internal {
         poolInfo[pool].vote = vote;
-    }
-
-    /// @dev assumption: poolInfo[pool].vote == 0
-    function _setPoolLastUpdated(address pool, uint128 timestamp) internal {
         poolInfo[pool].lastUpdated = timestamp;
     }
 
     /// @dev only applicable for current pool, hence no changes for weekData
-    function _subtractFromPoolVote(address pool, VeBalance memory vote) internal {
+    function _subtractVotePoolInfo(address pool, VeBalance memory vote) internal {
         PoolInfo storage pInfo = poolInfo[pool];
         pInfo.vote = poolInfo[pool].vote.sub(vote);
         pInfo.slopeChanges[vote.getExpiry()] -= vote.slope;
     }
 
     /// @dev only applicable for current pool, hence no changes for weekData
-    function _addToPoolVote(address pool, VeBalance memory vote) internal {
+    function _addVotePoolInfo(address pool, VeBalance memory vote) internal {
         PoolInfo storage pInfo = poolInfo[pool];
         pInfo.vote = poolInfo[pool].vote.add(vote);
         pInfo.slopeChanges[vote.getExpiry()] += vote.slope;
     }
 
-    function _unsetUserPoolVote(address user, address pool) internal {
+    function _unsetVoteUserData(address user, address pool) internal {
         UserData storage uData = userData[user];
         uData.totalVotedWeight -= uData.voteForPools[pool].weight;
         delete uData.voteForPools[pool];
@@ -176,7 +176,7 @@ abstract contract VotingControllerStorage {
 
     /// @dev assumption: uData.voteForPools[pool] hasn't been set before
     /// @dev post-condition: totalVotedWeight <= USER_VOTE_MAX_WEIGHT
-    function _setUserPoolVote(
+    function _setVoteUserData(
         address user,
         address pool,
         uint64 weight,

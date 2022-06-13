@@ -54,11 +54,8 @@ library VeBalanceLib {
 
     function getExpiry(VeBalance memory a) internal pure returns (uint128) {
         require(a.slope != 0, "zero slope");
-        return a.bias / a.slope; // this is guaranteed to be true
+        return a.bias / a.slope;
     }
-
-    // hmm I'm not the biggest fan of the random hooks, very hard to rmb when to call
-    // and this is not "isValid"
 
     function getCheckpointValueAt(Checkpoint[] storage checkpoints, uint128 timestamp)
         internal

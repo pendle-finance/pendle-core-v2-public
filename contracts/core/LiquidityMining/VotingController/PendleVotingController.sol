@@ -73,7 +73,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
 
     /**
      * @notice remove the vote from the current pool
-     * @dev no pre-condition since this function just clears all the data
+     * @dev no pre-condition as opposed to vote since this function is to clear the vote
      * @dev allow removing vote from a non-votable pool BY not requiring pool to be votable
      * @dev state changes expected:
         - update weekData (if any)
@@ -111,8 +111,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
             _setFinalPoolVoteForWeek(pool, timestamp, currentVote.getValueAt(timestamp));
         }
 
-        _setPoolVote(pool, currentVote);
-        _setPoolLastUpdated(pool, timestamp);
+        _setNewVotePoolInfo(pool, currentVote, timestamp);
     }
 
     /**
@@ -196,17 +195,32 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         _broadcastResults(chainId, timestamp, forcedPendlePerSec);
     }
 
+    /**
+     * @notice set new pendlePerSec
+     * @dev no zero checks because gov may want to stop liquidity mining
+     * @dev state changes expected: pendlePerSec is updated
+     */
     function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
         emit SetPendlePerSec(newPendlePerSec);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                    INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice broadcast voting results of the timestamp to chainId
+     * @dev assumption: the epoch is already finalized, lastUpdated of all pools >= currentWeekTimestamp
+     * @dev state changes expected:
+        - the gaugeController receives the new pendle allocation
+     */
     function _broadcastResults(
         uint64 chainId,
         uint128 timestamp,
         uint128 totalPendlePerSec
     ) internal {
-        uint256 totalVotes = getTotalVotesAt(timestamp);
+        uint256 totalVotes = weekData[timestamp].totalVotes;
         if (totalVotes == 0) return;
 
         uint256 length = chainPools[chainId].length();
@@ -216,11 +230,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         uint256[] memory incentives = new uint256[](length);
 
         for (uint256 i = 0; i < length; ++i) {
-            // poolVotes can be as large as pendle supply ~ 1e27
-            // pendle per sec can be as large as 1e20
-            // casting to uint256 here to prevent overflow
-            uint256 pendlePerSec = (uint256(totalPendlePerSec) *
-                getPoolVotesAt(pools[i], timestamp)) / totalVotes;
+            uint256 poolVotes = weekData[timestamp].poolVotes[pools[i]];
+            uint256 pendlePerSec = (uint256(totalPendlePerSec) * poolVotes) / totalVotes;
             incentives[i] = pendlePerSec * WEEK;
         }
 
@@ -238,6 +249,13 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         emit BroadcastResults(chainId, timestamp, totalPendlePerSec);
     }
 
+    /**
+     * @notice remove the vote from the current pool
+     * @dev state changes expected:
+        - vote in poolInfo is cleared if the vote is still valid
+        - update UserData to remove the vote weight
+        - add a check-point if required
+     */
     function _unvote(
         address user,
         address pool,
@@ -245,9 +263,9 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
     ) internal {
         VeBalance memory oldUVote = userData[user].voteForPools[pool].vote;
         if (_isPoolVotable(pool) && _isVoteActive(oldUVote)) {
-            _subtractFromPoolVote(pool, oldUVote);
+            _subtractVotePoolInfo(pool, oldUVote);
         }
-        _unsetUserPoolVote(user, pool);
+        _unsetVoteUserData(user, pool);
 
         if (doCreateCheckpoint) {
             _addUserPoolCheckpoint(user, pool, VeBalance(0, 0));
@@ -255,14 +273,22 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         emit Unvote(user, pool, oldUVote);
     }
 
+    /**
+     * @notice remove the vote from the current pool
+     * @dev there must not be any current vote on this pool by the user
+     * @dev state changes expected:
+        - vote in poolInfo is added
+        - update UserData to set the new vote weight
+        - add a check-point
+     */
     function _vote(
         address user,
         address pool,
         uint64 weight
     ) internal {
         VeBalance memory votingPower = _getVotingPowerByWeight(user, weight);
-        _addToPoolVote(pool, votingPower);
-        _setUserPoolVote(user, pool, weight, votingPower);
+        _addVotePoolInfo(pool, votingPower);
+        _setVoteUserData(user, pool, weight, votingPower);
         _addUserPoolCheckpoint(user, pool, votingPower);
 
         emit Vote(user, pool, weight, votingPower);
@@ -285,7 +311,7 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
         }
 
         (res.bias, res.slope) = vePendle.convertToVeBalance(
-            uint128((uint256(amount) * weight) / MAX_WEIGHT),
+            uint128((uint256(amount) * weight) / USER_VOTE_MAX_WEIGHT),
             expiry
         );
     }
