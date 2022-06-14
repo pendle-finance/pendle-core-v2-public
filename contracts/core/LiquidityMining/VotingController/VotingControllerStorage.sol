@@ -207,7 +207,7 @@ abstract contract VotingControllerStorage {
         uint128 wTime = WeekMath.getCurrentWeekStart();
         while (wTime >= deployedWTime && isEpochFinalized[wTime] == false) {
             isEpochFinalized[wTime] = true;
-            wTime -= deployedWTime;
+            wTime -= WEEK;
         }
     }
 
