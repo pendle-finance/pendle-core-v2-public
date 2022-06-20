@@ -54,7 +54,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     MarketStorage public _storage;
 
     modifier notExpired() {
-        require(!MiniHelpers.isCurrentlyExpired(expiry), "market expired");
+        require(!isExpired(), "market expired");
         _;
     }
 
@@ -283,6 +283,10 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         _SCY = SCY;
         _PT = PT;
         _YT = YT;
+    }
+
+    function isExpired() public view returns (bool) {
+        return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
     /**

@@ -75,7 +75,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         updateScyReserve
         returns (uint256 amountPYOut)
     {
-        require(MiniHelpers.isCurrentlyExpired(expiry), "yield contract expired");
+        require(isExpired(), "yield contract expired");
 
         uint256 amountToTokenize = _getFloatingScyAmount();
 
@@ -175,7 +175,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
         currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
-        if (MiniHelpers.isCurrentlyExpired(expiry)) {
+        if (isExpired()) {
             lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {
             lastIndexBeforeExpiry = currentIndex;
@@ -189,6 +189,10 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         return SCYUtils.assetToScy(scyIndex, balanceOf(user)) + userInterest[user].accrued;
     }
 
+    function isExpired() public view returns (bool) {
+        return MiniHelpers.isCurrentlyExpired(expiry);
+    }
+
     function _redeemPY(address[] memory receivers, uint256[] memory amounts)
         internal
         returns (uint256 amountScyOut)
@@ -199,7 +203,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
         // minimum of PT & YT balance
         uint256 amountPYToRedeem = IERC20(PT).balanceOf(address(this));
-        if (!MiniHelpers.isCurrentlyExpired(expiry)) {
+        if (!isExpired()) {
             amountPYToRedeem = Math.min(amountPYToRedeem, balanceOf(address(this)));
             _burn(address(this), amountPYToRedeem);
         }
@@ -286,7 +290,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
     /// YT has expired. Instead, these funds will go to the treasury
     function _updateRewardIndex() internal virtual override {
-        if (!MiniHelpers.isCurrentlyExpired(expiry)) {
+        if (!isExpired()) {
             super._updateRewardIndex();
             return;
         }

@@ -63,6 +63,8 @@ interface IPMarket is IERC20Metadata {
         bytes calldata data
     ) external returns (uint256 netScyIn, uint256 netScyToReserve);
 
+    function redeemRewards(address user) external returns (uint256[] memory);
+
     function readState(bool updateRateOracle) external view returns (MarketState memory market);
 
     function readTokens()
@@ -76,5 +78,5 @@ interface IPMarket is IERC20Metadata {
 
     function getRewardTokens() external view returns (address[] memory);
 
-    function redeemRewards(address user) external returns (uint256[] memory);
+    function isExpired() external view returns (bool);
 }

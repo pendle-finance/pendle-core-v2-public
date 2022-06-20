@@ -148,8 +148,7 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         address SCY = IPYieldToken(YT).SCY();
 
         if (doPull) {
-            bool isExpired = MiniHelpers.isCurrentlyExpired(IPYieldToken(YT).expiry());
-            bool needToBurnYt = (!isExpired);
+            bool needToBurnYt = (!IPYieldToken(YT).isExpired());
             IERC20(PT).safeTransferFrom(msg.sender, YT, netPyIn);
             if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }

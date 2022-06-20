@@ -31,14 +31,14 @@ interface IPYieldToken is IERC20Metadata, IRewardManager {
 
     function updateAndDistributeInterest(address user) external;
 
+    function getScyIndex() external returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry);
+
     function userInterest(address user)
         external
         view
         returns (uint128 lastScyIndex, uint128 accruedInterest);
 
     function getRewardTokens() external view returns (address[] memory);
-
-    function getScyIndex() external returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry);
 
     function SCY() external view returns (address);
 
@@ -47,4 +47,6 @@ interface IPYieldToken is IERC20Metadata, IRewardManager {
     function factory() external view returns (address);
 
     function expiry() external view returns (uint256);
+
+    function isExpired() external view returns (bool);
 }

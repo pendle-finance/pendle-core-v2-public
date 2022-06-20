@@ -5,6 +5,7 @@ import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
 import "../PendleERC20.sol";
+import "../../libraries/helpers/MiniHelpers.sol";
 
 contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
     address public immutable SCY;
@@ -43,5 +44,9 @@ contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
      */
     function mintByYT(address user, uint256 amount) external onlyYT {
         _mint(user, amount);
+    }
+
+    function isExpired() public view returns (bool) {
+        return MiniHelpers.isCurrentlyExpired(expiry);
     }
 }
