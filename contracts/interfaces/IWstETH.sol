@@ -6,5 +6,7 @@ interface IWstETH {
 
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
 
+    function stETH() external view returns (address);
+
     function stEthPerToken() external view returns (uint256);
 }

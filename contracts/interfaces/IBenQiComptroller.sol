@@ -30,4 +30,6 @@ interface IBenQiComptroller {
         bool borrowers,
         bool suppliers
     ) external;
+
+    function qiAddress() external view returns (address);
 }

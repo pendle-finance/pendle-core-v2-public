@@ -12,12 +12,10 @@ contract PendleWstEthSCY is SCYBase {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _stETH,
         address _wstETH
     ) SCYBase(_name, _symbol, _wstETH) {
-        require(_wstETH != address(0), "zero address");
-        stETH = _stETH;
         wstETH = _wstETH;
+        stETH = IWstETH(wstETH).stETH();
         _safeApprove(stETH, wstETH, type(uint256).max);
     }
 

@@ -26,4 +26,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IQiToken is IERC20 {
     function exchangeRateCurrent() external returns (uint256);
+
+    function comptroller() external view returns (address);
 }

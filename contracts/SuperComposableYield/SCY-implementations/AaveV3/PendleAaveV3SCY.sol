@@ -21,19 +21,12 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _pool,
-        address _underlying,
-        address _aToken,
-        address _rewardsController
+        address _aToken
     ) SCYBaseWithRewards(_name, _symbol, _aToken) {
-        require(
-            _aToken != address(0) && _rewardsController != address(0) && _pool != address(0),
-            "zero address"
-        );
         aToken = _aToken;
-        pool = _pool;
-        underlying = _underlying;
-        rewardsController = _rewardsController;
+        underlying = IAToken(aToken).UNDERLYING_ASSET_ADDRESS();
+        rewardsController = IAToken(aToken).getIncentivesController();
+        pool = IAToken(aToken).POOL();
         _safeApprove(underlying, pool, type(uint256).max);
     }
 

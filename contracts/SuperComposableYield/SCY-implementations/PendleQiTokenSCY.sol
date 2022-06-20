@@ -19,26 +19,29 @@ contract PendleQiTokenSCY is SCYBaseWithRewards {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _underlying,
         address _qiToken,
-        address _comptroller,
-        address _QI,
         address _WAVAX
     ) SCYBaseWithRewards(_name, _symbol, _qiToken) {
-        require(
-            _qiToken != address(0) &&
-                _QI != address(0) &&
-                _WAVAX != address(0) &&
-                _comptroller != address(0),
-            "zero address"
-        );
+        require(_WAVAX != address(0), "zero address");
+
         qiToken = _qiToken;
-        QI = _QI;
+
+        underlying = _getUnderlyingOfQiToken();
+        comptroller = IQiToken(qiToken).comptroller();
+
+        QI = IBenQiComptroller(comptroller).qiAddress();
         WAVAX = _WAVAX;
-        comptroller = _comptroller;
-        underlying = _underlying;
+
         if (underlying != NATIVE) {
             _safeApprove(underlying, qiToken, type(uint256).max);
+        }
+    }
+
+    function _getUnderlyingOfQiToken() internal view returns (address) {
+        try IQiErc20(qiToken).underlying() returns (address res) {
+            return res;
+        } catch {
+            return NATIVE;
         }
     }
 

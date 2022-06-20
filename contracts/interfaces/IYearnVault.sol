@@ -29,4 +29,6 @@ interface IYearnVault {
     function withdraw(uint256 maxShares) external returns (uint256);
 
     function pricePerShare() external view returns (uint256);
+
+    function token() external view returns (address);
 }

@@ -31,6 +31,8 @@ interface IWXBTRFLY {
 
     function unwrapToxBTRFLY(uint256 _amount) external returns (uint256);
 
+    function BTRFLY() external view returns (address);
+
     function xBTRFLY() external view returns (address);
 
     function xBTRFLYValue(uint256 _amount) external view returns (uint256);

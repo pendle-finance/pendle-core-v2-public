@@ -15,14 +15,13 @@ contract PendleBtrflyScy is SCYBase {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _BTRFLY,
-        address _xBTRFLY,
         address _wxBTRFLY
     ) SCYBase(_name, _symbol, _wxBTRFLY) {
         require(_wxBTRFLY != address(0), "zero address");
-        BTRFLY = _BTRFLY;
-        xBTRFLY = _xBTRFLY;
         wxBTRFLY = _wxBTRFLY;
+        BTRFLY = IWXBTRFLY(wxBTRFLY).BTRFLY();
+        xBTRFLY = IWXBTRFLY(wxBTRFLY).xBTRFLY();
+
         _safeApprove(BTRFLY, wxBTRFLY, type(uint256).max);
         _safeApprove(xBTRFLY, wxBTRFLY, type(uint256).max);
     }

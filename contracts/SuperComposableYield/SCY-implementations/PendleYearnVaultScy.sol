@@ -13,12 +13,11 @@ contract PendleYearnVaultSCY is SCYBase {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _underlying,
         address _yvToken
     ) SCYBase(_name, _symbol, _yvToken) {
         require(_yvToken != address(0), "zero address");
         yvToken = _yvToken;
-        underlying = _underlying;
+        underlying = IYearnVault(yvToken).token();
         _safeApprove(underlying, yvToken, type(uint256).max);
     }
 
