@@ -71,7 +71,6 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         require(isValidBaseToken(tokenOut), "SCY: invalid tokenOut");
 
         if (amountSharesToPull != 0) {
-            _spendAllowance(msg.sender, address(this), amountSharesToPull);
             _transfer(msg.sender, address(this), amountSharesToPull);
         }
 
