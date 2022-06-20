@@ -94,38 +94,46 @@ library Math {
         return (x < y ? x : y);
     }
 
+    /*///////////////////////////////////////////////////////////////
+                               SIGNED CASTS
+    //////////////////////////////////////////////////////////////*/
+
+    function Int(uint256 x) internal pure returns (int256) {
+        require(x <= uint256(type(int256).max));
+        return int256(x);
+    }
+
+    function Int128(int256 x) internal pure returns (int128) {
+        require(type(int128).min <= x && x <= type(int128).max);
+        return int128(x);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                               UNSIGNED CASTS
+    //////////////////////////////////////////////////////////////*/
+
     function Uint(int256 x) internal pure returns (uint256) {
         require(x >= 0);
         return uint256(x);
     }
 
-    function Int(uint256 x) internal pure returns (int256) {
-        require(x < (1 << 255)); // signed, lim = bit-1
-        return int256(x);
-    }
-
-    function Int128(int256 x) internal pure returns (int128) {
-        require(-(1 << 127) <= x && x < (1 << 127)); // signed, lim = bit-1
-        return int128(x);
-    }
-
     function Uint32(uint256 x) internal pure returns (uint32) {
-        require(x < (1 << 32)); // unsigned, lim = bit
+        require(x <= type(uint32).max);
         return uint32(x);
     }
 
     function Uint112(uint256 x) internal pure returns (uint112) {
-        require(x < (1 << 112)); // unsigned, lim = bit
+        require(x <= type(uint112).max);
         return uint112(x);
     }
 
     function Uint96(uint256 x) internal pure returns (uint96) {
-        require(x < (1 << 96)); // unsigned, lim = bit
+        require(x <= type(uint96).max);
         return uint96(x);
     }
 
     function Uint128(uint256 x) internal pure returns (uint128) {
-        require(x < (1 << 128)); // unsigned, lim = bit
+        require(x <= type(uint128).max);
         return uint128(x);
     }
 
