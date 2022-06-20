@@ -131,7 +131,9 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         (receivers[0], amounts[0]) = (market, scyOwed);
         (receivers[1], amounts[1]) = (receiver, type(uint256).max);
 
-        uint256 netScyOut = YT.redeemPY(receivers, amounts);
+        uint256 totalScyRedeemed = YT.redeemPY(receivers, amounts);
+        uint256 netScyOut = totalScyRedeemed - scyOwed;
+
         require(netScyOut >= minScyOut, "insufficient SCY out");
     }
 }
