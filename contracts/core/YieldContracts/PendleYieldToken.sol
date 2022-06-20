@@ -232,6 +232,8 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
             uint256 amount = Math.min(totalAmountRemains, amounts[i]);
             totalAmountRemains -= amount;
             if (amount != 0) IERC20(SCY).safeTransfer(receivers[i], amount);
+
+            if (totalAmountRemains == 0) break;
             unchecked {
                 i++;
             }
