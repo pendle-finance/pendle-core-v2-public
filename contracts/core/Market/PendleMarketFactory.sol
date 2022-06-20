@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
@@ -12,7 +13,7 @@ import "../../periphery/PermissionsV2Upg.sol";
 import "./PendleMarket.sol";
 import "../LiquidityMining/PendleGauge.sol";
 
-contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory {
+contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketConfig {
@@ -57,6 +58,16 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
         marketCreationCodePointer = _setCreationCode(_marketCreationCode);
+    }
+
+    function initialize(address newVePendle, address newGaugeController)
+        external
+        onlyGovernance
+        initializer
+    {
+        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
+        vePendle = newVePendle;
+        gaugeController = newGaugeController;
     }
 
     /**
@@ -117,12 +128,6 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
         _emitNewMarketConfigEvent();
-    }
-
-    function setVeParams(address newVePendle, address newGaugeController) public onlyGovernance {
-        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
-        vePendle = newVePendle;
-        gaugeController = newGaugeController;
     }
 
     function _emitNewMarketConfigEvent() internal {
