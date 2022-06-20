@@ -193,7 +193,7 @@ library MarketMathCore {
         MarketState memory market,
         int256 lpToRemove,
         bool updateState
-    ) internal pure returns (int256 scyToAccount, int256 netPtToAccount) {
+    ) internal pure returns (int256 netScyToAccount, int256 netPtToAccount) {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
@@ -202,7 +202,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// MATH
         /// ------------------------------------------------------------
-        scyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
+        netScyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
         netPtToAccount = (lpToRemove * market.totalPt) / market.totalLp;
 
         /// ------------------------------------------------------------
@@ -211,7 +211,7 @@ library MarketMathCore {
         if (updateState) {
             market.totalLp = market.totalLp.subNoNeg(lpToRemove);
             market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
-            market.totalScy = market.totalScy.subNoNeg(scyToAccount);
+            market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
         }
     }
 

@@ -12,8 +12,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _joeRouter, address _joeFactory)
-        ActionSCYAndPYBase(_joeRouter, _joeFactory)
+    constructor(address _joeFactory)
+        ActionSCYAndPYBase(_joeFactory)
     //solhint-disable-next-line no-empty-blocks
     {
 

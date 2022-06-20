@@ -44,9 +44,7 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
     );
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _joeRouter, address _joeFactory)
-        PendleJoeSwapHelperUpg(_joeRouter, _joeFactory)
-    {}
+    constructor(address _joeFactory) PendleJoeSwapHelperUpg(_joeFactory) {}
 
     /// @dev for Path. If no swap is needed, path = [token]
     /// else, path = [inputToken, token0, token1, ...., outputToken]

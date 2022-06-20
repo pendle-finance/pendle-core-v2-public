@@ -82,7 +82,7 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
         );
 
         markets[PT][scalarRoot][initialAnchor] = market;
-        require(allMarkets.add(market) == true, "IE market can't be added");
+        require(allMarkets.add(market), "IE market can't be added");
 
         emit CreateNewMarket(PT, scalarRoot, initialAnchor);
     }
@@ -98,26 +98,40 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, IPMarketFactory 
     function setTreasury(address newTreasury) public onlyGovernance {
         require(newTreasury != address(0), "zero address");
         marketConfig.treasury = newTreasury;
+        _emitNewMarketConfigEvent();
     }
 
     function setlnFeeRateRoot(uint96 newlnFeeRateRoot) public onlyGovernance {
         require(newlnFeeRateRoot <= maxLnFeeRateRoot, "invalid fee rate root");
         marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
+        _emitNewMarketConfigEvent();
     }
 
     function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {
         require(newRateOracleTimeWindow >= MIN_RATE_ORACLE_TIME_WINDOW, "invalid time window");
         marketConfig.rateOracleTimeWindow = newRateOracleTimeWindow;
+        _emitNewMarketConfigEvent();
     }
 
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyGovernance {
         require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
+        _emitNewMarketConfigEvent();
     }
 
     function setVeParams(address newVePendle, address newGaugeController) public onlyGovernance {
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
+    }
+
+    function _emitNewMarketConfigEvent() internal {
+        MarketConfig memory local = marketConfig;
+        emit NewMarketConfig(
+            local.treasury,
+            local.lnFeeRateRoot,
+            local.rateOracleTimeWindow,
+            local.reserveFeePercent
+        );
     }
 }

@@ -13,12 +13,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variabless
-    constructor(
-        address _joeRouter,
-        address _joeFactory,
-        address _marketFactory
-    )
-        ActionSCYAndPYBase(_joeRouter, _joeFactory) //solhint-disable-next-line no-empty-blocks
+    constructor(address _joeFactory, address _marketFactory)
+        ActionSCYAndPYBase(_joeFactory) //solhint-disable-next-line no-empty-blocks
     {}
 
     /// @dev refer to the internal function
