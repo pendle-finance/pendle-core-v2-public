@@ -77,8 +77,9 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
 
     /**
      * @notice Create a pair of (PT, YT) from any SCY and valid expiry. Anyone can create a yield contract
+     * @dev It's intentional to make expiry an uint32 to guard against fat fingers. uint32.max is year 2106
      */
-    function createYieldContract(address SCY, uint256 expiry)
+    function createYieldContract(address SCY, uint32 expiry)
         external
         returns (address PT, address YT)
     {
