@@ -65,11 +65,11 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
     constructor(
         string memory name_,
         string memory symbol_,
-        uint8 _decimals
+        uint8 decimals_
     ) {
         _name = name_;
         _symbol = symbol_;
-        decimals = _decimals;
+        decimals = decimals_;
         _status = _NOT_ENTERED;
     }
 

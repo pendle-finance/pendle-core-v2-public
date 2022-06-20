@@ -72,7 +72,7 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         }
     }
 
-    function _updateReserve() internal virtual override {
+    function _updateYieldReserve() internal virtual override {
         yieldTokenReserve = IAToken(aToken).scaledBalanceOf(address(this));
     }
 

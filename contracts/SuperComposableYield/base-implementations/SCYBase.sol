@@ -16,9 +16,9 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
 
     uint256 public yieldTokenReserve;
 
-    modifier updateReserve() {
+    modifier updateYieldReserve() {
         _;
-        _updateReserve();
+        _updateYieldReserve();
     }
 
     constructor(
@@ -44,7 +44,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         address tokenIn,
         uint256 amountTokenToPull,
         uint256 minSharesOut
-    ) external payable nonReentrant updateReserve returns (uint256 amountSharesOut) {
+    ) external payable nonReentrant updateYieldReserve returns (uint256 amountSharesOut) {
         require(isValidBaseToken(tokenIn), "SCY: Invalid tokenIn");
 
         if (tokenIn == NATIVE) require(amountTokenToPull == 0, "can't pull eth");
@@ -67,7 +67,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         uint256 amountSharesToPull,
         address tokenOut,
         uint256 minTokenOut
-    ) external nonReentrant updateReserve returns (uint256 amountTokenOut) {
+    ) external nonReentrant updateYieldReserve returns (uint256 amountTokenOut) {
         require(isValidBaseToken(tokenOut), "SCY: invalid tokenOut");
 
         if (amountSharesToPull != 0) {
@@ -111,7 +111,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
     /**
      * @notice updates the amount of yield token reserves in this contract
      */
-    function _updateReserve() internal virtual {
+    function _updateYieldReserve() internal virtual {
         yieldTokenReserve = _selfBalance(yieldToken);
     }
 
