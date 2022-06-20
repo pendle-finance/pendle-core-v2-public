@@ -106,11 +106,12 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
             address token = rewardTokens[i];
 
             rewardAmounts[i] = userReward[token][user].accrued;
-            userReward[token][user].accrued = 0;
 
-            rewardState[token].lastBalance -= rewardAmounts[i].Uint128();
+            // if rewardAmounts[i] == 0, .accured is already == 0
 
             if (rewardAmounts[i] != 0) {
+                userReward[token][user].accrued = 0;
+                rewardState[token].lastBalance -= rewardAmounts[i].Uint128();
                 _transferOut(token, receiver, rewardAmounts[i]);
             }
         }
