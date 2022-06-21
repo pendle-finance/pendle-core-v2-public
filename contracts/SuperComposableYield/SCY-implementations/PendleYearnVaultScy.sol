@@ -65,7 +65,13 @@ contract PendleYearnVaultSCY is SCYBase {
             amountTokenOut = amountSharesToRedeem;
         } else {
             // tokenOut == underlying
-            IYearnVault(yvToken).withdraw(amountSharesToRedeem);
+            uint256 sharesRedeemed = IYearnVault(yvToken).withdraw(amountSharesToRedeem);
+
+            require(
+                sharesRedeemed != amountSharesToRedeem,
+                "Yearn Vault SCY: Not allowed to redeem all shares"
+            );
+
             amountTokenOut = _selfBalance(underlying);
         }
     }
