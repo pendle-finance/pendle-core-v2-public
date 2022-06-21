@@ -4,9 +4,13 @@ import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IRewardManager.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/TokenHelper.sol";
+import "../../libraries/helpers/ArrayLib.sol";
 
+/// This RewardManager can be used with any contracts, regardless of what tokens that contract stores
+/// since the RewardManager will maintain its own internal balance
 abstract contract RewardManager is IRewardManager, TokenHelper {
     using Math for uint256;
+    using ArrayLib for uint256[];
 
     struct RewardState {
         uint128 index;
@@ -39,27 +43,25 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
         if (lastRewardBlock == block.number) return;
         lastRewardBlock = block.number;
 
+        address[] memory rewardTokens = _getRewardTokens();
+        uint256[] memory preBalances = _selfBalances(rewardTokens);
+
         _redeemExternalReward();
 
-        uint256 totalShares = _rewardSharesTotal();
+        uint256[] memory accruedAmounts = _selfBalances(rewardTokens).sub(preBalances);
 
-        address[] memory rewardTokens = _getRewardTokens();
+        uint256 totalShares = _rewardSharesTotal();
 
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
 
-            uint256 currentBalance = _selfBalance(token);
-            uint256 rewardAccrued = currentBalance - rewardState[token].lastBalance;
-
             uint256 rewardIndex = rewardState[token].index;
 
             if (rewardIndex == 0) rewardIndex = INITIAL_REWARD_INDEX;
-            if (totalShares != 0) rewardIndex += rewardAccrued.divDown(totalShares);
+            if (totalShares != 0) rewardIndex += accruedAmounts[i].divDown(totalShares);
 
-            rewardState[token] = RewardState({
-                index: rewardIndex.Uint128(),
-                lastBalance: currentBalance.Uint128()
-            });
+            rewardState[token].index = rewardIndex.Uint128();
+            rewardState[token].lastBalance += accruedAmounts[i].Uint128();
         }
     }
 

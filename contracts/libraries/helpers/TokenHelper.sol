@@ -48,6 +48,20 @@ abstract contract TokenHelper {
         return (token == NATIVE) ? address(this).balance : IERC20(token).balanceOf(address(this));
     }
 
+    function _selfBalances(address[] memory tokens)
+        internal
+        view
+        returns (uint256[] memory balances)
+    {
+        uint256 length = tokens.length;
+        for (uint256 i = 0; i < length; ) {
+            balances[i] = _selfBalance(tokens[i]);
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     /// @notice Approves the stipulated contract to spend the given allowance in the given token
     /// @dev Errors with 'SA' if transfer fails
     /// @param token The contract address of the token to be approved

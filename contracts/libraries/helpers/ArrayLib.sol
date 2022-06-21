@@ -28,4 +28,21 @@ library ArrayLib {
         }
         out[length] = element;
     }
+
+    function sub(uint256[] memory a, uint256[] memory b)
+        internal
+        pure
+        returns (uint256[] memory res)
+    {
+        uint256 length = a.length;
+        require(length == b.length, "length mismatch");
+        res = new uint256[](length);
+
+        for (uint256 i = 0; i < length; ) {
+            res[i] = a[i] - b[i];
+            unchecked {
+                i++;
+            }
+        }
+    }
 }

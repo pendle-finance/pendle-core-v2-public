@@ -17,6 +17,11 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         SCYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
     {}
 
+    function _getFloatingAmount(address token) internal view virtual override returns (uint256) {
+        if (token != yieldToken) return _selfBalance(token) - rewardState[token].lastBalance;
+        return _selfBalance(token) - yieldTokenReserve;
+    }
+
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/

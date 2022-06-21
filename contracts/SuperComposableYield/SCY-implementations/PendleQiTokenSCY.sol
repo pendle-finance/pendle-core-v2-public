@@ -88,11 +88,13 @@ contract PendleQiTokenSCY is SCYBaseWithRewards {
     function _redeem(address tokenOut, uint256 amountSharesToRedeem)
         internal
         override
-        returns (uint256 amountBaseOut)
+        returns (uint256 amountTokenOut)
     {
         if (tokenOut == qiToken) {
-            amountBaseOut = amountSharesToRedeem;
+            amountTokenOut = amountSharesToRedeem;
         } else {
+            uint256 preBalanceUnderlying = _selfBalance(underlying);
+
             if (underlying == NATIVE) {
                 uint256 errCode = IQiAvax(qiToken).redeem(amountSharesToRedeem);
                 require(errCode == 0, "redeem failed");
@@ -101,7 +103,8 @@ contract PendleQiTokenSCY is SCYBaseWithRewards {
                 require(errCode == 0, "redeem failed");
             }
 
-            amountBaseOut = _selfBalance(underlying);
+            // underlying is potentially also rewardToken, hence we need to manually track the balance here
+            amountTokenOut = _selfBalance(underlying) - preBalanceUnderlying;
         }
     }
 

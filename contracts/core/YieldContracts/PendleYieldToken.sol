@@ -26,6 +26,7 @@ Due to this, it is required to update users' accruedReward STRICTLY BEFORE redee
 contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     using Math for uint256;
     using SafeERC20 for IERC20;
+    using ArrayLib for uint256[];
 
     struct UserInterest {
         uint128 index;
@@ -301,19 +302,13 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         if (lastRewardBlock == block.number) return;
         lastRewardBlock = block.number;
 
+        address[] memory rewardTokens = _getRewardTokens();
+        uint256[] memory preBalances = _selfBalances(rewardTokens);
+
         _redeemExternalReward();
 
-        address[] memory rewardTokens = _getRewardTokens();
-        address treasury = IPYieldContractFactory(factory).treasury();
-
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            address token = rewardTokens[i];
-
-            uint256 currentBalance = _selfBalance(token);
-            uint256 rewardAccrued = currentBalance - rewardState[token].lastBalance;
-
-            _transferOut(token, treasury, rewardAccrued);
-        }
+        uint256[] memory accruedAmounts = _selfBalances(rewardTokens).sub(preBalances);
+        _transferOut(rewardTokens, IPYieldContractFactory(factory).treasury(), accruedAmounts);
     }
 
     function _redeemExternalReward() internal virtual override {
