@@ -205,6 +205,7 @@ library MarketMathCore {
         netScyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
         netPtToAccount = (lpToRemove * market.totalPt) / market.totalLp;
 
+        require(netScyToAccount > 0 || netPtToAccount > 0, "zero amounts out");
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
