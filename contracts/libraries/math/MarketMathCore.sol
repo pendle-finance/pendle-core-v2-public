@@ -439,7 +439,7 @@ library MarketMathCore {
             totalAsset,
             rateScalar,
             initialAnchor,
-            market.expiry - blockTime
+            timeToExpiry
         );
     }
 
