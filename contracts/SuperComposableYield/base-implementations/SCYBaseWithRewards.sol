@@ -6,8 +6,11 @@ import "./SCYBase.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/Math.sol";
 
+/// This contract makes an important assumption that yieldToken is never a rewardToken
+/// Please make sure that assumption always holds
 abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     using Math for uint256;
+    using ArrayLib for address[];
 
     constructor(
         string memory _name,
@@ -15,7 +18,15 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         address _yieldToken
     )
         SCYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
-    {}
+    {
+        _validateSCYBaseWithRewards();
+    }
+
+    function _validateSCYBaseWithRewards() internal view {
+        address[] memory rewardTokens = _getRewardTokens();
+        assert(!rewardTokens.contains(yieldToken));
+        // it's allowed for a token to be both baseToken & rewardToken
+    }
 
     function _getFloatingAmount(address token) internal view virtual override returns (uint256) {
         if (token != yieldToken) return _selfBalance(token) - rewardState[token].lastBalance;
