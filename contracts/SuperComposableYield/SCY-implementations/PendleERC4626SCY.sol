@@ -6,6 +6,10 @@ import "../../libraries/math/Math.sol";
 
 contract PendleERC4626SCY is SCYBase {
     using Math for uint256;
+    // if exchangeRate is >= 3e38, the contract will overflow & frozen.
+    // Therefore, a reasonable limit (1e30) is set here. It can be removed
+    // if the implementer is fully aware of the risk
+    uint256 private constant MAX_EXCHANGE_RATE = 1e30;
 
     address public immutable underlying;
 
@@ -18,6 +22,11 @@ contract PendleERC4626SCY is SCYBase {
     ) SCYBase(_name, _symbol, address(_yieldToken)) {
         underlying = _yieldToken.asset();
         _safeApprove(underlying, yieldToken, type(uint256).max);
+        _validateERC4626SCY();
+    }
+
+    function _validateERC4626SCY() internal {
+        require(exchangeRateCurrent() <= 1e30, "too big exchangeRate");
     }
 
     /*///////////////////////////////////////////////////////////////
