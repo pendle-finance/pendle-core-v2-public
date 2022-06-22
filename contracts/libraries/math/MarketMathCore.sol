@@ -41,7 +41,7 @@ library MarketMathCore {
     int256 internal constant MINIMUM_LIQUIDITY = 10**3;
     int256 internal constant PERCENTAGE_DECIMALS = 100;
     uint256 internal constant DAY = 86400;
-    uint256 internal constant IMPLIED_RATE_TIME = 360 * DAY;
+    uint256 internal constant IMPLIED_RATE_TIME = 365 * DAY;
 
     int256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
 
