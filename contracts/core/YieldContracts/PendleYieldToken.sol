@@ -159,6 +159,22 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         emit RedeemRewards(user, rewardsOut);
     }
 
+    /// @dev this function will only redeem rewards to the treasury, hence
+    /// no need to guard it with onlyGovernance
+    function redeemRewardsAfterExpiryForTreasury()
+        external
+        nonReentrant
+        returns (uint256[] memory rewardsOut)
+    {
+        address[] memory rewardTokens = _getRewardTokens();
+        uint256[] memory preBalances = _selfBalances(rewardTokens);
+
+        _redeemExternalReward();
+
+        rewardsOut = _selfBalances(rewardTokens).sub(preBalances);
+        _transferOut(rewardTokens, IPYieldContractFactory(factory).treasury(), rewardsOut);
+    }
+
     /// @dev no updateScyReserve since this function doesn't change the SCY reserve
     function updateAndDistributeReward(address user) external nonReentrant {
         _updateAndDistributeRewards(user);
@@ -291,24 +307,10 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
     }
 
     /// @dev override the default updateRewardIndex to avoid distributing the rewards after
-    /// YT has expired. Instead, these funds will go to the treasury
+    /// YT has expired. To distribute these funds, call `_redeemRewardsAfterExpiryForTreasury`
     function _updateRewardIndex() internal virtual override {
-        if (!isExpired()) {
-            super._updateRewardIndex();
-            return;
-        }
-
-        // For the case of expired YT
-        if (lastRewardBlock == block.number) return;
-        lastRewardBlock = block.number;
-
-        address[] memory rewardTokens = _getRewardTokens();
-        uint256[] memory preBalances = _selfBalances(rewardTokens);
-
-        _redeemExternalReward();
-
-        uint256[] memory accruedAmounts = _selfBalances(rewardTokens).sub(preBalances);
-        _transferOut(rewardTokens, IPYieldContractFactory(factory).treasury(), accruedAmounts);
+        if (isExpired()) return;
+        super._updateRewardIndex();
     }
 
     function _redeemExternalReward() internal virtual override {
