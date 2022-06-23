@@ -167,6 +167,10 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         rewardAmounts = new uint256[](0);
     }
 
+    function rewardIndexesCurrent() external virtual override returns (uint256[] memory indexes) {
+        indexes = new uint256[](0);
+    }
+
     /*///////////////////////////////////////////////////////////////
                 MISC METADATA FUNCTIONS
     //////////////////////////////////////////////////////////////*/

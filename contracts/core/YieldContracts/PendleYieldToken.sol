@@ -14,6 +14,7 @@ import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../PendleERC20.sol";
 import "../../SuperComposableYield/base-implementations/RewardManager.sol";
+import "./RewardManagerMini.sol";
 
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
@@ -23,7 +24,7 @@ It has been proven and tested that impliedScyBalance will not change over time, 
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
-contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
+contract PendleYieldToken is PendleERC20, RewardManagerMini, IPYieldToken {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for uint256[];
@@ -337,6 +338,10 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
     function _getRewardTokens() internal view override returns (address[] memory) {
         return ISuperComposableYield(SCY).getRewardTokens();
+    }
+
+    function _getRewardIndexes() internal override returns (uint256[] memory) {
+        return ISuperComposableYield(SCY).rewardIndexesCurrent();
     }
 
     //solhint-disable-next-line ordering

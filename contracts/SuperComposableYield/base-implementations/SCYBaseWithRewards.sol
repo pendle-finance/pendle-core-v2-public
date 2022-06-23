@@ -78,6 +78,18 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         }
     }
 
+    function rewardIndexesCurrent() external override returns (uint256[] memory indexes) {
+        _updateRewardIndex();
+        address[] memory rewardTokens = _getRewardTokens();
+        indexes = new uint256[](rewardTokens.length);
+        for (uint256 i = 0; i < rewardTokens.length; ) {
+            indexes[i] = rewardState[rewardTokens[i]].index;
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     /**
      * @notice returns the total number of reward shares
      * @dev this is simply the total supply of shares, as rewards shares are equivalent to SCY shares
