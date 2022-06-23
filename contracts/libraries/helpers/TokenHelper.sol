@@ -54,6 +54,7 @@ abstract contract TokenHelper {
         returns (uint256[] memory balances)
     {
         uint256 length = tokens.length;
+        balances = new uint256[](length);
         for (uint256 i = 0; i < length; ) {
             balances[i] = _selfBalance(tokens[i]);
             unchecked {
