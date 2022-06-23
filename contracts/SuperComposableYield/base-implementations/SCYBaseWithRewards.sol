@@ -18,15 +18,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         address _yieldToken
     )
         SCYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
-    {
-        _validateSCYBaseWithRewards();
-    }
-
-    function _validateSCYBaseWithRewards() internal view {
-        address[] memory rewardTokens = _getRewardTokens();
-        assert(!rewardTokens.contains(yieldToken));
-        // it's allowed for a token to be both baseToken & rewardToken
-    }
+    {}
 
     function _getFloatingAmount(address token) internal view virtual override returns (uint256) {
         if (token != yieldToken) return _selfBalance(token) - rewardState[token].lastBalance;
