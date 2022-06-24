@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import "../../interfaces/IPGaugeController.sol";
 import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/ISuperComposableYield.sol";
-import "../../SuperComposableYield/base-implementations/RewardManager.sol";
+import "../../libraries/RewardManager.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/ArrayLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";

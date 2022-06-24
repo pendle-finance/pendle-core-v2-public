@@ -13,8 +13,7 @@ import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../PendleERC20.sol";
-import "../../SuperComposableYield/base-implementations/RewardManager.sol";
-import "./RewardManagerMini.sol";
+import "../../libraries/RewardManagerMini.sol";
 
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
-import "../../interfaces/ISuperComposableYield.sol";
-import "../../interfaces/IRewardManager.sol";
-import "../../libraries/math/Math.sol";
-import "../../libraries/helpers/TokenHelper.sol";
-import "../../libraries/helpers/ArrayLib.sol";
+import "../interfaces/ISuperComposableYield.sol";
+import "../interfaces/IRewardManager.sol";
+import "./math/Math.sol";
+import "./helpers/TokenHelper.sol";
+import "./helpers/ArrayLib.sol";
 
 /// This RewardManager can be used with any contracts, regardless of what tokens that contract stores
 /// since the RewardManager will maintain its own internal balance
