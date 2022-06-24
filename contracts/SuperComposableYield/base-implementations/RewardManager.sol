@@ -31,7 +31,7 @@ abstract contract RewardManager is IRewardManager, TokenHelper {
     mapping(address => mapping(address => UserReward)) public userReward;
 
     function userRewardAccrued(address token, address user) external view returns (uint128) {
-        return userReward[token][user].index;
+        return userReward[token][user].accrued;
     }
 
     function _updateAndDistributeRewards(address user) internal virtual {
