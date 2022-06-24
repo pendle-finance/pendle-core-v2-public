@@ -192,7 +192,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
 
     /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
     function getScyIndex() public returns (uint256 currentIndex, uint256 lastIndexBeforeExpiry) {
-        currentIndex = ISuperComposableYield(SCY).exchangeRateCurrent();
+        currentIndex = ISuperComposableYield(SCY).exchangeRate();
         if (isExpired()) {
             lastIndexBeforeExpiry = interestState.lastIndexBeforeExpiry;
         } else {

@@ -10,12 +10,12 @@ library SCYIndexLib {
     using Math for uint256;
     using Math for int256;
 
-    function newIndex(ISuperComposableYield SCY) internal returns (SCYIndex) {
-        return SCYIndex.wrap(SCY.exchangeRateCurrent());
+    function newIndex(ISuperComposableYield SCY) internal view returns (SCYIndex) {
+        return SCYIndex.wrap(SCY.exchangeRate());
     }
 
-    function newIndex(address SCY) internal returns (SCYIndex) {
-        return SCYIndex.wrap(ISuperComposableYield(SCY).exchangeRateCurrent());
+    function newIndex(address SCY) internal view returns (SCYIndex) {
+        return SCYIndex.wrap(ISuperComposableYield(SCY).exchangeRate());
     }
 
     function scyToAsset(SCYIndex index, uint256 scyAmount)

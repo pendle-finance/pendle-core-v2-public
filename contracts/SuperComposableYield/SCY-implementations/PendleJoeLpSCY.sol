@@ -14,8 +14,6 @@ contract PendleJoeLpSCY is SCYBase {
     address public immutable token0;
     address public immutable token1;
 
-    uint256 public override exchangeRateStored;
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -63,17 +61,13 @@ contract PendleJoeLpSCY is SCYBase {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
 
-    function exchangeRateCurrent() public override returns (uint256 currentRate) {
+    function exchangeRate() public view override returns (uint256) {
         (uint256 reserve0, uint256 reserve1, ) = IJoePair(joePair).getReserves();
 
         // K = sqrt(reserve0 * reserve1) = pow(reserve0*reserve1, 0.5)
         uint256 currentK = LogExpMath.pow(reserve0 * reserve1, uint256(LogExpMath.ONE_18 / 2));
         uint256 totalSupply = IJoePair(joePair).totalSupply();
-        currentRate = currentK.divDown(totalSupply);
-
-        emit ExchangeRateUpdated(exchangeRateStored, currentRate);
-
-        exchangeRateStored = currentRate;
+        return currentK.divDown(totalSupply);
     }
 
     /*///////////////////////////////////////////////////////////////

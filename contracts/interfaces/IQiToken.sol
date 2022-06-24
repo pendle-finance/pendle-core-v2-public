@@ -23,9 +23,28 @@
 
 pragma solidity 0.8.13;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IBenQiInterestRateModel.sol";
 
 interface IQiToken is IERC20 {
     function exchangeRateCurrent() external returns (uint256);
 
+    function exchangeRateStored() external view returns (uint256);
+
     function comptroller() external view returns (address);
+
+    function accrualBlockTimestamp() external view returns (uint256);
+
+    function getCash() external view returns (uint256);
+
+    function totalBorrows() external view returns (uint256);
+
+    function totalReserves() external view returns (uint256);
+
+    function borrowIndex() external view returns (uint256);
+
+    function interestRateModel() external view returns (IBenQiInterestRateModel);
+
+    function totalSupply() external view returns (uint256);
+
+    function reserveFactorMantissa() external view returns (uint256);
 }

@@ -7,8 +7,6 @@ contract PendleWstEthSCY is SCYBase {
     address public immutable stETH;
     address public immutable wstETH;
 
-    uint256 public override exchangeRateStored;
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -71,12 +69,8 @@ contract PendleWstEthSCY is SCYBase {
      * @notice Calculates and updates the exchange rate of shares to underlying asset token
      * @dev It is the exchange rate of wstETH to stETH
      */
-    function exchangeRateCurrent() public virtual override returns (uint256 currentRate) {
-        currentRate = IWstETH(wstETH).stEthPerToken();
-
-        emit ExchangeRateUpdated(exchangeRateStored, currentRate);
-
-        exchangeRateStored = currentRate;
+    function exchangeRate() public view virtual override returns (uint256 currentRate) {
+        return IWstETH(wstETH).stEthPerToken();
     }
 
     /*///////////////////////////////////////////////////////////////

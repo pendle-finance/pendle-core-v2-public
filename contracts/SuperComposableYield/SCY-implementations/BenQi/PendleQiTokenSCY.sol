@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "../base-implementations/SCYBaseWithRewards.sol";
-import "../../interfaces/IQiErc20.sol";
-import "../../interfaces/IQiAvax.sol";
-import "../../interfaces/IBenQiComptroller.sol";
-import "../../interfaces/IWETH.sol";
+import "../../base-implementations/SCYBaseWithRewards.sol";
+import "../../../interfaces/IQiErc20.sol";
+import "../../../interfaces/IQiAvax.sol";
+import "../../../interfaces/IBenQiComptroller.sol";
+import "../../../interfaces/IWETH.sol";
 
-contract PendleQiTokenSCY is SCYBaseWithRewards {
+import "./PendleQiTokenHelper.sol";
+
+contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
     address public immutable underlying;
     address public immutable QI;
     address public immutable WAVAX;
     address public immutable comptroller;
     address public immutable qiToken;
 
-    uint256 public override exchangeRateStored;
-
     constructor(
         string memory _name,
         string memory _symbol,
         address _qiToken,
-        address _WAVAX
-    ) SCYBaseWithRewards(_name, _symbol, _qiToken) {
+        address _WAVAX,
+        uint256 _initialExchangeRateMantissa
+    )
+        SCYBaseWithRewards(_name, _symbol, _qiToken)
+        PendleQiTokenHelper(_qiToken, _initialExchangeRateMantissa)
+    {
         require(_WAVAX != address(0), "zero address");
 
         qiToken = _qiToken;
@@ -116,12 +120,8 @@ contract PendleQiTokenSCY is SCYBaseWithRewards {
      * @notice Calculates and updates the exchange rate of shares to underlying asset token
      * @dev It is the exchange rate of qiToken to its underlying asset
      */
-    function exchangeRateCurrent() public override returns (uint256 currentRate) {
-        currentRate = IQiToken(qiToken).exchangeRateCurrent();
-
-        emit ExchangeRateUpdated(exchangeRateStored, currentRate);
-
-        exchangeRateStored = currentRate;
+    function exchangeRate() public view override returns (uint256) {
+        return _exchangeRateCurrentView();
     }
 
     /*///////////////////////////////////////////////////////////////

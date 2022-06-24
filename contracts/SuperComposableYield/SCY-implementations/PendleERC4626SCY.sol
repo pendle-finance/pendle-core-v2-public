@@ -13,8 +13,6 @@ contract PendleERC4626SCY is SCYBase {
 
     address public immutable underlying;
 
-    uint256 public override exchangeRateStored;
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -25,8 +23,8 @@ contract PendleERC4626SCY is SCYBase {
         _validateERC4626SCY();
     }
 
-    function _validateERC4626SCY() internal {
-        require(exchangeRateCurrent() <= MAX_EXCHANGE_RATE, "too big exchangeRate");
+    function _validateERC4626SCY() internal view {
+        require(exchangeRate() <= 1e30, "too big exchangeRate");
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -69,12 +67,8 @@ contract PendleERC4626SCY is SCYBase {
                                SCY-INDEX
     //////////////////////////////////////////////////////////////*/
 
-    function exchangeRateCurrent() public virtual override returns (uint256 currentRate) {
-        currentRate = IERC4626(yieldToken).convertToAssets(Math.ONE);
-
-        emit ExchangeRateUpdated(exchangeRateStored, currentRate);
-
-        exchangeRateStored = currentRate;
+    function exchangeRate() public view virtual override returns (uint256) {
+        return IERC4626(yieldToken).convertToAssets(Math.ONE);
     }
 
     /*///////////////////////////////////////////////////////////////
