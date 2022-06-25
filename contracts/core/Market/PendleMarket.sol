@@ -14,12 +14,13 @@ import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../LiquidityMining/PendleGauge.sol";
+import "../PendleERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // solhint-disable reason-string
 /// Invariances to maintain:
 /// - Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
-contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
+contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -65,7 +66,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         address _vePendle,
         address _gaugeController
     )
-        PendleERC20(NAME, SYMBOL, 18)
+        PendleERC20Permit(NAME, SYMBOL, 18)
         PendleGauge(IPPrincipalToken(_PT).SCY(), _vePendle, _gaugeController)
     {
         PT = IPPrincipalToken(_PT);

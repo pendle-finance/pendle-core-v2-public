@@ -4,10 +4,10 @@ pragma solidity 0.8.13;
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-import "../PendleERC20.sol";
+import "../PendleERC20Permit.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
-contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
+contract PendlePrincipalToken is PendleERC20Permit, IPPrincipalToken {
     address public immutable SCY;
     address public immutable YT;
     address public immutable factory;
@@ -25,7 +25,7 @@ contract PendlePrincipalToken is PendleERC20, IPPrincipalToken {
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleERC20(_name, _symbol, __decimals) {
+    ) PendleERC20Permit(_name, _symbol, __decimals) {
         SCY = _SCY;
         YT = _YT;
         expiry = _expiry;

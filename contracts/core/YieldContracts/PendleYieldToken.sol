@@ -12,7 +12,7 @@ import "../../interfaces/IPYieldContractFactory.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
-import "../PendleERC20.sol";
+import "../PendleERC20Permit.sol";
 import "../../libraries/RewardManagerMini.sol";
 
 /*
@@ -23,7 +23,7 @@ It has been proven and tested that totalScyRedeemable will not change over time,
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
-contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerMini {
+contract PendleYieldToken is IPYieldToken, PendleERC20Permit, RewardManagerMini {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for uint256[];
@@ -60,7 +60,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerMini {
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleERC20(_name, _symbol, __decimals) {
+    ) PendleERC20Permit(_name, _symbol, __decimals) {
         require(_SCY != address(0) && _PT != address(0), "zero address");
         SCY = _SCY;
         PT = _PT;
