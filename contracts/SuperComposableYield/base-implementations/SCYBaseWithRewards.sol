@@ -122,10 +122,8 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 /*amount*/
+        uint256
     ) internal virtual override {
-        _updateRewardIndex();
-        if (from != address(0) && from != address(this)) _distributeUserReward(from);
-        if (to != address(0) && to != address(this)) _distributeUserReward(to);
+        _updateAndDistributeRewardsForTwo(from, to);
     }
 }

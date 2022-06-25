@@ -104,9 +104,7 @@ abstract contract PendleGauge is RewardManager {
         address to,
         uint256
     ) internal virtual {
-        _updateRewardIndex();
-        if (from != address(0) && from != address(this)) _distributeUserReward(from);
-        if (to != address(0) && to != address(this)) _distributeUserReward(to);
+        _updateAndDistributeRewardsForTwo(from, to);
     }
 
     function _afterTokenTransfer(
