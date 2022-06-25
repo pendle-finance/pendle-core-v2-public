@@ -12,7 +12,7 @@ abstract contract TokenHelper {
         address from,
         uint256 amount
     ) internal {
-        if (token == NATIVE) return;
+        if (amount == 0 || token == NATIVE) return;
         IERC20(token).safeTransferFrom(from, address(this), amount);
     }
 
@@ -21,6 +21,7 @@ abstract contract TokenHelper {
         address to,
         uint256 amount
     ) internal {
+        if (amount == 0) return;
         if (token == NATIVE) {
             (bool success, ) = to.call{ value: amount }("");
             require(success, "eth send failed");
@@ -39,6 +40,29 @@ abstract contract TokenHelper {
         for (uint256 i = 0; i < numTokens; ) {
             _transferOut(tokens[i], to, amounts[i]);
             unchecked {
+                i++;
+            }
+        }
+    }
+
+    function _transferOutMaxMulti(
+        address token,
+        uint256 totalAmount,
+        address[] memory tos,
+        uint256[] memory maxAmounts
+    ) internal {
+        uint256 numTos = tos.length;
+        require(numTos == maxAmounts.length, "invalid length");
+
+        uint256 remaining = totalAmount;
+        for (uint256 i = 0; i < numTos; ) {
+            uint256 maxAmount = maxAmounts[i];
+            if (maxAmount > remaining) {
+                maxAmount = remaining;
+            }
+            _transferOut(token, tos[i], maxAmount);
+            unchecked {
+                remaining -= maxAmount;
                 i++;
             }
         }

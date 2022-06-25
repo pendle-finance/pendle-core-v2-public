@@ -25,14 +25,7 @@ abstract contract RewardManagerMini is IRewardManager, TokenHelper {
         return userReward[token][user].accrued;
     }
 
-    function _updateAndDistributeRewards(address user) internal virtual {
-        _updateRewardIndex();
-        _distributeUserReward(user);
-    }
-
-    function _updateRewardIndex() internal virtual {}
-
-    function _distributeUserReward(address user) internal virtual {
+    function _distributeUserRewards(address user) internal virtual {
         address[] memory rewardTokens = _getRewardTokens();
         uint256[] memory rewardIndexes = _getRewardIndexes();
 
@@ -69,7 +62,7 @@ abstract contract RewardManagerMini is IRewardManager, TokenHelper {
         virtual
         returns (uint256[] memory rewardAmounts)
     {
-        _redeemExternalReward(); // Should remove
+        _redeemExternalReward();
         address[] memory rewardTokens = _getRewardTokens();
 
         rewardAmounts = new uint256[](rewardTokens.length);
@@ -95,15 +88,6 @@ abstract contract RewardManagerMini is IRewardManager, TokenHelper {
     function _rewardSharesUser(
         address /*user*/
     ) internal view virtual returns (uint256);
-
-    // dummy func
-    function rewardState(address token)
-        external
-        view
-        returns (uint128 index, uint128 lastBalance)
-    {
-        return (0, 0);
-    }
 
     function _getRewardTokens() internal view virtual returns (address[] memory);
 

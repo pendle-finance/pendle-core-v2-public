@@ -133,6 +133,8 @@ interface ISuperComposableYield is IERC20Metadata {
 
     function rewardIndexesCurrent() external returns (uint256[] memory indexes);
 
+    function rewardIndexesStored() external view returns (uint256[] memory indexes);
+
     /**
      * @notice returns the list of reward token addresses
      */
