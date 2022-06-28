@@ -76,7 +76,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         updateScyReserve
         returns (uint256 amountPYOut)
     {
-        require(isExpired(), "yield contract expired");
+        require(!isExpired(), "yield contract expired");
 
         uint256 amountToTokenize = _getFloatingScyAmount();
 
