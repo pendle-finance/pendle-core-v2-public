@@ -9,13 +9,11 @@ import "./WadRayMath.sol";
 contract PendleAaveV3SCY is SCYBaseWithRewards {
     using Math for uint256;
     using WadRayMath for uint256;
-    using ArrayLib for address[];
 
     address public immutable underlying;
     address public immutable pool;
     address public immutable rewardsController;
     address public immutable aToken;
-    address[] private rewardTokens;
 
     uint256 public override exchangeRateStored;
     uint256 private constant PRECISION_INDEX = 1e9;
@@ -30,7 +28,6 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         rewardsController = IAToken(aToken).getIncentivesController();
         pool = IAToken(aToken).POOL();
         _safeApprove(underlying, pool, type(uint256).max);
-        rewardTokens = IAaveRewardsController(rewardsController).getRewardsByAsset(aToken);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -100,26 +97,8 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Aave may add rewardTokens to aToken, and this function allow the reward tokens to
-        be added permissionlessly to this contract
-     * @dev It's not possible to simply return getRewardsByAsset in _getRewardTokens because that
-        function will only returns rewards currently being given out. As a result, once a
-        reward token is no longer given out, it will be removed from the list => causing the rewards
-        in this contract for that token to be stuck forever.
-     */
-    function addNewRewardToken(address token) external {
-        require(!rewardTokens.contains(token), "duplicated reward token");
-        require(
-            IAaveRewardsController(rewardsController).getRewardsByAsset(aToken).contains(token),
-            "token is not rewardToken"
-        );
-
-        rewardTokens.push(token);
-    }
-
-    function _getRewardTokens() internal view override returns (address[] memory) {
-        return rewardTokens;
+    function _getRewardTokens() internal view override returns (address[] memory res) {
+        res = IAaveRewardsController(rewardsController).getRewardsByAsset(aToken);
     }
 
     function _redeemExternalReward() internal override {
