@@ -4,6 +4,7 @@ import "../../../interfaces/IPVotingEscrow.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "./VotingEscrowTokenBase.sol";
 import "../CelerAbstracts/CelerSenderUpg.sol";
+import "../../../libraries/VeHistoryLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -12,6 +13,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
+    using Checkpoints for Checkpoints.History;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     bytes private constant EMPTY_BYTES = abi.encode();
@@ -27,7 +29,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
 
     // Saving VeBalance checkpoint for users of each week, can later use binary search
     // to ask for their vePendle balance at any wTime
-    mapping(address => Checkpoint[]) public userCheckpoints;
+    mapping(address => Checkpoints.History) internal userHistory;
 
     constructor(IERC20 _pendle, address _governanceManager)
         CelerSenderUpg(_governanceManager) // only sets immutable variables
@@ -135,7 +137,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
 
     /// @notice binary search to find balance at a timestamp. This timestamp does not need to be divisible by week
     function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
-        return VeBalanceLib.getCheckpointValueAt(userCheckpoints[user], timestamp);
+        return userHistory[user].getAtTimestamp(timestamp);
     }
 
     /**
@@ -176,7 +178,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
 
         _totalSupply = newSupply;
         positionData[user] = newPosition;
-        userCheckpoints[user].push(Checkpoint(newBalance, uint128(block.timestamp)));
+        userHistory[user].push(newBalance);
         return newBalance.getCurrentValue();
     }
 
