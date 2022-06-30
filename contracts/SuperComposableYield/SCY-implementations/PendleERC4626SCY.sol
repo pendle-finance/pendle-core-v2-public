@@ -26,7 +26,7 @@ contract PendleERC4626SCY is SCYBase {
     }
 
     function _validateERC4626SCY() internal {
-        require(exchangeRateCurrent() <= 1e30, "too big exchangeRate");
+        require(exchangeRateCurrent() <= MAX_EXCHANGE_RATE, "too big exchangeRate");
     }
 
     /*///////////////////////////////////////////////////////////////
