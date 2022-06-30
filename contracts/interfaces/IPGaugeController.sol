@@ -6,6 +6,10 @@ interface IPGaugeController {
 
     event ReceiveVotingResults(uint128 wTime, address[] markets, uint256[] pendleAmounts);
 
+    function fundPendle(uint256 amount) external;
+
+    function withdrawPendle(uint256 amount) external;
+
     function pendle() external returns (address);
 
     function claimMarketReward() external;
@@ -19,4 +23,6 @@ interface IPGaugeController {
             uint128,
             uint128
         );
+    
+
 }
