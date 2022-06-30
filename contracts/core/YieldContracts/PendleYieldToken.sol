@@ -166,6 +166,7 @@ contract PendleYieldToken is PendleERC20, RewardManager, IPYieldToken {
         nonReentrant
         returns (uint256[] memory rewardsOut)
     {
+        require(isExpired(), "not expired");
         address[] memory rewardTokens = _getRewardTokens();
         uint256[] memory preBalances = _selfBalances(rewardTokens);
 
