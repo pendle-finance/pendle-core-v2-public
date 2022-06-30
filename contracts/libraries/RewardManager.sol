@@ -25,6 +25,9 @@ abstract contract RewardManager is RewardManagerAbstract {
         returns (address[] memory tokens, uint256[] memory indexes)
     {
         tokens = _getRewardTokens();
+        indexes = new uint256[](tokens.length);
+
+        if (tokens.length == 0) return (tokens, indexes);
 
         if (lastRewardBlock != block.number) {
             // if we have not yet update the index for this block
@@ -50,7 +53,6 @@ abstract contract RewardManager is RewardManagerAbstract {
             }
         }
 
-        indexes = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) indexes[i] = rewardState[tokens[i]].index;
     }
 

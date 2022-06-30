@@ -26,6 +26,8 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
 
     function _updateAndDistributeRewardsForTwo(address user1, address user2) internal virtual {
         (address[] memory tokens, uint256[] memory indexes) = _updateRewardIndex();
+        if (tokens.length == 0) return;
+
         if (user1 != address(0) && user1 != address(this))
             _distributeRewards(user1, tokens, indexes);
         if (user2 != address(0) && user2 != address(this))
