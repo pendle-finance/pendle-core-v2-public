@@ -21,6 +21,8 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     {}
 
     function _getFloatingAmount(address token) internal view virtual override returns (uint256) {
+        // there are only 2 type of tokens stored in the contract: yieldToken & rewardToken. Since
+        // this is not yield, it must be reward
         if (token != yieldToken) return _selfBalance(token) - rewardState[token].lastBalance;
         return _selfBalance(token) - yieldTokenReserve;
     }

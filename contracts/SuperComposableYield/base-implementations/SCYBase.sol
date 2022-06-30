@@ -128,7 +128,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-exchangeRateCurrent}
+     * @dev See {ISuperComposableYield-exchangeRate}
      */
     function exchangeRate() external view virtual override returns (uint256 res);
 

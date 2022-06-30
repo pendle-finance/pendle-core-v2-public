@@ -112,6 +112,13 @@ interface ISuperComposableYield is IERC20Metadata {
         uint256 minTokenOut
     ) external returns (uint256 amountTokenOut);
 
+    /**
+     * @notice exchangeRate * scyBalance / 1e18 must return the asset balance of the account
+     * @notice vice-versa, if a user uses some amount of tokens equivalent to X asset, the amount of scy
+     he can mint must be X * exchangeRate / 1e18
+     * @dev SCYUtils's assetToScy & scyToAsset should be used instead of raw multiplication
+     & division
+     */
     function exchangeRate() external view returns (uint256 res);
 
     /**
