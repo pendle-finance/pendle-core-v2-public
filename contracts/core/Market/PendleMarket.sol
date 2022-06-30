@@ -82,11 +82,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     /**
      * @notice PendleMarket allows users to provide in PT & SCY in exchange for LPs, which
-     * will grant LP holders more exchange fee over time
-     * @dev steps working of this function:
-       - Releases the proportional amount of LP to receiver
-       - Callback to msg.sender if data.length > 0
-       - Ensure that the corresponding amount of SCY & PT have been transferred to this address
+     * will grant LP holders more exchange fee over time. All the tokens must be transferred to
+     * this market prior to the call for LP to be minted. There is no flashAdd
      * @param data bytes data to be sent in the callback
      */
     function addLiquidity(
@@ -125,6 +122,12 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
+        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
+        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
+
+        emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
+
+        // no flashAdd, we only do callback after all the tokens have been provided
         if (data.length > 0) {
             IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
                 lpToAccount,
@@ -133,12 +136,6 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
                 data
             );
         }
-
-        // have received enough SCY & PT
-        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
-        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
-
-        emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
     }
 
     /**

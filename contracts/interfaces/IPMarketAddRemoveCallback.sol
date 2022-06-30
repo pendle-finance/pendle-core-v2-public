@@ -4,8 +4,8 @@ pragma solidity 0.8.13;
 interface IPMarketAddRemoveCallback {
     function addLiquidityCallback(
         uint256 lpToAccount,
-        uint256 scyOwed,
-        uint256 ptOwed,
+        uint256 scyUsed,
+        uint256 ptUsed,
         bytes calldata data
     ) external;
 
