@@ -28,7 +28,7 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, I
     uint256 private constant MIN_RATE_ORACLE_TIME_WINDOW = 300 seconds;
 
     address public immutable yieldContractFactory;
-    address public immutable marketCreationCodePointer;
+    address public marketCreationCodePointer;
     uint256 public immutable maxLnFeeRateRoot;
 
     // PT -> scalarRoot -> initialAnchor
@@ -46,8 +46,7 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, I
         address _treasury,
         uint96 _lnFeeRateRoot,
         uint32 _rateOracleTimeWindow,
-        uint8 _reserveFeePercent,
-        bytes memory _marketCreationCode
+        uint8 _reserveFeePercent
     ) PermissionsV2Upg(_governanceManager) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
@@ -57,17 +56,17 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, I
         setlnFeeRateRoot(_lnFeeRateRoot);
         setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
-        marketCreationCodePointer = _setCreationCode(_marketCreationCode);
     }
 
-    function initialize(address newVePendle, address newGaugeController)
-        external
-        onlyGovernance
-        initializer
-    {
+    function initialize(
+        address newVePendle,
+        address newGaugeController,
+        bytes memory _marketCreationCode
+    ) external onlyGovernance initializer {
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
+        marketCreationCodePointer = _setCreationCode(_marketCreationCode);
     }
 
     /**

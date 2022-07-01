@@ -27,6 +27,7 @@ import "../../interfaces/IPYieldContractFactory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../../libraries/helpers/ExpiryUtilsLib.sol";
 import "../../libraries/solmate/LibRLP.sol";
@@ -39,13 +40,18 @@ import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
-contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldContractFactory {
+contract PendleYieldContractFactory is
+    PermissionsV2Upg,
+    MiniDeployer,
+    Initializable,
+    IPYieldContractFactory
+{
     using ExpiryUtils for string;
 
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
 
-    address public immutable pendleYtCreationCodePointer;
+    address public pendleYtCreationCodePointer;
 
     uint256 public expiryDivisor;
     uint256 public interestFeeRate;
@@ -65,14 +71,16 @@ contract PendleYieldContractFactory is PermissionsV2Upg, MiniDeployer, IPYieldCo
         uint256 _expiryDivisor,
         uint256 _interestFeeRate,
         address _treasury,
-        address _governanceManager,
-        bytes memory _pendleYtCreationCode
+        address _governanceManager
     ) PermissionsV2Upg(_governanceManager) {
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setTreasury(_treasury);
-        pendleYtCreationCodePointer = _setCreationCode(_pendleYtCreationCode);
         numContractDeployed++;
+    }
+
+    function initialize(bytes memory _pendleYtCreationCode) external initializer {
+        pendleYtCreationCodePointer = _setCreationCode(_pendleYtCreationCode);
     }
 
     /**
