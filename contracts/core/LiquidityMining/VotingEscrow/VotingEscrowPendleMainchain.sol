@@ -2,12 +2,21 @@
 pragma solidity 0.8.13;
 import "../../../interfaces/IPVotingEscrow.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
-import "./VotingEscrowToken.sol";
-import "../CelerAbstracts/CelerSender.sol";
+import "./VotingEscrowTokenBaseUpg.sol";
+import "../CelerAbstracts/CelerSenderUpg.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, CelerSender {
+/// This contract is upgradable because
+/// - Its constructor only sets immutable variables
+/// - it inherits only upgradable contract
+contract VotingEscrowPendleMainchain is
+    IPVotingEscrow,
+    VotingEscrowTokenBaseUpg,
+    CelerSenderUpg,
+    UUPSUpgradeable
+{
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
@@ -28,8 +37,14 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoint[]) public userCheckpoints;
 
-    constructor(IERC20 _pendle, address _governanceManager) CelerSender(_governanceManager) {
+    constructor(IERC20 _pendle, address _governanceManager)
+        CelerSenderUpg(_governanceManager) // only sets immutable variables
+    {
         pendle = _pendle;
+    }
+
+    function initialze() external initializer {
+        __VotingEscrowTokenBase__init();
     }
 
     /// @notice basically a proxy function to call increaseLockPosition & broadcastUserPosition at the same time
@@ -238,4 +253,6 @@ contract VotingEscrowPendleMainchain is VotingEscrowToken, IPVotingEscrow, Celer
     ) internal {
         _sendMessage(chainId, abi.encode(wTime, supply, userData));
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
 }

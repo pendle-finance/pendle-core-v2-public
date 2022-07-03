@@ -7,9 +7,11 @@ import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-// no reentracy protection yet?
-// Should VotingController and stuff become upgradeable?
-abstract contract VotingControllerStorage {
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it has storage gaps for safe addition of future variables
+/// - it inherits only upgradable contract
+abstract contract VotingControllerStorageUpg {
     using VeBalanceLib for VeBalance;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -36,7 +38,7 @@ abstract contract VotingControllerStorage {
         mapping(address => uint128) poolVotes;
     }
 
-    uint128 internal constant MAX_LOCK_TIME = 104 weeks;
+    uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
@@ -66,6 +68,8 @@ abstract contract VotingControllerStorage {
 
     // [user][pool] => checkpoint
     mapping(address => mapping(address => Checkpoint[])) public userPoolCheckpoints;
+
+    uint256[100] private __gap;
 
     constructor(address _vePendle) {
         vePendle = IPVeToken(_vePendle);

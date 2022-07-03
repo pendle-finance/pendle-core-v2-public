@@ -6,11 +6,18 @@ import "../../../periphery/PermissionsV2Upg.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
-abstract contract CelerSender is PermissionsV2Upg {
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it has storage gaps for safe addition of future variables
+/// - it inherits only upgradable contract
+abstract contract CelerSenderUpg is PermissionsV2Upg {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    ICelerMessageBus private celerMessageBus;
+    ICelerMessageBus public celerMessageBus;
+
     EnumerableMap.UintToAddressMap internal sidechainContracts;
+
+    uint256[100] private __gap;
 
     constructor(address _governanceManager) PermissionsV2Upg(_governanceManager) {}
 

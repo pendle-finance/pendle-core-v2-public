@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./VotingControllerStorage.sol";
-import "../CelerAbstracts/CelerSender.sol";
+import "./VotingControllerStorageUpg.sol";
+import "../CelerAbstracts/CelerSenderUpg.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../../interfaces/IPVotingController.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /*
 Voting accounting:
@@ -31,7 +33,16 @@ Cons:
     - Does not guarantee the reward will be distributed on epoch start and end
 */
 
-contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotingController {
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it has storage gaps for safe addition of future variables
+/// - it inherits only upgradable contract
+contract PendleVotingControllerUpg is
+    CelerSenderUpg,
+    VotingControllerStorageUpg,
+    UUPSUpgradeable,
+    IPVotingController
+{
     using VeBalanceLib for VeBalance;
     using Math for uint256;
     using Math for int256;
@@ -39,8 +50,8 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(address _vePendle, address _governanceManager)
-        VotingControllerStorage(_vePendle)
-        CelerSender(_governanceManager)
+        VotingControllerStorageUpg(_vePendle) // constructor only set immutable variables
+        CelerSenderUpg(_governanceManager) // constructor only set immutable variables
     {}
 
     /*///////////////////////////////////////////////////////////////
@@ -320,4 +331,6 @@ contract PendleVotingController is CelerSender, VotingControllerStorage, IPVotin
             expiry
         );
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
 }

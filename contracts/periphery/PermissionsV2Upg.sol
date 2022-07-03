@@ -4,8 +4,14 @@ pragma solidity 0.8.13;
 import "../interfaces/IPGovernanceManager.sol";
 import "../interfaces/IPPermissionsV2Upg.sol";
 
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it has storage gaps for safe addition of future variables
+/// - it inherits only upgradable contract
 abstract contract PermissionsV2Upg is IPermissionsV2Upg {
     address public immutable governanceManager;
+
+    uint256[100] private __gap;
 
     modifier onlyGovernance() {
         require(msg.sender == _governance(), "ONLY_GOVERNANCE");

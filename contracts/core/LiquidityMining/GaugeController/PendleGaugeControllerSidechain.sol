@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleGaugeController.sol";
-import "../CelerAbstracts/CelerReceiver.sol";
+import "./PendleGaugeControllerBaseUpg.sol";
+import "../CelerAbstracts/CelerReceiverUpg.sol";
 
 // solhint-disable no-empty-blocks
-contract PendleGaugeControllerSidechain is PendleGaugeController, CelerReceiver {
+
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it inherits only upgradable contract
+contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, CelerReceiverUpg {
     constructor(
         address _pendle,
         address _marketFactory,
         address _governanceManager
-    ) PendleGaugeController(_pendle, _marketFactory) CelerReceiver(_governanceManager) {}
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) CelerReceiverUpg(_governanceManager) {}
 
     function _executeMessage(bytes memory message) internal virtual override {
         (uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) = abi.decode(

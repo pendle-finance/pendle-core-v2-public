@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
-import "./PendleGaugeController.sol";
+import "./PendleGaugeControllerBaseUpg.sol";
 
-contract PendleGaugeControllerMainchain is PendleGaugeController {
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it inherits only upgradable contract
+contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg {
     address public immutable votingController;
 
     modifier onlyVotingController() {
@@ -16,7 +19,7 @@ contract PendleGaugeControllerMainchain is PendleGaugeController {
         address _pendle,
         address _marketFactory,
         address _governanceManager
-    ) PendleGaugeController(_pendle, _marketFactory) PermissionsV2Upg(_governanceManager) {
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) PermissionsV2Upg(_governanceManager) {
         votingController = _votingController;
     }
 

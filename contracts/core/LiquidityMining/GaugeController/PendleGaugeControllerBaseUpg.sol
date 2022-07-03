@@ -17,10 +17,13 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  *
  * @dev All of the core data in this function will be set to private to prevent unintended assignments
  * on inheritting contracts
- *
- * @dev no more pause
  */
-abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
+
+/// This contract is upgradable because
+/// - its constructor only sets immutable variables
+/// - it has storage gaps for safe addition of future variables
+/// - it inherits only upgradable contract
+abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, PermissionsV2Upg {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -39,6 +42,8 @@ abstract contract PendleGaugeController is IPGaugeController, PermissionsV2Upg {
 
     mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) public epochRewardReceived;
+
+    uint256[100] private __gap;
 
     modifier onlyPendleMarket() {
         require(marketFactory.isValidMarket(msg.sender), "invalid market");

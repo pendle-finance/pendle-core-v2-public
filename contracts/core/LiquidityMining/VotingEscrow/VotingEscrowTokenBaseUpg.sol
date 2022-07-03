@@ -5,6 +5,7 @@ import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
@@ -19,8 +20,10 @@ import "../../../libraries/helpers/MiniHelpers.sol";
  *        + No other transaction is allowed to write on sidechain storage
  */
 
-abstract contract VotingEscrowToken is IPVeToken {
-    // wrong name, should be VotingEscrowPendle
+/// This contract is upgradable because
+/// - it doesn't has any constructors & has an initializer
+/// - it has storage gaps for safe addition of future variables
+abstract contract VotingEscrowTokenBaseUpg is IPVeToken, Initializable {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
 
@@ -32,7 +35,9 @@ abstract contract VotingEscrowToken is IPVeToken {
 
     mapping(address => LockedPosition) public positionData;
 
-    constructor() {
+    uint256[100] private __gap;
+
+    function __VotingEscrowTokenBase__init() internal onlyInitializing {
         lastSupplyUpdatedAt = WeekMath.getCurrentWeekStart();
     }
 
