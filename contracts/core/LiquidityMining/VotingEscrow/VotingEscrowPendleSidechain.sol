@@ -4,19 +4,12 @@ pragma solidity 0.8.13;
 
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
-import "./VotingEscrowTokenBaseUpg.sol";
+import "./VotingEscrowTokenBase.sol";
 import "../CelerAbstracts/CelerReceiverUpg.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // solhint-disable no-empty-blocks
-/// This contract is upgradable because
-/// - Its constructor only sets immutable variables
-/// - it inherits only upgradable contract
-contract VotingEscrowPendleSidechain is
-    VotingEscrowTokenBaseUpg,
-    CelerReceiverUpg,
-    UUPSUpgradeable
-{
+contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg {
     mapping(address => address) internal delegatorOf;
 
     event SetNewDelegator(address delegator, address receiver);
@@ -26,10 +19,6 @@ contract VotingEscrowPendleSidechain is
     event SetNewUserPosition(LockedPosition position);
 
     constructor(address _governanceManager) CelerReceiverUpg(_governanceManager) {}
-
-    function initialze() external initializer {
-        __VotingEscrowTokenBase__init();
-    }
 
     function totalSupplyCurrent() external view virtual override returns (uint128) {
         return totalSupplyStored();
@@ -82,6 +71,4 @@ contract VotingEscrowPendleSidechain is
         }
         return super.balanceOf(delegator);
     }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
 }

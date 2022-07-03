@@ -20,10 +20,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  *        + No other transaction is allowed to write on sidechain storage
  */
 
-/// This contract is upgradable because
-/// - it doesn't has any constructors & has an initializer
-/// - it has storage gaps for safe addition of future variables
-abstract contract VotingEscrowTokenBaseUpg is IPVeToken, Initializable {
+abstract contract VotingEscrowTokenBase is IPVeToken, Initializable {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
 
@@ -35,9 +32,7 @@ abstract contract VotingEscrowTokenBaseUpg is IPVeToken, Initializable {
 
     mapping(address => LockedPosition) public positionData;
 
-    uint256[100] private __gap;
-
-    function __VotingEscrowTokenBase__init() internal onlyInitializing {
+    constructor() {
         lastSupplyUpdatedAt = WeekMath.getCurrentWeekStart();
     }
 
