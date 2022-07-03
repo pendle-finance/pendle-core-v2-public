@@ -5,7 +5,6 @@ import "../../../interfaces/IPVeToken.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @dev this contract is an abstract for its mainchain and sidechain variant
@@ -20,7 +19,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  *        + No other transaction is allowed to write on sidechain storage
  */
 
-abstract contract VotingEscrowTokenBase is IPVeToken, Initializable {
+abstract contract VotingEscrowTokenBase is IPVeToken {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
 

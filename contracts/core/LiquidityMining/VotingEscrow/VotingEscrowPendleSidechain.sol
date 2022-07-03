@@ -6,7 +6,6 @@ import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "./VotingEscrowTokenBase.sol";
 import "../CelerAbstracts/CelerReceiverUpg.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // solhint-disable no-empty-blocks
 contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg {
