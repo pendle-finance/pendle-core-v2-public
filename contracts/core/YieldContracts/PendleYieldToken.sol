@@ -69,10 +69,7 @@ contract PendleYieldToken is
         factory = msg.sender;
     }
 
-    /**
-     * @notice this function splits scy into PT + YT of equal qty
-     * @dev the scy to tokenize has to be pre-transferred to this contract prior to the function call
-     */
+    /// @notice Tokenize SCY into PT + YT of equal qty. Every unit of underlying of SCY will create 1 PT + 1 YT
     function mintPY(address receiverPT, address receiverYT)
         external
         nonReentrant
@@ -104,17 +101,20 @@ contract PendleYieldToken is
         (amountScyOut, ) = _redeemPY(receivers, amounts);
     }
 
-    function redeemPY(address[] memory receivers, uint256[] memory amounts)
+    /// @dev this function limit how much each receiver will receive. For example, if the totalOut is 100,
+    /// and the max are 50 30 INF, the first receiver will receive 50, the second will receive 30, and the third will receive 20.
+    /// @dev intended to mostly be used by Pendle router
+    function redeemPY(address[] memory receivers, uint256[] memory maxAmountScyOuts)
         external
         nonReentrant
         updateScyReserve
-        returns (uint256 amountScyOut)
+        returns (uint256 totalAmountScyOut)
     {
-        (amountScyOut, ) = _redeemPY(receivers, amounts);
+        (totalAmountScyOut, ) = _redeemPY(receivers, maxAmountScyOuts);
     }
 
     /**
-     * @dev as mentioned in doc, updateDueReward should be placed strictly before every redeemDueInterest
+     * @dev _updateAndDistributeRewards must be called before every distributeInterest
      */
     function redeemDueInterestAndRewards(address user)
         external
@@ -122,7 +122,6 @@ contract PendleYieldToken is
         updateScyReserve
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
-        // redeemDueRewards before redeemDueInterest
         _updateAndDistributeRewards(user);
         _distributeInterest(user);
         rewardsOut = _doTransferOutRewards(user, user);
@@ -200,7 +199,7 @@ contract PendleYieldToken is
         return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
-    function _redeemPY(address[] memory receivers, uint256[] memory maxScyAmounts)
+    function _redeemPY(address[] memory receivers, uint256[] memory maxAmountScyOuts)
         internal
         returns (uint256 totalScyToReceivers, uint256 scyInterestAfterExpiry)
     {
@@ -215,7 +214,7 @@ contract PendleYieldToken is
             _transferOut(SCY, treasury, scyInterestAfterExpiry);
         }
 
-        _transferOutMaxMulti(SCY, totalScyToReceivers, receivers, maxScyAmounts);
+        _transferOutMaxMulti(SCY, totalScyToReceivers, receivers, maxAmountScyOuts);
     }
 
     function _calcPYToMint(uint256 amountScy) internal returns (uint256 amountPY) {
