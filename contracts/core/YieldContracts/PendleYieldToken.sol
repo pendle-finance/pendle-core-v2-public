@@ -45,7 +45,8 @@ contract PendleYieldToken is
     address public immutable factory;
     uint256 public immutable expiry;
 
-    uint256 public scyReserve;
+    uint128 public scyReserve;
+    uint128 internal _scyIndexStored;
 
     AfterExpiryData public afterExpiry;
 
@@ -181,13 +182,18 @@ contract PendleYieldToken is
     function finalizeAfterExpiryData() public {
         if (!isExpired() || afterExpiry.isFinalized) return;
         afterExpiry.isFinalized = true;
-        afterExpiry.firstScyIndex = ISuperComposableYield(SCY).exchangeRate().Uint128();
+        afterExpiry.firstScyIndex = scyIndexCurrent().Uint128();
         (, afterExpiry.firstRewardIndexes) = _updateRewardIndex();
     }
 
-    /// @dev no reentrant & updateScyReserve since this function updates just the lastIndex
-    function getScyIndex() public view returns (uint256 currentIndex) {
-        return ISuperComposableYield(SCY).exchangeRate();
+    /// @dev maximize the current rate with the previous rate to guarantee non-decreasing rate
+    function scyIndexCurrent() public returns (uint256 currentIndex) {
+        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _scyIndexStored);
+        _scyIndexStored = currentIndex.Uint128();
+    }
+
+    function scyIndexStored() public view returns (uint256) {
+        return _scyIndexStored;
     }
 
     function isExpired() public view returns (bool) {
@@ -212,9 +218,9 @@ contract PendleYieldToken is
         _transferOutMaxMulti(SCY, totalScyToReceivers, receivers, maxScyAmounts);
     }
 
-    function _calcPYToMint(uint256 amountScy) internal view returns (uint256 amountPY) {
+    function _calcPYToMint(uint256 amountScy) internal returns (uint256 amountPY) {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
-        return SCYUtils.scyToAsset(getScyIndex(), amountScy);
+        return SCYUtils.scyToAsset(scyIndexCurrent(), amountScy);
     }
 
     function _calcScyRedeemableFromPY(uint256 amountPY)
@@ -224,10 +230,10 @@ contract PendleYieldToken is
         if (isExpired()) {
             finalizeAfterExpiryData();
             uint256 totalScyRedeemable = SCYUtils.assetToScy(afterExpiry.firstScyIndex, amountPY);
-            scyToUser = SCYUtils.assetToScy(getScyIndex(), amountPY);
+            scyToUser = SCYUtils.assetToScy(scyIndexCurrent(), amountPY);
             scyInterestAfterExpiry = totalScyRedeemable - scyToUser;
         } else {
-            scyToUser = SCYUtils.assetToScy(getScyIndex(), amountPY);
+            scyToUser = SCYUtils.assetToScy(scyIndexCurrent(), amountPY);
         }
     }
 
@@ -255,7 +261,7 @@ contract PendleYieldToken is
             finalizeAfterExpiryData();
             index = afterExpiry.firstScyIndex;
         } else {
-            index = ISuperComposableYield(SCY).exchangeRate();
+            index = scyIndexCurrent();
         }
     }
 
@@ -291,7 +297,7 @@ contract PendleYieldToken is
     }
 
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).claimRewards(address(this)); // ignore return
+        ISuperComposableYield(SCY).claimRewards(address(this));
     }
 
     /// @dev effectively returning the amount of SCY generating rewards for this user
@@ -320,11 +326,11 @@ contract PendleYieldToken is
             // padding to handle the very extreme case of SCY adding reward tokens after expiry
             indexes = afterExpiry.firstRewardIndexes.padZeroRight(tokens.length);
         } else {
-            indexes = ISuperComposableYield(SCY).rewardIndexesCurrent();
+            indexes = rewardIndexesCurrent();
         }
     }
 
-    function rewardIndexesCurrent() external override returns (uint256[] memory) {
+    function rewardIndexesCurrent() public override returns (uint256[] memory) {
         return ISuperComposableYield(SCY).rewardIndexesCurrent();
     }
 

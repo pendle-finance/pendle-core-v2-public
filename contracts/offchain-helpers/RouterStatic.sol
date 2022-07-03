@@ -145,7 +145,7 @@ contract RouterStatic is IPRouterStatic {
     {
         (address yt, ) = getPY(py);
         IPYieldToken YT = IPYieldToken(yt);
-        exchangeRate = YT.getScyIndex();
+        exchangeRate = YT.scyIndexCurrent();
         totalSupply = YT.totalSupply();
         address[] memory rewardTokens = YT.getRewardTokens();
         rewardIndexes = new RewardIndex[](rewardTokens.length);
