@@ -95,7 +95,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         (, , uint8 assetDecimals) = _SCY.assetInfo();
 
         // no need salt since PT (and also YT) existence has been checked before hand
-        SSTORE2Deployer.create2(
+        PT = SSTORE2Deployer.create2(
             type(PendlePrincipalToken).creationCode,
             bytes32(0),
             abi.encode(
