@@ -7,13 +7,13 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
-import "../../libraries/helpers/MiniDeployer.sol";
+import "../../libraries/helpers/SSTORE2Deployer.sol";
 import "../../periphery/PermissionsV2Upg.sol";
 
 import "./PendleMarket.sol";
 import "../LiquidityMining/PendleGauge.sol";
 
-contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, IPMarketFactory {
+contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketConfig {
@@ -66,7 +66,7 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, I
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
-        marketCreationCodePointer = _setCreationCode(_marketCreationCode);
+        marketCreationCodePointer = SSTORE2Deployer.setCreationCode(_marketCreationCode);
     }
 
     /**
@@ -79,24 +79,22 @@ contract PendleMarketFactory is PermissionsV2Upg, MiniDeployer, Initializable, I
         int256 initialAnchor
     ) external returns (address market) {
         require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
-        require(vePendle != address(0), "vePendle unset");
-        require(gaugeController != address(0), "gaugeController unset");
-        require(
-            markets[PT][scalarRoot][initialAnchor] == address(0),
-            "duplicated creation params"
-        );
+        require(markets[PT][scalarRoot][initialAnchor] == address(0), "market already created");
 
-        market = _deployWithArgs(
+        // no need salt since market's existence has been checked before hand
+        market = SSTORE2Deployer.create2(
             marketCreationCodePointer,
+            bytes32(0),
             abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
 
         markets[PT][scalarRoot][initialAnchor] = market;
         require(allMarkets.add(market), "IE market can't be added");
 
-        emit CreateNewMarket(PT, scalarRoot, initialAnchor);
+        emit CreateNewMarket(market, PT, scalarRoot, initialAnchor);
     }
 
+    /// @dev for gas-efficient verification of market
     function isValidMarket(address market) external view returns (bool) {
         return allMarkets.contains(market);
     }

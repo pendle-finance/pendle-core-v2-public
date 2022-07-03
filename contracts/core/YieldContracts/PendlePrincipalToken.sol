@@ -6,30 +6,38 @@ import "../../interfaces/IPYieldToken.sol";
 
 import "../PendleERC20Permit.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract PendlePrincipalToken is PendleERC20Permit, IPPrincipalToken {
+contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {
     address public immutable SCY;
-    address public immutable YT;
     address public immutable factory;
     uint256 public immutable expiry;
+    address public YT;
 
     modifier onlyYT() {
         require(msg.sender == address(YT), "ONLY_YT");
         _;
     }
 
+    modifier onlyFactory() {
+        require(msg.sender == factory, "ONLY_FACTORY");
+        _;
+    }
+
     constructor(
         address _SCY,
-        address _YT,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleERC20Permit(_name, _symbol, __decimals) {
         SCY = _SCY;
-        YT = _YT;
         expiry = _expiry;
         factory = msg.sender;
+    }
+
+    function initialize(address _YT) external initializer onlyFactory {
+        YT = _YT;
     }
 
     /**

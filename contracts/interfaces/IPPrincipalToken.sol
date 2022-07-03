@@ -7,6 +7,8 @@ interface IPPrincipalToken is IERC20Metadata {
 
     function mintByYT(address user, uint256 amount) external;
 
+    function initialize(address _YT) external;
+
     function SCY() external view returns (address);
 
     function YT() external view returns (address);

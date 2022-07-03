@@ -79,7 +79,7 @@ contract RouterStatic is IPRouterStatic {
         );
     }
 
-    function scyIndex(address market) public returns (SCYIndex index) {
+    function scyIndex(address market) public view returns (SCYIndex index) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         return SCYIndexLib.newIndex(SCY);

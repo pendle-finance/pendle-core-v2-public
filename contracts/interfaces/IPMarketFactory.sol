@@ -9,7 +9,12 @@ interface IPMarketFactory {
         uint8 reserveFeePercent
     );
 
-    event CreateNewMarket(address indexed PT, int256 scalarRoot, int256 initialAnchor);
+    event CreateNewMarket(
+        address indexed market,
+        address indexed PT,
+        int256 scalarRoot,
+        int256 initialAnchor
+    );
 
     function isValidMarket(address market) external view returns (bool);
 
