@@ -164,7 +164,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         return _swapExactPtForRawToken(receiver, market, exactPtIn, minRawTokenOut, path, true);
     }
 
-    function redeemDueIncome(
+    function redeemDueInterestAndRewards(
         address user,
         address[] calldata scys,
         address[] calldata yts,
@@ -187,7 +187,9 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         ytRewards = new uint256[][](yts.length);
         for (uint256 i = 0; i < yts.length; ++i) {
             (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i]).redeemDueInterestAndRewards(
-                user
+                user,
+                true,
+                true
             );
         }
 

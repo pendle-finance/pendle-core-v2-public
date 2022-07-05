@@ -37,7 +37,6 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
     }
 
     function _distributeInterestForTwo(address user1, address user2) internal {
-        // no updateRewardIndex since we rely on SCY's rewardIndexes
         uint256 index = _getInterestIndex();
         if (user1 != address(0) && user1 != address(this))
             _distributeInterestPrivate(user1, index);
@@ -50,12 +49,11 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
         address SCY,
         address factory
     ) internal returns (uint256 interestAmount) {
+        address treasury = IPYieldContractFactory(factory).treasury();
+        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
+
         uint256 interestPreFee = userInterest[user].accrued;
         userInterest[user].accrued = 0;
-
-        address treasury = IPYieldContractFactory(factory).treasury();
-
-        uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
 
         uint256 feeAmount = interestPreFee.mulDown(feeRate);
         interestAmount = interestPreFee - feeAmount;

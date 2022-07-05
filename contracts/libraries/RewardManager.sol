@@ -75,4 +75,8 @@ abstract contract RewardManager is RewardManagerAbstract {
             }
         }
     }
+
+    function _getRewardTokens() internal view virtual returns (address[] memory);
+
+    function _rewardSharesTotal() internal view virtual returns (uint256);
 }

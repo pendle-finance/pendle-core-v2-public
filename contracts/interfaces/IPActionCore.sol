@@ -105,7 +105,7 @@ interface IPActionCore {
         address[] calldata path
     ) external returns (uint256 netRawTokenOut);
 
-    function redeemDueIncome(
+    function redeemDueInterestAndRewards(
         address user,
         address[] calldata scys,
         address[] calldata yts,

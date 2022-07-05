@@ -50,19 +50,20 @@ abstract contract TokenHelper {
         uint256 totalAmount,
         address[] memory tos,
         uint256[] memory maxAmounts
-    ) internal {
+    ) internal returns (uint256 leftover) {
         uint256 numTos = tos.length;
         require(numTos == maxAmounts.length, "invalid length");
 
-        uint256 remaining = totalAmount;
+        leftover = totalAmount;
         for (uint256 i = 0; i < numTos; ) {
             uint256 maxAmount = maxAmounts[i];
-            if (maxAmount > remaining) {
-                maxAmount = remaining;
+            if (maxAmount > leftover) {
+                maxAmount = leftover;
             }
             _transferOut(token, tos[i], maxAmount);
             unchecked {
-                remaining -= maxAmount;
+                leftover -= maxAmount;
+                if (leftover == 0) break;
                 i++;
             }
         }

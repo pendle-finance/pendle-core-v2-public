@@ -30,15 +30,19 @@ interface IPYieldContractFactory {
 
     event SetInterestFeeRate(uint256 newInterestFeeRate);
 
+    event SetRewardFeeRate(uint256 newInterestFeeRate);
+
     event SetTreasury(address indexed treasury);
 
     function getPT(address SCY, uint256 expiry) external view returns (address);
 
     function getYT(address SCY, uint256 expiry) external view returns (address);
 
-    function expiryDivisor() external view returns (uint256);
+    function expiryDivisor() external view returns (uint96);
 
-    function interestFeeRate() external view returns (uint256);
+    function interestFeeRate() external view returns (uint128);
+
+    function rewardFeeRate() external view returns (uint128);
 
     function treasury() external view returns (address);
 

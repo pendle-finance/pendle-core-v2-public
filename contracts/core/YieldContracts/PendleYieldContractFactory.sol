@@ -46,9 +46,13 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
 
     address public pendleYtCreationCodePointer;
 
-    uint256 public expiryDivisor;
-    uint256 public interestFeeRate;
+    // 1 SLOT
+    uint128 public interestFeeRate; // a fixed point number
+    uint128 public rewardFeeRate; // a fixed point number
+
+    // 1 SLOT
     address public treasury;
+    uint96 public expiryDivisor;
 
     // SCY => expiry => address
     mapping(address => mapping(uint256 => address)) public getPT;
@@ -57,13 +61,15 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
     mapping(address => bool) public isYT;
 
     constructor(
-        uint256 _expiryDivisor,
-        uint256 _interestFeeRate,
+        uint96 _expiryDivisor,
+        uint128 _interestFeeRate,
+        uint128 _rewardFeeRate,
         address _treasury,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) {
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
+        setRewardFeeRate(_rewardFeeRate);
         setTreasury(_treasury);
     }
 
@@ -125,14 +131,19 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         emit CreateYieldContract(SCY, PT, YT, expiry);
     }
 
-    function setExpiryDivisor(uint256 newExpiryDivisor) public onlyGovernance {
+    function setExpiryDivisor(uint96 newExpiryDivisor) public onlyGovernance {
         require(newExpiryDivisor != 0, "zero value");
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
 
-    function setInterestFeeRate(uint256 newInterestFeeRate) public onlyGovernance {
+    function setInterestFeeRate(uint128 newInterestFeeRate) public onlyGovernance {
         interestFeeRate = newInterestFeeRate;
+        emit SetInterestFeeRate(newInterestFeeRate);
+    }
+
+    function setRewardFeeRate(uint128 newInterestFeeRate) public onlyGovernance {
+        rewardFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
