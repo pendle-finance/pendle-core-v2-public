@@ -33,7 +33,7 @@ contract PendleQiTokenHelper {
             reservesPrior
         );
 
-        require(borrowRateMantissa <= borrowRateMantissa, "borrow rate is absurdly high");
+        require(borrowRateMantissa <= borrowRateMaxMantissa, "borrow rate is absurdly high");
 
         uint256 timestampDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 
