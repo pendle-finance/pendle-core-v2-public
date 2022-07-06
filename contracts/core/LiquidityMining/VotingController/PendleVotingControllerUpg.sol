@@ -59,6 +59,48 @@ contract PendleVotingControllerUpg is
     //////////////////////////////////////////////////////////////*/
 
     /**
+     * @notice unvote for pools in poolsToUnvote, and vote for those in poolsToVote
+     * @dev pre-condition:
+        - voting pools should be added beforehand
+        - the vePENDLE position must still be active
+     * @dev for multiple voting case
+        - This function will unvote on every pool first to ensure the largest space before voting
+     * @dev state changes expected:
+        - update weekData (if any)
+        - update poolInfo, userData to reflect the new vote
+        - add 1 check point for each of the unvote pool and vote pool
+     * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
+        negative weight
+     */
+    function voteForMany(
+        address[] calldata poolsToUnvote,
+        address[] calldata poolsToVote,
+        uint64[] calldata weights
+    ) external {
+        address user = msg.sender;
+
+        require(weights.length == poolsToVote.length, "invaid array length");
+        require(!vePendle.isPositionExpired(user), "user position expired");
+        for (uint256 i = 0; i < poolsToVote.length; ++i) {
+            require(_isPoolVotable(poolsToVote[i]), "invalid pool");
+            require(weights[i] > 0, "zero weight");
+        }
+
+        for (uint256 i = 0; i < poolsToUnvote.length; ++i) {
+            unvote(poolsToUnvote[i]);
+        }
+
+        for (uint256 i = 0; i < poolsToVote.length; ++i) {
+            updatePoolVotes(poolsToUnvote[i]);
+            _unvote(user, poolsToUnvote[i], false);
+        }
+
+        for (uint256 i = 0; i < poolsToVote.length; ++i) {
+            _vote(user, poolsToVote[i], weights[i]);
+        }
+    }
+
+    /**
      * @notice set a new voting weight for the target pool
      * @dev pre-condition:
         - pool must have been added before
@@ -91,7 +133,7 @@ contract PendleVotingControllerUpg is
         - update poolInfo, userData to reflect the new vote
         - add 1 check point for the unvote
      */
-    function unvote(address pool) external {
+    function unvote(address pool) public {
         if (_isPoolVotable(pool)) {
             updatePoolVotes(pool);
         }
