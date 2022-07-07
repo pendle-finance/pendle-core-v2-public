@@ -144,6 +144,6 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
     function setTreasury(address newTreasury) public onlyGovernance {
         require(newTreasury != address(0), "zero address");
         treasury = newTreasury;
-        emit SetTreasury(treasury);
+        emit SetTreasury(newTreasury);
     }
 }
