@@ -14,13 +14,6 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
 
     address public immutable yieldToken;
 
-    uint256 public yieldTokenReserve;
-
-    modifier updateYieldReserve() {
-        _;
-        _updateYieldReserve();
-    }
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -42,21 +35,20 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
     function deposit(
         address receiver,
         address tokenIn,
-        uint256 amountTokenToPull,
+        uint256 amountTokenToDeposit,
         uint256 minSharesOut
-    ) external payable nonReentrant updateYieldReserve returns (uint256 amountSharesOut) {
+    ) external payable nonReentrant returns (uint256 amountSharesOut) {
         require(isValidBaseToken(tokenIn), "SCY: Invalid tokenIn");
+        require(amountTokenToDeposit != 0, "SCY: amountTokenToDeposit cannot be 0");
 
-        if (tokenIn == NATIVE) require(amountTokenToPull == 0, "can't pull eth");
-        else if (amountTokenToPull != 0) _transferIn(tokenIn, msg.sender, amountTokenToPull);
+        if (tokenIn == NATIVE) require(msg.value == amountTokenToDeposit, "SCY: eth mismatch");
+        else _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
 
-        uint256 amountDeposited = _getFloatingAmount(tokenIn);
-
-        amountSharesOut = _deposit(tokenIn, amountDeposited);
-        require(amountSharesOut >= minSharesOut, "insufficient out");
+        amountSharesOut = _deposit(tokenIn, amountTokenToDeposit);
+        require(amountSharesOut >= minSharesOut, "SCY: insufficient out");
 
         _mint(receiver, amountSharesOut);
-        emit Deposit(msg.sender, receiver, tokenIn, amountDeposited, amountSharesOut);
+        emit Deposit(msg.sender, receiver, tokenIn, amountTokenToDeposit, amountSharesOut);
     }
 
     /**
@@ -64,22 +56,36 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
      */
     function redeem(
         address receiver,
-        uint256 amountSharesToPull,
+        uint256 amountSharesToRedeem,
         address tokenOut,
         uint256 minTokenOut
-    ) external nonReentrant updateYieldReserve returns (uint256 amountTokenOut) {
+    ) external nonReentrant returns (uint256 amountTokenOut) {
+        _burn(msg.sender, amountSharesToRedeem);
+        amountTokenOut = _redeem(receiver, amountSharesToRedeem, tokenOut, minTokenOut);
+    }
+
+    function redeemAfterTransfer(
+        address receiver,
+        address tokenOut,
+        uint256 minTokenOut
+    ) external nonReentrant returns (uint256 amountTokenOut) {
+        uint256 amountSharesToRedeem = balanceOf(address(this));
+        _burn(address(this), amountSharesToRedeem);
+        amountTokenOut = _redeem(receiver, amountSharesToRedeem, tokenOut, minTokenOut);
+    }
+
+    function _redeem(
+        address receiver,
+        uint256 amountSharesToRedeem,
+        address tokenOut,
+        uint256 minTokenOut
+    ) internal returns (uint256 amountTokenOut) {
         require(isValidBaseToken(tokenOut), "SCY: invalid tokenOut");
-
-        if (amountSharesToPull != 0) {
-            _transfer(msg.sender, address(this), amountSharesToPull);
-        }
-
-        uint256 amountSharesToRedeem = _getFloatingAmount(address(this));
+        require(amountSharesToRedeem != 0, "SCY: amountSharesToRedeem cannot be 0");
 
         amountTokenOut = _redeem(tokenOut, amountSharesToRedeem);
-        require(amountTokenOut >= minTokenOut, "insufficient out");
+        require(amountTokenOut >= minTokenOut, "SCY: insufficient out");
 
-        _burn(address(this), amountSharesToRedeem);
         _transferOut(tokenOut, receiver, amountTokenOut);
 
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
@@ -106,22 +112,6 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         internal
         virtual
         returns (uint256 amountTokenOut);
-
-    /**
-     * @notice updates the amount of yield token reserves in this contract
-     */
-    function _updateYieldReserve() internal virtual {
-        yieldTokenReserve = _selfBalance(yieldToken);
-    }
-
-    /**
-     * @notice returns the amount of unprocessed tokens owned by this contract
-     * @param token address of the token to be queried
-     */
-    function _getFloatingAmount(address token) internal view virtual returns (uint256) {
-        if (token != yieldToken) return _selfBalance(token);
-        return _selfBalance(token) - yieldTokenReserve;
-    }
 
     /*///////////////////////////////////////////////////////////////
                                EXCHANGE-RATE

@@ -4,11 +4,12 @@ pragma solidity 0.8.13;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/traderjoe/PendleJoeSwapHelperUpg.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
+import "../../../libraries/helpers/TokenHelper.sol";
 import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
 // solhint-disable no-empty-blocks
-abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
+abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
     using SafeERC20 for IERC20;
 
     event MintScyFromRawToken(
@@ -60,17 +61,27 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
         address[] calldata path,
         bool doPull
     ) internal returns (uint256 netScyOut) {
-        if (doPull) {
-            if (path.length == 1) {
-                IERC20(path[0]).safeTransferFrom(msg.sender, SCY, netRawTokenIn);
-            } else {
-                IERC20(path[0]).safeTransferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
-                _swapExactIn(path, netRawTokenIn, SCY);
+        uint256 amountBaseToken;
+        if (path.length == 1) {
+            if (doPull) {
+                IERC20(path[0]).safeTransferFrom(msg.sender, address(this), netRawTokenIn);
             }
+            amountBaseToken = netRawTokenIn;
+        } else {
+            if (doPull) {
+                IERC20(path[0]).safeTransferFrom(msg.sender, _getFirstPair(path), netRawTokenIn);
+            }
+            amountBaseToken = _swapExactIn(path, netRawTokenIn, address(this));
         }
 
         address baseToken = path[path.length - 1];
-        netScyOut = ISuperComposableYield(SCY).deposit(receiver, baseToken, 0, minScyOut);
+        IERC20(baseToken).approve(SCY, amountBaseToken);
+        netScyOut = ISuperComposableYield(SCY).deposit(
+            receiver,
+            baseToken,
+            amountBaseToken,
+            minScyOut
+        );
         emit MintScyFromRawToken(msg.sender, path[0], netRawTokenIn, SCY, netScyOut);
     }
 
@@ -91,16 +102,14 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg {
 
         address baseToken = path[0];
         if (path.length == 1) {
-            netRawTokenOut = ISuperComposableYield(SCY).redeem(
+            netRawTokenOut = ISuperComposableYield(SCY).redeemAfterTransfer(
                 receiver,
-                0,
                 baseToken,
                 minRawTokenOut
             );
         } else {
-            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeem(
+            uint256 netBaseTokenOut = ISuperComposableYield(SCY).redeemAfterTransfer(
                 _getFirstPair(path),
-                0,
                 baseToken,
                 1
             );

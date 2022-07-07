@@ -35,21 +35,18 @@ abstract contract RewardManager is RewardManagerAbstract {
 
             uint256 totalShares = _rewardSharesTotal();
 
-            uint256[] memory preBalances = _selfBalances(tokens);
-
             _redeemExternalReward();
-
-            uint256[] memory accrued = _selfBalances(tokens).sub(preBalances);
 
             for (uint256 i = 0; i < tokens.length; ++i) {
                 address token = tokens[i];
+                uint256 accrued = _selfBalance(tokens[i]) - rewardState[token].lastBalance;
                 uint256 index = rewardState[token].index;
 
                 if (index == 0) index = INITIAL_REWARD_INDEX;
-                if (totalShares != 0) index += accrued[i].divDown(totalShares);
+                if (totalShares != 0) index += accrued.divDown(totalShares);
 
                 rewardState[token].index = index.Uint128();
-                rewardState[token].lastBalance += accrued[i].Uint128();
+                rewardState[token].lastBalance += accrued.Uint128();
             }
         }
 

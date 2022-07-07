@@ -56,58 +56,42 @@ interface ISuperComposableYield is IERC20Metadata {
      * @notice mints an amount of shares by depositing a base token.
      * @param receiver shares recipient address
      * @param tokenIn address of the base tokens to mint shares
-     * @param amountTokenToPull amount of base tokens to be transferred from (`msg.sender`)
+     * @param amountTokenToDeposit amount of base tokens to be transferred from (`msg.sender`)
      * @param minSharesOut reverts if amount of shares minted is lower than this
      * @return amountSharesOut amount of shares minted
-     * @dev
-     *
-     * This contract receives base tokens using these two (possibly both) methods:
-     * - The tokens have been transferred directly to this contract prior to calling deposit().
-     * - Exactly `amountTokenToPull` are transferred to this contract using `transferFrom()` upon calling deposit().
-     *
-     * The amount of shares minted will be based on the combined amount of base tokens deposited
-     * using the given two methods.
-     *
-     * Emits a {Deposit} event
+     * @dev Emits a {Deposit} event
      *
      * Requirements:
      * - (`baseTokenIn`) must be a valid base token.
-     * - There must be an ongoing approval from (`msg.sender`) for this contract with
-     * at least `amountTokenToPull` base tokens.
      */
     function deposit(
         address receiver,
         address tokenIn,
-        uint256 amountTokenToPull,
+        uint256 amountTokenToDeposit,
         uint256 minSharesOut
     ) external payable returns (uint256 amountSharesOut);
 
     /**
      * @notice redeems an amount of base tokens by burning some shares
      * @param receiver recipient address
-     * @param amountSharesToPull amount of shares to be transferred from (`msg.sender`)
+     * @param amountSharesToRedeem amount of shares to be burned from (`msg.sender`)
      * @param tokenOut address of the base token to be redeemed
      * @param minTokenOut reverts if amount of base token redeemed is lower than this
      * @return amountTokenOut amount of base tokens redeemed
-     * @dev
-     *
-     * This contract receives shares using these two (possibly both) methods:
-     * - The shares have been transferred directly to this contract prior to calling redeem().
-     * - Exactly `amountSharesToPull` are transferred to this contract using `transferFrom()` upon calling redeem().
-     *
-     * The amount of base tokens redeemed based on the combined amount of shares deposited
-     * using the given two methods
-     *
-     * Emits a {Redeem} event
+     * @dev Emits a {Redeem} event
      *
      * Requirements:
      * - (`tokenOut`) must be a valid base token.
-     * - There must be an ongoing approval from (`msg.sender`) for this contract with
-     * at least `amountSharesToPull` shares.
      */
     function redeem(
         address receiver,
-        uint256 amountSharesToPull,
+        uint256 amountSharesToRedeem,
+        address tokenOut,
+        uint256 minTokenOut
+    ) external returns (uint256 amountTokenOut);
+
+    function redeemAfterTransfer(
+        address receiver,
         address tokenOut,
         uint256 minTokenOut
     ) external returns (uint256 amountTokenOut);
