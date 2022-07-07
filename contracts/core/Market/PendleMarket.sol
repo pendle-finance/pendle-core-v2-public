@@ -37,9 +37,6 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         // 1 SLOT = 224 bits
     }
 
-    uint8 private constant _NOT_ENTERED = 1;
-    uint8 private constant _ENTERED = 2;
-
     string private constant NAME = "Pendle Market";
     string private constant SYMBOL = "PENDLE-LPT";
 
