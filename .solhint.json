@@ -24,13 +24,13 @@
     "reason-string": [
       "warn",
       {
-        "maxLength": 32
+        "maxLength": 64
       }
     ],
     "constructor-syntax": "warn",
     "comprehensive-interface": "off",
     "avoid-call-value": "warn",
-    "avoid-low-level-calls": "warn",
+    "avoid-low-level-calls": "off",
     "avoid-sha3": "warn",
     "avoid-suicide": "warn",
     "avoid-throw": "warn",
@@ -47,7 +47,7 @@
     "no-inline-assembly": "warn",
     "not-rely-on-block-hash": "warn",
     "not-rely-on-time": "off",
-    "ordering": "warn",
+    "ordering": "off",
     "quotes": [
       "warn",
       "double"
