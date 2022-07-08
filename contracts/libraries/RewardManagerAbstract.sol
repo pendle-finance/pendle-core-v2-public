@@ -29,13 +29,13 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
         if (tokens.length == 0) return;
 
         if (user1 != address(0) && user1 != address(this))
-            _distributeRewards(user1, tokens, indexes);
+            _distributeRewardsPrivate(user1, tokens, indexes);
         if (user2 != address(0) && user2 != address(this))
-            _distributeRewards(user2, tokens, indexes);
+            _distributeRewardsPrivate(user2, tokens, indexes);
     }
 
-    /// @dev private function
-    function _distributeRewards(
+    // should only be callable from `_updateAndDistributeRewardsForTwo` to guarantee user != address(0) && user != address(this)
+    function _distributeRewardsPrivate(
         address user,
         address[] memory tokens,
         uint256[] memory indexes

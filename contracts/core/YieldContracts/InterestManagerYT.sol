@@ -39,8 +39,10 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
     function _distributeInterestForTwo(address user1, address user2) internal {
         // no updateRewardIndex since we rely on SCY's rewardIndexes
         uint256 index = _getInterestIndex();
-        if (user1 != address(0) && user1 != address(this)) _distributeInterest(user1, index);
-        if (user2 != address(0) && user2 != address(this)) _distributeInterest(user2, index);
+        if (user1 != address(0) && user1 != address(this))
+            _distributeInterestPrivate(user1, index);
+        if (user2 != address(0) && user2 != address(this))
+            _distributeInterestPrivate(user2, index);
     }
 
     function _doTransferOutInterest(
@@ -62,7 +64,8 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
         _transferOut(SCY, user, interestAmount);
     }
 
-    function _distributeInterest(address user, uint256 currentIndex) private {
+    // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)
+    function _distributeInterestPrivate(address user, uint256 currentIndex) private {
         uint256 prevIndex = userInterest[user].index;
 
         if (prevIndex == currentIndex) return;
