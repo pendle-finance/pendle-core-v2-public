@@ -39,6 +39,8 @@ abstract contract RewardManager is RewardManagerAbstract {
 
             for (uint256 i = 0; i < tokens.length; ++i) {
                 address token = tokens[i];
+
+                // the entire token balance of the contract must be the rewards of the contract
                 uint256 accrued = _selfBalance(tokens[i]) - rewardState[token].lastBalance;
                 uint256 index = rewardState[token].index;
 

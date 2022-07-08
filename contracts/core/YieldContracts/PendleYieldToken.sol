@@ -122,7 +122,9 @@ contract PendleYieldToken is
     ) external nonReentrant updateData returns (uint256 interestOut, uint256[] memory rewardsOut) {
         require(redeemInterest || redeemRewards, "nothing to redeem");
 
-        _updateAndDistributeRewards(user); // according to the explaination above
+        // if redeemRewards == true, this line must be here for obvious reason
+        // if redeemInterest == true, this line must be here because of the reason above
+        _updateAndDistributeRewards(user);
 
         if (redeemRewards) {
             rewardsOut = _doTransferOutRewards(user, user);
