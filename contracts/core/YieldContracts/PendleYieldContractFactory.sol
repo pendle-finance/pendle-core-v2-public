@@ -50,10 +50,6 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
     uint256 public interestFeeRate;
     address public treasury;
 
-    /// number of contracts that have been deployed from this address
-    /// must be increased everytime a new contract is deployed
-    uint256 public numContractDeployed;
-
     // SCY => expiry => address
     mapping(address => mapping(uint256 => address)) public getPT;
     mapping(address => mapping(uint256 => address)) public getYT;
@@ -69,7 +65,6 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setTreasury(_treasury);
-        numContractDeployed++;
     }
 
     function initialize(bytes memory _pendleYtCreationCode) external initializer {
