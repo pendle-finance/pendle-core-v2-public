@@ -64,6 +64,8 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
 
     // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)
     function _distributeInterestPrivate(address user, uint256 currentIndex) private {
+        assert(user != address(0) && user != address(this));
+
         uint256 prevIndex = userInterest[user].index;
 
         if (prevIndex == currentIndex) return;

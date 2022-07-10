@@ -40,6 +40,8 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
         address[] memory tokens,
         uint256[] memory indexes
     ) private {
+        assert(user != address(0) && user != address(this));
+
         uint256 userShares = _rewardSharesUser(user);
 
         for (uint256 i = 0; i < tokens.length; ++i) {

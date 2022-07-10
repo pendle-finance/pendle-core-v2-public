@@ -16,6 +16,11 @@ import "../../libraries/RewardManagerAbstract.sol";
 import "../PendleERC20Permit.sol";
 import "./InterestManagerYT.sol";
 
+/**
+Invariances to maintain:
+- address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
+    guaranteed by address(0) & address(this) check in each updateForTwo function
+*/
 contract PendleYieldToken is
     IPYieldToken,
     PendleERC20Permit,

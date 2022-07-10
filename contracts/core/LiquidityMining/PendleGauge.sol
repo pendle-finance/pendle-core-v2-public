@@ -17,10 +17,10 @@ abstract contract PendleGauge is RewardManager {
     address private immutable SCY;
 
     uint256 internal constant TOKENLESS_PRODUCTION = 40;
-    address internal immutable PENDLE;
 
-    IPVeToken public immutable vePENDLE;
-    address public immutable gaugeController;
+    address internal immutable PENDLE;
+    IPVeToken internal immutable vePENDLE;
+    address internal immutable gaugeController;
 
     uint256 public totalActiveSupply;
     mapping(address => uint256) public activeBalance;
@@ -37,7 +37,9 @@ abstract contract PendleGauge is RewardManager {
     }
 
     /**
-     * @dev It is intended to have user's active balance updated when they try to redeem
+     * @dev Since rewardShares is based on activeBalance, user's activeBalance must be updated AFTER
+        rewards is updated
+     * @dev It's intended to have user's activeBalance updated when rewards is redeemed
      */
     function _redeemRewards(address user) internal virtual returns (uint256[] memory) {
         _updateAndDistributeRewards(user);
@@ -45,10 +47,21 @@ abstract contract PendleGauge is RewardManager {
         return _doTransferOutRewards(user, user);
     }
 
-    /**
-     * @dev since rewardShares will be modified after this function, it should update user reward beforehand
-     */
     function _updateUserActiveBalance(address user) internal virtual {
+        _updateUserActiveBalanceForTwo(user, address(0));
+    }
+
+    function _updateUserActiveBalanceForTwo(address user1, address user2) internal virtual {
+        if (user1 != address(0) && user1 != address(this)) _updateUserActiveBalancePrivate(user1);
+        if (user2 != address(0) && user2 != address(this)) _updateUserActiveBalancePrivate(user2);
+    }
+
+    /**
+     * @dev should only be callable from `_updateUserActiveBalanceForTwo` to guarantee user != address(0) && user != address(this)
+     */
+    function _updateUserActiveBalancePrivate(address user) private {
+        assert(user != address(0) && user != address(this));
+
         uint256 lpBalance = _stakedBalance(user);
         uint256 veBoostedLpBalance = _calcVeBoostedLpBalance(user, lpBalance);
 
@@ -112,7 +125,6 @@ abstract contract PendleGauge is RewardManager {
         address to,
         uint256
     ) internal virtual {
-        if (from != address(0) && from != address(this)) _updateUserActiveBalance(from);
-        if (to != address(0) && to != address(this)) _updateUserActiveBalance(to);
+        _updateUserActiveBalanceForTwo(from, to);
     }
 }

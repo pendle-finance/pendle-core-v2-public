@@ -17,9 +17,12 @@ import "../LiquidityMining/PendleGauge.sol";
 import "../PendleERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// solhint-disable reason-string
-/// Invariances to maintain:
-/// - Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
+/**
+Invariances to maintain:
+- Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
+- address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
+    guaranteed by address(0) & address(this) check in each updateForTwo function
+*/
 contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
