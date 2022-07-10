@@ -122,8 +122,11 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
-        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
+        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)), "insufficient PT");
+        require(
+            market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)),
+            "insufficient SCY"
+        );
 
         emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
 
@@ -210,7 +213,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         }
 
         // have received enough PT
-        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)));
+        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)), "insufficient PT");
 
         emit Swap(receiver, exactPtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
@@ -247,7 +250,10 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         }
 
         // have received enough SCY
-        require(market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)));
+        require(
+            market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)),
+            "insufficient SCY"
+        );
 
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }

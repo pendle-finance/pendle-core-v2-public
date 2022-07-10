@@ -7,7 +7,7 @@
       7
     ],
     "function-max-lines": [
-      "warn",
+      "off",
       50
     ],
     "max-line-length": [
