@@ -3,7 +3,6 @@ pragma solidity 0.8.13;
 
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../interfaces/IPMarketAddRemoveCallback.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -57,12 +56,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
         }
 
-        (netLpOut, , ) = IPMarket(market).addLiquidity(
-            receiver,
-            ptDesired,
-            scyDesired,
-            EMPTY_BYTES
-        );
+        netLpOut = IPMarket(market).mint(receiver);
 
         // fail-safe
         require(netLpOut >= minLpOut, "FS insufficient lp out");
@@ -88,12 +82,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
         }
 
-        (netScyOut, netPtOut) = IPMarket(market).removeLiquidity(
-            receiver,
-            receiver,
-            lpToRemove,
-            EMPTY_BYTES
-        );
+        (netScyOut, netPtOut) = IPMarket(market).burn(receiver, receiver);
 
         // fail-safe
         require(netScyOut >= scyOutMin, "FS insufficient SCY out");

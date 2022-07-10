@@ -7,7 +7,6 @@ import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
-import "../../interfaces/IPMarketAddRemoveCallback.sol";
 
 import "../../libraries/math/LogExpMath.sol";
 import "../../libraries/math/Math.sol";
@@ -82,29 +81,24 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     /**
      * @notice PendleMarket allows users to provide in PT & SCY in exchange for LPs, which
-     * will grant LP holders more exchange fee over time. All the tokens must be transferred to
-     * this market prior to the call for LP to be minted. There is no flashAdd
-     * @param data bytes data to be sent in the callback
+     * will grant LP holders more exchange fee over time
      */
-    function addLiquidity(
-        address receiver,
-        uint256 scyDesired,
-        uint256 ptDesired,
-        bytes calldata data
-    )
+    function mint(address receiver)
         external
         nonReentrant
         notExpired
-        returns (
-            uint256 lpToAccount,
-            uint256 scyUsed,
-            uint256 ptUsed
-        )
+        returns (uint256 lpToAccount)
     {
         MarketState memory market = readState(true);
         SCYIndex index = SCY.newIndex();
 
+        uint256 scyDesired = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
+        uint256 ptDesired = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
+
         uint256 lpToReserve;
+        uint256 scyUsed;
+        uint256 ptUsed;
+
         (lpToReserve, lpToAccount, scyUsed, ptUsed) = market.addLiquidity(
             index,
             scyDesired,
@@ -122,41 +116,22 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)), "insufficient PT");
-        require(
-            market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)),
-            "insufficient SCY"
-        );
-
         emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
-
-        // no flashAdd, we only do callback after all the tokens have been provided
-        if (data.length > 0) {
-            IPMarketAddRemoveCallback(msg.sender).addLiquidityCallback(
-                lpToAccount,
-                scyUsed,
-                ptUsed,
-                data
-            );
-        }
     }
 
     /**
      * @notice LP Holders can burn their LP to receive back SCY & PT proportionally
      * to their share of market
-     * @dev steps working of this contract
-       - SCY & PT will be first transferred out to receiver
-       - Callback to msg.sender if data.length > 0
-       - Ensure the corresponding amount of LP has been transferred to this contract
-     * @param data bytes data to be sent in the callback
      */
-    function removeLiquidity(
-        address receiverScy,
-        address receiverPt,
-        uint256 lpToRemove,
-        bytes calldata data
-    ) external nonReentrant returns (uint256 scyToAccount, uint256 ptToAccount) {
+    function burn(address receiverScy, address receiverPt)
+        external
+        nonReentrant
+        returns (uint256 scyToAccount, uint256 ptToAccount)
+    {
         MarketState memory market = readState(true);
+
+        uint256 lpToRemove = balanceOf(address(this));
+        _burn(address(this), lpToRemove);
 
         (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
 
@@ -164,18 +139,6 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         IERC20(PT).safeTransfer(receiverPt, ptToAccount);
 
         _writeState(market);
-
-        if (data.length > 0) {
-            IPMarketAddRemoveCallback(msg.sender).removeLiquidityCallback(
-                lpToRemove,
-                scyToAccount,
-                ptToAccount,
-                data
-            );
-        }
-
-        // this checks enough lp has been transferred in
-        _burn(address(this), lpToRemove);
 
         emit RemoveLiquidity(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
     }

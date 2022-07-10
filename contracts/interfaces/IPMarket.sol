@@ -31,25 +31,11 @@ interface IPMarket is IERC20Metadata {
 
     event UpdateImpliedRate(uint256 indexed timestamp, uint256 lnLastImpliedRate);
 
-    function addLiquidity(
-        address receiver,
-        uint256 scyDesired,
-        uint256 ptDesired,
-        bytes calldata data
-    )
-        external
-        returns (
-            uint256 lpToAccount,
-            uint256 scyUsed,
-            uint256 ptUsed
-        );
+    function mint(address receiver) external returns (uint256);
 
-    function removeLiquidity(
-        address receiverScy,
-        address receiverPt,
-        uint256 lpToRemove,
-        bytes calldata data
-    ) external returns (uint256 scyToAccount, uint256 ptToAccount);
+    function burn(address receiverScy, address receiverPt)
+        external
+        returns (uint256 scyToAccount, uint256 ptToAccount);
 
     function swapExactPtForScy(
         address receiver,
