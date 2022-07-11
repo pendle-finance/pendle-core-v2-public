@@ -283,9 +283,9 @@ contract PendleYieldToken is
         if (isExpired()) {
             // post-expiry, all incoming rewards will go to the treasury
             // hence, we can save users one _redeemExternal here
-            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
             for (uint256 i = 0; i < tokens.length; i++)
-                postExpiry.userRewardOwed[tokens[i]] -= rewardAmounts[i];
+                postExpiry.userRewardOwed[tokens[i]] -= userReward[tokens[i]][user].accrued;
+            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
         } else {
             _redeemExternalReward();
             rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
