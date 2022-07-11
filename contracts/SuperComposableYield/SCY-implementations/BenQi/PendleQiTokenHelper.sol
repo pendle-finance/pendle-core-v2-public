@@ -43,8 +43,8 @@ contract PendleQiTokenHelper {
 
         uint256 totalBorrowsNew = interestAccumulated + borrowsPrior;
 
-        uint256 totalReservesNew = qiToken.reserveFactorMantissa() *
-            interestAccumulated +
+        uint256 totalReservesNew = (qiToken.reserveFactorMantissa() * interestAccumulated) /
+            1e18 +
             reservesPrior;
 
         return
