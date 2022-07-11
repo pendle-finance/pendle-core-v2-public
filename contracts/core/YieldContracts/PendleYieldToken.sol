@@ -157,12 +157,12 @@ contract PendleYieldToken is
         require(isExpired(), "not expired");
 
         address[] memory tokens = getRewardTokens();
-        uint256[] memory rewardOuts = new uint256[](tokens.length);
+        rewardsOut = new uint256[](tokens.length);
 
         _redeemExternalReward();
 
         for (uint256 i = 0; i < tokens.length; i++) {
-            rewardOuts[i] = _selfBalance(tokens[i]) - postExpiry.userRewardOwed[tokens[i]];
+            rewardsOut[i] = _selfBalance(tokens[i]) - postExpiry.userRewardOwed[tokens[i]];
         }
 
         _transferOut(tokens, IPYieldContractFactory(factory).treasury(), rewardsOut);
