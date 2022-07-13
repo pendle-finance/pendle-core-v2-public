@@ -59,85 +59,34 @@ contract PendleVotingControllerUpg is
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice unvote for pools in poolsToUnvote, and vote for those in poolsToVote
-     * @dev pre-condition:
-        - voting pools should be added beforehand
-        - the vePENDLE position must still be active
-     * @dev for multiple voting case
-        - This function will unvote on every pool first to ensure the largest space before voting
      * @dev state changes expected:
         - update weekData (if any)
         - update poolInfo, userData to reflect the new vote
-        - add 1 check point for each of the unvote pool and vote pool
+        - add 1 check point for each of pools
      * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
         negative weight
      */
-    function voteForMany(
-        address[] calldata poolsToUnvote,
-        address[] calldata poolsToVote,
-        uint64[] calldata weights
-    ) external {
+    function vote(address[] calldata pools, uint64[] calldata weights) external {
         address user = msg.sender;
 
-        require(weights.length == poolsToVote.length, "invaid array length");
-        require(vePendle.balanceOf(user) > 0, "zero vependle balance");
-        for (uint256 i = 0; i < poolsToVote.length; ++i) {
-            require(_isPoolVotable(poolsToVote[i]), "invalid pool");
-            require(weights[i] > 0, "zero weight");
-        }
-
-        for (uint256 i = 0; i < poolsToUnvote.length; ++i) {
-            unvote(poolsToUnvote[i]);
-        }
-
-        for (uint256 i = 0; i < poolsToVote.length; ++i) {
-            applyPoolSlopeChanges(poolsToUnvote[i]);
-            _unvote(user, poolsToUnvote[i], false);
-        }
-
-        for (uint256 i = 0; i < poolsToVote.length; ++i) {
-            _vote(user, poolsToVote[i], weights[i]);
-        }
-    }
-
-    /**
-     * @notice set a new voting weight for the target pool
-     * @dev pre-condition:
-        - pool must have been added before
-        - the vePENDLE position must still be active
-     * @dev state changes expected:
-        - update weekData (if any)
-        - update poolInfo, userData to reflect the new vote
-        - add 1 check point for both the unvote & new vote
-     * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
-        negative weight
-     */
-    function vote(address pool, uint64 weight) external {
-        address user = msg.sender;
-
-        require(weight != 0, "zero weight");
-        require(_isPoolVotable(pool), "invalid pool");
+        require(weights.length == pools.length, "invaid array length");
         require(vePendle.balanceOf(user) > 0, "zero vependle balance");
 
-        applyPoolSlopeChanges(pool);
-        _unvote(user, pool, false);
-        _vote(user, pool, weight);
-    }
+        UserData storage uData = userData[user];
 
-    /**
-     * @notice remove the vote from the current pool
-     * @dev no pre-condition as opposed to vote since this function is to clear the vote
-     * @dev allow removing vote from a non-votable pool BY not requiring pool to be votable
-     * @dev state changes expected:
-        - update weekData (if any)
-        - update poolInfo, userData to reflect the new vote
-        - add 1 check point for the unvote
-     */
-    function unvote(address pool) public {
-        if (_isPoolVotable(pool)) {
-            applyPoolSlopeChanges(pool);
+        for (uint256 i = 0; i < pools.length; ++i) {
+            if (_isPoolVotable(pools[i])) applyPoolSlopeChanges(pools[i]);
         }
-        _unvote(msg.sender, pool, true);
+
+        for (uint256 i = 0; i < pools.length; ++i) {
+            if (uData.voteForPools[pools[i]].weight <= weights[i])
+                _modifyVoteWeight(user, pools[i], weights[i]);
+        }
+
+        for (uint256 i = 0; i < pools.length; ++i) {
+            if (uData.voteForPools[pools[i]].weight > weights[i])
+                _modifyVoteWeight(user, pools[i], weights[i]);
+        }
     }
 
     /**
@@ -157,7 +106,7 @@ contract PendleVotingControllerUpg is
         // no state changes are expected
         if (wTime >= currentWeekStart) return;
 
-        VeBalance memory currentVote = poolInfo[pool].vote;
+        VeBalance memory currentVote = poolInfo[pool].totalVote;
         while (wTime < currentWeekStart) {
             wTime += WEEK;
             currentVote = currentVote.sub(poolInfo[pool].slopeChanges[wTime], wTime);
@@ -192,7 +141,7 @@ contract PendleVotingControllerUpg is
      */
     function broadcastResults(uint64 chainId) external payable {
         uint128 wTime = WeekMath.getCurrentWeekStart();
-        require(isEpochFinalized[wTime], "epoch not finalized");
+        require(weekData[wTime].isEpochFinalized, "epoch not finalized");
         _broadcastResults(chainId, wTime, pendlePerSec);
     }
 
@@ -303,51 +252,6 @@ contract PendleVotingControllerUpg is
     }
 
     /**
-     * @notice remove the vote from the current pool
-     * @dev state changes expected:
-        - vote in poolInfo is cleared if the vote is still valid
-        - update UserData to remove the vote weight
-        - add a check-point if required
-     */
-    function _unvote(
-        address user,
-        address pool,
-        bool doCreateCheckpoint
-    ) internal {
-        VeBalance memory oldUVote = userData[user].voteForPools[pool].vote;
-        if (_isPoolVotable(pool) && _isVoteActive(oldUVote)) {
-            _subtractVotePoolInfo(pool, oldUVote);
-        }
-        _unsetVoteUserData(user, pool);
-
-        if (doCreateCheckpoint) {
-            _addUserPoolCheckpoint(user, pool, VeBalance(0, 0));
-        }
-        emit Unvote(user, pool, oldUVote);
-    }
-
-    /**
-     * @notice remove the vote from the current pool
-     * @dev there must not be any current vote on this pool by the user
-     * @dev state changes expected:
-        - vote in poolInfo is added
-        - update UserData to set the new vote weight
-        - add a check-point
-     */
-    function _vote(
-        address user,
-        address pool,
-        uint64 weight
-    ) internal {
-        VeBalance memory votingPower = _getVotingPowerByWeight(user, weight);
-        _addVotePoolInfo(pool, votingPower);
-        _setVoteUserData(user, pool, weight, votingPower);
-        _addUserPoolCheckpoint(user, pool, votingPower);
-
-        emit Vote(user, pool, weight, votingPower);
-    }
-
-    /**
      * @notice return the corresponding voting power of an user given the weight. Basically his voting power
         will be vePendle * weight / USER_VOTE_MAX_WEIGHT
      * @notice governance will always has the vePendle equivalent to 1M PENDLE locked for MAX_LOCK_TIME
@@ -356,6 +260,7 @@ contract PendleVotingControllerUpg is
         internal
         view
         virtual
+        override
         returns (VeBalance memory res)
     {
         uint128 amount;
