@@ -75,7 +75,7 @@ contract PendleVotingControllerUpg is
         UserData storage uData = userData[user];
 
         for (uint256 i = 0; i < pools.length; ++i) {
-            if (_isPoolVotable(pools[i])) applyPoolSlopeChanges(pools[i]);
+            if (_isPoolActive(pools[i])) applyPoolSlopeChanges(pools[i]);
         }
 
         for (uint256 i = 0; i < pools.length; ++i) {
@@ -92,13 +92,13 @@ contract PendleVotingControllerUpg is
     /**
      * @notice Process all the slopeChanges that haven't been processed & update these data into
         poolData
-     * @dev pre-condition: the pool must be votable
+     * @dev pre-condition: the pool must be active
      * @dev state changes expected:
         - update weekData
         - update poolData
      */
     function applyPoolSlopeChanges(address pool) public {
-        require(_isPoolVotable(pool), "invalid pool");
+        require(_isPoolActive(pool), "invalid pool");
 
         uint128 wTime = poolData[pool].lastSlopeChangeAppliedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
@@ -158,7 +158,7 @@ contract PendleVotingControllerUpg is
         - set params in poolData
      */
     function addPool(uint64 chainId, address pool) external onlyGovernance {
-        require(!_isPoolVotable(pool), "pool already added");
+        require(!_isPoolActive(pool), "pool already added");
         require(!allRemovedPools.contains(pool), "not allowed to add a removed pool");
 
         _addPool(chainId, pool);
@@ -174,7 +174,7 @@ contract PendleVotingControllerUpg is
         - clear data in poolData
      */
     function removePool(address pool) external onlyGovernance {
-        require(_isPoolVotable(pool), "invalid pool");
+        require(_isPoolActive(pool), "invalid pool");
 
         uint64 chainId = poolData[pool].chainId;
 

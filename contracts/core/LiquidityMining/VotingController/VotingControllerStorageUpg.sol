@@ -189,7 +189,7 @@ abstract contract VotingControllerStorageUpg {
 
         // REMOVE OLD VOTE
         if (oldVote.bias != 0) {
-            if (_isPoolVotable(pool) && _isVoteActive(oldVote)) {
+            if (_isPoolActive(pool) && _isVoteActive(oldVote)) {
                 pData.totalVote = pData.totalVote.sub(oldVote);
                 pData.slopeChanges[oldVote.getExpiry()] -= oldVote.slope;
             }
@@ -199,7 +199,7 @@ abstract contract VotingControllerStorageUpg {
 
         // ADD NEW VOTE
         if (weight != 0) {
-            require(_isPoolVotable(pool), "pool not votable");
+            require(_isPoolActive(pool), "pool not votable");
 
             newVote = _getVotingPowerByWeight(user, weight);
 
@@ -222,8 +222,7 @@ abstract contract VotingControllerStorageUpg {
         }
     }
 
-    /// @notice check if a pool is votable on by checking the lastSlopeChangeAppliedAt time
-    function _isPoolVotable(address pool) internal view returns (bool) {
+    function _isPoolActive(address pool) internal view returns (bool) {
         return allActivePools.contains(pool);
     }
 
