@@ -61,7 +61,7 @@ contract PendleVotingControllerUpg is
     /**
      * @dev state changes expected:
         - update weekData (if any)
-        - update poolInfo, userData to reflect the new vote
+        - update poolData, userData to reflect the new vote
         - add 1 check point for each of pools
      * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
         negative weight
@@ -91,35 +91,35 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice Process all the slopeChanges that haven't been processed & update these data into
-        poolInfo
+        poolData
      * @dev pre-condition: the pool must be votable
      * @dev state changes expected:
         - update weekData
-        - update poolInfo
+        - update poolData
      */
     function applyPoolSlopeChanges(address pool) public {
         require(_isPoolVotable(pool), "invalid pool");
 
-        uint128 wTime = poolInfo[pool].lastSlopeChangeAppliedAt;
+        uint128 wTime = poolData[pool].lastSlopeChangeAppliedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
         // no state changes are expected
         if (wTime >= currentWeekStart) return;
 
-        VeBalance memory currentVote = poolInfo[pool].totalVote;
+        VeBalance memory currentVote = poolData[pool].totalVote;
         while (wTime < currentWeekStart) {
             wTime += WEEK;
-            currentVote = currentVote.sub(poolInfo[pool].slopeChanges[wTime], wTime);
+            currentVote = currentVote.sub(poolData[pool].slopeChanges[wTime], wTime);
             _setFinalPoolVoteForWeek(pool, wTime, currentVote.getValueAt(wTime));
         }
 
-        _setNewVotePoolInfo(pool, currentVote, wTime);
+        _setNewVotePoolData(pool, currentVote, wTime);
     }
 
     /**
      * @notice finalize the voting results of all pools, up to the current epoch
      * @dev state changes expected:
-        - weekData, poolInfo is updated for all pools in allPools
+        - weekData, poolData is updated for all pools in allPools
         - isEpochFinalized is set to true for all epochs since the last time until now
      * @dev this function might take a lot of gas, but can be mitigated by calling applyPoolSlopeChanges
         separately, hence reduce the number of states to be updated
@@ -155,7 +155,7 @@ contract PendleVotingControllerUpg is
      * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
      * @dev state changes expected:
         - add to allPools & chainPools
-        - set params in poolInfo
+        - set params in poolData
      */
     function addPool(uint64 chainId, address pool) external onlyGovernance {
         require(!_isPoolVotable(pool), "pool already added");
@@ -169,11 +169,11 @@ contract PendleVotingControllerUpg is
      * @dev state changes expected:
         - update weekData (if any)
         - remove from allPools & chainPools
-        - clear info in poolInfo
+        - clear data in poolData
      */
     function removePool(address pool) external onlyGovernance {
         require(_isPoolVotable(pool), "invalid pool");
-        uint64 chainId = poolInfo[pool].chainId;
+        uint64 chainId = poolData[pool].chainId;
 
         applyPoolSlopeChanges(pool);
         _removePool(pool);

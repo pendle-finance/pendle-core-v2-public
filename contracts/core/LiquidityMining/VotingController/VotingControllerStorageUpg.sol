@@ -17,7 +17,7 @@ abstract contract VotingControllerStorageUpg {
     using EnumerableSet for EnumerableSet.AddressSet;
     using Checkpoints for Checkpoints.History;
 
-    struct PoolInfo {
+    struct PoolData {
         uint64 chainId;
         uint128 lastSlopeChangeAppliedAt;
         VeBalance totalVote;
@@ -25,14 +25,14 @@ abstract contract VotingControllerStorageUpg {
         mapping(uint128 => uint128) slopeChanges;
     }
 
-    struct UserPoolInfo {
+    struct UserPoolData {
         uint64 weight;
         VeBalance vote;
     }
 
     struct UserData {
         uint64 totalVotedWeight;
-        mapping(address => UserPoolInfo) voteForPools;
+        mapping(address => UserPoolData) voteForPools;
     }
 
     struct WeekData {
@@ -57,13 +57,13 @@ abstract contract VotingControllerStorageUpg {
     // [chainId] => [pool]
     mapping(uint64 => EnumerableSet.AddressSet) internal chainPools;
 
-    // [poolAddress] -> PoolInfo
-    mapping(address => PoolInfo) public poolInfo;
+    // [poolAddress] -> PoolData
+    mapping(address => PoolData) public poolData;
 
     // [wTime] => WeekData
     mapping(uint128 => WeekData) public weekData;
 
-    // user voting info
+    // user voting data
     mapping(address => UserData) public userData;
 
     // [user][pool] => checkpoint
@@ -94,7 +94,7 @@ abstract contract VotingControllerStorageUpg {
     function getUserPoolVote(address user, address pool)
         external
         view
-        returns (UserPoolInfo memory)
+        returns (UserPoolData memory)
     {
         return userData[user].voteForPools[pool];
     }
@@ -118,11 +118,11 @@ abstract contract VotingControllerStorageUpg {
     /**
     * @dev expected behavior:
         - add to allPools, chainPools
-        - set params in poolInfo
+        - set params in poolData
      */
     function _addPool(uint64 chainId, address pool) internal {
-        poolInfo[pool].chainId = chainId;
-        poolInfo[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
+        poolData[pool].chainId = chainId;
+        poolData[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
         require(chainPools[chainId].add(pool), "IE: chainPools duplicated");
         require(allPools.add(pool), "IE: allPools duplicated");
     }
@@ -130,13 +130,13 @@ abstract contract VotingControllerStorageUpg {
     /**
     * @dev expected behavior:
         - remove from allPools, chainPools
-        - clear all params in poolInfo
+        - clear all params in poolData
      */
     function _removePool(address pool) internal {
-        uint64 chainId = poolInfo[pool].chainId;
+        uint64 chainId = poolData[pool].chainId;
         require(chainPools[chainId].remove(pool), "IE: chainPools removal failed");
         require(allPools.remove(pool), "IE: allPools removal failed");
-        delete poolInfo[pool];
+        delete poolData[pool];
     }
 
     /**
@@ -152,13 +152,13 @@ abstract contract VotingControllerStorageUpg {
         weekData[wTime].poolVotes[pool] = vote;
     }
 
-    function _setNewVotePoolInfo(
+    function _setNewVotePoolData(
         address pool,
         VeBalance memory vote,
         uint128 wTime
     ) internal {
-        poolInfo[pool].totalVote = vote;
-        poolInfo[pool].lastSlopeChangeAppliedAt = wTime;
+        poolData[pool].totalVote = vote;
+        poolData[pool].lastSlopeChangeAppliedAt = wTime;
     }
 
     function _modifyVoteWeight(
@@ -167,15 +167,15 @@ abstract contract VotingControllerStorageUpg {
         uint64 weight
     ) internal returns (VeBalance memory newVote) {
         UserData storage uData = userData[user];
-        PoolInfo storage pInfo = poolInfo[pool];
+        PoolData storage pData = poolData[pool];
 
         VeBalance memory oldVote = uData.voteForPools[pool].vote;
 
         // REMOVE OLD VOTE
         if (oldVote.bias != 0) {
             if (_isPoolVotable(pool) && _isVoteActive(oldVote)) {
-                pInfo.totalVote = pInfo.totalVote.sub(oldVote);
-                pInfo.slopeChanges[oldVote.getExpiry()] -= oldVote.slope;
+                pData.totalVote = pData.totalVote.sub(oldVote);
+                pData.slopeChanges[oldVote.getExpiry()] -= oldVote.slope;
             }
             uData.totalVotedWeight -= uData.voteForPools[pool].weight;
             delete uData.voteForPools[pool];
@@ -187,10 +187,10 @@ abstract contract VotingControllerStorageUpg {
 
             newVote = _getVotingPowerByWeight(user, weight);
 
-            pInfo.totalVote = pInfo.totalVote.add(newVote);
-            pInfo.slopeChanges[newVote.getExpiry()] += newVote.slope;
+            pData.totalVote = pData.totalVote.add(newVote);
+            pData.slopeChanges[newVote.getExpiry()] += newVote.slope;
 
-            uData.voteForPools[pool] = UserPoolInfo(weight, newVote);
+            uData.voteForPools[pool] = UserPoolData(weight, newVote);
             uData.totalVotedWeight += weight;
             require(uData.totalVotedWeight <= USER_VOTE_MAX_WEIGHT, "exceeded max weight");
         }
