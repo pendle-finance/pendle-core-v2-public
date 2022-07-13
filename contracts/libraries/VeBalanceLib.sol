@@ -65,7 +65,6 @@ library VeBalanceLib {
         returns (VeBalance memory res)
     {
         res.slope = position.amount / MAX_LOCK_TIME;
-        require(res.slope > 0, "zero slope");
         res.bias = res.slope * position.expiry;
     }
 
