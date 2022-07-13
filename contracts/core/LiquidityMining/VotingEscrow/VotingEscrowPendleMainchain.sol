@@ -52,7 +52,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @dev expected state changes:
         - a new lock with amount = amountToPull + amountExpired, expiry = expiry is created for msg.sender in positionData
         - pendle is taken in if necessary
-        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt is updated
+        - _totalSupply, lastSlopeChangeAppliedAt, slopeChanges, totalSupplyAt is updated
         - a checkpoint is added
      * @dev broadcast is not bundled since it can be done anytime after
      */
@@ -87,13 +87,14 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @dev expected state changes:
         - positionData is cleared
         - pendle is transferred out
-        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt all doesn't need to be updated
-            since these data will automatically hold true when _updateTotalSupply() is called
+        - _totalSupply, lastSlopeChangeAppliedAt, slopeChanges, totalSupplyAt all doesn't need to be updated
+            since these data will automatically hold true when _applySlopeChange() is called
         - no checkpoint is added
      * @dev broadcast is not bundled since it can be done anytime after
      */
-    function withdraw(address user) external returns (uint128 amount) {
-        require(isPositionExpired(user), "position not expired");
+    function withdraw() external returns (uint128 amount) {
+        address user = msg.sender;
+        require(_isPositionExpired(user), "position not expired");
         amount = positionData[user].amount;
 
         require(amount > 0, "zero position");
@@ -108,10 +109,10 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     /**
      * @notice update & return the current totalSupply
      * @dev state changes expected:
-        - _totalSupply & lastSupplyUpdatedAt is updated
+        - _totalSupply & lastSlopeChangeAppliedAt is updated
      */
     function totalSupplyCurrent() external virtual override returns (uint128) {
-        (VeBalance memory supply, ) = _updateTotalSupply();
+        (VeBalance memory supply, ) = _applySlopeChange();
         return supply.getCurrentValue();
     }
 
@@ -146,7 +147,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
       * @dev expected state changes:
         - a new lock with the amount & expiry increase accordingly
         - pendle is taken in if necessary
-        - _totalSupply, lastSupplyUpdatedAt, slopeChanges, totalSupplyAt is updated
+        - _totalSupply, lastSlopeChangeAppliedAt, slopeChanges, totalSupplyAt is updated
         - a checkpoint is added
      */
     function _increasePosition(
@@ -156,7 +157,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
 
-        (VeBalance memory newSupply, ) = _updateTotalSupply();
+        (VeBalance memory newSupply, ) = _applySlopeChange();
 
         if (!MiniHelpers.isCurrentlyExpired(oldPosition.expiry)) {
             // remove old position not yet expired
@@ -185,11 +186,11 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @notice update the totalSupply, processing all slope changes of past weeks. At the same time, set the finalized
         totalSupplyAt
      * @dev state changes expected:
-        - _totalSupply, lastSupplyUpdatedAt, totalSupplyAt is updated
+        - _totalSupply, lastSlopeChangeAppliedAt, totalSupplyAt is updated
      */
-    function _updateTotalSupply() internal returns (VeBalance memory, uint128) {
+    function _applySlopeChange() internal returns (VeBalance memory, uint128) {
         VeBalance memory supply = _totalSupply;
-        uint128 wTime = lastSupplyUpdatedAt;
+        uint128 wTime = lastSlopeChangeAppliedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
         if (wTime >= currentWeekStart) {
@@ -203,16 +204,16 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         }
 
         _totalSupply = supply;
-        lastSupplyUpdatedAt = wTime;
+        lastSlopeChangeAppliedAt = wTime;
 
-        return (supply, lastSupplyUpdatedAt);
+        return (supply, lastSlopeChangeAppliedAt);
     }
 
     /// @notice broadcast position to all chains in chainIds
     function _broadcastPosition(address user, uint256[] calldata chainIds) public payable {
         require(chainIds.length != 0, "empty chainIds");
 
-        (VeBalance memory supply, uint256 wTime) = _updateTotalSupply();
+        (VeBalance memory supply, uint256 wTime) = _applySlopeChange();
 
         bytes memory userData = (
             user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
@@ -230,7 +231,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     }
 
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint256 wTime) = _updateTotalSupply();
+        (VeBalance memory supply, uint256 wTime) = _applySlopeChange();
         _broadcast(chainId, wTime, supply, EMPTY_BYTES);
     }
 

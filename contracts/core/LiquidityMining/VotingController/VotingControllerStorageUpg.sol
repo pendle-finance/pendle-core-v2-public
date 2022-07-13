@@ -19,7 +19,7 @@ abstract contract VotingControllerStorageUpg {
 
     struct PoolInfo {
         uint64 chainId;
-        uint128 lastUpdated;
+        uint128 lastSlopeChangeAppliedAt;
         VeBalance vote;
         // wTime => slopeChange value
         mapping(uint128 => uint128) slopeChanges;
@@ -124,7 +124,7 @@ abstract contract VotingControllerStorageUpg {
      */
     function _addPool(uint64 chainId, address pool) internal {
         poolInfo[pool].chainId = chainId;
-        poolInfo[pool].lastUpdated = WeekMath.getCurrentWeekStart();
+        poolInfo[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
         require(chainPools[chainId].add(pool), "IE: chainPools duplicated");
         require(allPools.add(pool), "IE: allPools duplicated");
     }
@@ -160,7 +160,7 @@ abstract contract VotingControllerStorageUpg {
         uint128 wTime
     ) internal {
         poolInfo[pool].vote = vote;
-        poolInfo[pool].lastUpdated = wTime;
+        poolInfo[pool].lastSlopeChangeAppliedAt = wTime;
     }
 
     /// @dev only applicable for current pool, hence no changes for weekData
@@ -215,9 +215,9 @@ abstract contract VotingControllerStorageUpg {
         }
     }
 
-    /// @notice check if a pool is votable on by checking the lastUpdated time
+    /// @notice check if a pool is votable on by checking the lastSlopeChangeAppliedAt time
     function _isPoolVotable(address pool) internal view returns (bool) {
-        return poolInfo[pool].lastUpdated != 0;
+        return poolInfo[pool].lastSlopeChangeAppliedAt != 0;
     }
 
     /// @notice check if a vote still counts by checking if the vote is not (x,0) (in case the

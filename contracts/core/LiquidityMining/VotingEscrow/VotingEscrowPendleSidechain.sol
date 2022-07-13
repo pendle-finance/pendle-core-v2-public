@@ -58,7 +58,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
 
     function _setNewTotalSupply(uint128 wTime, VeBalance memory supply) internal {
         assert(wTime == WeekMath.getWeekStartTimestamp(wTime));
-        lastSupplyUpdatedAt = wTime;
+        lastSlopeChangeAppliedAt = wTime;
         _totalSupply = supply;
         emit SetNewTotalSupply(supply);
     }

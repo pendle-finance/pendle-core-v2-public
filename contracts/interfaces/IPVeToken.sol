@@ -14,6 +14,4 @@ interface IPVeToken {
     function totalSupplyStored() external view returns (uint128);
 
     function totalSupplyCurrent() external returns (uint128);
-
-    function isPositionExpired(address user) external view returns (bool);
 }

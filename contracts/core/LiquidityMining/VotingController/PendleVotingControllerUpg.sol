@@ -80,7 +80,7 @@ contract PendleVotingControllerUpg is
         address user = msg.sender;
 
         require(weights.length == poolsToVote.length, "invaid array length");
-        require(!vePendle.isPositionExpired(user), "user position expired");
+        require(vePendle.balanceOf(user) > 0, "zero vependle balance");
         for (uint256 i = 0; i < poolsToVote.length; ++i) {
             require(_isPoolVotable(poolsToVote[i]), "invalid pool");
             require(weights[i] > 0, "zero weight");
@@ -117,7 +117,7 @@ contract PendleVotingControllerUpg is
 
         require(weight != 0, "zero weight");
         require(_isPoolVotable(pool), "invalid pool");
-        require(!vePendle.isPositionExpired(user), "user position expired");
+        require(vePendle.balanceOf(user) > 0, "zero vependle balance");
 
         updatePoolVotes(pool);
         _unvote(user, pool, false);
@@ -151,7 +151,7 @@ contract PendleVotingControllerUpg is
     function updatePoolVotes(address pool) public {
         require(_isPoolVotable(pool), "invalid pool");
 
-        uint128 wTime = poolInfo[pool].lastUpdated;
+        uint128 wTime = poolInfo[pool].lastSlopeChangeAppliedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
 
         // no state changes are expected
@@ -264,7 +264,7 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice broadcast voting results of the timestamp to chainId
-     * @dev assumption: the epoch is already finalized, lastUpdated of all pools >= currentWeekTimestamp
+     * @dev assumption: the epoch is already finalized, lastSlopeChangeAppliedAt of all pools >= currentWeekTimestamp
      * @dev state changes expected:
         - the gaugeController receives the new pendle allocation
      */

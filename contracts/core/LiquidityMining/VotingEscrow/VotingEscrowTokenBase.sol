@@ -27,16 +27,15 @@ abstract contract VotingEscrowTokenBase is IPVeToken {
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
 
     VeBalance internal _totalSupply;
-    uint128 public lastSupplyUpdatedAt;
+    uint128 public lastSlopeChangeAppliedAt;
 
     mapping(address => LockedPosition) public positionData;
 
     constructor() {
-        lastSupplyUpdatedAt = WeekMath.getCurrentWeekStart();
+        lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
     }
 
     function balanceOf(address user) public view virtual returns (uint128) {
-        if (isPositionExpired(user)) return 0;
         return positionData[user].convertToVeBalance().getCurrentValue();
     }
 
@@ -46,7 +45,7 @@ abstract contract VotingEscrowTokenBase is IPVeToken {
 
     function totalSupplyCurrent() external virtual returns (uint128);
 
-    function isPositionExpired(address user) public view returns (bool) {
+    function _isPositionExpired(address user) internal view returns (bool) {
         return MiniHelpers.isCurrentlyExpired(positionData[user].expiry);
     }
 }

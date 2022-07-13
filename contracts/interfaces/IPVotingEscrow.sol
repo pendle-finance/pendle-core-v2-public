@@ -20,5 +20,5 @@ interface IPVotingEscrow {
         external
         returns (uint128);
 
-    function withdraw(address user) external returns (uint128);
+    function withdraw() external returns (uint128);
 }
