@@ -134,7 +134,8 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice broadcast the voting results of the current week to the chain with chainId. Can be
-        called by anyone
+        called by anyone. It's intentional to allow the same results to be broadcasted multiple
+        times. The receiver should be able to filter these duplicated messages
      * @dev pre-condition: the epoch must have already been finalized by finalizeEpoch
      * @dev state changes expected:
         - the gaugeController receives the new pendle allocation

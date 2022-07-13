@@ -130,7 +130,7 @@ abstract contract VotingControllerStorageUpg {
 
     /**
     * @dev expected behavior:
-        - add to allPools, chainPools
+        - add to allActivePools, chainPools
         - set params in poolData
      */
     function _addPool(uint64 chainId, address pool) internal {
@@ -143,7 +143,8 @@ abstract contract VotingControllerStorageUpg {
 
     /**
     * @dev expected behavior:
-        - remove from allPools, chainPools
+        - remove from allActivePool, chainPools
+        - add to allRemovedPools
         - clear all params in poolData
      */
     function _removePool(address pool) internal {
@@ -199,7 +200,7 @@ abstract contract VotingControllerStorageUpg {
 
         // ADD NEW VOTE
         if (weight != 0) {
-            require(_isPoolActive(pool), "pool not votable");
+            require(_isPoolActive(pool), "pool not active");
 
             newVote = _getVotingPowerByWeight(user, weight);
 
