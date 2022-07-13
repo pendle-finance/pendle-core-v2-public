@@ -91,7 +91,7 @@ contract PendleVotingControllerUpg is
         }
 
         for (uint256 i = 0; i < poolsToVote.length; ++i) {
-            updatePoolVotes(poolsToUnvote[i]);
+            applyPoolSlopeChanges(poolsToUnvote[i]);
             _unvote(user, poolsToUnvote[i], false);
         }
 
@@ -119,7 +119,7 @@ contract PendleVotingControllerUpg is
         require(_isPoolVotable(pool), "invalid pool");
         require(vePendle.balanceOf(user) > 0, "zero vependle balance");
 
-        updatePoolVotes(pool);
+        applyPoolSlopeChanges(pool);
         _unvote(user, pool, false);
         _vote(user, pool, weight);
     }
@@ -135,7 +135,7 @@ contract PendleVotingControllerUpg is
      */
     function unvote(address pool) public {
         if (_isPoolVotable(pool)) {
-            updatePoolVotes(pool);
+            applyPoolSlopeChanges(pool);
         }
         _unvote(msg.sender, pool, true);
     }
@@ -148,7 +148,7 @@ contract PendleVotingControllerUpg is
         - update weekData
         - update poolInfo
      */
-    function updatePoolVotes(address pool) public {
+    function applyPoolSlopeChanges(address pool) public {
         require(_isPoolVotable(pool), "invalid pool");
 
         uint128 wTime = poolInfo[pool].lastSlopeChangeAppliedAt;
@@ -172,13 +172,13 @@ contract PendleVotingControllerUpg is
      * @dev state changes expected:
         - weekData, poolInfo is updated for all pools in allPools
         - isEpochFinalized is set to true for all epochs since the last time until now
-     * @dev this function might take a lot of gas, but can be mitigated by calling updatePoolVotes
+     * @dev this function might take a lot of gas, but can be mitigated by calling applyPoolSlopeChanges
         separately, hence reduce the number of states to be updated
      */
     function finalizeEpoch() public {
         uint256 length = allPools.length();
         for (uint256 i = 0; i < length; ++i) {
-            updatePoolVotes(allPools.at(i));
+            applyPoolSlopeChanges(allPools.at(i));
         }
         _setAllPastEpochsAsFinalized();
     }
@@ -226,7 +226,7 @@ contract PendleVotingControllerUpg is
         require(_isPoolVotable(pool), "invalid pool");
         uint64 chainId = poolInfo[pool].chainId;
 
-        updatePoolVotes(pool);
+        applyPoolSlopeChanges(pool);
         _removePool(pool);
 
         emit RemovePool(chainId, pool);
