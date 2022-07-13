@@ -119,15 +119,15 @@ contract PendleVotingControllerUpg is
     /**
      * @notice finalize the voting results of all pools, up to the current epoch
      * @dev state changes expected:
-        - weekData, poolData is updated for all pools in allPools
+        - weekData, poolData is updated for all pools in allActivePools
         - isEpochFinalized is set to true for all epochs since the last time until now
      * @dev this function might take a lot of gas, but can be mitigated by calling applyPoolSlopeChanges
         separately, hence reduce the number of states to be updated
      */
     function finalizeEpoch() public {
-        uint256 length = allPools.length();
+        uint256 length = allActivePools.length();
         for (uint256 i = 0; i < length; ++i) {
-            applyPoolSlopeChanges(allPools.at(i));
+            applyPoolSlopeChanges(allActivePools.at(i));
         }
         _setAllPastEpochsAsFinalized();
     }
@@ -154,11 +154,13 @@ contract PendleVotingControllerUpg is
      * @dev pre-condition: pool must not have been added before
      * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
      * @dev state changes expected:
-        - add to allPools & chainPools
+        - add to allActivePools & chainPools
         - set params in poolData
      */
     function addPool(uint64 chainId, address pool) external onlyGovernance {
         require(!_isPoolVotable(pool), "pool already added");
+        require(!allRemovedPools.contains(pool), "not allowed to add a removed pool");
+
         _addPool(chainId, pool);
         emit AddPool(chainId, pool);
     }
@@ -168,11 +170,12 @@ contract PendleVotingControllerUpg is
      * @dev pre-condition: pool must have been added before
      * @dev state changes expected:
         - update weekData (if any)
-        - remove from allPools & chainPools
+        - remove from allActivePools & chainPools
         - clear data in poolData
      */
     function removePool(address pool) external onlyGovernance {
         require(_isPoolVotable(pool), "invalid pool");
+
         uint64 chainId = poolData[pool].chainId;
 
         applyPoolSlopeChanges(pool);

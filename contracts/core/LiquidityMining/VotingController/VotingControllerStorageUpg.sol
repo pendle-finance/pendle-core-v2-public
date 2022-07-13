@@ -48,11 +48,13 @@ abstract contract VotingControllerStorageUpg {
 
     IPVeToken public immutable vePendle;
 
-    uint128 public immutable deployedWTime; // divisible by WEEK
+    uint128 public immutable deployedWTime;
 
     uint128 public pendlePerSec;
 
-    EnumerableSet.AddressSet internal allPools;
+    EnumerableSet.AddressSet internal allActivePools;
+
+    EnumerableSet.AddressSet internal allRemovedPools;
 
     // [chainId] => [pool]
     mapping(uint64 => EnumerableSet.AddressSet) internal chainPools;
@@ -81,8 +83,19 @@ abstract contract VotingControllerStorageUpg {
     //////////////////////////////////////////////////////////////*/
 
     /// @dev trivial view function
-    function getAllPools() external view returns (address[] memory) {
-        return allPools.values();
+    function getAllAcitvePools() external view returns (address[] memory) {
+        return allActivePools.values();
+    }
+
+    /// @dev trivial view function
+    function getAllRemovedPools(uint256 start, uint256 end)
+        external
+        view
+        returns (uint256 lengthOfRemovedPools, address[] memory arr)
+    {
+        arr = new address[](end - start + 1);
+        for (uint256 i = start; i <= end; i++) arr[i] = allRemovedPools.at(i);
+        lengthOfRemovedPools = allRemovedPools.length();
     }
 
     /// @dev trivial view function
@@ -121,10 +134,11 @@ abstract contract VotingControllerStorageUpg {
         - set params in poolData
      */
     function _addPool(uint64 chainId, address pool) internal {
+        require(chainPools[chainId].add(pool), "IE");
+        require(allActivePools.add(pool), "IE");
+
         poolData[pool].chainId = chainId;
         poolData[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
-        require(chainPools[chainId].add(pool), "IE: chainPools duplicated");
-        require(allPools.add(pool), "IE: allPools duplicated");
     }
 
     /**
@@ -134,8 +148,10 @@ abstract contract VotingControllerStorageUpg {
      */
     function _removePool(address pool) internal {
         uint64 chainId = poolData[pool].chainId;
-        require(chainPools[chainId].remove(pool), "IE: chainPools removal failed");
-        require(allPools.remove(pool), "IE: allPools removal failed");
+        require(chainPools[chainId].remove(pool), "IE");
+        require(allActivePools.remove(pool), "IE");
+        require(allRemovedPools.add(pool), "IE");
+
         delete poolData[pool];
     }
 
@@ -208,7 +224,7 @@ abstract contract VotingControllerStorageUpg {
 
     /// @notice check if a pool is votable on by checking the lastSlopeChangeAppliedAt time
     function _isPoolVotable(address pool) internal view returns (bool) {
-        return allPools.contains(pool);
+        return allActivePools.contains(pool);
     }
 
     /// @notice check if a vote still counts by checking if the vote is not (x,0) (in case the
