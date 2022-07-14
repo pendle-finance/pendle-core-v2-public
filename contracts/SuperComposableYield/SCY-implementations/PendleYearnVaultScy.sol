@@ -66,7 +66,7 @@ contract PendleYearnVaultSCY is SCYBase {
             uint256 sharesRedeemed = IYearnVault(yvToken).withdraw(amountSharesToRedeem);
 
             require(
-                sharesRedeemed != amountSharesToRedeem,
+                sharesRedeemed == amountSharesToRedeem,
                 "Yearn Vault SCY: Not allowed to redeem all shares"
             );
 
