@@ -7,6 +7,7 @@ import "../../interfaces/IYearnVault.sol";
 contract PendleYearnVaultSCY is SCYBase {
     address public immutable underlying;
     address public immutable yvToken;
+    uint256 internal immutable yvTokenDecimals;
 
     constructor(
         string memory _name,
@@ -16,6 +17,7 @@ contract PendleYearnVaultSCY is SCYBase {
         require(_yvToken != address(0), "zero address");
         yvToken = _yvToken;
         underlying = IYearnVault(yvToken).token();
+        yvTokenDecimals = IYearnVault(yvToken).decimals();
         _safeApprove(underlying, yvToken, type(uint256).max);
     }
 
@@ -83,7 +85,12 @@ contract PendleYearnVaultSCY is SCYBase {
      * @dev It is the price per share of the yvToken
      */
     function exchangeRate() public view override returns (uint256) {
-        return IYearnVault(yvToken).pricePerShare();
+        uint256 price = IYearnVault(yvToken).pricePerShare();
+        if (yvTokenDecimals <= 18) {
+            return price * (10**(18 - yvTokenDecimals));
+        } else {
+            return price / (10**(yvTokenDecimals - 18));
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
