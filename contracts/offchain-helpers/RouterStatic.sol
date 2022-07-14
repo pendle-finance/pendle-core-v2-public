@@ -43,7 +43,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             RewardIndex[] memory rewardIndexes
         )
     {
-        (address yt, ) = getPY(py);
+        (, address yt) = getPY(py);
         IPYieldToken YT = IPYieldToken(yt);
         exchangeRate = YT.scyIndexCurrent();
         totalSupply = YT.totalSupply();
@@ -220,7 +220,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         view
         returns (UserPYInfo memory userPYInfo)
     {
-        (userPYInfo.yt, userPYInfo.pt) = getPY(py);
+        (userPYInfo.pt, userPYInfo.yt) = getPY(py);
         IPYieldToken YT = IPYieldToken(userPYInfo.yt);
         userPYInfo.ytBalance = YT.balanceOf(user);
         userPYInfo.ptBalance = IPPrincipalToken(userPYInfo.pt).balanceOf(user);
