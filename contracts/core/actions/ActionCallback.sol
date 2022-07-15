@@ -115,24 +115,26 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
     /// @dev refer to _swapExactYtForScy or _swapYtForExactScy
     function _callbackSwapYtForScy(
         address market,
-        int256, /*ptToAccount*/
+        int256 ptToAccount,
         int256 scyToAccount,
         bytes calldata data
     ) internal {
         (address receiver, uint256 minScyOut) = _decodeSwapYtForScy(data);
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        SCYIndex scyIndex = SCY.newIndex();
 
         uint256 scyOwed = scyToAccount.neg().Uint();
 
         address[] memory receivers = new address[](2);
-        uint256[] memory amounts = new uint256[](2);
+        uint256[] memory amountPYToRedeems = new uint256[](2);
 
-        (receivers[0], amounts[0]) = (market, scyOwed);
-        (receivers[1], amounts[1]) = (receiver, type(uint256).max);
+        (receivers[0], amountPYToRedeems[0]) = (market, scyIndex.scyToAssetUp(scyOwed));
+        (receivers[1], amountPYToRedeems[1]) = (
+            receiver,
+            ptToAccount.Uint() - amountPYToRedeems[0]
+        );
 
-        uint256 totalScyRedeemed = YT.redeemPY(receivers, amounts);
-        uint256 netScyOut = totalScyRedeemed - scyOwed;
-
-        require(netScyOut >= minScyOut, "insufficient SCY out");
+        uint256[] memory amountScyOuts = YT.redeemPYMulti(receivers, amountPYToRedeems);
+        require(amountScyOuts[1] >= minScyOut, "insufficient SCY out");
     }
 }

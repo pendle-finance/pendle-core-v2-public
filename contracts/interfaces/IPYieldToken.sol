@@ -6,6 +6,7 @@ import "./IPInterestManagerYT.sol";
 
 interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
     event RedeemRewards(address indexed user, uint256[] amountRewardsOut);
+
     event RedeemInterest(address indexed user, uint256 interestOut);
 
     event WithdrawFeeToTreasury(uint256[] amountRewardsOut, uint256 scyOut);
@@ -14,9 +15,9 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
 
     function redeemPY(address receiver) external returns (uint256 amountScyOut);
 
-    function redeemPY(address[] memory receivers, uint256[] memory maxAmountScyOuts)
+    function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
         external
-        returns (uint256 totalAmountScyOut);
+        returns (uint256[] memory amountScyOuts);
 
     function redeemDueInterestAndRewards(
         address user,

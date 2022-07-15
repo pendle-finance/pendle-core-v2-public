@@ -94,23 +94,26 @@ contract PendleYieldToken is
     {
         address[] memory receivers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
-        (receivers[0], amounts[0]) = (receiver, type(uint256).max);
+        (receivers[0], amounts[0]) = (receiver, _getAmountPYToRedeem());
 
-        (amountScyOut, ) = _redeemPY(receivers, amounts);
+        uint256[] memory amountScyOuts;
+        (amountScyOuts, ) = _redeemPY(receivers, amounts);
+
+        amountScyOut = amountScyOuts[0];
     }
 
     /// @dev this function limit how much each receiver will receive. For example, if the totalOut is 100,
     /// and the max are 50 30 INF, the first receiver will receive 50, the second will receive 30, and the third will receive 20.
     /// @dev intended to mostly be used by Pendle router
-    function redeemPY(address[] calldata receivers, uint256[] calldata maxAmountScyOuts)
+    function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
         external
         nonReentrant
         updateData
-        returns (uint256 totalAmountScyOut)
+        returns (uint256[] memory amountScyOuts)
     {
-        require(receivers.length == maxAmountScyOuts.length, "not same length");
+        require(receivers.length == amountPYToRedeems.length, "not same length");
         require(receivers.length != 0, "empty array");
-        (totalAmountScyOut, ) = _redeemPY(receivers, maxAmountScyOuts);
+        (amountScyOuts, ) = _redeemPY(receivers, amountPYToRedeems);
     }
 
     /**
@@ -186,24 +189,30 @@ contract PendleYieldToken is
         return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
-    function _redeemPY(address[] memory receivers, uint256[] memory maxAmountScyOuts)
+    function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
         internal
-        returns (uint256 totalScyToReceivers, uint256 scyInterestAfterExpiry)
+        returns (uint256[] memory amountScyOuts, uint256 totalScyInterestPostExpiry)
     {
-        uint256 amountPYToRedeem = _getAmountPYToRedeem();
-        IPPrincipalToken(PT).burnByYT(address(this), amountPYToRedeem);
-        if (!isExpired()) _burn(address(this), amountPYToRedeem);
+        uint256 totalAmountPYToRedeem = amountPYToRedeems.sum();
+        IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
+        if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
-        (totalScyToReceivers, scyInterestAfterExpiry) = _calcScyRedeemableFromPY(amountPYToRedeem);
+        uint256 index = scyIndexCurrent();
+        amountScyOuts = new uint256[](receivers.length);
 
-        if (scyInterestAfterExpiry != 0) {
-            address treasury = IPYieldContractFactory(factory).treasury();
-            _transferOut(SCY, treasury, scyInterestAfterExpiry);
+        for (uint256 i = 0; i < receivers.length; i++) {
+            uint256 scyInterestPostExpiry;
+            (amountScyOuts[i], scyInterestPostExpiry) = _calcScyRedeemableFromPY(
+                amountPYToRedeems[i],
+                index
+            );
+            _transferOut(SCY, receivers[i], amountScyOuts[i]);
+            totalScyInterestPostExpiry += scyInterestPostExpiry;
         }
-
-        // all the leftover SCY will be transferred to the last receiver
-        maxAmountScyOuts[maxAmountScyOuts.length - 1] = type(uint256).max;
-        _transferOutMaxMulti(SCY, totalScyToReceivers, receivers, maxAmountScyOuts);
+        if (totalScyInterestPostExpiry != 0) {
+            address treasury = IPYieldContractFactory(factory).treasury();
+            _transferOut(SCY, treasury, totalScyInterestPostExpiry);
+        }
     }
 
     function _calcPYToMint(uint256 amountScy) internal returns (uint256 amountPY) {
@@ -213,12 +222,20 @@ contract PendleYieldToken is
 
     function _calcScyRedeemableFromPY(uint256 amountPY)
         internal
-        returns (uint256 scyToUser, uint256 scyInterestAfterExpiry)
+        returns (uint256 scyToUser, uint256 scyInterestPostExpiry)
     {
-        scyToUser = SCYUtils.assetToScy(scyIndexCurrent(), amountPY);
+        return _calcScyRedeemableFromPY(amountPY, scyIndexCurrent());
+    }
+
+    function _calcScyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
+        internal
+        view
+        returns (uint256 scyToUser, uint256 scyInterestPostExpiry)
+    {
+        scyToUser = SCYUtils.assetToScy(indexCurrent, amountPY);
         if (isExpired()) {
             uint256 totalScyRedeemable = SCYUtils.assetToScy(postExpiry.firstScyIndex, amountPY);
-            scyInterestAfterExpiry = totalScyRedeemable - scyToUser;
+            scyInterestPostExpiry = totalScyRedeemable - scyToUser;
         }
     }
 

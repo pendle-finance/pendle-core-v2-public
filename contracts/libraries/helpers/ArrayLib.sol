@@ -19,6 +19,17 @@ library ArrayLib {
         return output;
     }
 
+    function sum(uint256[] memory input) internal pure returns (uint256) {
+        uint256 value = 0;
+        for (uint256 i = 0; i < input.length; ) {
+            value += input[i];
+            unchecked {
+                i++;
+            }
+        }
+        return value;
+    }
+
     function contains(address[] memory array, address element) internal pure returns (bool) {
         uint256 length = array.length;
         for (uint256 i = 0; i < length; ) {
