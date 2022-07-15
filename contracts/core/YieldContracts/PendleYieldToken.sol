@@ -33,6 +33,7 @@ contract PendleYieldToken is
 
     struct PostExpiryData {
         uint128 firstScyIndex;
+        uint128 totalScyInterestForTreasury;
         mapping(address => uint256) firstRewardIndex;
         mapping(address => uint256) userRewardOwed;
     }
@@ -97,7 +98,7 @@ contract PendleYieldToken is
         (receivers[0], amounts[0]) = (receiver, _getAmountPYToRedeem());
 
         uint256[] memory amountScyOuts;
-        (amountScyOuts, ) = _redeemPY(receivers, amounts);
+        amountScyOuts = _redeemPY(receivers, amounts);
 
         amountScyOut = amountScyOuts[0];
     }
@@ -113,7 +114,7 @@ contract PendleYieldToken is
     {
         require(receivers.length == amountPYToRedeems.length, "not same length");
         require(receivers.length != 0, "empty array");
-        (amountScyOuts, ) = _redeemPY(receivers, amountPYToRedeems);
+        amountScyOuts = _redeemPY(receivers, amountPYToRedeems);
     }
 
     /**
@@ -151,13 +152,15 @@ contract PendleYieldToken is
         }
     }
 
-    function redeemRewardsPostExpiryForTreasury()
+    function redeemInterestAndRewardsPostExpiryForTreasury()
         external
         nonReentrant
         updateData
-        returns (uint256[] memory rewardsOut)
+        returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
         require(isExpired(), "not expired");
+
+        address treasury = IPYieldContractFactory(factory).treasury();
 
         address[] memory tokens = getRewardTokens();
         rewardsOut = new uint256[](tokens.length);
@@ -168,7 +171,11 @@ contract PendleYieldToken is
             rewardsOut[i] = _selfBalance(tokens[i]) - postExpiry.userRewardOwed[tokens[i]];
         }
 
-        _transferOut(tokens, IPYieldContractFactory(factory).treasury(), rewardsOut);
+        _transferOut(tokens, treasury, rewardsOut);
+
+        interestOut = postExpiry.totalScyInterestForTreasury;
+        postExpiry.totalScyInterestForTreasury = 0;
+        _transferOut(SCY, treasury, interestOut);
     }
 
     function rewardIndexesCurrent() external override returns (uint256[] memory) {
@@ -191,13 +198,14 @@ contract PendleYieldToken is
 
     function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
         internal
-        returns (uint256[] memory amountScyOuts, uint256 totalScyInterestPostExpiry)
+        returns (uint256[] memory amountScyOuts)
     {
         uint256 totalAmountPYToRedeem = amountPYToRedeems.sum();
         IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
         uint256 index = scyIndexCurrent();
+        uint256 totalScyInterestPostExpiry;
         amountScyOuts = new uint256[](receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
@@ -210,8 +218,7 @@ contract PendleYieldToken is
             totalScyInterestPostExpiry += scyInterestPostExpiry;
         }
         if (totalScyInterestPostExpiry != 0) {
-            address treasury = IPYieldContractFactory(factory).treasury();
-            _transferOut(SCY, treasury, totalScyInterestPostExpiry);
+            postExpiry.totalScyInterestForTreasury += totalScyInterestPostExpiry.Uint128();
         }
     }
 
