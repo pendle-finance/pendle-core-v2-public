@@ -4,6 +4,21 @@ pragma solidity 0.8.13;
 import "../libraries/math/MarketApproxLib.sol";
 
 interface IPActionYT {
+    event SwapYTAndSCY(
+        address indexed user,
+        address indexed market,
+        int256 ytToAccount,
+        int256 scyToAccount
+    );
+
+    event SwapYTAndRawToken(
+        address indexed user,
+        address indexed market,
+        address indexed rawToken,
+        int256 ytToAccount,
+        int256 rawTokenToAccount
+    );
+
     function swapExactYtForScy(
         address receiver,
         address market,

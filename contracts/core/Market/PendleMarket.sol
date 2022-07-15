@@ -116,7 +116,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        emit AddLiquidity(receiver, lpToAccount, scyUsed, ptUsed);
+        emit Mint(receiver, lpToAccount, scyUsed, ptUsed);
     }
 
     /**
@@ -140,7 +140,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        emit RemoveLiquidity(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
+        emit Burn(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
     }
 
     /**

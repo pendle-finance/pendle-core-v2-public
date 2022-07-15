@@ -12,38 +12,6 @@ import "../../../interfaces/IPYieldToken.sol";
 abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
     using SafeERC20 for IERC20;
 
-    event MintScyFromRawToken(
-        address indexed user,
-        address indexed rawTokenIn,
-        uint256 netRawTokenIn,
-        address indexed SCY,
-        uint256 netScyOut
-    );
-
-    event RedeemScyToRawToken(
-        address indexed user,
-        address indexed SCY,
-        uint256 netScyIn,
-        address indexed rawTokenOut,
-        uint256 netRawTokenOut
-    );
-
-    event MintPyFromRawToken(
-        address indexed user,
-        address indexed rawTokenIn,
-        uint256 netRawTokenIn,
-        address indexed YT,
-        uint256 netPyOut
-    );
-
-    event RedeemPyToRawToken(
-        address indexed user,
-        address indexed YT,
-        uint256 netPyIn,
-        address indexed rawTokenOut,
-        uint256 netRawTokenOut
-    );
-
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _joeFactory) PendleJoeSwapHelperUpg(_joeFactory) {}
 
@@ -82,7 +50,6 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
             amountBaseToken,
             minScyOut
         );
-        emit MintScyFromRawToken(msg.sender, path[0], netRawTokenIn, SCY, netScyOut);
     }
 
     /**
@@ -116,8 +83,6 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
             netRawTokenOut = _swapExactIn(path, netBaseTokenOut, receiver);
             require(netRawTokenOut >= minRawTokenOut, "insufficient out");
         }
-
-        emit RedeemScyToRawToken(msg.sender, SCY, netScyIn, path[path.length - 1], netRawTokenOut);
     }
 
     /**
@@ -137,8 +102,6 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         require(netPyOut >= minPyOut, "insufficient PY out");
-
-        emit MintPyFromRawToken(msg.sender, path[0], netRawTokenIn, YT, netPyOut);
     }
 
     /**
@@ -165,7 +128,5 @@ abstract contract ActionSCYAndPYBase is PendleJoeSwapHelperUpg, TokenHelper {
         IPYieldToken(YT).redeemPY(SCY); // ignore return
 
         netRawTokenOut = _redeemScyToRawToken(receiver, SCY, 0, minRawTokenOut, path, false);
-
-        emit RedeemPyToRawToken(msg.sender, YT, netPyIn, path[path.length - 1], netRawTokenOut);
     }
 }

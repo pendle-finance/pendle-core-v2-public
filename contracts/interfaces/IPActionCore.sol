@@ -4,6 +4,77 @@ pragma solidity 0.8.13;
 import "../libraries/math/MarketApproxLib.sol";
 
 interface IPActionCore {
+    event AddLiquidity(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        uint256 scyUsed,
+        uint256 ptUsed,
+        uint256 lpOut
+    );
+
+    event RemoveLiquidity(
+        address indexed caller,
+        address indexed market,
+        address receiver,
+        uint256 lpIn,
+        uint256 amountPTOut,
+        uint256 amountSCYOut
+    );
+
+    event SwapPtAndScy(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        int256 amountPtToAccount,
+        int256 amountScyToAccount
+    );
+
+    event SwapPtAndRawToken(
+        address indexed caller,
+        address indexed market,
+        address indexed rawToken,
+        address receiver,
+        int256 amountPtToAccount,
+        int256 amountRawTokenToAccount
+    );
+
+    event MintScyFromRawToken(
+        address indexed caller,
+        address indexed receiver,
+        address indexed SCY,
+        address rawTokenIn,
+        uint256 netRawTokenIn,
+        uint256 netScyOut
+    );
+
+    event RedeemScyToRawToken(
+        address indexed caller,
+        address indexed receiver,
+        address indexed SCY,
+        uint256 netScyIn,
+        address rawTokenOut,
+        uint256 netRawTokenOut
+    );
+
+    event MintPyFromRawToken(
+        address indexed caller,
+        address indexed receiver,
+        address indexed YT,
+        address rawTokenIn,
+        uint256 netRawTokenIn,
+        uint256 netPyOut
+    );
+
+    event RedeemPyToRawToken(
+        address indexed caller,
+        address indexed receiver,
+        address indexed YT,
+        uint256 netPyIn,
+        address rawTokenOut,
+        uint256 netRawTokenOut
+    );
+
     function addLiquidity(
         address receiver,
         address market,

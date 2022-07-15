@@ -26,7 +26,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 exactYtIn,
         uint256 minScyOut
     ) external returns (uint256 netScyOut) {
-        return _swapExactYtForScy(receiver, market, exactYtIn, minScyOut, true);
+        netScyOut = _swapExactYtForScy(receiver, market, exactYtIn, minScyOut, true);
+        emit SwapYTAndSCY(receiver, market, exactYtIn.neg(), netScyOut.Int());
     }
 
     /// @dev refer to the internal function
@@ -36,7 +37,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 exactYtOut,
         uint256 maxScyIn
     ) external returns (uint256 netScyIn) {
-        return _swapScyForExactYt(receiver, market, exactYtOut, maxScyIn);
+        netScyIn = _swapScyForExactYt(receiver, market, exactYtOut, maxScyIn);
+        emit SwapYTAndSCY(receiver, market, exactYtOut.Int(), netScyIn.neg());
     }
 
     /// @dev refer to the internal function
@@ -47,7 +49,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 minYtOut,
         ApproxParams memory guessYtOut
     ) external returns (uint256 netYtOut) {
-        return _swapExactScyForYt(receiver, market, exactScyIn, minYtOut, guessYtOut, true);
+        netYtOut = _swapExactScyForYt(receiver, market, exactScyIn, minYtOut, guessYtOut, true);
+        emit SwapYTAndSCY(receiver, market, netYtOut.Int(), exactScyIn.neg());
     }
 
     /// @dev refer to the internal function
@@ -58,7 +61,8 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 maxYtIn,
         ApproxParams memory guessYtIn
     ) external returns (uint256 netYtIn) {
-        return _swapYtForExactScy(receiver, market, exactScyOut, maxYtIn, guessYtIn, true);
+        netYtIn = _swapYtForExactScy(receiver, market, exactScyOut, maxYtIn, guessYtIn, true);
+        emit SwapYTAndSCY(receiver, market, netYtIn.neg(), exactScyOut.Int());
     }
 
     /// @dev refer to the internal function
@@ -70,16 +74,16 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         address[] calldata path,
         ApproxParams memory guessYtOut
     ) external returns (uint256 netYtOut) {
-        return
-            _swapExactRawTokenForYt(
-                receiver,
-                market,
-                exactRawTokenIn,
-                minYtOut,
-                path,
-                guessYtOut,
-                true
-            );
+        netYtOut = _swapExactRawTokenForYt(
+            receiver,
+            market,
+            exactRawTokenIn,
+            minYtOut,
+            path,
+            guessYtOut,
+            true
+        );
+        emit SwapYTAndRawToken(receiver, market, path[0], netYtOut.Int(), exactRawTokenIn.neg());
     }
 
     /// @dev refer to the internal function
@@ -90,6 +94,20 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 minRawTokenOut,
         address[] calldata path
     ) external returns (uint256 netRawTokenOut) {
-        return _swapExactYtForRawToken(receiver, market, exactYtIn, minRawTokenOut, path, true);
+        netRawTokenOut = _swapExactYtForRawToken(
+            receiver,
+            market,
+            exactYtIn,
+            minRawTokenOut,
+            path,
+            true
+        );
+        emit SwapYTAndRawToken(
+            receiver,
+            market,
+            path[path.length - 1],
+            exactYtIn.neg(),
+            netRawTokenOut.Int()
+        );
     }
 }

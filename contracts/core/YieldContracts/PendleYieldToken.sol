@@ -186,6 +186,7 @@ contract PendleYieldToken is
     function scyIndexCurrent() public returns (uint256 currentIndex) {
         currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _scyIndexStored);
         _scyIndexStored = currentIndex.Uint128();
+        emit NewInterestIndex(currentIndex);
     }
 
     function scyIndexStored() public view returns (uint256) {
