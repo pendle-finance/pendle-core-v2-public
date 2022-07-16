@@ -35,7 +35,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, Permissions
         uint128 incentiveEndsAt;
     }
 
-    uint128 public constant WEEK = 1 weeks;
+    uint128 internal constant WEEK = 1 weeks;
 
     address public immutable pendle;
     IPMarketFactory public immutable marketFactory;

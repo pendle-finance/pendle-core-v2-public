@@ -9,6 +9,10 @@ import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/ArrayLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/**
+Invariants to maintain:
+- before any changes to active balance, updateAndDistributeRewards() must be called
+ */
 abstract contract PendleGauge is RewardManager {
     using Math for uint256;
     using SafeERC20 for IERC20;
