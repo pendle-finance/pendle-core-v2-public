@@ -115,7 +115,9 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
         uint256 exactYtOut,
         uint256 maxScyIn
     ) internal returns (uint256 netScyIn) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        uint256 preScyBalance = SCY.balanceOf(msg.sender);
 
         IPMarket(market).swapExactPtForScy(
             address(YT),
@@ -123,6 +125,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
             _encodeSwapScyForExactYt(msg.sender, receiver, maxScyIn)
         );
 
+        netScyIn = preScyBalance - SCY.balanceOf(msg.sender);
         emit SwapYTAndSCY(receiver, exactYtOut.Int(), netScyIn.neg());
     }
 
