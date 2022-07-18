@@ -369,6 +369,7 @@ contract PendleYieldToken is
         address to,
         uint256
     ) internal override {
+        _setPostExpiryData();
         _updateAndDistributeRewardsForTwo(from, to);
         _distributeInterestForTwo(from, to);
     }
