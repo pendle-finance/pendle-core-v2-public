@@ -77,6 +77,26 @@ contract PendleWstEthSCY is SCYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        override
+        returns (uint256 amountSharesOut)
+    {
+        if (tokenIn == wstETH) amountSharesOut = amountTokenToDeposit;
+        else amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+    }
+
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        override
+        returns (uint256 amountTokenOut)
+    {
+        if (tokenOut == wstETH) amountTokenOut = amountSharesToRedeem;
+        else amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
+    }
+
     /**
      * @dev See {ISuperComposableYield-getBaseTokens}
      */

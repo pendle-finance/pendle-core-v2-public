@@ -75,6 +75,26 @@ contract PendleERC4626SCY is SCYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        override
+        returns (uint256 amountSharesOut)
+    {
+        if (tokenIn == yieldToken) amountSharesOut = amountTokenToDeposit;
+        else amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+    }
+
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        override
+        returns (uint256 amountTokenOut)
+    {
+        if (tokenOut == yieldToken) amountTokenOut = amountSharesToRedeem;
+        else amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
+    }
+
     function getBaseTokens() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = underlying;

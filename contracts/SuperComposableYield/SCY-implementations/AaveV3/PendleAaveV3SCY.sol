@@ -111,6 +111,22 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
                             MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
+    function _previewDeposit(
+        address, /*tokenIn*/
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
+        // if tokenIn == aToken => convert aToken to scaledBalance
+        // if tokenIn == underlying => also convert aToken to scaledBalance since 1 aToken = 1 underlying
+        amountSharesOut = _aTokenToScaledBalance(amountTokenToDeposit);
+    }
+
+    function _previewRedeem(
+        address, /*tokenOut*/
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
+        amountTokenOut = _scaledBalanceToAToken(amountSharesToRedeem);
+    }
+
     function getBaseTokens() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = underlying;

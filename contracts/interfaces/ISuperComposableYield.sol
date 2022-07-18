@@ -147,6 +147,16 @@ interface ISuperComposableYield is IERC20Metadata {
      */
     function isValidBaseToken(address token) external view returns (bool);
 
+    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        external
+        view
+        returns (uint256 amountSharesOut);
+
+    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        external
+        view
+        returns (uint256 amountTokenOut);
+
     /**
     * @notice This function contains information to interpret what the asset is
     * @notice decimals is the decimals to format asset balances

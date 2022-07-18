@@ -175,6 +175,38 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
                 MISC METADATA FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        external
+        view
+        virtual
+        returns (uint256 amountSharesOut)
+    {
+        require(isValidBaseToken(tokenIn), "SCY: Invalid tokenIn");
+        return _previewDeposit(tokenIn, amountTokenToDeposit);
+    }
+
+    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        external
+        view
+        virtual
+        returns (uint256 amountTokenOut)
+    {
+        require(isValidBaseToken(tokenOut), "SCY: Invalid tokenOut");
+        return _previewRedeem(tokenOut, amountSharesToRedeem);
+    }
+
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        virtual
+        returns (uint256 amountSharesOut);
+
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        virtual
+        returns (uint256 amountTokenOut);
+
     /**
      * @notice See {ISuperComposableYield-getBaseTokens}
      */
