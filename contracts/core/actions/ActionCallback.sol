@@ -92,9 +92,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         /// ------------------------------------------------------------
         SCYIndex scyIndex = SCY.newIndex();
         uint256 ptOwed = ptToAccount.abs();
-        uint256 totalScyNeed = scyIndex.assetToScy(ptOwed);
-        // to guard against precision issue of lacking a few units of SCY. rawDivUp is not Fixed-Point division
-        totalScyNeed += SCYIndex.unwrap(scyIndex).rawDivUp(SCYUtils.ONE);
+        uint256 totalScyNeed = scyIndex.assetToScyUp(ptOwed);
 
         /// ------------------------------------------------------------
         /// calc netScyToPull

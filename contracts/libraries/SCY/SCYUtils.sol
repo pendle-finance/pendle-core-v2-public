@@ -8,11 +8,27 @@ library SCYUtils {
         return (scyAmount * exchangeRate) / ONE;
     }
 
+    function scyToAssetUp(uint256 exchangeRate, uint256 scyAmount)
+        internal
+        pure
+        returns (uint256)
+    {
+        return (scyAmount * exchangeRate + ONE - 1) / ONE;
+    }
+
     function assetToScy(uint256 exchangeRate, uint256 assetAmount)
         internal
         pure
         returns (uint256)
     {
         return (assetAmount * ONE) / exchangeRate;
+    }
+
+    function assetToScyUp(uint256 exchangeRate, uint256 assetAmount)
+        internal
+        pure
+        returns (uint256)
+    {
+        return (assetAmount * ONE + exchangeRate - 1) / exchangeRate;
     }
 }

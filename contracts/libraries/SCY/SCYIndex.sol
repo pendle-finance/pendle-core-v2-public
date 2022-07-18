@@ -34,6 +34,13 @@ library SCYIndexLib {
         return SCYUtils.assetToScy(SCYIndex.unwrap(index), assetAmount);
     }
 
+    function assetToScyUp(SCYIndex index, uint256 assetAmount)
+        internal
+        pure
+        returns (uint256)
+    {
+        return SCYUtils.assetToScyUp(SCYIndex.unwrap(index), assetAmount);
+    }
 
     function scyToAssetUp(SCYIndex index, uint256 scyAmount)
         internal
@@ -41,7 +48,7 @@ library SCYIndexLib {
         returns (uint256)
     {
         uint256 _index = SCYIndex.unwrap(index);
-        return SCYUtils.scyToAsset(_index, scyAmount)+  _index.rawDivUp(SCYUtils.ONE);
+        return SCYUtils.scyToAssetUp(_index, scyAmount);
     }
 
     function scyToAsset(SCYIndex index, int256 scyAmount)
