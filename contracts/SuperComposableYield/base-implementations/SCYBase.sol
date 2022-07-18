@@ -18,7 +18,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         string memory _name,
         string memory _symbol,
         address _yieldToken
-    ) PendleERC20(_name, _symbol, 18) {
+    ) PendleERC20(_name, _symbol, IERC20Metadata(_yieldToken).decimals()) {
         yieldToken = _yieldToken;
     }
 
