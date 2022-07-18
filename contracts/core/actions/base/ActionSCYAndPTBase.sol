@@ -121,7 +121,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         MarketState memory state = IPMarket(market).readState(false);
         (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
-        (netPtIn, ) = state.approxSwapPtForExactScy(
+        (netPtIn, , ) = state.approxSwapPtForExactScy(
             SCY.newIndex(),
             exactScyOut,
             block.timestamp,
@@ -177,7 +177,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         MarketState memory state = IPMarket(market).readState(false);
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        (netPtOut, ) = state.approxSwapExactScyForPt(
+        (netPtOut, , ) = state.approxSwapExactScyForPt(
             SCY.newIndex(),
             exactScyIn,
             block.timestamp,

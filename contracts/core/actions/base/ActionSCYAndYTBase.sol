@@ -41,7 +41,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
         MarketState memory state = IPMarket(market).readState(false);
 
-        (netYtOut, ) = state.approxSwapExactScyForYt(
+        (netYtOut, , ) = state.approxSwapExactScyForYt(
             SCY.newIndex(),
             exactScyIn,
             block.timestamp,
@@ -150,7 +150,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
         MarketState memory state = IPMarket(market).readState(false);
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netYtIn, ) = state.approxSwapYtForExactScy(
+        (netYtIn, , ) = state.approxSwapYtForExactScy(
             SCY.newIndex(),
             exactScyOut,
             block.timestamp,
