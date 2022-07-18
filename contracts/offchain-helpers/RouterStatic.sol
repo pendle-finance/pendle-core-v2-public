@@ -19,6 +19,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;
+    using SCYIndexLib for SCYIndex;
 
     IPYieldContractFactory public immutable yieldContractFactory;
     IPMarketFactory public immutable marketFactory;
@@ -214,6 +215,77 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         );
     }
 
+    function swapScyForExactYtStatic(address market, uint256 exactYtOut)
+        external
+        view
+        returns (uint256 netScyIn, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+
+        SCYIndex index = scyIndex(market);
+
+        uint256 scyReceived;
+        (scyReceived, netScyFee) = state.swapExactPtForScy(
+            scyIndex(market),
+            exactYtOut,
+            block.timestamp
+        );
+
+        uint256 totalScyNeed = index.assetToScyUp(exactYtOut);
+        netScyIn = totalScyNeed.subMax0(scyReceived);
+    }
+
+    function swapExactScyForYtStatic(address market, uint256 exactScyIn)
+        external
+        view
+        returns (uint256 netYtOut, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+        SCYIndex index = scyIndex(market);
+
+        (netYtOut, , netScyFee) = state.approxSwapExactScyForYt(
+            index,
+            exactScyIn,
+            block.timestamp,
+            approxParams
+        );
+    }
+
+    function swapExactYtForScyStatic(address market, uint256 exactYtIn)
+        external
+        view
+        returns (uint256 netScyOut, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+
+        SCYIndex index = scyIndex(market);
+
+        uint256 scyOwed;
+        (scyOwed, netScyFee) = state.swapScyForExactPt(index, exactYtIn, block.timestamp);
+
+        uint256 amountPYToRepayScyOwed = index.scyToAssetUp(scyOwed);
+        uint256 amountPYToRedeemScyOut = exactYtIn - amountPYToRepayScyOwed;
+
+        netScyOut = index.assetToScy(amountPYToRedeemScyOut);
+    }
+
+    function swapYtForExactScyStatic(address market, uint256 exactScyOut)
+        external
+        view
+        returns (uint256 netYtIn, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+
+        SCYIndex index = scyIndex(market);
+
+        (netYtIn, , netScyFee) = state.approxSwapYtForExactScy(
+            index,
+            exactScyOut,
+            block.timestamp,
+            approxParams
+        );
+    }
+
     // ============= OTHER HELPERS =============
 
     function scyIndex(address market) public view returns (SCYIndex index) {
@@ -239,14 +311,24 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         return lnImpliedRate.exp();
     }
 
-    // function getExchangeRate(address market) public view returns (uint256) {
-    //     MarketState memory state = IPMarket(market).readState(false);
-    //     MarketPreCompute memory comp = state.getMarketPreCompute(scyIndex(market), block.timestamp);
-    //     int256 numerator = state.totalPt.subNoNeg(0);
-    //     int256 proportion = numerator.divDown(state.totalPt + state.totalAsset);
-    //     int256 lnProportion = _logProportion(proportion);
-    //     return lnProportion.divDown(rateScalar) + rateAnchor;
-    // }
+    function getExchangeRate(address market) public view returns (uint256) {
+        MarketState memory state = IPMarket(market).readState(false);
+        MarketPreCompute memory comp = state.getMarketPreCompute(
+            scyIndex(market),
+            block.timestamp
+        );
+
+        return
+            MarketMathCore
+                ._getExchangeRate(
+                    state.totalPt,
+                    comp.totalAsset,
+                    comp.rateScalar,
+                    comp.rateAnchor,
+                    0
+                )
+                .Uint();
+    }
 
     function getUserPYInfo(address py, address user)
         public
