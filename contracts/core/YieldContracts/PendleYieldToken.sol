@@ -196,6 +196,31 @@ contract PendleYieldToken is
         return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
+    function getPostExpiryData()
+        external
+        view
+        returns (
+            uint256 firstScyIndex,
+            uint256 totalScyInterestForTreasury,
+            uint256[] memory firstRewardIndexes,
+            uint256[] memory userRewardOwed
+        )
+    {
+        require(postExpiry.firstScyIndex != 0, "PostExpiry data not set");
+
+        firstScyIndex = postExpiry.firstScyIndex;
+        totalScyInterestForTreasury = postExpiry.totalScyInterestForTreasury;
+
+        address[] memory tokens = getRewardTokens();
+        firstRewardIndexes = new uint256[](tokens.length);
+        userRewardOwed = new uint256[](tokens.length);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            firstRewardIndexes[i] = postExpiry.firstRewardIndex[tokens[i]];
+            userRewardOwed[i] = postExpiry.userRewardOwed[tokens[i]];
+        }
+    }
+
     function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
         internal
         returns (uint256[] memory amountScyOuts)
