@@ -7,6 +7,7 @@ import "../interfaces/IPRouterStatic.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
+import "../libraries/math/MarketApproxLib.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -14,12 +15,21 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     using MarketMathCore for MarketState;
+    using MarketApproxLib for MarketState;
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;
 
     IPYieldContractFactory public immutable yieldContractFactory;
     IPMarketFactory public immutable marketFactory;
+    ApproxParams public approxParams =
+        ApproxParams({
+            guessMin: 0,
+            guessMax: type(uint256).max,
+            guessOffchain: 0,
+            maxIteration: 256,
+            eps: 1e15
+        });
 
     constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory)
         initializer
@@ -164,7 +174,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
     }
 
-    function swapPtForScyStatic(address market, uint256 exactPtIn)
+    function swapExactPtForScyStatic(address market, uint256 exactPtIn)
         external
         view
         returns (uint256 netScyOut, uint256 netScyFee)
@@ -177,7 +187,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         );
     }
 
-    function swapScyForPtStatic(address market, uint256 exactPtOut)
+    function swapScyForExactPtStatic(address market, uint256 exactPtOut)
         external
         view
         returns (uint256 netScyIn, uint256 netScyFee)
@@ -187,6 +197,20 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             scyIndex(market),
             exactPtOut,
             block.timestamp
+        );
+    }
+
+    function swapExactScyForPtStatic(address market, uint256 exactScyIn)
+        external
+        view
+        returns (uint256 netPtOut, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+        (netPtOut, , netScyFee) = state.approxSwapExactScyForPt(
+            scyIndex(market),
+            exactScyIn,
+            block.timestamp,
+            approxParams
         );
     }
 
@@ -214,6 +238,15 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();
     }
+
+    // function getExchangeRate(address market) public view returns (uint256) {
+    //     MarketState memory state = IPMarket(market).readState(false);
+    //     MarketPreCompute memory comp = state.getMarketPreCompute(scyIndex(market), block.timestamp);
+    //     int256 numerator = state.totalPt.subNoNeg(0);
+    //     int256 proportion = numerator.divDown(state.totalPt + state.totalAsset);
+    //     int256 lnProportion = _logProportion(proportion);
+    //     return lnProportion.divDown(rateScalar) + rateAnchor;
+    // }
 
     function getUserPYInfo(address py, address user)
         public
@@ -255,7 +288,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         userMarketInfo.market = market;
         userMarketInfo.lpBalance = userLp;
 
-        MarketState memory state = _market.readState(true);
+        MarketState memory state = _market.readState(false);
         uint256 totalLp = uint256(state.totalLp);
         uint256 userPt = (userLp * uint256(state.totalPt)) / totalLp;
         uint256 userScy = (userLp * uint256(state.totalScy)) / totalLp;
