@@ -45,7 +45,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             SCY.newIndex(),
             scyDesired,
             ptDesired,
-            false
+            block.timestamp
         );
 
         // early-check
@@ -72,7 +72,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     ) internal returns (uint256 netScyOut, uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
 
-        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove, false);
+        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
 
         // early-check
         require(netScyOut >= scyOutMin, "insufficient SCY out");

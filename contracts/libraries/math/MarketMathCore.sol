@@ -57,7 +57,7 @@ library MarketMathCore {
         SCYIndex index,
         uint256 scyDesired,
         uint256 ptDesired,
-        bool updateState
+        uint256 blockTime
     )
         internal
         pure
@@ -73,7 +73,7 @@ library MarketMathCore {
             int256 _lpToAccount,
             int256 _scyUsed,
             int256 _otUsed
-        ) = addLiquidityCore(market, index, scyDesired.Int(), ptDesired.Int(), updateState);
+        ) = addLiquidityCore(market, index, scyDesired.Int(), ptDesired.Int(), blockTime);
 
         lpToReserve = _lpToReserve.Uint();
         lpToAccount = _lpToAccount.Uint();
@@ -81,15 +81,14 @@ library MarketMathCore {
         ptUsed = _otUsed.Uint();
     }
 
-    function removeLiquidity(
-        MarketState memory market,
-        uint256 lpToRemove,
-        bool updateState
-    ) internal pure returns (uint256 scyToAccount, uint256 netPtToAccount) {
+    function removeLiquidity(MarketState memory market, uint256 lpToRemove)
+        internal
+        pure
+        returns (uint256 scyToAccount, uint256 netPtToAccount)
+    {
         (int256 _scyToAccount, int256 _ptToAccount) = removeLiquidityCore(
             market,
-            lpToRemove.Int(),
-            updateState
+            lpToRemove.Int()
         );
 
         scyToAccount = _scyToAccount.Uint();
@@ -139,7 +138,7 @@ library MarketMathCore {
         SCYIndex index,
         int256 scyDesired,
         int256 ptDesired,
-        bool updateState
+        uint256 blockTime
     )
         internal
         pure
@@ -154,6 +153,7 @@ library MarketMathCore {
         /// CHECKS
         /// ------------------------------------------------------------
         require(scyDesired > 0 && ptDesired > 0, "ZERO_AMOUNTS");
+        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
 
         /// ------------------------------------------------------------
         /// MATH
@@ -182,18 +182,16 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        if (updateState) {
-            market.totalScy += scyUsed;
-            market.totalPt += ptUsed;
-            market.totalLp += lpToAccount + lpToReserve;
-        }
+        market.totalScy += scyUsed;
+        market.totalPt += ptUsed;
+        market.totalLp += lpToAccount + lpToReserve;
     }
 
-    function removeLiquidityCore(
-        MarketState memory market,
-        int256 lpToRemove,
-        bool updateState
-    ) internal pure returns (int256 netScyToAccount, int256 netPtToAccount) {
+    function removeLiquidityCore(MarketState memory market, int256 lpToRemove)
+        internal
+        pure
+        returns (int256 netScyToAccount, int256 netPtToAccount)
+    {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
@@ -209,11 +207,9 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        if (updateState) {
-            market.totalLp = market.totalLp.subNoNeg(lpToRemove);
-            market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
-            market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
-        }
+        market.totalLp = market.totalLp.subNoNeg(lpToRemove);
+        market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
+        market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
     }
 
     function executeTradeCore(

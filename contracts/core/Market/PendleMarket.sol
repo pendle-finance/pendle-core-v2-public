@@ -103,7 +103,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
             index,
             scyDesired,
             ptDesired,
-            true
+            block.timestamp
         );
 
         // initializing the market
@@ -133,7 +133,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         uint256 lpToRemove = balanceOf(address(this));
         _burn(address(this), lpToRemove);
 
-        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove, true);
+        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove);
 
         IERC20(SCY).safeTransfer(receiverScy, scyToAccount);
         IERC20(PT).safeTransfer(receiverPt, ptToAccount);
