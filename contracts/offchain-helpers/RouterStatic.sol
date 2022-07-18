@@ -288,6 +288,23 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
 
     // ============= OTHER HELPERS =============
 
+    function previewMintPY(address YT, uint256 amountScyToMint)
+        external
+        returns (uint256 amountPY)
+    {
+        IPYieldToken _YT = IPYieldToken(YT);
+        require(!_YT.isExpired(), "YT is expired");
+        return amountScyToMint.mulDown(_YT.scyIndexCurrent());
+    }
+
+    function previewRedeemPY(address YT, uint256 amountPYToRedeem)
+        external
+        returns (uint256 amountPY)
+    {
+        IPYieldToken _YT = IPYieldToken(YT);
+        return amountPYToRedeem.divDown(_YT.scyIndexCurrent());
+    }
+
     function scyIndex(address market) public view returns (SCYIndex index) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
