@@ -77,7 +77,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
             pendle.safeTransferFrom(user, address(this), additionalAmountToLock);
         }
 
-        newVeBalance = _increasePosition(user, additionalDurationToLock, additionalAmountToLock);
+        newVeBalance = _increasePosition(user, additionalAmountToLock, additionalDurationToLock);
 
         emit NewLockPosition(user, newTotalAmountLocked, newExpiry);
     }
@@ -152,8 +152,8 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      */
     function _increasePosition(
         address user,
-        uint128 durationToIncrease,
-        uint128 amountToIncrease
+        uint128 amountToIncrease,
+        uint128 durationToIncrease
     ) internal returns (uint128) {
         LockedPosition memory oldPosition = positionData[user];
 
