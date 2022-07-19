@@ -334,20 +334,21 @@ contract PendleYieldToken is
             // hence, we can save users one _redeemExternal here
             for (uint256 i = 0; i < tokens.length; i++)
                 postExpiry.userRewardOwed[tokens[i]] -= userReward[tokens[i]][user].accrued;
-            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
+            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver, false);
         } else {
-            _redeemExternalReward();
-            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
+            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver, true);
         }
     }
 
     function __doTransferOutRewardsLocal(
         address[] memory tokens,
         address user,
-        address receiver
+        address receiver,
+        bool allowedToRedeemExternalReward
     ) internal returns (uint256[] memory rewardAmounts) {
         address treasury = IPYieldContractFactory(factory).treasury();
         uint256 feeRate = IPYieldContractFactory(factory).rewardFeeRate();
+        bool redeemExternalThisRound;
 
         rewardAmounts = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -356,6 +357,13 @@ contract PendleYieldToken is
 
             uint256 feeAmount = rewardPreFee.mulDown(feeRate);
             rewardAmounts[i] = rewardPreFee - feeAmount;
+
+            if (!redeemExternalThisRound && allowedToRedeemExternalReward) {
+                if (_selfBalance(tokens[i]) < rewardPreFee) {
+                    _redeemExternalReward();
+                    redeemExternalThisRound = true;
+                }
+            }
 
             _transferOut(tokens[i], treasury, feeAmount);
             _transferOut(tokens[i], receiver, rewardAmounts[i]);
