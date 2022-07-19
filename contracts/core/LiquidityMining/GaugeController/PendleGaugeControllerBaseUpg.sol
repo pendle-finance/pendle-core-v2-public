@@ -101,7 +101,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, Permissions
         epochRewardReceived[wTime] = true;
 
         for (uint256 i = 0; i < markets.length; ++i) {
-            _addRewardsToMarket(markets[i], uint128(pendleAmounts[i]));
+            _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
         }
 
         emit ReceiveVotingResults(wTime, markets, pendleAmounts);

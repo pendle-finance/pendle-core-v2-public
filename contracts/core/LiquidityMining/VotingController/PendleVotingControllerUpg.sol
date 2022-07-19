@@ -157,6 +157,8 @@ contract PendleVotingControllerUpg is
      * @dev state changes expected:
         - add to allActivePools & chainPools
         - set params in poolData
+     * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
+      this function
      */
     function addPool(uint64 chainId, address pool) external onlyGovernance {
         require(!_isPoolActive(pool), "pool already added");
@@ -173,6 +175,8 @@ contract PendleVotingControllerUpg is
         - update weekData (if any)
         - remove from allActivePools & chainPools
         - clear data in poolData
+     * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
+      this function
      */
     function removePool(address pool) external onlyGovernance {
         require(_isPoolActive(pool), "invalid pool");
@@ -205,6 +209,8 @@ contract PendleVotingControllerUpg is
      * @notice set new pendlePerSec
      * @dev no zero checks because gov may want to stop liquidity mining
      * @dev state changes expected: pendlePerSec is updated
+     * @dev NOTE TO GOV: This should be done mid-week, well before the next broadcast to avoid
+        race condition
      */
     function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
@@ -237,12 +243,12 @@ contract PendleVotingControllerUpg is
 
         for (uint256 i = 0; i < length; ++i) {
             uint256 poolVotes = weekData[wTime].poolVotes[pools[i]];
-            uint256 pendlePerSec = (uint256(totalPendlePerSec) * poolVotes) / totalVotes;
+            uint256 pendlePerSec = (totalPendlePerSec * poolVotes) / totalVotes;
             totalPendleAmounts[i] = pendlePerSec * WEEK;
         }
 
         if (chainId == block.chainid) {
-            address gaugeController = sidechainContracts.get(uint256(chainId));
+            address gaugeController = sidechainContracts.get(chainId);
             IPGaugeControllerMainchain(gaugeController).updateVotingResults(
                 wTime,
                 pools,
@@ -277,8 +283,9 @@ contract PendleVotingControllerUpg is
             (amount, expiry) = vePendle.positionData(user);
         }
 
+        // up-cast amount to 256 bit to avoid overflow
         (res.bias, res.slope) = VeBalanceLib.convertToVeBalance(
-            uint128((uint256(amount) * weight) / USER_VOTE_MAX_WEIGHT),
+            ((uint256(amount) * weight) / USER_VOTE_MAX_WEIGHT).Uint128(),
             expiry
         );
     }
