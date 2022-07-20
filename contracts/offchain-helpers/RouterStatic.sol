@@ -215,6 +215,21 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         );
     }
 
+    function swapPtForExactScyStatic(address market, uint256 exactScyOut)
+        public
+        view
+        returns (uint256 netPtIn, uint256 netScyFee)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (netPtIn, , netScyFee) = state.approxSwapPtForExactScy(
+            scyIndex(market),
+            exactScyOut,
+            block.timestamp,
+            approxParams
+        );
+    }
+
     function swapExactBaseTokenForPtStatic(
         address market,
         address baseToken,
