@@ -332,8 +332,8 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
 
     // ============= OTHER HELPERS =============
 
-    function previewMintPY(address YT, uint256 amountScyToMint)
-        external
+    function mintPYFromScyStatic(address YT, uint256 amountScyToMint)
+        public
         returns (uint256 amountPY)
     {
         IPYieldToken _YT = IPYieldToken(YT);
@@ -341,12 +341,30 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
         return amountScyToMint.mulDown(_YT.scyIndexCurrent());
     }
 
-    function previewRedeemPY(address YT, uint256 amountPYToRedeem)
-        external
+    function redeemPYToScyStatic(address YT, uint256 amountPYToRedeem)
+        public
         returns (uint256 amountPY)
     {
         IPYieldToken _YT = IPYieldToken(YT);
         return amountPYToRedeem.divDown(_YT.scyIndexCurrent());
+    }
+
+    function mintPYFromBaseStatic(
+        address YT,
+        address baseToken,
+        uint256 amountBaseToken
+    ) external returns (uint256 amountPY) {
+        ISuperComposableYield SCY = ISuperComposableYield(IPYieldToken(YT).SCY());
+        return mintPYFromScyStatic(YT, SCY.previewDeposit(baseToken, amountBaseToken));
+    }
+
+    function redeemPYToBaseStatic(
+        address YT,
+        uint256 amountPYToRedeem,
+        address baseToken
+    ) external returns (uint256 amountBaseToken) {
+        ISuperComposableYield SCY = ISuperComposableYield(IPYieldToken(YT).SCY());
+        return SCY.previewRedeem(baseToken, redeemPYToScyStatic(YT, amountPYToRedeem));
     }
 
     function scyIndex(address market) public view returns (SCYIndex index) {
