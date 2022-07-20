@@ -21,9 +21,9 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     using LogExpMath for int256;
     using SCYIndexLib for SCYIndex;
 
-    IPYieldContractFactory public immutable yieldContractFactory;
-    IPMarketFactory public immutable marketFactory;
-    ApproxParams public approxParams =
+    IPYieldContractFactory internal immutable yieldContractFactory;
+    IPMarketFactory internal immutable marketFactory;
+    ApproxParams internal approxParams =
         ApproxParams({
             guessMin: 0,
             guessMax: type(uint256).max,
@@ -176,7 +176,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     }
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
-        external
+        public
         view
         returns (uint256 netScyOut, uint256 netScyFee)
     {
@@ -202,7 +202,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     }
 
     function swapExactScyForPtStatic(address market, uint256 exactScyIn)
-        external
+        public
         view
         returns (uint256 netPtOut, uint256 netScyFee)
     {
@@ -213,6 +213,28 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             block.timestamp,
             approxParams
         );
+    }
+
+    function swapExactBaseTokenForPtStatic(
+        address market,
+        address baseToken,
+        uint256 amountBaseToken
+    ) external view returns (uint256 netPtOut, uint256 netScyFee) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        return swapExactScyForPtStatic(market, SCY.previewDeposit(baseToken, amountBaseToken));
+    }
+
+    function swapExactPtForBaseTokenStatic(
+        address market,
+        uint256 exactYtIn,
+        address baseToken
+    ) external view returns (uint256 netBaseTokenOut, uint256 netScyFee) {
+        uint256 netScyOut;
+        (netScyOut, netScyFee) = swapExactPtForScyStatic(market, exactYtIn);
+
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
     }
 
     function swapScyForExactYtStatic(address market, uint256 exactYtOut)
@@ -236,7 +258,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     }
 
     function swapExactScyForYtStatic(address market, uint256 exactScyIn)
-        external
+        public
         view
         returns (uint256 netYtOut, uint256 netScyFee)
     {
@@ -252,7 +274,7 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
     }
 
     function swapExactYtForScyStatic(address market, uint256 exactYtIn)
-        external
+        public
         view
         returns (uint256 netScyOut, uint256 netScyFee)
     {
@@ -284,6 +306,28 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             block.timestamp,
             approxParams
         );
+    }
+
+    function swapExactYtForBaseTokenStatic(
+        address market,
+        uint256 exactYtIn,
+        address baseToken
+    ) external view returns (uint256 netBaseTokenOut, uint256 netScyFee) {
+        uint256 netScyOut;
+        (netScyOut, netScyFee) = swapExactYtForScyStatic(market, exactYtIn);
+
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
+    }
+
+    function swapExactBaseTokenForYtStatic(
+        address market,
+        address baseToken,
+        uint256 amountBaseToken
+    ) external view returns (uint256 netPtOut, uint256 netScyFee) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        return swapExactScyForYtStatic(market, SCY.previewDeposit(baseToken, amountBaseToken));
     }
 
     // ============= OTHER HELPERS =============
