@@ -20,6 +20,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         string memory _name,
         string memory _symbol,
         address _qiToken,
+        bool isUnderlyingNative,
         address _WAVAX,
         uint256 _initialExchangeRateMantissa
     )
@@ -30,7 +31,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
 
         qiToken = _qiToken;
 
-        underlying = _getUnderlyingOfQiToken();
+        underlying = isUnderlyingNative ? NATIVE : IQiErc20(qiToken).underlying();
         comptroller = IQiToken(qiToken).comptroller();
 
         QI = IBenQiComptroller(comptroller).qiAddress();
@@ -38,14 +39,6 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
 
         if (underlying != NATIVE) {
             _safeApprove(underlying, qiToken, type(uint256).max);
-        }
-    }
-
-    function _getUnderlyingOfQiToken() internal view returns (address) {
-        try IQiErc20(qiToken).underlying() returns (address res) {
-            return res;
-        } catch {
-            return NATIVE;
         }
     }
 
