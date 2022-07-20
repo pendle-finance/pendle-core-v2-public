@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
-contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract RouterStatic is IPRouterStatic {
     using MarketMathCore for MarketState;
     using MarketApproxLib for MarketState;
     using Math for uint256;
@@ -32,16 +32,9 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             eps: 1e15
         });
 
-    constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory)
-        initializer
-    {
+    constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory) {
         yieldContractFactory = _yieldContractFactory;
         marketFactory = _marketFactory;
-    }
-
-    function initialize() external initializer {
-        __UUPSUpgradeable_init();
-        __Ownable_init();
     }
 
     // ============= SYSTEM INFO =============
@@ -483,9 +476,4 @@ contract RouterStatic is IPRouterStatic, Initializable, UUPSUpgradeable, Ownable
             userPYInfo.unclaimedInterest.amount > 0 ||
             userPYInfo.unclaimedRewards.length > 0);
     }
-
-    // ============= UPGRADES =============
-
-    // solhint-disable-next-line no-empty-blocks
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
