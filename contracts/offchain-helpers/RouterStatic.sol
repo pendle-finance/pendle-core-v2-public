@@ -457,16 +457,22 @@ contract RouterStatic is IPRouterStatic {
         userMarketInfo.market = market;
         userMarketInfo.lpBalance = userLp;
 
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = _market.readTokens();
+        (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SCY
+            .assetInfo();
+
         MarketState memory state = _market.readState(false);
         uint256 totalLp = uint256(state.totalLp);
+
+        if (totalLp == 0) {
+            return userMarketInfo;
+        }
+
         uint256 userPt = (userLp * uint256(state.totalPt)) / totalLp;
         uint256 userScy = (userLp * uint256(state.totalScy)) / totalLp;
 
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = _market.readTokens();
         userMarketInfo.ptBalance = TokenAmount(address(PT), userPt);
         userMarketInfo.scyBalance = TokenAmount(address(SCY), userScy);
-        (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SCY
-            .assetInfo();
         userMarketInfo.assetBalance.amount = (userScy * SCY.exchangeRate()) / Math.ONE;
     }
 
