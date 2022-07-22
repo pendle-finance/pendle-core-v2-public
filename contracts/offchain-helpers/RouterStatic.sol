@@ -83,7 +83,8 @@ contract RouterStatic is IPRouterStatic {
             address pt,
             address scy,
             MarketState memory state,
-            int256 impliedYield
+            int256 impliedYield,
+            uint256 exchangeRate
         )
     {
         IPMarket _market = IPMarket(market);
@@ -93,6 +94,7 @@ contract RouterStatic is IPRouterStatic {
         scy = address(SCY);
         state = _market.readState(true);
         impliedYield = getPtImpliedYield(market);
+        exchangeRate = getExchangeRate(market);
     }
 
     // ============= USER INFO =============

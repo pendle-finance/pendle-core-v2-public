@@ -64,7 +64,8 @@ interface IPRouterStatic {
             address pt,
             address scy,
             MarketState memory state,
-            int256 impliedYield
+            int256 impliedYield,
+            uint256 exchangeRate
         );
 
     // ============= USER INFO =============
