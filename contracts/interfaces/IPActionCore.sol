@@ -105,6 +105,31 @@ interface IPActionCore {
             uint256 ptUsed
         );
 
+    function addLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 minLpOut,
+        ApproxParams memory guessPtSwapToScy
+    ) external returns (uint256 netLpOut);
+
+    function addLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 netScyIn,
+        uint256 minLpOut,
+        ApproxParams memory guessPtReceivedFromScy
+    ) external returns (uint256 netLpOut);
+
+    function addLiquiditySingleRawToken(
+        address receiver,
+        address market,
+        uint256 netRawTokenIn,
+        uint256 minLpOut,
+        address[] calldata path,
+        ApproxParams memory guessPtReceivedFromScy
+    ) external returns (uint256 netLpOut);
+
     function removeLiquidity(
         address receiver,
         address market,
@@ -112,6 +137,29 @@ interface IPActionCore {
         uint256 scyOutMin,
         uint256 ptOutMin
     ) external returns (uint256 netScyOut, uint256 netPtOut);
+
+    function removeLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minPtOut,
+        ApproxParams memory guessPtOut
+    ) external returns (uint256 netPtOut);
+
+    function removeLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minScyOut
+    ) external returns (uint256 netScyOut);
+
+    function removeLiquiditySingleRawToken(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minRawTokenOut,
+        address[] memory path
+    ) external returns (uint256 netRawTokenOut);
 
     function swapExactPtForScy(
         address receiver,

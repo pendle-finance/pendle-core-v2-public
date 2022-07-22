@@ -43,6 +43,37 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         emit AddLiquidity(msg.sender, market, receiver, scyUsed, ptUsed, netLpOut);
     }
 
+    function addLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 minLpOut,
+        ApproxParams memory guessPtSwapToScy
+    ) external returns (uint256 netLpOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function addLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 netScyIn,
+        uint256 minLpOut,
+        ApproxParams memory guessPtReceivedFromScy
+    ) external returns (uint256 netLpOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function addLiquiditySingleRawToken(
+        address receiver,
+        address market,
+        uint256 netRawTokenIn,
+        uint256 minLpOut,
+        address[] calldata path,
+        ApproxParams memory guessPtReceivedFromScy
+    ) external returns (uint256 netLpOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
     /// @dev refer to the internal function
     function removeLiquidity(
         address receiver,
@@ -60,6 +91,35 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
             true
         );
         emit RemoveLiquidity(msg.sender, market, receiver, lpToRemove, netPtOut, netScyOut);
+    }
+
+    function removeLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minPtOut,
+        ApproxParams memory guessPtOut
+    ) external returns (uint256 netPtOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function removeLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minScyOut
+    ) external returns (uint256 netScyOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function removeLiquiditySingleRawToken(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minRawTokenOut,
+        address[] memory path
+    ) external returns (uint256 netRawTokenOut) {
+        require(false, "NOT IMPLEMENTED");
     }
 
     /// @dev refer to the internal function

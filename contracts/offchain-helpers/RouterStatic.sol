@@ -161,6 +161,28 @@ contract RouterStatic is IPRouterStatic {
         );
     }
 
+    function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
+        external
+        returns (uint256 netLpOut)
+    {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function addLiquiditySingleScy(address market, uint256 netScyIn)
+        external
+        returns (uint256 netLpOut)
+    {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function addLiquiditySingleBaseToken(
+        address market,
+        address baseToken,
+        uint256 netBaseTokenIn
+    ) external returns (uint256 netLpOut) {
+        require(false, "NOT IMPLEMENTED");
+    }
+
     function removeLiquidityStatic(address market, uint256 lpToRemove)
         external
         view
@@ -168,6 +190,28 @@ contract RouterStatic is IPRouterStatic {
     {
         MarketState memory state = IPMarket(market).readState(false);
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
+    }
+
+    function removeLiquiditySinglePtStatic(address market, uint256 lpToRemove)
+        external
+        returns (uint256 netPtOut)
+    {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function removeLiquiditySingleScy(address market, uint256 lpToRemove)
+        external
+        returns (uint256 netScyOut)
+    {
+        require(false, "NOT IMPLEMENTED");
+    }
+
+    function removeLiquiditySingleBaseToken(
+        address market,
+        uint256 lpToRemove,
+        address baseToken
+    ) external returns (uint256 netBaseTokenOut) {
+        require(false, "NOT IMPLEMENTED");
     }
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)

@@ -51,7 +51,13 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
             sig == IPActionCore.mintPyFromScy.selector ||
             sig == IPActionCore.redeemPyToScy.selector ||
             sig == IPActionCore.addLiquidity.selector ||
+            sig == IPActionCore.addLiquiditySinglePt.selector ||
+            sig == IPActionCore.addLiquiditySingleScy.selector ||
+            sig == IPActionCore.addLiquiditySingleRawToken.selector ||
             sig == IPActionCore.removeLiquidity.selector ||
+            sig == IPActionCore.removeLiquiditySinglePt.selector ||
+            sig == IPActionCore.removeLiquiditySingleScy.selector ||
+            sig == IPActionCore.removeLiquiditySingleRawToken.selector ||
             sig == IPActionCore.swapExactPtForScy.selector ||
             sig == IPActionCore.swapPtForExactScy.selector ||
             sig == IPActionCore.swapScyForExactPt.selector ||
