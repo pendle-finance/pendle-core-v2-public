@@ -169,6 +169,26 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         );
     }
 
+    function mintPyFromScy(
+        address receiver,
+        address YT,
+        uint256 netScyIn,
+        uint256 minPyOut
+    ) external returns (uint256 netPyOut) {
+        netPyOut = _mintPyFromScy(receiver, YT, netScyIn, minPyOut, true);
+        emit MintPyFromScy(msg.sender, receiver, YT, netScyIn, netPyOut);
+    }
+
+    function redeemPyToScy(
+        address receiver,
+        address YT,
+        uint256 netPyIn,
+        uint256 minScyOut
+    ) external returns (uint256 netScyOut) {
+        netScyOut = _redeemPyToScy(receiver, YT, netPyIn, minScyOut, true);
+        emit RedeemPyToScy(msg.sender, receiver, YT, netPyIn, netScyOut);
+    }
+
     /// @dev refer to the internal function
     function swapExactRawTokenForPt(
         address receiver,

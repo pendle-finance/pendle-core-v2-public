@@ -57,6 +57,22 @@ interface IPActionCore {
         uint256 netRawTokenOut
     );
 
+    event MintPyFromScy(
+        address indexed caller,
+        address indexed receiver,
+        address indexed YT,
+        uint256 netScyIn,
+        uint256 netPyOut
+    );
+
+    event RedeemPyToScy(
+        address indexed caller,
+        address indexed receiver,
+        address indexed YT,
+        uint256 netPyIn,
+        uint256 netScyOut
+    );
+
     event MintPyFromRawToken(
         address indexed caller,
         address indexed receiver,
@@ -158,6 +174,20 @@ interface IPActionCore {
         uint256 minRawTokenOut,
         address[] memory path
     ) external returns (uint256 netRawTokenOut);
+
+    function mintPyFromScy(
+        address receiver,
+        address YT,
+        uint256 netScyIn,
+        uint256 minPyOut
+    ) external returns (uint256 netPyOut);
+
+    function redeemPyToScy(
+        address receiver,
+        address YT,
+        uint256 netPyIn,
+        uint256 minScyOut
+    ) external returns (uint256 netScyOut);
 
     function swapExactRawTokenForPt(
         address receiver,
