@@ -73,16 +73,7 @@ contract PendleVotingControllerUpg is
         require(vePendle.balanceOf(user) > 0, "zero vependle balance");
 
         UserData storage uData = userData[user];
-        LockedPosition memory userPosition;
-
-        if (user == _governance()) {
-            (userPosition.amount, userPosition.expiry) = (
-                GOVERNANCE_PENDLE_VOTE,
-                WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME)
-            );
-        } else {
-            (userPosition.amount, userPosition.expiry) = vePendle.positionData(user);
-        }
+        LockedPosition memory userPosition = _getUserVePendlePosition(user);
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (_isPoolActive(pools[i])) applyPoolSlopeChanges(pools[i]);
@@ -269,6 +260,21 @@ contract PendleVotingControllerUpg is
         }
 
         emit BroadcastResults(chainId, wTime, totalPendlePerSec);
+    }
+
+    function _getUserVePendlePosition(address user)
+        internal
+        view
+        returns (LockedPosition memory userPosition)
+    {
+        if (user == _governance()) {
+            (userPosition.amount, userPosition.expiry) = (
+                GOVERNANCE_PENDLE_VOTE,
+                WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME)
+            );
+        } else {
+            (userPosition.amount, userPosition.expiry) = vePendle.positionData(user);
+        }
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
