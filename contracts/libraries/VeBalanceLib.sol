@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.13;
 
+import "./math/Math.sol";
+
 struct VeBalance {
     uint128 bias;
     uint128 slope;
@@ -12,7 +14,9 @@ struct LockedPosition {
 }
 
 library VeBalanceLib {
+    using Math for uint256;
     uint128 internal constant MAX_LOCK_TIME = 104 weeks;
+    uint256 internal constant USER_VOTE_MAX_WEIGHT = 10**18;
 
     function add(VeBalance memory a, VeBalance memory b)
         internal
@@ -65,6 +69,15 @@ library VeBalanceLib {
         returns (VeBalance memory res)
     {
         res.slope = position.amount / MAX_LOCK_TIME;
+        res.bias = res.slope * position.expiry;
+    }
+
+    function convertToVeBalance(LockedPosition memory position, uint256 weight)
+        internal
+        pure
+        returns (VeBalance memory res)
+    {
+        res.slope = ((position.amount * weight) / MAX_LOCK_TIME / USER_VOTE_MAX_WEIGHT).Uint128();
         res.bias = res.slope * position.expiry;
     }
 

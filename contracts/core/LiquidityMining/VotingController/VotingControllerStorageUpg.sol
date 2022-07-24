@@ -14,6 +14,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 /// - it inherits only upgradable contract
 abstract contract VotingControllerStorageUpg {
     using VeBalanceLib for VeBalance;
+    using VeBalanceLib for LockedPosition;
     using EnumerableSet for EnumerableSet.AddressSet;
     using Checkpoints for Checkpoints.History;
 
@@ -42,7 +43,6 @@ abstract contract VotingControllerStorageUpg {
     }
 
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
-    uint64 public constant USER_VOTE_MAX_WEIGHT = 10**18;
     uint128 public constant WEEK = 1 weeks;
     uint128 public constant GOVERNANCE_PENDLE_VOTE = 10**24;
 
@@ -181,6 +181,7 @@ abstract contract VotingControllerStorageUpg {
     function _modifyVoteWeight(
         address user,
         address pool,
+        LockedPosition memory userPosition,
         uint64 weight
     ) internal returns (VeBalance memory newVote) {
         UserData storage uData = userData[user];
@@ -202,14 +203,17 @@ abstract contract VotingControllerStorageUpg {
         if (weight != 0) {
             require(_isPoolActive(pool), "pool not active");
 
-            newVote = _getVotingPowerByWeight(user, weight);
+            newVote = userPosition.convertToVeBalance(weight);
 
             pData.totalVote = pData.totalVote.add(newVote);
             pData.slopeChanges[newVote.getExpiry()] += newVote.slope;
 
             uData.voteForPools[pool] = UserPoolData(weight, newVote);
             uData.totalVotedWeight += weight;
-            require(uData.totalVotedWeight <= USER_VOTE_MAX_WEIGHT, "exceeded max weight");
+            require(
+                uData.totalVotedWeight <= VeBalanceLib.USER_VOTE_MAX_WEIGHT,
+                "exceeded max weight"
+            );
         }
 
         userPoolHistory[user][pool].push(newVote);
@@ -232,10 +236,4 @@ abstract contract VotingControllerStorageUpg {
     function _isVoteActive(VeBalance memory vote) internal view returns (bool) {
         return vote.slope != 0 && !MiniHelpers.isCurrentlyExpired(vote.getExpiry());
     }
-
-    function _getVotingPowerByWeight(address user, uint64 weight)
-        internal
-        view
-        virtual
-        returns (VeBalance memory res);
 }

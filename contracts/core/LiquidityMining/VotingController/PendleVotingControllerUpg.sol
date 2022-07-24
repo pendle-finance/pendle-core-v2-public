@@ -73,6 +73,16 @@ contract PendleVotingControllerUpg is
         require(vePendle.balanceOf(user) > 0, "zero vependle balance");
 
         UserData storage uData = userData[user];
+        LockedPosition memory userPosition;
+
+        if (user == _governance()) {
+            (userPosition.amount, userPosition.expiry) = (
+                GOVERNANCE_PENDLE_VOTE,
+                WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME)
+            );
+        } else {
+            (userPosition.amount, userPosition.expiry) = vePendle.positionData(user);
+        }
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (_isPoolActive(pools[i])) applyPoolSlopeChanges(pools[i]);
@@ -80,12 +90,12 @@ contract PendleVotingControllerUpg is
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (uData.voteForPools[pools[i]].weight <= weights[i])
-                _modifyVoteWeight(user, pools[i], weights[i]);
+                _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
         }
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (uData.voteForPools[pools[i]].weight > weights[i])
-                _modifyVoteWeight(user, pools[i], weights[i]);
+                _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
         }
     }
 
@@ -259,35 +269,6 @@ contract PendleVotingControllerUpg is
         }
 
         emit BroadcastResults(chainId, wTime, totalPendlePerSec);
-    }
-
-    /**
-     * @notice return the corresponding voting power of an user given the weight. Basically his voting power
-        will be vePendle * weight / USER_VOTE_MAX_WEIGHT
-     * @notice governance will always has the vePendle equivalent to 1M PENDLE locked for MAX_LOCK_TIME
-     */
-    function _getVotingPowerByWeight(address user, uint64 weight)
-        internal
-        view
-        virtual
-        override
-        returns (VeBalance memory res)
-    {
-        uint128 amount;
-        uint128 expiry;
-
-        if (user == _governance()) {
-            amount = GOVERNANCE_PENDLE_VOTE;
-            expiry = WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME);
-        } else {
-            (amount, expiry) = vePendle.positionData(user);
-        }
-
-        // up-cast amount to 256 bit to avoid overflow
-        (res.bias, res.slope) = VeBalanceLib.convertToVeBalance(
-            ((uint256(amount) * weight) / USER_VOTE_MAX_WEIGHT).Uint128(),
-            expiry
-        );
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
