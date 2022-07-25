@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity 0.8.13;
+pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface ISuperComposableYield is IERC20Metadata {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.13;
+pragma solidity 0.8.15;
 
 interface IPGaugeController {
     event MarketClaimReward(address indexed market, uint256 amount);
@@ -23,6 +23,6 @@ interface IPGaugeController {
             uint128,
             uint128
         );
-    
+
 
 }

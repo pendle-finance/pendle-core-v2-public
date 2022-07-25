@@ -20,7 +20,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
-pragma solidity 0.8.13;
+pragma solidity 0.8.15;
 
 interface IREDACTEDStaking {
     function stake(uint256 _amount, address _receiver) external returns (bool);
