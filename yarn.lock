@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 5
+  version: 6
   cacheKey: 8
 
 "@babel/code-frame@npm:^7.0.0":
@@ -408,7 +408,7 @@ __metadata:
     hardhat-contract-sizer: ^2.5.1
     prettier: ^2.6.2
     prettier-plugin-solidity: ^1.0.0-beta.19
-    solc: ^0.8.15
+    solc: 0.8.14-fixed
     solhint: ^3.3.7
     ts-node: ^10.7.0
     typechain: ^8.0.0
@@ -4144,9 +4144,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solc@npm:^0.8.15":
-  version: 0.8.15
-  resolution: "solc@npm:0.8.15"
+"solc@npm:0.8.14-fixed":
+  version: 0.8.14-fixed
+  resolution: "solc@npm:0.8.14-fixed"
   dependencies:
     command-exists: ^1.2.8
     commander: ^8.1.0
@@ -4157,7 +4157,7 @@ __metadata:
     tmp: 0.0.33
   bin:
     solcjs: solc.js
-  checksum: 210a012155a29017f2c6c56a7a0e1e46658b2da75fb99341677a69955b87d90e09810570461012ca89007288a2e9245d033a30d8f5baf599c7b60c0a30b119ba
+  checksum: 1b85e1dace2c03813ceb18703376358c7f5df312a2665d6d0be0054f3333e5b700c4fd2ce335f818b17788ba6ebff3386531d829c8522e1a49900c994c8aa957
   languageName: node
   linkType: hard
 
@@ -4600,11 +4600,11 @@ __metadata:
 
 "typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>":
   version: 4.6.3
-  resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=493e53"
+  resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=f456af"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: fe6bdc1afb2f145ddb7b0a3a31f96352209f6a5704d97f038414ea22ff9d8dd42f32cfb6652e30458d7d958d2d4e85de2df11c574899c6f750a6b3c0e90a3a76
+  checksum: 6bf45caf847062420592e711bc9c28bf5f9a9a7fa8245343b81493e4ededae33f1774009d1234d911422d1646a2c839f44e1a23ecb111b40a60ac2ea4c1482a8
   languageName: node
   linkType: hard
 
