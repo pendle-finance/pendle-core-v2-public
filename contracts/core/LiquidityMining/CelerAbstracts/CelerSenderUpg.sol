@@ -29,6 +29,7 @@ abstract contract CelerSenderUpg is PermissionsV2Upg {
         assert(sidechainContracts.contains(chainId));
         address toAddr = sidechainContracts.get(chainId);
         uint256 fee = celerMessageBus.calcFee(message);
+        require(msg.value >= fee, "Insufficient celer fee");
         celerMessageBus.sendMessage{ value: fee }(toAddr, chainId, message);
     }
 
