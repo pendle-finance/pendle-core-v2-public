@@ -221,7 +221,7 @@ abstract contract VotingControllerStorageUpg {
 
     function _setAllPastEpochsAsFinalized() internal {
         uint128 wTime = WeekMath.getCurrentWeekStart();
-        while (wTime >= deployedWTime && weekData[wTime].isEpochFinalized == false) {
+        while (wTime > deployedWTime && weekData[wTime].isEpochFinalized == false) {
             weekData[wTime].isEpochFinalized = true;
             wTime -= WEEK;
         }
