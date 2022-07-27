@@ -127,14 +127,24 @@ contract PendleAaveV3SCY is SCYBaseWithRewards {
         amountTokenOut = _scaledBalanceToAToken(amountSharesToRedeem);
     }
 
-    function getBaseTokens() public view virtual override returns (address[] memory res) {
+    function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = underlying;
         res[1] = aToken;
     }
 
-    function isValidBaseToken(address token) public view virtual override returns (bool res) {
-        res = (token == underlying || token == aToken);
+    function getTokensOut() public view virtual override returns (address[] memory res) {
+        res = new address[](2);
+        res[0] = underlying;
+        res[1] = aToken;
+    }
+
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
+        return token == underlying || token == aToken;
+    }
+
+    function isValidTokenOut(address token) public view virtual override returns (bool) {
+        return token == underlying || token == aToken;
     }
 
     function assetInfo()

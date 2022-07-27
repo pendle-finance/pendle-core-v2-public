@@ -38,7 +38,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         uint256 amountTokenToDeposit,
         uint256 minSharesOut
     ) external payable nonReentrant returns (uint256 amountSharesOut) {
-        require(isValidBaseToken(tokenIn), "SCY: Invalid tokenIn");
+        require(isValidTokenIn(tokenIn), "SCY: Invalid tokenIn");
         require(amountTokenToDeposit != 0, "SCY: amountTokenToDeposit cannot be 0");
 
         if (tokenIn == NATIVE) require(msg.value == amountTokenToDeposit, "SCY: eth mismatch");
@@ -80,7 +80,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         address tokenOut,
         uint256 minTokenOut
     ) internal returns (uint256 amountTokenOut) {
-        require(isValidBaseToken(tokenOut), "SCY: invalid tokenOut");
+        require(isValidTokenOut(tokenOut), "SCY: invalid tokenOut");
         require(amountSharesToRedeem != 0, "SCY: amountSharesToRedeem cannot be 0");
 
         amountTokenOut = _redeem(tokenOut, amountSharesToRedeem);
@@ -181,7 +181,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         virtual
         returns (uint256 amountSharesOut)
     {
-        require(isValidBaseToken(tokenIn), "SCY: Invalid tokenIn");
+        require(isValidTokenIn(tokenIn), "SCY: Invalid tokenIn");
         return _previewDeposit(tokenIn, amountTokenToDeposit);
     }
 
@@ -191,7 +191,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         virtual
         returns (uint256 amountTokenOut)
     {
-        require(isValidBaseToken(tokenOut), "SCY: Invalid tokenOut");
+        require(isValidTokenOut(tokenOut), "SCY: Invalid tokenOut");
         return _previewRedeem(tokenOut, amountSharesToRedeem);
     }
 
@@ -207,13 +207,11 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         virtual
         returns (uint256 amountTokenOut);
 
-    /**
-     * @notice See {ISuperComposableYield-getBaseTokens}
-     */
-    function getBaseTokens() external view virtual override returns (address[] memory res);
+    function getTokensIn() public view virtual returns (address[] memory res);
 
-    /**
-     * @dev See {ISuperComposableYield-isValidBaseToken}
-     */
-    function isValidBaseToken(address token) public view virtual override returns (bool);
+    function getTokensOut() public view virtual returns (address[] memory res);
+
+    function isValidTokenIn(address token) public view virtual returns (bool);
+
+    function isValidTokenOut(address token) public view virtual returns (bool);
 }

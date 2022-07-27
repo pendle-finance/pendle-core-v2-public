@@ -121,19 +121,23 @@ contract PendleYearnVaultSCY is SCYBase {
         else amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
     }
 
-    /**
-     * @dev See {ISuperComposableYield-getBaseTokens}
-     */
-    function getBaseTokens() public view virtual override returns (address[] memory res) {
+    function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = underlying;
         res[1] = yvToken;
     }
 
-    /**
-     * @dev See {ISuperComposableYield-isValidBaseToken}
-     */
-    function isValidBaseToken(address token) public view virtual override returns (bool) {
+    function getTokensOut() public view virtual override returns (address[] memory res) {
+        res = new address[](2);
+        res[0] = underlying;
+        res[1] = yvToken;
+    }
+
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
+        return token == underlying || token == yvToken;
+    }
+
+    function isValidTokenOut(address token) public view virtual override returns (bool) {
         return token == underlying || token == yvToken;
     }
 
