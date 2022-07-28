@@ -352,7 +352,7 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {}
 
     function toUint248(uint256 x) internal virtual returns (uint248) {
-        require(x < (1 << 248)); // signed, lim = bit-1
+        require(x <= type(uint248).max); // signed, lim = bit-1
         return uint248(x);
     }
 }

@@ -78,6 +78,7 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         int256 scalarRoot,
         int256 initialAnchor
     ) external returns (address market) {
+        require(!IPPrincipalToken(PT).isExpired(), "PT is expired");
         require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
         require(markets[PT][scalarRoot][initialAnchor] == address(0), "market already created");
 

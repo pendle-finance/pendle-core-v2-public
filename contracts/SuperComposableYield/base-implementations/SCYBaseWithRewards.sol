@@ -6,8 +6,7 @@ import "./SCYBase.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../libraries/math/Math.sol";
 
-/// This contract makes an important assumption that yieldToken is never a rewardToken
-/// Please make sure that assumption always holds
+/// NOTE: yieldToken MUST NEVER BE a rewardToken, else the rewardManager will behave erroneously
 abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     using Math for uint256;
     using ArrayLib for address[];

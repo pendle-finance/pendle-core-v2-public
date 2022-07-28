@@ -4,6 +4,7 @@ import "../interfaces/IRewardManager.sol";
 import "./helpers/TokenHelper.sol";
 import "./math/Math.sol";
 
+/// NOTE: RewardManager must not have duplicated rewardTokens
 abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
     using Math for uint256;
 

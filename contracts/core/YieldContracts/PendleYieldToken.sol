@@ -253,13 +253,6 @@ contract PendleYieldToken is
         return SCYUtils.scyToAsset(scyIndexCurrent(), amountScy);
     }
 
-    function _calcScyRedeemableFromPY(uint256 amountPY)
-        internal
-        returns (uint256 scyToUser, uint256 scyInterestPostExpiry)
-    {
-        return _calcScyRedeemableFromPY(amountPY, scyIndexCurrent());
-    }
-
     function _calcScyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
         internal
         view

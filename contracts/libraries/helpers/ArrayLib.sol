@@ -2,23 +2,6 @@
 pragma solidity >=0.8.0;
 
 library ArrayLib {
-    function padZeroRight(uint256[] memory input, uint256 length)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
-        uint256[] memory output = new uint256[](length);
-        uint256 inputLength = input.length;
-        for (uint8 i = 0; i < length; ) {
-            if (i < inputLength) output[i] = input[i];
-            else output[i] = 0;
-            unchecked {
-                i++;
-            }
-        }
-        return output;
-    }
-
     function sum(uint256[] memory input) internal pure returns (uint256) {
         uint256 value = 0;
         for (uint256 i = 0; i < input.length; ) {

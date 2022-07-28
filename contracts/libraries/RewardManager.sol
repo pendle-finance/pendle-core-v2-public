@@ -5,9 +5,8 @@ import "./RewardManagerAbstract.sol";
 import "./math/Math.sol";
 import "../libraries/helpers/ArrayLib.sol";
 
-/// * This RewardManager can be used with any contracts, regardless of what tokens that contract stores
-/// since the RewardManager will maintain its own internal balance
-/// * Use with SCY + PendleMarket. For YT, it has its own native implementation for gas saving
+/// NOTE: This RewardManager is used with PendleMarket & SCY. For YT, it will use RewardManagerAbstract
+/// NOTE: RewardManager must not have duplicated rewardTokens
 abstract contract RewardManager is RewardManagerAbstract {
     using Math for uint256;
     using ArrayLib for uint256[];

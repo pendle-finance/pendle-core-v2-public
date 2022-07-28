@@ -104,7 +104,9 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         /// ------------------------------------------------------------
         /// mint & transfer
         /// ------------------------------------------------------------
-        SCY.safeTransferFrom(vars.payer, address(YT), netScyToPull);
+        if (netScyToPull > 0) {
+            SCY.safeTransferFrom(vars.payer, address(YT), netScyToPull);
+        }
 
         uint256 amountPYout = YT.mintPY(market, vars.receiver);
         require(amountPYout >= ptOwed, "insufficient pt to pay");

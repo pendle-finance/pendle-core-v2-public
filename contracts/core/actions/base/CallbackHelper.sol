@@ -76,6 +76,6 @@ abstract contract CallbackHelper {
     /// Misc functions
     /// ------------------------------------------------------------
     function _getActionType(bytes memory data) internal pure returns (ActionType actionType) {
-        (actionType, ) = abi.decode(data, (ActionType, address));
+        actionType = abi.decode(data, (ActionType));
     }
 }
