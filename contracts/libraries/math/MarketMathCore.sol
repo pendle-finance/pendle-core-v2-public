@@ -241,7 +241,15 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
-        _setNewMarketStateTrade(market, comp, index, netPtToAccount, netScyToAccount, blockTime);
+        _setNewMarketStateTrade(
+            market,
+            comp,
+            index,
+            netPtToAccount,
+            netScyToAccount,
+            netScyToReserve,
+            blockTime
+        );
     }
 
     function getMarketPreCompute(
@@ -294,8 +302,6 @@ library MarketMathCore {
 
         netAssetToReserve = (fee * market.reserveFeePercent.Int()) / PERCENTAGE_DECIMALS;
         netAssetToAccount = preFeeAssetToAccount - fee;
-        // netAssetToMarket = (preFeeAssetToAccount - fee + netAssetToReserve)
-        //     .neg();
     }
 
     function _setNewMarketStateTrade(
@@ -304,6 +310,7 @@ library MarketMathCore {
         SCYIndex index,
         int256 netPtToAccount,
         int256 netScyToAccount,
+        int256 netScyToReserve,
         uint256 blockTime
     ) internal pure {
         uint256 timeToExpiry = market.expiry - blockTime;
@@ -311,7 +318,7 @@ library MarketMathCore {
         market.lastTradeTime = blockTime;
 
         market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
-        market.totalScy = market.totalScy.subNoNeg(netScyToAccount);
+        market.totalScy = market.totalScy.subNoNeg(netScyToAccount + netScyToReserve);
 
         market.lastLnImpliedRate = _getLnImpliedRate(
             market.totalPt,
