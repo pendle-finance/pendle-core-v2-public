@@ -163,23 +163,23 @@ contract RouterStatic is IPRouterStatic {
 
     function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
         external
-        returns (uint256 netLpOut)
+        returns (uint256 netLpOut, uint256 netScyFee)
     {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function addLiquiditySingleScy(address market, uint256 netScyIn)
+    function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
         external
-        returns (uint256 netLpOut)
+        returns (uint256 netLpOut, uint256 netScyFee)
     {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function addLiquiditySingleBaseToken(
+    function addLiquiditySingleBaseTokenStatic(
         address market,
         address baseToken,
         uint256 netBaseTokenIn
-    ) external returns (uint256 netLpOut) {
+    ) external returns (uint256 netLpOut, uint256 netScyFee) {
         require(false, "NOT IMPLEMENTED");
     }
 
@@ -194,23 +194,23 @@ contract RouterStatic is IPRouterStatic {
 
     function removeLiquiditySinglePtStatic(address market, uint256 lpToRemove)
         external
-        returns (uint256 netPtOut)
+        returns (uint256 netPtOut, uint256 netScyFee)
     {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function removeLiquiditySingleScy(address market, uint256 lpToRemove)
+    function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
         external
-        returns (uint256 netScyOut)
+        returns (uint256 netScyOut, uint256 netScyFee)
     {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function removeLiquiditySingleBaseToken(
+    function removeLiquiditySingleBaseTokenStatic(
         address market,
         uint256 lpToRemove,
         address baseToken
-    ) external returns (uint256 netBaseTokenOut) {
+    ) external returns (uint256 netBaseTokenOut, uint256 netScyFee) {
         require(false, "NOT IMPLEMENTED");
     }
 
