@@ -5,7 +5,7 @@ import "../../interfaces/IStargateRouter.sol";
 import "../../interfaces/IStargatePool.sol";
 import "../../interfaces/IStargateLPStaking.sol";
 
-contract PendleStargatePool is SCYBaseWithRewards {
+contract PendleStargateSCY is SCYBaseWithRewards {
     address public immutable stgRouter;
     uint16 public immutable stgRouterPoolId;
 
@@ -22,8 +22,7 @@ contract PendleStargatePool is SCYBaseWithRewards {
         address _stgRouter,
         address _stgStakingLP,
         uint256 _pid,
-        address _stgPool,
-        address _stgToken
+        address _stgPool
     ) SCYBaseWithRewards(_name, _symbol, _stgPool) {
         stgRouter = _stgRouter;
 
@@ -34,8 +33,14 @@ contract PendleStargatePool is SCYBaseWithRewards {
         pid = _pid;
 
         stgPool = _stgPool;
-        stgToken = _stgToken;
+        stgToken = IStargateLPStaking(_stgStakingLP).stargate();
         underlying = IStargatePool(stgPool).token();
+
+        // verify _pid
+        require(
+            IStargateLPStaking(_stgStakingLP).poolInfo(_pid).lpToken == _stgPool,
+            "invalid pid"
+        );
 
         _safeApprove(underlying, _stgRouter, type(uint256).max);
         // There is not a need to approve LP for router since stargate uses direct burn

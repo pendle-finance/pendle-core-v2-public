@@ -23,9 +23,27 @@
 pragma solidity 0.8.15;
 
 interface IStargatePool {
+    struct SwapObj {
+        uint256 amount;
+        uint256 eqFee;
+        uint256 eqReward;
+        uint256 lpFee;
+        uint256 protocolFee;
+        uint256 lkbRemove;
+    }
+
+    function swapRemote(
+        uint16 _srcChainId,
+        uint256 _srcPoolId,
+        address _to,
+        SwapObj memory _s
+    ) external returns (uint256 amountLD);
+
     function poolId() external view returns (uint256);
 
     function amountLPtoLD(uint256 _amountLP) external view returns (uint256);
 
     function token() external view returns (address);
+
+    function totalLiquidity() external view returns (uint256);
 }
