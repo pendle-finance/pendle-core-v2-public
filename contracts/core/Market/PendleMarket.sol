@@ -8,6 +8,7 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 
+import "../../libraries/OracleLib.sol";
 import "../../libraries/math/LogExpMath.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
@@ -27,6 +28,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
+    using OracleLib for OracleLib.Observation[65535];
 
     struct MarketStorage {
         int128 totalPt;
@@ -45,12 +47,18 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     ISuperComposableYield internal immutable SCY;
     IPYieldToken internal immutable YT;
 
+    uint16 public observationIndex;
+    uint16 public observationCardinality;
+    uint16 public observationCardinalityNext;
+
     address public immutable factory;
     uint256 public immutable expiry;
     int256 public immutable scalarRoot;
     int256 public immutable initialAnchor;
 
     MarketStorage public _storage;
+
+    OracleLib.Observation[65535] public observations;
 
     modifier notExpired() {
         require(!isExpired(), "market expired");
@@ -70,6 +78,10 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         PT = IPPrincipalToken(_PT);
         SCY = ISuperComposableYield(PT.SCY());
         YT = IPYieldToken(PT.YT());
+
+        (observationCardinality, observationCardinalityNext) = observations.initialize(
+            block.timestamp.Uint32()
+        );
 
         require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
@@ -292,7 +304,54 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
         _storage.oracleRate = market.oracleRate.Uint96();
         _storage.lastTradeTime = market.lastTradeTime.Uint32();
+
+        (observationIndex, observationCardinality) = observations.write(
+            observationIndex,
+            block.timestamp.Uint32(),
+            market.lastLnImpliedRate.Uint96(),
+            observationCardinality,
+            observationCardinalityNext
+        );
+
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
+    }
+
+    function observe(uint32[] memory secondsAgos)
+        public
+        view
+        returns (uint128[] memory lnImpliedRateCumulative)
+    {
+        return
+            observations.observe(
+                block.timestamp.Uint32(),
+                secondsAgos,
+                _storage.lastLnImpliedRate,
+                observationIndex,
+                observationCardinality
+            );
+    }
+
+    function consult(uint32 secondsAgo) external view returns (uint96 lnImpliedRateMean) {
+        require(secondsAgo != 0, "time range is zero");
+
+        uint32[] memory secondsAgos = new uint32[](2);
+        secondsAgos[0] = secondsAgo;
+        secondsAgos[1] = 0;
+
+        uint128[] memory lnImpliedRateCumulatives = observe(secondsAgos);
+
+        return
+            (uint256(lnImpliedRateCumulatives[1] - lnImpliedRateCumulatives[0]) / secondsAgo)
+                .Uint96();
+    }
+
+    function increaseObservationsCardinalityNext(uint16 cardinalityNext) external nonReentrant {
+        uint16 cardinalityNextOld = observationCardinalityNext;
+        uint16 cardinalityNextNew = observations.grow(cardinalityNextOld, cardinalityNext);
+        if (cardinalityNextOld != cardinalityNextNew) {
+            observationCardinalityNext = cardinalityNextNew;
+            emit IncreaseObservationCardinalityNext(cardinalityNextOld, cardinalityNextNew);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////

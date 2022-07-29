@@ -28,6 +28,11 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     event UpdateImpliedRate(uint256 indexed timestamp, uint256 lnLastImpliedRate);
 
+    event IncreaseObservationCardinalityNext(
+        uint16 observationCardinalityNextOld,
+        uint16 observationCardinalityNextNew
+    );
+
     function mint(address receiver) external returns (uint256);
 
     function burn(address receiverScy, address receiverPt)
@@ -49,6 +54,15 @@ interface IPMarket is IERC20Metadata, IPGauge {
     function redeemRewards(address user) external returns (uint256[] memory);
 
     function readState(bool updateRateOracle) external view returns (MarketState memory market);
+
+    function observe(uint32[] memory secondsAgos)
+        external
+        view
+        returns (uint128[] memory lnImpliedRateCumulative);
+
+    function consult(uint32 secondsAgo) external view returns (uint96 lnImpliedRateMean);
+
+    function increaseObservationsCardinalityNext(uint16 cardinalityNext) external;
 
     function readTokens()
         external
