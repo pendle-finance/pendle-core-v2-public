@@ -108,17 +108,29 @@ interface IPRouterStatic {
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
         external
         view
-        returns (uint256 netScyOut, uint256 netScyFee);
+        returns (
+            uint256 netScyOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        );
 
     function swapScyForExactPtStatic(address market, uint256 exactPtOut)
         external
         view
-        returns (uint256 netScyIn, uint256 netScyFee);
+        returns (
+            uint256 netScyIn,
+            uint256 netScyFee,
+            uint256 priceImpact
+        );
 
     function swapExactScyForPtStatic(address market, uint256 exactScyIn)
         external
         view
-        returns (uint256 netPtOut, uint256 netScyFee);
+        returns (
+            uint256 netPtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        );
 
     // ============= OTHER HELPERS =============
 

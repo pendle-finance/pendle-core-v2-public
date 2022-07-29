@@ -163,14 +163,22 @@ contract RouterStatic is IPRouterStatic {
 
     function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
         external
-        returns (uint256 netLpOut, uint256 netScyFee)
+        returns (
+            uint256 netLpOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         require(false, "NOT IMPLEMENTED");
     }
 
     function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
         external
-        returns (uint256 netLpOut, uint256 netScyFee)
+        returns (
+            uint256 netLpOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         require(false, "NOT IMPLEMENTED");
     }
@@ -179,7 +187,14 @@ contract RouterStatic is IPRouterStatic {
         address market,
         address baseToken,
         uint256 netBaseTokenIn
-    ) external returns (uint256 netLpOut, uint256 netScyFee) {
+    )
+        external
+        returns (
+            uint256 netLpOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         require(false, "NOT IMPLEMENTED");
     }
 
@@ -194,14 +209,22 @@ contract RouterStatic is IPRouterStatic {
 
     function removeLiquiditySinglePtStatic(address market, uint256 lpToRemove)
         external
-        returns (uint256 netPtOut, uint256 netScyFee)
+        returns (
+            uint256 netPtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         require(false, "NOT IMPLEMENTED");
     }
 
     function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
         external
-        returns (uint256 netScyOut, uint256 netScyFee)
+        returns (
+            uint256 netScyOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         require(false, "NOT IMPLEMENTED");
     }
@@ -210,14 +233,25 @@ contract RouterStatic is IPRouterStatic {
         address market,
         uint256 lpToRemove,
         address baseToken
-    ) external returns (uint256 netBaseTokenOut, uint256 netScyFee) {
+    )
+        external
+        returns (
+            uint256 netBaseTokenOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         require(false, "NOT IMPLEMENTED");
     }
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
         public
         view
-        returns (uint256 netScyOut, uint256 netScyFee)
+        returns (
+            uint256 netScyOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
         (netScyOut, netScyFee) = state.swapExactPtForScy(
@@ -225,12 +259,17 @@ contract RouterStatic is IPRouterStatic {
             exactPtIn,
             block.timestamp
         );
+        priceImpact = calcPriceImpact(market, exactPtIn.neg());
     }
 
     function swapScyForExactPtStatic(address market, uint256 exactPtOut)
         external
         view
-        returns (uint256 netScyIn, uint256 netScyFee)
+        returns (
+            uint256 netScyIn,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
         (netScyIn, netScyFee) = state.swapScyForExactPt(
@@ -238,12 +277,17 @@ contract RouterStatic is IPRouterStatic {
             exactPtOut,
             block.timestamp
         );
+        priceImpact = calcPriceImpact(market, exactPtOut.Int());
     }
 
     function swapExactScyForPtStatic(address market, uint256 exactScyIn)
         public
         view
-        returns (uint256 netPtOut, uint256 netScyFee)
+        returns (
+            uint256 netPtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
         (netPtOut, , netScyFee) = state.approxSwapExactScyForPt(
@@ -252,12 +296,17 @@ contract RouterStatic is IPRouterStatic {
             block.timestamp,
             approxParams
         );
+        priceImpact = calcPriceImpact(market, netPtOut.Int());
     }
 
     function swapPtForExactScyStatic(address market, uint256 exactScyOut)
         public
         view
-        returns (uint256 netPtIn, uint256 netScyFee)
+        returns (
+            uint256 netPtIn,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
 
@@ -267,13 +316,22 @@ contract RouterStatic is IPRouterStatic {
             block.timestamp,
             approxParams
         );
+        priceImpact = calcPriceImpact(market, netPtIn.neg());
     }
 
     function swapExactBaseTokenForPtStatic(
         address market,
         address baseToken,
         uint256 amountBaseToken
-    ) external view returns (uint256 netPtOut, uint256 netScyFee) {
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         return swapExactScyForPtStatic(market, SCY.previewDeposit(baseToken, amountBaseToken));
@@ -283,9 +341,17 @@ contract RouterStatic is IPRouterStatic {
         address market,
         uint256 exactYtIn,
         address baseToken
-    ) external view returns (uint256 netBaseTokenOut, uint256 netScyFee) {
+    )
+        external
+        view
+        returns (
+            uint256 netBaseTokenOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         uint256 netScyOut;
-        (netScyOut, netScyFee) = swapExactPtForScyStatic(market, exactYtIn);
+        (netScyOut, netScyFee, priceImpact) = swapExactPtForScyStatic(market, exactYtIn);
 
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
         netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
@@ -294,7 +360,11 @@ contract RouterStatic is IPRouterStatic {
     function swapScyForExactYtStatic(address market, uint256 exactYtOut)
         external
         view
-        returns (uint256 netScyIn, uint256 netScyFee)
+        returns (
+            uint256 netScyIn,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
 
@@ -309,12 +379,18 @@ contract RouterStatic is IPRouterStatic {
 
         uint256 totalScyNeed = index.assetToScyUp(exactYtOut);
         netScyIn = totalScyNeed.subMax0(scyReceived);
+
+        priceImpact = calcPriceImpact(market, exactYtOut.neg());
     }
 
     function swapExactScyForYtStatic(address market, uint256 exactScyIn)
         public
         view
-        returns (uint256 netYtOut, uint256 netScyFee)
+        returns (
+            uint256 netYtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
         SCYIndex index = scyIndex(market);
@@ -325,12 +401,18 @@ contract RouterStatic is IPRouterStatic {
             block.timestamp,
             approxParams
         );
+
+        priceImpact = calcPriceImpact(market, netYtOut.neg());
     }
 
     function swapExactYtForScyStatic(address market, uint256 exactYtIn)
         public
         view
-        returns (uint256 netScyOut, uint256 netScyFee)
+        returns (
+            uint256 netScyOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
 
@@ -343,12 +425,17 @@ contract RouterStatic is IPRouterStatic {
         uint256 amountPYToRedeemScyOut = exactYtIn - amountPYToRepayScyOwed;
 
         netScyOut = index.assetToScy(amountPYToRedeemScyOut);
+        priceImpact = calcPriceImpact(market, exactYtIn.Int());
     }
 
     function swapYtForExactScyStatic(address market, uint256 exactScyOut)
         external
         view
-        returns (uint256 netYtIn, uint256 netScyFee)
+        returns (
+            uint256 netYtIn,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
     {
         MarketState memory state = IPMarket(market).readState(false);
 
@@ -360,15 +447,24 @@ contract RouterStatic is IPRouterStatic {
             block.timestamp,
             approxParams
         );
+        priceImpact = calcPriceImpact(market, netYtIn.Int());
     }
 
     function swapExactYtForBaseTokenStatic(
         address market,
         uint256 exactYtIn,
         address baseToken
-    ) external view returns (uint256 netBaseTokenOut, uint256 netScyFee) {
+    )
+        external
+        view
+        returns (
+            uint256 netBaseTokenOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         uint256 netScyOut;
-        (netScyOut, netScyFee) = swapExactYtForScyStatic(market, exactYtIn);
+        (netScyOut, netScyFee, priceImpact) = swapExactYtForScyStatic(market, exactYtIn);
 
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
         netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
@@ -378,7 +474,15 @@ contract RouterStatic is IPRouterStatic {
         address market,
         address baseToken,
         uint256 amountBaseToken
-    ) external view returns (uint256 netPtOut, uint256 netScyFee) {
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         return swapExactScyForYtStatic(market, SCY.previewDeposit(baseToken, amountBaseToken));
@@ -445,22 +549,47 @@ contract RouterStatic is IPRouterStatic {
     }
 
     function getExchangeRate(address market) public view returns (uint256) {
+        return getTradeExchangeRateIncludeFee(market, 0);
+    }
+
+    function getTradeExchangeRateIncludeFee(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256)
+    {
+        int256 netPtToAccount = netPtOut;
         MarketState memory state = IPMarket(market).readState(false);
         MarketPreCompute memory comp = state.getMarketPreCompute(
             scyIndex(market),
             block.timestamp
         );
 
-        return
-            MarketMathCore
-                ._getExchangeRate(
-                    state.totalPt,
-                    comp.totalAsset,
-                    comp.rateScalar,
-                    comp.rateAnchor,
-                    0
-                )
-                .Uint();
+        int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
+            state.totalPt,
+            comp.totalAsset,
+            comp.rateScalar,
+            comp.rateAnchor,
+            netPtToAccount
+        );
+
+        if (netPtToAccount > 0) {
+            int256 postFeeExchangeRate = preFeeExchangeRate.divDown(comp.feeRate);
+            require(postFeeExchangeRate >= Math.IONE, "exchange rate below 1");
+            return postFeeExchangeRate.Uint();
+        } else {
+            return preFeeExchangeRate.mulDown(comp.feeRate).Uint();
+        }
+    }
+
+    function calcPriceImpact(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256 priceImpact)
+    {
+        uint256 preTradeRate = getExchangeRate(market);
+        uint256 tradedRate = getTradeExchangeRateIncludeFee(market, netPtOut);
+
+        priceImpact = (tradedRate.Int() - preTradeRate.Int()).abs().divDown(preTradeRate);
     }
 
     function getUserPYInfo(address py, address user)
