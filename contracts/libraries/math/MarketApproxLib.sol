@@ -85,7 +85,7 @@ library MarketApproxLib {
 
         if (approx.guessMax == type(uint256).max) approx.guessMax = calcMaxPtIn(comp.totalAsset);
 
-        vars.minAssetOut = index.scyToAsset(minScyOut);
+        vars.minAssetOut = index.scyToAssetUp(minScyOut);
 
         for (uint256 iter = 0; iter < approx.maxIteration; ) {
             vars.netPtInGuess = getCurrentGuess(iter, approx);
