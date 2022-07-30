@@ -155,7 +155,7 @@ library MarketApproxLib {
         returns (
             uint256, /*netYtOut*/
             uint256, /*netScyIn*/
-            uint256
+            uint256 /*netScyToReserve*/
         )
     {
         /*
@@ -254,7 +254,7 @@ library MarketApproxLib {
         returns (
             uint256, /*netPtOut*/
             uint256, /*netScyIn*/
-            uint256
+            uint256 /*netScyToReserve*/
         )
     {
         /*
@@ -336,7 +336,7 @@ library MarketApproxLib {
         returns (
             uint256, /*netYtIn*/
             uint256, /*netScyOut*/
-            uint256
+            uint256 /*netScyToReserve*/
         )
     {
         /*
