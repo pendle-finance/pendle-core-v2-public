@@ -159,7 +159,9 @@ library MarketMathCore {
         /// MATH
         /// ------------------------------------------------------------
         if (market.totalLp == 0) {
-            lpToAccount = index.scyToAsset(scyDesired).subNoNeg(MINIMUM_LIQUIDITY);
+            lpToAccount =
+                Math.sqrt((index.scyToAsset(scyDesired) * ptDesired).Uint()).Int() -
+                MINIMUM_LIQUIDITY;
             lpToReserve = MINIMUM_LIQUIDITY;
             scyUsed = scyDesired;
             ptUsed = ptDesired;
