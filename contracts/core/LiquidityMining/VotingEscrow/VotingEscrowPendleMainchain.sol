@@ -67,6 +67,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         );
 
         require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
+        require(positionData[user].expiry <= newExpiry, "new expiry must be after current expiry");
 
         uint128 newTotalAmountLocked = additionalAmountToLock + positionData[user].amount;
         require(newTotalAmountLocked > 0, "zero total amount locked");
@@ -206,7 +207,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         _totalSupply = supply;
         lastSlopeChangeAppliedAt = wTime;
 
-        return (supply, lastSlopeChangeAppliedAt);
+        return (supply, wTime);
     }
 
     /// @notice broadcast position to all chains in chainIds

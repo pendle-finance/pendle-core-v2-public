@@ -65,9 +65,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
 
     function balanceOf(address user) public view virtual override returns (uint128) {
         address delegator = delegatorOf[user];
-        if (delegatorOf[user] == address(0)) {
-            return super.balanceOf(user);
-        }
+        if (delegator == address(0)) return super.balanceOf(user);
         return super.balanceOf(delegator);
     }
 }
