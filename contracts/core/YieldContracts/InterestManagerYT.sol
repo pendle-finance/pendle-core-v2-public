@@ -12,8 +12,6 @@ import "../../interfaces/IPYieldContractFactory.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/helpers/TokenHelper.sol";
 
-import "../PendleERC20Permit.sol";
-
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
 be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
