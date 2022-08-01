@@ -98,7 +98,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         // no need salt since PT (and also YT) existence has been checked before hand
         PT = SSTORE2Deployer.create2(
             type(PendlePrincipalToken).creationCode,
-            bytes32(0),
+            bytes32(block.chainid),
             abi.encode(
                 SCY,
                 PT_PREFIX.concat(_SCY.name(), expiry, " "),
@@ -110,7 +110,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
 
         YT = SSTORE2Deployer.create2(
             pendleYtCreationCodePointer,
-            bytes32(0),
+            bytes32(block.chainid),
             abi.encode(
                 SCY,
                 PT,

@@ -85,7 +85,7 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         // no need salt since market's existence has been checked before hand
         market = SSTORE2Deployer.create2(
             marketCreationCodePointer,
-            bytes32(0),
+            bytes32(block.chainid),
             abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
         );
 
