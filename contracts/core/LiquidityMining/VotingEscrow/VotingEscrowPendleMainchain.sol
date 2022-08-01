@@ -214,7 +214,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     function _broadcastPosition(address user, uint256[] calldata chainIds) public payable {
         require(chainIds.length != 0, "empty chainIds");
 
-        (VeBalance memory supply, uint256 wTime) = _applySlopeChange();
+        (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
 
         bytes memory userData = (
             user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
@@ -232,13 +232,13 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     }
 
     function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint256 wTime) = _applySlopeChange();
+        (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
         _broadcast(chainId, wTime, supply, EMPTY_BYTES);
     }
 
     function _broadcast(
         uint256 chainId,
-        uint256 wTime,
+        uint128 wTime,
         VeBalance memory supply,
         bytes memory userData
     ) internal {
