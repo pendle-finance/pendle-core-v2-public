@@ -2,16 +2,21 @@
 pragma solidity 0.8.15;
 import "../base-implementations/SCYBase.sol";
 import "../../interfaces/IWstETH.sol";
+import "../../interfaces/IWETH.sol";
+import "../../interfaces/IStETH.sol";
 
 contract PendleWstEthSCY is SCYBase {
+    address public immutable wETH;
     address public immutable stETH;
     address public immutable wstETH;
 
     constructor(
         string memory _name,
         string memory _symbol,
+        address _wETH,
         address _wstETH
     ) SCYBase(_name, _symbol, _wstETH) {
+        wETH = _wETH;
         wstETH = _wstETH;
         stETH = IWstETH(wstETH).stETH();
         _safeApprove(stETH, wstETH, type(uint256).max);
@@ -38,7 +43,18 @@ contract PendleWstEthSCY is SCYBase {
         if (tokenIn == wstETH) {
             amountSharesOut = amountDeposited;
         } else {
-            amountSharesOut = IWstETH(wstETH).wrap(amountDeposited); // .wrap returns amount of wstETH out
+            uint256 amountStETH;
+            if (tokenIn == stETH) {
+                amountStETH = amountDeposited;
+            } else {
+                uint256 stETHBalanceBefore = _selfBalance(stETH);
+                if (tokenIn == wETH) {
+                    IWETH(wETH).withdraw(amountDeposited);
+                }
+                IStETH(stETH).submit{ value: amountDeposited }(address(0));
+                amountStETH = _selfBalance(stETH) - stETHBalanceBefore;
+            }
+            amountSharesOut = IWstETH(wstETH).wrap(amountStETH);
         }
     }
 
@@ -84,7 +100,15 @@ contract PendleWstEthSCY is SCYBase {
         returns (uint256 amountSharesOut)
     {
         if (tokenIn == wstETH) amountSharesOut = amountTokenToDeposit;
-        else amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+        else {
+            uint256 amountStETH;
+            if (tokenIn == stETH) {
+                amountStETH = amountTokenToDeposit; 
+            } else {
+                amountStETH = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
+            }
+            amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+        }
     }
 
     function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
@@ -98,9 +122,12 @@ contract PendleWstEthSCY is SCYBase {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](2);
-        res[0] = stETH;
-        res[1] = wstETH;
+        res = new address[](4);
+        res[0] = NATIVE;
+        res[1] = wETH;        
+        res[2] = stETH;
+        res[3] = wstETH;
+
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
@@ -110,7 +137,7 @@ contract PendleWstEthSCY is SCYBase {
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == stETH || token == wstETH;
+        return token == stETH || token == wstETH || token == NATIVE || token == wETH;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
