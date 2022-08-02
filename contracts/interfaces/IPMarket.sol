@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
+import "./ISuperComposableYield.sol";
 import "../libraries/math/MarketMathCore.sol";
 
 interface IPMarket is IERC20Metadata {

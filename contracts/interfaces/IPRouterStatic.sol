@@ -93,7 +93,6 @@ interface IPRouterStatic {
         uint256 ptDesired
     )
         external
-        view
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
@@ -107,7 +106,6 @@ interface IPRouterStatic {
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
         external
-        view
         returns (
             uint256 netScyOut,
             uint256 netScyFee,
@@ -116,7 +114,6 @@ interface IPRouterStatic {
 
     function swapScyForExactPtStatic(address market, uint256 exactPtOut)
         external
-        view
         returns (
             uint256 netScyIn,
             uint256 netScyFee,
@@ -125,7 +122,6 @@ interface IPRouterStatic {
 
     function swapExactScyForPtStatic(address market, uint256 exactScyIn)
         external
-        view
         returns (
             uint256 netPtOut,
             uint256 netScyFee,
@@ -134,11 +130,11 @@ interface IPRouterStatic {
 
     // ============= OTHER HELPERS =============
 
-    function scyIndex(address market) external view returns (SCYIndex index);
+    function pyIndex(address market) external returns (PYIndex index);
 
     function getPY(address py) external view returns (address pt, address yt);
 
-    function getPtImpliedYield(address market) external view returns (int256);
+    function getPtImpliedYield(address market) external returns (int256);
 
     function getUserPYInfo(address py, address user)
         external

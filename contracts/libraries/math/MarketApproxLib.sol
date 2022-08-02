@@ -33,7 +33,7 @@ library MarketApproxLib {
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;
-    using SCYIndexLib for SCYIndex;
+    using PYIndexLib for PYIndex;
     using MarketMathCore for MarketState;
 
     struct VarsSwapPtForExactScy {
@@ -50,7 +50,7 @@ library MarketApproxLib {
 
     function approxSwapPtForExactScy(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 minScyOut,
         uint256 blockTime,
         ApproxParams memory approx
@@ -145,7 +145,7 @@ library MarketApproxLib {
     /// `guessMin` & `guessMax` is to guess the `netPtIn` == `netYtOut`
     function approxSwapExactScyForYt(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 maxScyIn,
         uint256 blockTime,
         ApproxParams memory approx
@@ -244,7 +244,7 @@ library MarketApproxLib {
 
     function approxSwapExactScyForPt(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 maxScyIn,
         uint256 blockTime,
         ApproxParams memory approx
@@ -326,7 +326,7 @@ library MarketApproxLib {
 
     function approxSwapYtForExactScy(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 minScyOut,
         uint256 blockTime,
         ApproxParams memory approx

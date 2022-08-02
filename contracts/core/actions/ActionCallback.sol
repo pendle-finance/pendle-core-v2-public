@@ -16,8 +16,8 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
     using SafeERC20 for IERC20;
-    using SCYIndexLib for SCYIndex;
-    using SCYIndexLib for ISuperComposableYield;
+    using PYIndexLib for PYIndex;
+    using PYIndexLib for IPYieldToken;
 
     address public immutable marketFactory;
 
@@ -90,9 +90,9 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         /// ------------------------------------------------------------
         /// calc totalScyNeed
         /// ------------------------------------------------------------
-        SCYIndex scyIndex = SCY.newIndex();
+        PYIndex pyIndex = YT.newIndex();
         uint256 ptOwed = ptToAccount.abs();
-        uint256 totalScyNeed = scyIndex.assetToScyUp(ptOwed);
+        uint256 totalScyNeed = pyIndex.assetToScyUp(ptOwed);
 
         /// ------------------------------------------------------------
         /// calc netScyToPull
@@ -120,15 +120,15 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         bytes calldata data
     ) internal {
         (address receiver, uint256 minScyOut) = _decodeSwapYtForScy(data);
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-        SCYIndex scyIndex = SCY.newIndex();
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        PYIndex pyIndex = YT.newIndex();
 
         uint256 scyOwed = scyToAccount.neg().Uint();
 
         address[] memory receivers = new address[](2);
         uint256[] memory amountPYToRedeems = new uint256[](2);
 
-        (receivers[0], amountPYToRedeems[0]) = (market, scyIndex.scyToAssetUp(scyOwed));
+        (receivers[0], amountPYToRedeems[0]) = (market, pyIndex.scyToAssetUp(scyOwed));
         (receivers[1], amountPYToRedeems[1]) = (
             receiver,
             ptToAccount.Uint() - amountPYToRedeems[0]

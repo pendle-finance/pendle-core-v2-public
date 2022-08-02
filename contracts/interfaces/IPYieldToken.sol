@@ -46,9 +46,9 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
 
     function rewardIndexesCurrent() external returns (uint256[] memory);
 
-    function scyIndexCurrent() external returns (uint256);
+    function pyIndexCurrent() external returns (uint256);
 
-    function scyIndexStored() external view returns (uint256);
+    function pyIndexStored() external view returns (uint256);
 
     function getRewardTokens() external view returns (address[] memory);
 

@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import "./Math.sol";
 import "./LogExpMath.sol";
-import "../SCY/SCYIndex.sol";
+import "../helpers/PYIndex.sol";
 import "../helpers/MiniHelpers.sol";
 
 struct MarketState {
@@ -36,7 +36,7 @@ library MarketMathCore {
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;
-    using SCYIndexLib for SCYIndex;
+    using PYIndexLib for PYIndex;
 
     int256 internal constant MINIMUM_LIQUIDITY = 10**3;
     int256 internal constant PERCENTAGE_DECIMALS = 100;
@@ -54,7 +54,7 @@ library MarketMathCore {
 
     function addLiquidity(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 scyDesired,
         uint256 ptDesired,
         uint256 blockTime
@@ -97,7 +97,7 @@ library MarketMathCore {
 
     function swapExactPtForScy(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 exactPtToMarket,
         uint256 blockTime
     ) internal pure returns (uint256 netScyToAccount, uint256 netScyToReserve) {
@@ -114,7 +114,7 @@ library MarketMathCore {
 
     function swapScyForExactPt(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 exactPtToAccount,
         uint256 blockTime
     ) internal pure returns (uint256 netScyToMarket, uint256 netScyToReserve) {
@@ -135,7 +135,7 @@ library MarketMathCore {
 
     function addLiquidityCore(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         int256 scyDesired,
         int256 ptDesired,
         uint256 blockTime
@@ -216,7 +216,7 @@ library MarketMathCore {
 
     function executeTradeCore(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         int256 netPtToAccount,
         uint256 blockTime
     ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
@@ -256,7 +256,7 @@ library MarketMathCore {
 
     function getMarketPreCompute(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         uint256 blockTime
     ) internal pure returns (MarketPreCompute memory res) {
         require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
@@ -309,7 +309,7 @@ library MarketMathCore {
     function _setNewMarketStateTrade(
         MarketState memory market,
         MarketPreCompute memory comp,
-        SCYIndex index,
+        PYIndex index,
         int256 netPtToAccount,
         int256 netScyToAccount,
         int256 netScyToReserve,
@@ -421,7 +421,7 @@ library MarketMathCore {
 
     function setInitialLnImpliedRate(
         MarketState memory market,
-        SCYIndex index,
+        PYIndex index,
         int256 initialAnchor,
         uint256 blockTime
     ) internal pure {

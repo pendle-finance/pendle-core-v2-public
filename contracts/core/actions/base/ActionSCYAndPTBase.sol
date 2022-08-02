@@ -14,7 +14,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     using MarketMathCore for MarketState;
     using MarketApproxLib for MarketState;
     using SafeERC20 for IERC20;
-    using SCYIndexLib for ISuperComposableYield;
+    using PYIndexLib for IPYieldToken;
 
     bytes private constant EMPTY_BYTES = abi.encode();
 
@@ -38,11 +38,12 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
             uint256 ptUsed
         )
     {
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
+            .readTokens();
 
         MarketState memory state = IPMarket(market).readState(false);
         (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
-            SCY.newIndex(),
+            YT.newIndex(),
             scyDesired,
             ptDesired,
             block.timestamp
@@ -119,10 +120,10 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         bool doPull
     ) internal returns (uint256 netPtIn) {
         MarketState memory state = IPMarket(market).readState(false);
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netPtIn, , ) = state.approxSwapPtForExactScy(
-            SCY.newIndex(),
+            YT.newIndex(),
             exactScyOut,
             block.timestamp,
             guessPtIn
@@ -147,9 +148,9 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         bool doPull
     ) internal returns (uint256 netScyIn) {
         MarketState memory state = IPMarket(market).readState(false);
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netScyIn, ) = state.swapScyForExactPt(SCY.newIndex(), exactPtOut, block.timestamp);
+        (netScyIn, ) = state.swapScyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
 
         require(netScyIn <= maxScyIn, "exceed limit SCY in");
 
@@ -175,10 +176,10 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         bool doPull
     ) internal returns (uint256 netPtOut) {
         MarketState memory state = IPMarket(market).readState(false);
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netPtOut, , ) = state.approxSwapExactScyForPt(
-            SCY.newIndex(),
+            YT.newIndex(),
             exactScyIn,
             block.timestamp,
             guessPtOut

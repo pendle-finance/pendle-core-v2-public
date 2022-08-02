@@ -5,5 +5,5 @@ interface IPInterestManagerYT {
     function userInterest(address user)
         external
         view
-        returns (uint128 lastScyIndex, uint128 accruedInterest);
+        returns (uint128 lastPYIndex, uint128 accruedInterest);
 }

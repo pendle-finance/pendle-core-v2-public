@@ -27,7 +27,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     using ArrayLib for uint256[];
 
     struct PostExpiryData {
-        uint128 firstScyIndex;
+        uint128 firstPYIndex;
         uint128 totalScyInterestForTreasury;
         mapping(address => uint256) firstRewardIndex;
         mapping(address => uint256) userRewardOwed;
@@ -39,7 +39,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     uint256 public immutable expiry;
 
     uint128 public scyReserve;
-    uint128 internal _scyIndexStored;
+    uint128 internal _pyIndexStored;
 
     PostExpiryData public postExpiry;
 
@@ -178,14 +178,14 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     }
 
     /// @dev maximize the current rate with the previous rate to guarantee non-decreasing rate
-    function scyIndexCurrent() public returns (uint256 currentIndex) {
-        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _scyIndexStored);
-        _scyIndexStored = currentIndex.Uint128();
+    function pyIndexCurrent() public returns (uint256 currentIndex) {
+        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _pyIndexStored);
+        _pyIndexStored = currentIndex.Uint128();
         emit NewInterestIndex(currentIndex);
     }
 
-    function scyIndexStored() public view returns (uint256) {
-        return _scyIndexStored;
+    function pyIndexStored() public view returns (uint256) {
+        return _pyIndexStored;
     }
 
     function isExpired() public view returns (bool) {
@@ -196,15 +196,15 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
         external
         view
         returns (
-            uint256 firstScyIndex,
+            uint256 firstPYIndex,
             uint256 totalScyInterestForTreasury,
             uint256[] memory firstRewardIndexes,
             uint256[] memory userRewardOwed
         )
     {
-        require(postExpiry.firstScyIndex != 0, "PostExpiry data not set");
+        require(postExpiry.firstPYIndex != 0, "PostExpiry data not set");
 
-        firstScyIndex = postExpiry.firstScyIndex;
+        firstPYIndex = postExpiry.firstPYIndex;
         totalScyInterestForTreasury = postExpiry.totalScyInterestForTreasury;
 
         address[] memory tokens = getRewardTokens();
@@ -225,7 +225,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
         IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
-        uint256 index = scyIndexCurrent();
+        uint256 index = pyIndexCurrent();
         uint256 totalScyInterestPostExpiry;
         amountScyOuts = new uint256[](receivers.length);
 
@@ -245,7 +245,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
 
     function _calcPYToMint(uint256 amountScy) internal returns (uint256 amountPY) {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
-        return SCYUtils.scyToAsset(scyIndexCurrent(), amountScy);
+        return SCYUtils.scyToAsset(pyIndexCurrent(), amountScy);
     }
 
     function _calcScyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
@@ -255,7 +255,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     {
         scyToUser = SCYUtils.assetToScy(indexCurrent, amountPY);
         if (isExpired()) {
-            uint256 totalScyRedeemable = SCYUtils.assetToScy(postExpiry.firstScyIndex, amountPY);
+            uint256 totalScyRedeemable = SCYUtils.assetToScy(postExpiry.firstPYIndex, amountPY);
             scyInterestPostExpiry = totalScyRedeemable - scyToUser;
         }
     }
@@ -276,11 +276,11 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
 
     function _setPostExpiryData() internal {
         PostExpiryData storage local = postExpiry;
-        if (local.firstScyIndex != 0) return; // already set
+        if (local.firstPYIndex != 0) return; // already set
 
         _redeemExternalReward(); // do a final redeem. All the future reward income will belong to the treasury
 
-        local.firstScyIndex = scyIndexCurrent().Uint128();
+        local.firstPYIndex = pyIndexCurrent().Uint128();
         address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
         uint256[] memory rewardIndexes = ISuperComposableYield(SCY).rewardIndexesCurrent();
         for (uint256 i = 0; i < rewardTokens.length; i++) {
@@ -294,8 +294,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     //////////////////////////////////////////////////////////////*/
 
     function _getInterestIndex() internal virtual override returns (uint256 index) {
-        if (isExpired()) index = postExpiry.firstScyIndex;
-        else index = scyIndexCurrent();
+        if (isExpired()) index = postExpiry.firstPYIndex;
+        else index = pyIndexCurrent();
     }
 
     function _YTbalance(address user) internal view override returns (uint256) {

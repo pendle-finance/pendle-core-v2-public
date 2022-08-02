@@ -26,7 +26,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     using Math for int256;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
-    using SCYIndexLib for ISuperComposableYield;
+    using PYIndexLib for IPYieldToken;
 
     struct MarketStorage {
         int128 totalPt;
@@ -89,7 +89,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         returns (uint256 lpToAccount)
     {
         MarketState memory market = readState(true);
-        SCYIndex index = SCY.newIndex();
+        PYIndex index = YT.newIndex();
 
         uint256 scyDesired = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
         uint256 ptDesired = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
@@ -160,7 +160,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         MarketState memory market = readState(true);
 
         (netScyOut, netScyToReserve) = market.swapExactPtForScy(
-            SCY.newIndex(),
+            YT.newIndex(),
             exactPtIn,
             block.timestamp
         );
@@ -197,7 +197,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         MarketState memory market = readState(true);
 
         (netScyIn, netScyToReserve) = market.swapScyForExactPt(
-            SCY.newIndex(),
+            YT.newIndex(),
             exactPtOut,
             block.timestamp
         );
