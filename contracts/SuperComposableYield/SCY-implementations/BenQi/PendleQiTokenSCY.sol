@@ -139,7 +139,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         IBenQiComptroller(comptroller).claimReward(0, holders, qiTokens, false, true);
         IBenQiComptroller(comptroller).claimReward(1, holders, qiTokens, false, true);
 
-        if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance };
+        if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance }();
     }
 
     /*///////////////////////////////////////////////////////////////
