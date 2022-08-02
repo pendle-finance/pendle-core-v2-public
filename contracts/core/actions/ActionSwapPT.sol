@@ -45,7 +45,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseTokenSCY {
         uint256 maxPtIn,
         ApproxParams calldata guessPtIn
     ) external returns (uint256 netPtIn) {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netPtIn, , ) = state.approxSwapPtForExactScy(
@@ -72,7 +72,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseTokenSCY {
         uint256 exactPtOut,
         uint256 maxScyIn
     ) external returns (uint256 netScyIn) {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netScyIn, ) = state.swapScyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
@@ -182,7 +182,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseTokenSCY {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
     ) internal returns (uint256 netPtOut) {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (netPtOut, , ) = state.approxSwapExactScyForPt(
             YT.newIndex(),

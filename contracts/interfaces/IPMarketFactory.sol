@@ -2,12 +2,7 @@
 pragma solidity 0.8.15;
 
 interface IPMarketFactory {
-    event NewMarketConfig(
-        address indexed treasury,
-        uint96 lnFeeRateRoot,
-        uint32 rateOracleTimeWindow,
-        uint8 reserveFeePercent
-    );
+    event NewMarketConfig(address indexed treasury, uint96 lnFeeRateRoot, uint8 reserveFeePercent);
 
     event CreateNewMarket(
         address indexed market,
@@ -27,7 +22,6 @@ interface IPMarketFactory {
         returns (
             address treasury,
             uint96 lnFeeRateRoot,
-            uint32 rateOracleTimeWindow,
             uint8 reserveFeePercent
         );
 }

@@ -10,17 +10,14 @@ struct MarketState {
     int256 totalPt;
     int256 totalScy;
     int256 totalLp;
-    uint256 oracleRate;
     address treasury;
     /// immutable variables ///
     int256 scalarRoot;
     uint256 lnFeeRateRoot;
-    uint256 rateOracleTimeWindow;
     uint256 expiry;
     uint256 reserveFeePercent; // base 100
     /// last trade data ///
     uint256 lastLnImpliedRate;
-    uint256 lastTradeTime;
 }
 
 // params that are expensive to compute, therefore we pre-compute them
@@ -317,8 +314,6 @@ library MarketMathCore {
     ) internal pure {
         uint256 timeToExpiry = market.expiry - blockTime;
 
-        market.lastTradeTime = blockTime;
-
         market.totalPt = market.totalPt.subNoNeg(netPtToAccount);
         market.totalScy = market.totalScy.subNoNeg(netScyToAccount + netScyToReserve);
 
@@ -447,33 +442,5 @@ library MarketMathCore {
             initialAnchor,
             timeToExpiry
         );
-    }
-
-    function getNewRateOracle(MarketState memory market, uint256 blockTime)
-        internal
-        pure
-        returns (uint256)
-    {
-        // This can occur when using a view function get to a market state in the past
-        if (market.lastTradeTime > blockTime) {
-            return market.lastLnImpliedRate;
-        }
-
-        uint256 timeDiff = blockTime - market.lastTradeTime;
-        if (timeDiff > market.rateOracleTimeWindow) {
-            // If past the time window just return the market.lastLnImpliedRate
-            return market.lastLnImpliedRate;
-        }
-
-        // (currentTs - previousTs) / timeWindow
-        uint256 lastTradeWeight = timeDiff.divDown(market.rateOracleTimeWindow);
-
-        // 1 - (currentTs - previousTs) / timeWindow
-        uint256 oracleWeight = Math.ONE - lastTradeWeight;
-
-        uint256 newOracleRate = market.lastLnImpliedRate.mulDown(lastTradeWeight) +
-            market.oracleRate.mulDown(oracleWeight);
-
-        return newOracleRate;
     }
 }

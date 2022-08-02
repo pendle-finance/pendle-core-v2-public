@@ -25,7 +25,7 @@ library MarketMathStatic {
             uint256 ptUsed
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
             pyIndex(market),
             scyDesired,
@@ -52,7 +52,7 @@ library MarketMathStatic {
         uint256 scyDesired = SCY.previewDeposit(tokenIn, tokenDesired);
         uint256 scyUsed;
 
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
             pyIndex(market),
             scyDesired,
@@ -75,7 +75,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
             pyIndex(market),
@@ -112,7 +112,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
             pyIndex(market),
@@ -165,7 +165,7 @@ library MarketMathStatic {
         view
         returns (uint256 netScyOut, uint256 netPtOut)
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
     }
 
@@ -177,7 +177,7 @@ library MarketMathStatic {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         uint256 netScyOut;
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
 
         netTokenOut = SCY.previewRedeem(tokenOut, netScyOut);
@@ -195,7 +195,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
         uint256 ptFromSwap;
@@ -218,7 +218,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
         uint256 scyFromSwap;
@@ -259,7 +259,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (netScyOut, netScyFee) = state.swapExactPtForScy(
             pyIndex(market),
             exactPtIn,
@@ -276,7 +276,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (netScyIn, netScyFee) = state.swapScyForExactPt(
             pyIndex(market),
             exactPtOut,
@@ -297,7 +297,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (netPtOut, , netScyFee) = state.approxSwapExactScyForPt(
             pyIndex(market),
             exactScyIn,
@@ -319,7 +319,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (netPtIn, , netScyFee) = state.approxSwapPtForExactScy(
             pyIndex(market),
@@ -380,7 +380,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         PYIndex index = pyIndex(market);
 
@@ -409,7 +409,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
         (netYtOut, , netScyFee) = state.approxSwapExactScyForYt(
@@ -430,7 +430,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         PYIndex index = pyIndex(market);
 
@@ -456,7 +456,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         PYIndex index = pyIndex(market);
 
@@ -526,7 +526,7 @@ library MarketMathStatic {
         returns (uint256)
     {
         int256 netPtToAccount = netPtOut;
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
 
         int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
@@ -557,7 +557,7 @@ library MarketMathStatic {
     }
 
     function getPtImpliedYield(address market) public view returns (int256) {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();

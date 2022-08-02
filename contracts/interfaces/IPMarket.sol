@@ -53,7 +53,7 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     function redeemRewards(address user) external returns (uint256[] memory);
 
-    function readState(bool updateRateOracle) external view returns (MarketState memory market);
+    function readState() external view returns (MarketState memory market);
 
     function observe(uint32[] memory secondsAgos)
         external

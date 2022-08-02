@@ -35,9 +35,10 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         int128 totalScy;
         // 1 SLOT = 256 bits
         uint96 lastLnImpliedRate;
-        uint96 oracleRate;
-        uint32 lastTradeTime;
-        // 1 SLOT = 224 bits
+        uint16 observationIndex;
+        uint16 observationCardinality;
+        uint16 observationCardinalityNext;
+        // 1 SLOT = 144 bits
     }
 
     string private constant NAME = "Pendle Market";
@@ -46,10 +47,6 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     IPPrincipalToken internal immutable PT;
     ISuperComposableYield internal immutable SCY;
     IPYieldToken internal immutable YT;
-
-    uint16 public observationIndex;
-    uint16 public observationCardinality;
-    uint16 public observationCardinalityNext;
 
     address public immutable factory;
     uint256 public immutable expiry;
@@ -79,9 +76,8 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         SCY = ISuperComposableYield(PT.SCY());
         YT = IPYieldToken(PT.YT());
 
-        (observationCardinality, observationCardinalityNext) = observations.initialize(
-            block.timestamp.Uint32()
-        );
+        (_storage.observationCardinality, _storage.observationCardinalityNext) = observations
+            .initialize(block.timestamp.Uint32());
 
         require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
@@ -100,7 +96,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         notExpired
         returns (uint256 lpToAccount)
     {
-        MarketState memory market = readState(true);
+        MarketState memory market = readState();
         PYIndex index = YT.newIndex();
 
         uint256 scyDesired = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
@@ -139,7 +135,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         nonReentrant
         returns (uint256 scyToAccount, uint256 ptToAccount)
     {
-        MarketState memory market = readState(true);
+        MarketState memory market = readState();
 
         uint256 lpToRemove = balanceOf(address(this));
         _burn(address(this), lpToRemove);
@@ -169,7 +165,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         uint256 exactPtIn,
         bytes calldata data
     ) external nonReentrant notExpired returns (uint256 netScyOut, uint256 netScyToReserve) {
-        MarketState memory market = readState(true);
+        MarketState memory market = readState();
 
         (netScyOut, netScyToReserve) = market.swapExactPtForScy(
             YT.newIndex(),
@@ -206,7 +202,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         uint256 exactPtOut,
         bytes calldata data
     ) external nonReentrant notExpired returns (uint256 netScyIn, uint256 netScyToReserve) {
-        MarketState memory market = readState(true);
+        MarketState memory market = readState();
 
         (netScyIn, netScyToReserve) = market.swapScyForExactPt(
             YT.newIndex(),
@@ -234,7 +230,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
 
     /// @notice force balances to match reserves
     function skim() external nonReentrant {
-        MarketState memory market = readState(true);
+        MarketState memory market = readState();
         uint256 excessPt = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
         uint256 excessScy = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
         IERC20(PT).safeTransfer(market.treasury, excessPt);
@@ -269,32 +265,20 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
 
     /**
      * @notice read the state of the market from storage into memory for gas-efficient manipulation
-     * @param updateRateOracle if set to true, the oracleRate will be updated, which will take ~6k of gas. If router wants
-        to do external calculations, normally this can be set to false
      */
-    function readState(bool updateRateOracle) public view returns (MarketState memory market) {
+    function readState() public view returns (MarketState memory market) {
         market.totalPt = _storage.totalPt;
         market.totalScy = _storage.totalScy;
         market.totalLp = totalSupply().Int();
-        market.oracleRate = _storage.oracleRate;
 
-        (
-            market.treasury,
-            market.lnFeeRateRoot,
-            market.rateOracleTimeWindow,
-            market.reserveFeePercent
-        ) = IPMarketFactory(factory).marketConfig();
+        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
+            factory
+        ).marketConfig();
 
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
 
         market.lastLnImpliedRate = _storage.lastLnImpliedRate;
-        market.lastTradeTime = _storage.lastTradeTime;
-
-        if (updateRateOracle) {
-            // must happen after lastLnImpliedRate & lastTradeTime is filled
-            market.oracleRate = market.getNewRateOracle(block.timestamp);
-        }
     }
 
     /// @notice write back the state of the market from memory to storage
@@ -302,15 +286,13 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         _storage.totalPt = market.totalPt.Int128();
         _storage.totalScy = market.totalScy.Int128();
         _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
-        _storage.oracleRate = market.oracleRate.Uint96();
-        _storage.lastTradeTime = market.lastTradeTime.Uint32();
 
-        (observationIndex, observationCardinality) = observations.write(
-            observationIndex,
+        (_storage.observationIndex, _storage.observationCardinality) = observations.write(
+            _storage.observationIndex,
             block.timestamp.Uint32(),
             market.lastLnImpliedRate.Uint96(),
-            observationCardinality,
-            observationCardinalityNext
+            _storage.observationCardinality,
+            _storage.observationCardinalityNext
         );
 
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
@@ -326,8 +308,8 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
                 block.timestamp.Uint32(),
                 secondsAgos,
                 _storage.lastLnImpliedRate,
-                observationIndex,
-                observationCardinality
+                _storage.observationIndex,
+                _storage.observationCardinality
             );
     }
 
@@ -346,10 +328,10 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     }
 
     function increaseObservationsCardinalityNext(uint16 cardinalityNext) external nonReentrant {
-        uint16 cardinalityNextOld = observationCardinalityNext;
+        uint16 cardinalityNextOld = _storage.observationCardinalityNext;
         uint16 cardinalityNextNew = observations.grow(cardinalityNextOld, cardinalityNext);
         if (cardinalityNextOld != cardinalityNextNew) {
-            observationCardinalityNext = cardinalityNextNew;
+            _storage.observationCardinalityNext = cardinalityNextNew;
             emit IncreaseObservationCardinalityNext(cardinalityNextOld, cardinalityNextNew);
         }
     }

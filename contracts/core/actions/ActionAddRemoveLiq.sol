@@ -36,7 +36,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseTokenSCY {
         (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
             .readTokens();
 
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
             YT.newIndex(),
             scyDesired,
@@ -81,7 +81,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseTokenSCY {
         uint256 scyUsed;
 
         {
-            MarketState memory state = IPMarket(market).readState(false);
+            MarketState memory state = IPMarket(market).readState();
             (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
                 YT.newIndex(),
                 scyDesired,
@@ -132,7 +132,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseTokenSCY {
     ) external returns (uint256 netLpOut) {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
             YT.newIndex(),
@@ -270,7 +270,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseTokenSCY {
 
         IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
 
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
         (uint256 ptFromSwap, , ) = state.approxSwapExactScyForPt(
             YT.newIndex(),
@@ -337,7 +337,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseTokenSCY {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy
     ) internal returns (uint256 netLpOut) {
-        MarketState memory state = IPMarket(market).readState(false);
+        MarketState memory state = IPMarket(market).readState();
 
         (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
             YT.newIndex(),

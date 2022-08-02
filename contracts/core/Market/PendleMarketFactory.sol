@@ -20,9 +20,8 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         address treasury;
         uint96 lnFeeRateRoot;
         // 1 SLOT = 256 bits
-        uint32 rateOracleTimeWindow;
         uint8 reserveFeePercent;
-        // 1 SLOT = 40 bits
+        // 1 SLOT = 8 bits
     }
 
     uint256 private constant MIN_RATE_ORACLE_TIME_WINDOW = 300 seconds;
@@ -45,7 +44,6 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         address _yieldContractFactory,
         address _treasury,
         uint96 _lnFeeRateRoot,
-        uint32 _rateOracleTimeWindow,
         uint8 _reserveFeePercent
     ) PermissionsV2Upg(_governanceManager) {
         require(_yieldContractFactory != address(0), "zero address");
@@ -54,7 +52,6 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
 
         setTreasury(_treasury);
         setlnFeeRateRoot(_lnFeeRateRoot);
-        setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
     }
 
@@ -116,12 +113,6 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         _emitNewMarketConfigEvent();
     }
 
-    function setRateOracleTimeWindow(uint32 newRateOracleTimeWindow) public onlyGovernance {
-        require(newRateOracleTimeWindow >= MIN_RATE_ORACLE_TIME_WINDOW, "invalid time window");
-        marketConfig.rateOracleTimeWindow = newRateOracleTimeWindow;
-        _emitNewMarketConfigEvent();
-    }
-
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyGovernance {
         require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
@@ -130,11 +121,6 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
 
     function _emitNewMarketConfigEvent() internal {
         MarketConfig memory local = marketConfig;
-        emit NewMarketConfig(
-            local.treasury,
-            local.lnFeeRateRoot,
-            local.rateOracleTimeWindow,
-            local.reserveFeePercent
-        );
+        emit NewMarketConfig(local.treasury, local.lnFeeRateRoot, local.reserveFeePercent);
     }
 }

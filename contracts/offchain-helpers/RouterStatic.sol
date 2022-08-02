@@ -133,7 +133,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
 
         pt = address(PT);
         scy = address(SCY);
-        state = _market.readState(true);
+        state = _market.readState();
         impliedYield = getPtImpliedYield(market);
         exchangeRate = MarketMathStatic.getExchangeRate(market);
     }
@@ -222,7 +222,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SCY
             .assetInfo();
 
-        MarketState memory state = _market.readState(false);
+        MarketState memory state = _market.readState();
         uint256 totalLp = uint256(state.totalLp);
 
         if (totalLp == 0) {
