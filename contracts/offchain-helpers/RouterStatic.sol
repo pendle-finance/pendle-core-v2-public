@@ -79,7 +79,6 @@ contract RouterStatic is IPRouterStatic {
 
     function getMarketInfo(address market)
         external
-        view
         returns (
             address pt,
             address scy,
@@ -321,7 +320,6 @@ contract RouterStatic is IPRouterStatic {
         uint256 amountBaseToken
     )
         external
-        view
         returns (
             uint256 netPtOut,
             uint256 netScyFee,

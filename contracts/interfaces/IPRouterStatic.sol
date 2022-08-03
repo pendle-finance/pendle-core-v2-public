@@ -59,7 +59,6 @@ interface IPRouterStatic {
 
     function getMarketInfo(address market)
         external
-        view
         returns (
             address pt,
             address scy,
