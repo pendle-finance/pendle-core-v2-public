@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "../../../interfaces/ICelerMessageBus.sol";
 import "../../../periphery/PermissionsV2Upg.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
@@ -18,6 +19,13 @@ abstract contract CelerSenderUpg is PermissionsV2Upg {
     EnumerableMap.UintToAddressMap internal sidechainContracts;
 
     uint256[100] private __gap;
+
+    modifier refundUnusedEth() {
+        _;
+        if (address(this).balance > 0) {
+            Address.sendValue(payable(msg.sender), address(this).balance);
+        }
+    }
 
     constructor(address _governanceManager) PermissionsV2Upg(_governanceManager) {}
 

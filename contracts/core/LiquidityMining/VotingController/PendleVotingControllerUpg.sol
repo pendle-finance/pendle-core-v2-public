@@ -143,7 +143,7 @@ contract PendleVotingControllerUpg is
      * @dev state changes expected:
         - the gaugeController receives the new pendle allocation
      */
-    function broadcastResults(uint64 chainId) external payable {
+    function broadcastResults(uint64 chainId) external payable refundUnusedEth {
         uint128 wTime = WeekMath.getCurrentWeekStart();
         require(weekData[wTime].isEpochFinalized, "epoch not finalized");
         _broadcastResults(chainId, wTime, pendlePerSec);
@@ -204,7 +204,7 @@ contract PendleVotingControllerUpg is
         uint64 chainId,
         uint128 wTime,
         uint128 forcedPendlePerSec
-    ) external payable onlyGovernance {
+    ) external payable onlyGovernance refundUnusedEth {
         _broadcastResults(chainId, wTime, forcedPendlePerSec);
     }
 
@@ -218,6 +218,18 @@ contract PendleVotingControllerUpg is
     function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
         pendlePerSec = newPendlePerSec;
         emit SetPendlePerSec(newPendlePerSec);
+    }
+
+    function getBroadcastResultFee(uint64 chainId) external view returns (uint256) {
+        if (chainId == block.chainid) return 0; // Mainchain broadcast
+
+        uint256 length = chainPools[chainId].length();
+        if (length == 0) return 0;
+
+        address[] memory pools = new address[](length);
+        uint256[] memory totalPendleAmounts = new uint256[](length);
+
+        return celerMessageBus.calcFee(abi.encode(uint128(0), pools, totalPendleAmounts));
     }
 
     /*///////////////////////////////////////////////////////////////

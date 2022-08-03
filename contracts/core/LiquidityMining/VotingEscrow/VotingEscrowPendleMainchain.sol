@@ -16,6 +16,10 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     bytes private constant EMPTY_BYTES = abi.encode();
+    bytes private constant SAMPLE_SUPPLY_UPDATE_MESSAGE =
+        abi.encode(0, VeBalance(0, 0), EMPTY_BYTES);
+    bytes private constant SAMPLE_POSITION_UPDATE_MESSAGE =
+        abi.encode(0, VeBalance(0, 0), abi.encode(address(0), LockedPosition(0, 0)));
 
     IERC20 public immutable pendle;
 
@@ -41,7 +45,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         uint128 additionalAmountToLock,
         uint128 newExpiry,
         uint256[] calldata chainIds
-    ) external payable returns (uint128 newVeBalance) {
+    ) external payable refundUnusedEth returns (uint128 newVeBalance) {
         newVeBalance = increaseLockPosition(additionalAmountToLock, newExpiry);
         broadcastUserPosition(msg.sender, chainIds);
     }
@@ -122,7 +126,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @dev state changes expected:
         - all chains in chainIds receive the new totalSupply
      */
-    function broadcastTotalSupply(uint256[] calldata chainIds) public payable {
+    function broadcastTotalSupply(uint256[] calldata chainIds) public payable refundUnusedEth {
         _broadcastPosition(address(0), chainIds);
     }
 
@@ -131,7 +135,11 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @dev state changes expected:
         - all chains in chainIds receive the new totalSupply & user's new position
      */
-    function broadcastUserPosition(address user, uint256[] calldata chainIds) public payable {
+    function broadcastUserPosition(address user, uint256[] calldata chainIds)
+        public
+        payable
+        refundUnusedEth
+    {
         require(user != address(0), "zero address user");
         _broadcastPosition(user, chainIds);
     }
@@ -139,6 +147,14 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     /// @notice binary search to find balance at a timestamp. This timestamp does not need to be divisible by week
     function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
         return userHistory[user].getAtTimestamp(timestamp);
+    }
+
+    function getBroadcastSupplyFee(uint256[] calldata chainIds) external view returns (uint256) {
+        return celerMessageBus.calcFee(SAMPLE_SUPPLY_UPDATE_MESSAGE) * chainIds.length;
+    }
+
+    function getBroadcastPositionFee(uint256[] calldata chainIds) external view returns (uint256) {
+        return celerMessageBus.calcFee(SAMPLE_POSITION_UPDATE_MESSAGE) * chainIds.length;
     }
 
     /**
