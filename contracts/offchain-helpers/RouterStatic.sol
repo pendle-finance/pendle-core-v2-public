@@ -447,7 +447,6 @@ contract RouterStatic is IPRouterStatic {
         address baseToken
     )
         external
-        view
         returns (
             uint256 netBaseTokenOut,
             uint256 netScyFee,
@@ -467,7 +466,6 @@ contract RouterStatic is IPRouterStatic {
         uint256 amountBaseToken
     )
         external
-        view
         returns (
             uint256 netPtOut,
             uint256 netScyFee,
