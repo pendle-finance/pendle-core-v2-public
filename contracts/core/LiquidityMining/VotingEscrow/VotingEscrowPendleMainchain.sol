@@ -116,7 +116,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
      * @dev state changes expected:
         - _totalSupply & lastSlopeChangeAppliedAt is updated
      */
-    function totalSupplyCurrent() external virtual override returns (uint128) {
+    function totalSupplyCurrent() public virtual override returns (uint128) {
         (VeBalance memory supply, ) = _applySlopeChange();
         return supply.getCurrentValue();
     }
@@ -237,17 +237,17 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         );
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
-            require(sidechainContracts.contains(chainIds[i]), "not supported chain");
+            require(destinationContracts.contains(chainIds[i]), "not supported chain");
             _broadcast(chainIds[i], wTime, supply, userData);
-            if (user != address(0)) {
-                emit BroadcastUserPosition(user, chainIds);
-            }
         }
 
+        if (user != address(0)) {
+            emit BroadcastUserPosition(user, chainIds);
+        }
         emit BroadcastTotalSupply(supply, chainIds);
     }
 
-    function _afterAddSidechainContract(address, uint256 chainId) internal virtual override {
+    function _afterAddDestinationContract(address, uint256 chainId) internal virtual override {
         (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
         _broadcast(chainId, wTime, supply, EMPTY_BYTES);
     }

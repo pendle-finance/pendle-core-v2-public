@@ -19,7 +19,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
 
     constructor(address _governanceManager) CelerReceiverUpg(_governanceManager) {}
 
-    function totalSupplyCurrent() external view virtual override returns (uint128) {
+    function totalSupplyCurrent() public view virtual override returns (uint128) {
         return totalSupplyStored();
     }
 

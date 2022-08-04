@@ -90,6 +90,11 @@ contract PendleVotingControllerUpg is
             if (uData.voteForPools[pools[i]].weight <= weights[i])
                 _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
         }
+
+        require(
+            uData.totalVotedWeight <= VeBalanceLib.USER_VOTE_MAX_WEIGHT,
+            "exceeded max weight"
+        );
     }
 
     /**
@@ -258,12 +263,11 @@ contract PendleVotingControllerUpg is
 
         for (uint256 i = 0; i < length; ++i) {
             uint256 poolVotes = weekData[wTime].poolVotes[pools[i]];
-            uint256 pendlePerSec = (totalPendlePerSec * poolVotes) / totalVotes;
-            totalPendleAmounts[i] = pendlePerSec * WEEK;
+            totalPendleAmounts[i] = (totalPendlePerSec * poolVotes * WEEK) / totalVotes;
         }
 
         if (chainId == block.chainid) {
-            address gaugeController = sidechainContracts.get(chainId);
+            address gaugeController = destinationContracts.get(chainId);
             IPGaugeControllerMainchain(gaugeController).updateVotingResults(
                 wTime,
                 pools,

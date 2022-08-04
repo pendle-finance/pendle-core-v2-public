@@ -210,10 +210,6 @@ abstract contract VotingControllerStorageUpg {
 
             uData.voteForPools[pool] = UserPoolData(weight, newVote);
             uData.totalVotedWeight += weight;
-            require(
-                uData.totalVotedWeight <= VeBalanceLib.USER_VOTE_MAX_WEIGHT,
-                "exceeded max weight"
-            );
         }
 
         userPoolHistory[user][pool].push(newVote);

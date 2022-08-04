@@ -80,8 +80,9 @@ abstract contract PendleGauge is RewardManager {
         virtual
         returns (uint256)
     {
-        uint256 vePendleBalance = vePENDLE.balanceOf(user);
-        uint256 vePendleSupply = vePENDLE.totalSupplyCurrent();
+        (uint256 vePendleBalance, uint256 vePendleSupply) = vePENDLE.totalSupplyAndBlanaceCurrent(
+            user
+        );
         // Inspired by Curve's Gauge
         uint256 veBoostedLpBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {

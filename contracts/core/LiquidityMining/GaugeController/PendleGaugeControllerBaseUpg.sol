@@ -7,6 +7,7 @@ import "../../../libraries/math/Math.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
+import "../../../interfaces/IPMarket.sol";
 import "../../../periphery/PermissionsV2Upg.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -101,7 +102,8 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, Permissions
         epochRewardReceived[wTime] = true;
 
         for (uint256 i = 0; i < markets.length; ++i) {
-            _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
+            if (!IPMarket(markets[i]).isExpired())
+                _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
         }
 
         emit ReceiveVotingResults(wTime, markets, pendleAmounts);
