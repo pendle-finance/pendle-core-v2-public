@@ -79,6 +79,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
         _mint(receiverYT, amountPYOut);
 
         IPPrincipalToken(PT).mintByYT(receiverPT, amountPYOut);
+
+        emit Mint(msg.sender, receiverPT, receiverYT, amountScyToMint, amountPYOut);
     }
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
@@ -237,6 +239,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
             );
             _transferOut(SCY, receivers[i], amountScyOuts[i]);
             totalScyInterestPostExpiry += scyInterestPostExpiry;
+
+            emit Burn(msg.sender, receivers[i], amountPYToRedeems[i], amountScyOuts[i]);
         }
         if (totalScyInterestPostExpiry != 0) {
             postExpiry.totalScyInterestForTreasury += totalScyInterestPostExpiry.Uint128();
