@@ -44,26 +44,26 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
         if (
-            sig == IPActionCore.mintScyFromRawToken.selector ||
-            sig == IPActionCore.redeemScyToRawToken.selector ||
-            sig == IPActionCore.mintPyFromRawToken.selector ||
-            sig == IPActionCore.redeemPyToRawToken.selector ||
+            sig == IPActionCore.mintScyFromToken.selector ||
+            sig == IPActionCore.redeemScyToToken.selector ||
+            sig == IPActionCore.mintPyFromToken.selector ||
+            sig == IPActionCore.redeemPyToToken.selector ||
             sig == IPActionCore.mintPyFromScy.selector ||
             sig == IPActionCore.redeemPyToScy.selector ||
             sig == IPActionCore.addLiquidity.selector ||
             sig == IPActionCore.addLiquiditySinglePt.selector ||
             sig == IPActionCore.addLiquiditySingleScy.selector ||
-            sig == IPActionCore.addLiquiditySingleRawToken.selector ||
+            sig == IPActionCore.addLiquiditySingleToken.selector ||
             sig == IPActionCore.removeLiquidity.selector ||
             sig == IPActionCore.removeLiquiditySinglePt.selector ||
             sig == IPActionCore.removeLiquiditySingleScy.selector ||
-            sig == IPActionCore.removeLiquiditySingleRawToken.selector ||
+            sig == IPActionCore.removeLiquiditySingleToken.selector ||
             sig == IPActionCore.swapExactPtForScy.selector ||
             sig == IPActionCore.swapPtForExactScy.selector ||
             sig == IPActionCore.swapScyForExactPt.selector ||
             sig == IPActionCore.swapExactScyForPt.selector ||
-            sig == IPActionCore.swapExactRawTokenForPt.selector ||
-            sig == IPActionCore.swapExactPtForRawToken.selector ||
+            sig == IPActionCore.swapExactTokenForPt.selector ||
+            sig == IPActionCore.swapExactPtForToken.selector ||
             sig == IPActionCore.redeemDueInterestAndRewards.selector
         ) {
             return ACTION_CORE;
@@ -71,8 +71,8 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
             sig == IPActionYT.swapExactYtForScy.selector ||
             sig == IPActionYT.swapScyForExactYt.selector ||
             sig == IPActionYT.swapExactScyForYt.selector ||
-            sig == IPActionYT.swapExactRawTokenForYt.selector ||
-            sig == IPActionYT.swapExactYtForRawToken.selector ||
+            sig == IPActionYT.swapExactTokenForYt.selector ||
+            sig == IPActionYT.swapExactYtForToken.selector ||
             sig == IPActionYT.swapYtForExactScy.selector
         ) {
             return ACTION_YT;

@@ -138,8 +138,7 @@ contract PendleSJoeSCY is SCYBaseWithRewards {
     {
         uint256 sJoeDepositFeePrecision = ISJoe(SJOE).depositFeePercent();
 
-        amountSharesOut =
-            ((1e18 - sJoeDepositFeePrecision / 1e18) * amountTokenToDeposit);
+        amountSharesOut = ((1e18 - sJoeDepositFeePrecision / 1e18) * amountTokenToDeposit);
     }
 
     function _previewRedeem(address, uint256 amountSharesToRedeem)

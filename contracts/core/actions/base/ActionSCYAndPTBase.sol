@@ -199,28 +199,19 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     /**
      * @notice swap from any ERC20 tokens, through Uniswap's forks, to get baseTokens to make SCY, then swap
         from SCY to PT
-     * @dev simply a combination of _mintScyFromRawToken & _swapExactScyForPt
+     * @dev simply a combination of _mintScyFromToken & _swapExactScyForPt
      */
-    function _swapExactRawTokenForPt(
+    function _swapExactTokenForPt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minPtOut,
-        address[] calldata path,
         ApproxParams memory guessPtOut,
-        bool doPull
+        TokenInput calldata input
     ) internal returns (uint256 netPtOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         // all output SCY is transferred directly to the market
-        uint256 netScyUseToBuyPt = _mintScyFromRawToken(
-            market,
-            address(SCY),
-            exactRawTokenIn,
-            1,
-            path,
-            doPull
-        );
+        uint256 netScyUseToBuyPt = _mintScyFromToken(address(market), address(SCY), 1, input);
 
         // SCY is already in the market, hence doPull = false
         netPtOut = _swapExactScyForPt(
@@ -234,30 +225,22 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     }
 
     /**
-     * @notice swap from PT to SCY, then redeem SCY to baseToken & swap through Uniswap's forks to get rawTokenOut
-     * @dev simply a combination of _swapExactPtForScy & _redeemScyToRawToken
+     * @notice swap from PT to SCY, then redeem SCY to baseToken & swap through Uniswap's forks to get tokenOut
+     * @dev simply a combination of _swapExactPtForScy & _redeemScyToToken
      */
-    function _swapExactPtForRawToken(
+    function _swapExactPtForToken(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path,
+        TokenOutput calldata output,
         bool doPull
-    ) internal returns (uint256 netRawTokenOut) {
+    ) internal returns (uint256 netTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         // all output SCY is directly transferred to the SCY contract
-        _swapExactPtForScy(address(SCY), market, exactPtIn, 1, doPull);
+        uint256 netScyReceived = _swapExactPtForScy(address(SCY), market, exactPtIn, 1, doPull);
 
         // since all SCY is already at the SCY contract, doPull = false
-        netRawTokenOut = _redeemScyToRawToken(
-            receiver,
-            address(SCY),
-            0,
-            minRawTokenOut,
-            path,
-            false
-        );
+        netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyReceived, output, false);
     }
 }

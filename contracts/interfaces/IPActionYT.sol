@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import "../libraries/math/MarketApproxLib.sol";
+import "../libraries/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionYT {
     event SwapYTAndSCY(
@@ -11,12 +12,12 @@ interface IPActionYT {
         int256 scyToAccount
     );
 
-    event SwapYTAndRawToken(
+    event SwapYTAndToken(
         address indexed user,
         address indexed market,
-        address indexed rawToken,
+        address indexed token,
         int256 ytToAccount,
-        int256 rawTokenToAccount
+        int256 tokenToAccount
     );
 
     function swapExactYtForScy(
@@ -49,20 +50,18 @@ interface IPActionYT {
         ApproxParams memory guessYtIn
     ) external returns (uint256 netYtIn);
 
-    function swapExactRawTokenForYt(
+    function swapExactTokenForYt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minYtOut,
-        address[] calldata path,
-        ApproxParams memory guessYtOut
+        ApproxParams memory guessYtOut,
+        TokenInput calldata input
     ) external returns (uint256 netYtOut);
 
-    function swapExactYtForRawToken(
+    function swapExactYtForToken(
         address receiver,
         address market,
-        uint256 exactYtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path
-    ) external returns (uint256 netRawTokenOut);
+        uint256 netYtIn,
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut);
 }

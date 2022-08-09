@@ -13,8 +13,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variabless
-    constructor(address _joeFactory, address _marketFactory)
-        ActionSCYAndPYBase(_joeFactory) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberSwapRouter, address _marketFactory)
+        ActionSCYAndPYBase(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
     {}
 
     /// @dev refer to the internal function
@@ -48,7 +48,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address market,
         uint256 netPtIn,
         uint256 minLpOut,
-        ApproxParams memory guessPtSwapToScy
+        ApproxParams calldata guessPtSwapToScy
     ) external returns (uint256 netLpOut) {
         require(false, "NOT IMPLEMENTED");
     }
@@ -58,18 +58,17 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address market,
         uint256 netScyIn,
         uint256 minLpOut,
-        ApproxParams memory guessPtReceivedFromScy
+        ApproxParams calldata guessPtReceivedFromScy
     ) external returns (uint256 netLpOut) {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function addLiquiditySingleRawToken(
+    function addLiquiditySingleToken(
         address receiver,
         address market,
-        uint256 netRawTokenIn,
         uint256 minLpOut,
-        address[] calldata path,
-        ApproxParams memory guessPtReceivedFromScy
+        ApproxParams calldata guessPtReceivedFromScy,
+        TokenInput calldata input
     ) external returns (uint256 netLpOut) {
         require(false, "NOT IMPLEMENTED");
     }
@@ -98,7 +97,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address market,
         uint256 lpToRemove,
         uint256 minPtOut,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut) {
         require(false, "NOT IMPLEMENTED");
     }
@@ -112,13 +111,12 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function removeLiquiditySingleRawToken(
+    function removeLiquiditySingleToken(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut) {
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
         require(false, "NOT IMPLEMENTED");
     }
 
@@ -139,7 +137,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address market,
         uint256 exactScyOut,
         uint256 maxPtIn,
-        ApproxParams memory guessPtIn
+        ApproxParams calldata guessPtIn
     ) external returns (uint256 netPtIn) {
         netPtIn = _swapPtForExactScy(receiver, market, exactScyOut, maxPtIn, guessPtIn, true);
         emit SwapPtAndScy(msg.sender, market, receiver, netPtIn.neg(), exactScyOut.Int());
@@ -162,71 +160,62 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address market,
         uint256 exactScyIn,
         uint256 minPtOut,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut) {
         netPtOut = _swapExactScyForPt(receiver, market, exactScyIn, minPtOut, guessPtOut, true);
         emit SwapPtAndScy(msg.sender, market, receiver, netPtOut.Int(), exactScyIn.neg());
     }
 
     /// @dev refer to the internal function
-    function mintScyFromRawToken(
+    function mintScyFromToken(
         address receiver,
         address SCY,
-        uint256 netRawTokenIn,
         uint256 minScyOut,
-        address[] calldata path
+        TokenInput calldata input
     ) external returns (uint256 netScyOut) {
-        return _mintScyFromRawToken(receiver, SCY, netRawTokenIn, minScyOut, path, true);
-    }
+        netScyOut = _mintScyFromToken(receiver, SCY, minScyOut, input);
 
-    /// @dev refer to the internal function
-    function redeemScyToRawToken(
-        address receiver,
-        address SCY,
-        uint256 netScyIn,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut) {
-        netRawTokenOut = _redeemScyToRawToken(receiver, SCY, netScyIn, minRawTokenOut, path, true);
-        emit RedeemScyToRawToken(
+        emit MintScyFromToken(
             msg.sender,
             receiver,
             SCY,
-            netScyIn,
-            path[path.length - 1],
-            netRawTokenOut
+            input.tokenIn,
+            input.netTokenIn,
+            netScyOut
         );
     }
 
     /// @dev refer to the internal function
-    function mintPyFromRawToken(
+    function redeemScyToToken(
         address receiver,
-        address YT,
-        uint256 netRawTokenIn,
-        uint256 minPyOut,
-        address[] calldata path
-    ) external returns (uint256 netPyOut) {
-        netPyOut = _mintPyFromRawToken(receiver, YT, netRawTokenIn, minPyOut, path, true);
-        emit MintPyFromRawToken(msg.sender, receiver, YT, path[0], netRawTokenIn, netPyOut);
+        address SCY,
+        uint256 netScyIn,
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
+        netTokenOut = _redeemScyToToken(receiver, SCY, netScyIn, output, true);
+        emit RedeemScyToToken(msg.sender, receiver, SCY, netScyIn, output.tokenOut, netTokenOut);
     }
 
     /// @dev refer to the internal function
-    function redeemPyToRawToken(
+    function mintPyFromToken(
+        address receiver,
+        address YT,
+        uint256 minPyOut,
+        TokenInput calldata input
+    ) external returns (uint256 netPyOut) {
+        netPyOut = _mintPyFromToken(receiver, YT, minPyOut, input);
+        emit MintPyFromToken(msg.sender, receiver, YT, input.tokenIn, input.netTokenIn, netPyOut);
+    }
+
+    /// @dev refer to the internal function
+    function redeemPyToToken(
         address receiver,
         address YT,
         uint256 netPyIn,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut) {
-        netRawTokenOut = _redeemPyToRawToken(receiver, YT, netPyIn, minRawTokenOut, path, true);
-        emit RedeemPyToRawToken(
-            msg.sender,
-            receiver,
-            YT,
-            netPyIn,
-            path[path.length - 1],
-            netRawTokenOut
-        );
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
+        netTokenOut = _redeemPyToToken(receiver, YT, netPyIn, output, true);
+        emit RedeemPyToToken(msg.sender, receiver, YT, netPyIn, output.tokenOut, netTokenOut);
     }
 
     function mintPyFromScy(
@@ -250,57 +239,41 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     }
 
     /// @dev refer to the internal function
-    function swapExactRawTokenForPt(
+    function swapExactTokenForPt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minPtOut,
-        address[] calldata path,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut,
+        TokenInput calldata input
     ) external returns (uint256 netPtOut) {
-        netPtOut = _swapExactRawTokenForPt(
-            receiver,
-            market,
-            exactRawTokenIn,
-            minPtOut,
-            path,
-            guessPtOut,
-            true
-        );
+        netPtOut = _swapExactTokenForPt(receiver, market, minPtOut, guessPtOut, input);
 
-        emit SwapPtAndRawToken(
+        emit SwapPtAndToken(
             msg.sender,
             market,
-            path[0],
+            input.tokenIn,
             receiver,
             netPtOut.Int(),
-            exactRawTokenIn.neg()
+            input.netTokenIn.neg()
         );
     }
 
     /// @dev refer to the internal function
-    function swapExactPtForRawToken(
+    function swapExactPtForToken(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path
-    ) external returns (uint256 netRawTokenOut) {
-        netRawTokenOut = _swapExactPtForRawToken(
-            receiver,
-            market,
-            exactPtIn,
-            minRawTokenOut,
-            path,
-            true
-        );
-        emit SwapPtAndRawToken(
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
+        netTokenOut = _swapExactPtForToken(receiver, market, exactPtIn, output, true);
+
+        emit SwapPtAndToken(
             msg.sender,
             market,
-            path[path.length - 1],
+            output.tokenOut,
             receiver,
             exactPtIn.neg(),
-            netRawTokenOut.Int()
+            netTokenOut.Int()
         );
     }
 

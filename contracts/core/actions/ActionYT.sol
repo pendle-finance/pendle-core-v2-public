@@ -12,12 +12,9 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _joeFactory)
-        ActionSCYAndPYBase(_joeFactory)
-    //solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    constructor(address _kyberSwapRouter)
+        ActionSCYAndPYBase(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+    {}
 
     /// @dev refer to the internal function
     function swapExactYtForScy(
@@ -66,48 +63,31 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
     }
 
     /// @dev refer to the internal function
-    function swapExactRawTokenForYt(
+    function swapExactTokenForYt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minYtOut,
-        address[] calldata path,
-        ApproxParams memory guessYtOut
+        ApproxParams memory guessYtOut,
+        TokenInput calldata input
     ) external returns (uint256 netYtOut) {
-        netYtOut = _swapExactRawTokenForYt(
+        netYtOut = _swapExactTokenForYt(receiver, market, minYtOut, guessYtOut, input);
+        emit SwapYTAndToken(
             receiver,
             market,
-            exactRawTokenIn,
-            minYtOut,
-            path,
-            guessYtOut,
-            true
+            input.tokenIn,
+            netYtOut.Int(),
+            input.netTokenIn.neg()
         );
-        emit SwapYTAndRawToken(receiver, market, path[0], netYtOut.Int(), exactRawTokenIn.neg());
     }
 
     /// @dev refer to the internal function
-    function swapExactYtForRawToken(
+    function swapExactYtForToken(
         address receiver,
         address market,
-        uint256 exactYtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path
-    ) external returns (uint256 netRawTokenOut) {
-        netRawTokenOut = _swapExactYtForRawToken(
-            receiver,
-            market,
-            exactYtIn,
-            minRawTokenOut,
-            path,
-            true
-        );
-        emit SwapYTAndRawToken(
-            receiver,
-            market,
-            path[path.length - 1],
-            exactYtIn.neg(),
-            netRawTokenOut.Int()
-        );
+        uint256 netYtIn,
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
+        netTokenOut = _swapExactYtForToken(receiver, market, netYtIn, output, true);
+        emit SwapYTAndToken(receiver, market, output.tokenOut, netYtIn.neg(), netTokenOut.Int());
     }
 }

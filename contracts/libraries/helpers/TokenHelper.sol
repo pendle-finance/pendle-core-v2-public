@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 abstract contract TokenHelper {
     using SafeERC20 for IERC20;
     address internal constant NATIVE = address(0);
+    uint256 internal constant LOWER_BOUND_APPROVAL = type(uint96).max / 2; // some tokens use 96 bits for approval
 
     function _transferIn(
         address token,
@@ -13,9 +14,7 @@ abstract contract TokenHelper {
         uint256 amount
     ) internal {
         if (token == NATIVE) require(msg.value == amount, "eth mismatch");
-        else if (amount != 0) {
-            IERC20(token).safeTransferFrom(from, address(this), amount);
-        }
+        else if (amount != 0) IERC20(token).safeTransferFrom(from, address(this), amount);
     }
 
     function _transferOut(
@@ -104,5 +103,11 @@ abstract contract TokenHelper {
             abi.encodeWithSelector(IERC20.approve.selector, to, value)
         );
         require(success && (data.length == 0 || abi.decode(data, (bool))), "Safe Approve");
+    }
+
+    function _safeApproveInf(address token, address to) internal {
+        if (token == NATIVE) return;
+        if (IERC20(token).allowance(address(this), to) < LOWER_BOUND_APPROVAL)
+            _safeApprove(token, to, type(uint256).max);
     }
 }

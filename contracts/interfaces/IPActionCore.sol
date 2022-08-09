@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import "../libraries/math/MarketApproxLib.sol";
+import "../libraries/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionCore {
     event AddLiquidity(
@@ -30,31 +31,31 @@ interface IPActionCore {
         int256 amountScyToAccount
     );
 
-    event SwapPtAndRawToken(
+    event SwapPtAndToken(
         address indexed caller,
         address indexed market,
-        address indexed rawToken,
+        address indexed token,
         address receiver,
         int256 amountPtToAccount,
-        int256 amountRawTokenToAccount
+        int256 amountTokenToAccount
     );
 
-    event MintScyFromRawToken(
+    event MintScyFromToken(
         address indexed caller,
         address indexed receiver,
         address indexed SCY,
-        address rawTokenIn,
-        uint256 netRawTokenIn,
+        address tokenIn,
+        uint256 netTokenIn,
         uint256 netScyOut
     );
 
-    event RedeemScyToRawToken(
+    event RedeemScyToToken(
         address indexed caller,
         address indexed receiver,
         address indexed SCY,
         uint256 netScyIn,
-        address rawTokenOut,
-        uint256 netRawTokenOut
+        address tokenOut,
+        uint256 netTokenOut
     );
 
     event MintPyFromScy(
@@ -73,22 +74,22 @@ interface IPActionCore {
         uint256 netScyOut
     );
 
-    event MintPyFromRawToken(
+    event MintPyFromToken(
         address indexed caller,
         address indexed receiver,
         address indexed YT,
-        address rawTokenIn,
-        uint256 netRawTokenIn,
+        address tokenIn,
+        uint256 netTokenIn,
         uint256 netPyOut
     );
 
-    event RedeemPyToRawToken(
+    event RedeemPyToToken(
         address indexed caller,
         address indexed receiver,
         address indexed YT,
         uint256 netPyIn,
-        address rawTokenOut,
-        uint256 netRawTokenOut
+        address tokenOut,
+        uint256 netTokenOut
     );
 
     function addLiquidity(
@@ -110,7 +111,7 @@ interface IPActionCore {
         address market,
         uint256 netPtIn,
         uint256 minLpOut,
-        ApproxParams memory guessPtSwapToScy
+        ApproxParams calldata guessPtSwapToScy
     ) external returns (uint256 netLpOut);
 
     function addLiquiditySingleScy(
@@ -118,16 +119,15 @@ interface IPActionCore {
         address market,
         uint256 netScyIn,
         uint256 minLpOut,
-        ApproxParams memory guessPtReceivedFromScy
+        ApproxParams calldata guessPtReceivedFromScy
     ) external returns (uint256 netLpOut);
 
-    function addLiquiditySingleRawToken(
+    function addLiquiditySingleToken(
         address receiver,
         address market,
-        uint256 netRawTokenIn,
         uint256 minLpOut,
-        address[] calldata path,
-        ApproxParams memory guessPtReceivedFromScy
+        ApproxParams calldata guessPtReceivedFromScy,
+        TokenInput calldata input
     ) external returns (uint256 netLpOut);
 
     function removeLiquidity(
@@ -143,7 +143,7 @@ interface IPActionCore {
         address market,
         uint256 lpToRemove,
         uint256 minPtOut,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut);
 
     function removeLiquiditySingleScy(
@@ -153,13 +153,12 @@ interface IPActionCore {
         uint256 minScyOut
     ) external returns (uint256 netScyOut);
 
-    function removeLiquiditySingleRawToken(
+    function removeLiquiditySingleToken(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut);
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut);
 
     function swapExactPtForScy(
         address receiver,
@@ -173,7 +172,7 @@ interface IPActionCore {
         address market,
         uint256 exactScyOut,
         uint256 maxPtIn,
-        ApproxParams memory guessPtIn
+        ApproxParams calldata guessPtIn
     ) external returns (uint256 netPtIn);
 
     function swapScyForExactPt(
@@ -188,40 +187,36 @@ interface IPActionCore {
         address market,
         uint256 exactScyIn,
         uint256 minPtOut,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut);
 
-    function mintScyFromRawToken(
+    function mintScyFromToken(
         address receiver,
         address SCY,
-        uint256 netRawTokenIn,
         uint256 minScyOut,
-        address[] calldata path
+        TokenInput calldata input
     ) external returns (uint256 netScyOut);
 
-    function redeemScyToRawToken(
+    function redeemScyToToken(
         address receiver,
         address SCY,
         uint256 netScyIn,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut);
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut);
 
-    function mintPyFromRawToken(
+    function mintPyFromToken(
         address receiver,
         address YT,
-        uint256 netRawTokenIn,
         uint256 minPyOut,
-        address[] calldata path
+        TokenInput calldata input
     ) external returns (uint256 netPyOut);
 
-    function redeemPyToRawToken(
+    function redeemPyToToken(
         address receiver,
         address YT,
         uint256 netPyIn,
-        uint256 minRawTokenOut,
-        address[] memory path
-    ) external returns (uint256 netRawTokenOut);
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut);
 
     function mintPyFromScy(
         address receiver,
@@ -237,22 +232,20 @@ interface IPActionCore {
         uint256 minScyOut
     ) external returns (uint256 netScyOut);
 
-    function swapExactRawTokenForPt(
+    function swapExactTokenForPt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minPtOut,
-        address[] calldata path,
-        ApproxParams memory guessPtOut
+        ApproxParams calldata guessPtOut,
+        TokenInput calldata input
     ) external returns (uint256 netPtOut);
 
-    function swapExactPtForRawToken(
+    function swapExactPtForToken(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path
-    ) external returns (uint256 netRawTokenOut);
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut);
 
     function redeemDueInterestAndRewards(
         address user,

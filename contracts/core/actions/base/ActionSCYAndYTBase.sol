@@ -167,25 +167,16 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
      * @notice swap any ERC20 tokens, through Uniswap's forks, to baseToken of the corresponding SCY of YT. These SCY is then
         used to swap to YT. Please refer to swapExactScyForYt for more details.
      */
-    function _swapExactRawTokenForYt(
+    function _swapExactTokenForYt(
         address receiver,
         address market,
-        uint256 exactRawTokenIn,
         uint256 minYtOut,
-        address[] calldata path,
         ApproxParams memory guessYtOut,
-        bool doPull
+        TokenInput calldata input
     ) internal returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        uint256 netScyUsedToBuyYT = _mintScyFromRawToken(
-            address(YT),
-            address(SCY),
-            exactRawTokenIn,
-            1,
-            path,
-            doPull
-        );
+        uint256 netScyUsedToBuyYT = _mintScyFromToken(address(YT), address(SCY), 1, input);
 
         netYtOut = _swapExactScyForYt(
             receiver,
@@ -198,28 +189,20 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
     }
 
     /**
-     * @notice swap YT to SCY (using `swapExactYtForScy` logic), then redeem SCY to baseToken & swap baseToken to rawToken
+     * @notice swap YT to SCY (using `swapExactYtForScy` logic), then redeem SCY to baseToken & swap baseToken to token
         through Uniswap's forks
      */
-    function _swapExactYtForRawToken(
+    function _swapExactYtForToken(
         address receiver,
         address market,
-        uint256 exactYtIn,
-        uint256 minRawTokenOut,
-        address[] calldata path,
+        uint256 netYtIn,
+        TokenOutput calldata output,
         bool doPull
-    ) internal returns (uint256 netRawTokenOut) {
+    ) internal returns (uint256 netTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, exactYtIn, 1, doPull);
+        uint256 netScyOut = _swapExactYtForScy(receiver, market, netYtIn, 1, doPull);
 
-        netRawTokenOut = _redeemScyToRawToken(
-            receiver,
-            address(SCY),
-            netScyOut,
-            minRawTokenOut,
-            path,
-            false
-        );
+        netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyOut, output, false);
     }
 }
