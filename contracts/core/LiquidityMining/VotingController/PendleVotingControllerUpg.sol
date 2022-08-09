@@ -70,7 +70,7 @@ contract PendleVotingControllerUpg is
         address user = msg.sender;
 
         require(weights.length == pools.length, "invaid array length");
-        require(vePendle.balanceOf(user) > 0, "zero vependle balance");
+        require(vePendle.balanceOf(user) > 0 || user == _governance(), "zero vependle balance");
 
         UserData storage uData = userData[user];
         LockedPosition memory userPosition = _getUserVePendlePosition(user);
