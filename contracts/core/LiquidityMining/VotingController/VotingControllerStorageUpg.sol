@@ -57,7 +57,7 @@ abstract contract VotingControllerStorageUpg {
     EnumerableSet.AddressSet internal allRemovedPools;
 
     // [chainId] => [pool]
-    mapping(uint64 => EnumerableSet.AddressSet) internal chainPools;
+    mapping(uint64 => EnumerableSet.AddressSet) internal activeChainPools;
 
     // [poolAddress] -> PoolData
     mapping(address => PoolData) public poolData;
@@ -99,8 +99,8 @@ abstract contract VotingControllerStorageUpg {
     }
 
     /// @dev trivial view function
-    function getChainPools(uint64 chainId) external view returns (address[] memory) {
-        return chainPools[chainId].values();
+    function getActiveChainPools(uint64 chainId) external view returns (address[] memory) {
+        return activeChainPools[chainId].values();
     }
 
     /// @dev trivial view function
@@ -130,11 +130,11 @@ abstract contract VotingControllerStorageUpg {
 
     /**
     * @dev expected behavior:
-        - add to allActivePools, chainPools
+        - add to allActivePools, activeChainPools
         - set params in poolData
      */
     function _addPool(uint64 chainId, address pool) internal {
-        require(chainPools[chainId].add(pool), "IE");
+        require(activeChainPools[chainId].add(pool), "IE");
         require(allActivePools.add(pool), "IE");
 
         poolData[pool].chainId = chainId;
@@ -143,13 +143,13 @@ abstract contract VotingControllerStorageUpg {
 
     /**
     * @dev expected behavior:
-        - remove from allActivePool, chainPools
+        - remove from allActivePool, activeChainPools
         - add to allRemovedPools
         - clear all params in poolData
      */
     function _removePool(address pool) internal {
         uint64 chainId = poolData[pool].chainId;
-        require(chainPools[chainId].remove(pool), "IE");
+        require(activeChainPools[chainId].remove(pool), "IE");
         require(allActivePools.remove(pool), "IE");
         require(allRemovedPools.add(pool), "IE");
 

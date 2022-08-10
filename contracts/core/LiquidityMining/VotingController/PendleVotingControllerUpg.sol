@@ -158,7 +158,7 @@ contract PendleVotingControllerUpg is
      * @dev pre-condition: pool must not have been added before
      * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
      * @dev state changes expected:
-        - add to allActivePools & chainPools
+        - add to allActivePools & activeChainPools
         - set params in poolData
      * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
       this function
@@ -176,7 +176,7 @@ contract PendleVotingControllerUpg is
      * @dev pre-condition: pool must have been added before
      * @dev state changes expected:
         - update weekData (if any)
-        - remove from allActivePools & chainPools
+        - remove from allActivePools & activeChainPools
         - clear data in poolData
      * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
       this function
@@ -223,7 +223,7 @@ contract PendleVotingControllerUpg is
     function getBroadcastResultFee(uint64 chainId) external view returns (uint256) {
         if (chainId == block.chainid) return 0; // Mainchain broadcast
 
-        uint256 length = chainPools[chainId].length();
+        uint256 length = activeChainPools[chainId].length();
         if (length == 0) return 0;
 
         address[] memory pools = new address[](length);
@@ -250,10 +250,10 @@ contract PendleVotingControllerUpg is
         uint256 totalVotes = weekData[wTime].totalVotes;
         if (totalVotes == 0) return;
 
-        uint256 length = chainPools[chainId].length();
+        uint256 length = activeChainPools[chainId].length();
         if (length == 0) return;
 
-        address[] memory pools = chainPools[chainId].values();
+        address[] memory pools = activeChainPools[chainId].values();
         uint256[] memory totalPendleAmounts = new uint256[](length);
 
         for (uint256 i = 0; i < length; ++i) {
