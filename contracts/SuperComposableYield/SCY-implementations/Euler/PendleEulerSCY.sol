@@ -18,7 +18,8 @@ contract PendleEulerSCY is SCYBase {
         string memory _name,
         string memory _symbol,
         address _eToken,
-        address _eulerMarkets // pass eulerMarkets to double check both eToken & underlying
+        address _eulerMarkets, // pass eulerMarkets to double check both eToken & underlying
+        address _euler // need to approve spending by euler
     ) SCYBase(_name, _symbol, _eToken) {
         require(_eToken != address(0), "zero address");
         require(_eulerMarkets != address(0), "zero address");
@@ -27,7 +28,7 @@ contract PendleEulerSCY is SCYBase {
 
         underlying = IEulerMarkets(_eulerMarkets).eTokenToUnderlying(eToken);
 
-        _safeApprove(underlying, eToken, type(uint256).max);
+        _safeApprove(underlying, _euler, type(uint256).max);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -86,7 +87,10 @@ contract PendleEulerSCY is SCYBase {
             uint256 preBalanceUnderlying = _selfBalance(underlying);
 
             // Swap EToken for underlying base tokens
-            IEulerEToken(eToken).withdraw(0, amountSharesToRedeem);
+            IEulerEToken(eToken).withdraw(
+                0,
+                IEulerEToken(eToken).convertBalanceToUnderlying(amountSharesToRedeem)
+            );
 
             // Since 'withdraw' function doesn't return the amount of underlying tokens swapped from eTokens, calculate change in underlying balance to find the amount of shares out
             amountTokenOut = _selfBalance(underlying) - preBalanceUnderlying;
@@ -118,7 +122,9 @@ contract PendleEulerSCY is SCYBase {
         if (tokenIn == eToken) {
             amountSharesOut = amountTokenToDeposit;
         } else {
-            amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+            amountSharesOut = IEulerEToken(eToken).convertUnderlyingToBalance(
+                amountTokenToDeposit
+            );
         }
     }
 
@@ -131,7 +137,7 @@ contract PendleEulerSCY is SCYBase {
         if (tokenOut == eToken) {
             amountTokenOut = amountSharesToRedeem;
         } else {
-            amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
+            amountTokenOut = IEulerEToken(eToken).convertBalanceToUnderlying(amountSharesToRedeem);
         }
     }
 
