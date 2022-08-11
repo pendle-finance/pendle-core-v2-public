@@ -368,7 +368,7 @@ library MarketApproxLib {
             approx.guessMax = calcMaxPtOut(market.totalPt, comp);
         }
 
-        vars.minAssetOut = index.scyToAsset(minScyOut);
+        vars.minAssetOut = index.scyToAssetUp(minScyOut);
 
         for (uint256 iter = 0; iter < approx.maxIteration; ) {
             // ytInGuess = ptOutGuess
