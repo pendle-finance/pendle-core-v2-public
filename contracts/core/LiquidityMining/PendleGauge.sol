@@ -80,7 +80,7 @@ abstract contract PendleGauge is RewardManager {
         virtual
         returns (uint256)
     {
-        (uint256 vePendleBalance, uint256 vePendleSupply) = vePENDLE.totalSupplyAndBlanaceCurrent(
+        (uint256 vePendleBalance, uint256 vePendleSupply) = vePENDLE.totalSupplyAndBalanceCurrent(
             user
         );
         // Inspired by Curve's Gauge

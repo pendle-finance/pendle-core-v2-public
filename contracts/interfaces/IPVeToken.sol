@@ -15,5 +15,5 @@ interface IPVeToken {
 
     function totalSupplyCurrent() external returns (uint128);
 
-    function totalSupplyAndBlanaceCurrent(address user) external returns (uint128, uint128);
+    function totalSupplyAndBalanceCurrent(address user) external returns (uint128, uint128);
 }

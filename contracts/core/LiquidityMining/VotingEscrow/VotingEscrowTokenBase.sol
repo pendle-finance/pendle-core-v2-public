@@ -49,7 +49,7 @@ abstract contract VotingEscrowTokenBase is IPVeToken {
         return MiniHelpers.isCurrentlyExpired(positionData[user].expiry);
     }
 
-    function totalSupplyAndBlanaceCurrent(address user) external returns (uint128, uint128) {
+    function totalSupplyAndBalanceCurrent(address user) external returns (uint128, uint128) {
         return (balanceOf(user), totalSupplyCurrent());
     }
 }
