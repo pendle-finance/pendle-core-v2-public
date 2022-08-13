@@ -38,7 +38,8 @@ abstract contract CelerSenderUpg is PermissionsV2Upg {
         assert(destinationContracts.contains(chainId));
         address toAddr = destinationContracts.get(chainId);
         uint256 fee = celerMessageBus.calcFee(message);
-        require(msg.value >= fee, "Insufficient celer fee");
+        // LM contracts won't hold ETH on its own so this is fine
+        require(address(this).balance >= fee, "Insufficient celer fee");
         celerMessageBus.sendMessage{ value: fee }(toAddr, chainId, message);
     }
 
