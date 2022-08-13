@@ -71,6 +71,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         );
 
         require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
+        require(newExpiry >= block.timestamp + MIN_LOCK_TIME, "insufficient lock time");
         require(positionData[user].expiry <= newExpiry, "new expiry must be after current expiry");
 
         uint128 newTotalAmountLocked = additionalAmountToLock + positionData[user].amount;
