@@ -83,7 +83,7 @@ abstract contract VotingControllerStorageUpg {
     //////////////////////////////////////////////////////////////*/
 
     /// @dev trivial view function
-    function getAllAcitvePools() external view returns (address[] memory) {
+    function getAllActivePools() external view returns (address[] memory) {
         return allActivePools.values();
     }
 
