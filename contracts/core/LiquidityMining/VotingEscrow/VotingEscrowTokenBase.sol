@@ -50,6 +50,6 @@ abstract contract VotingEscrowTokenBase is IPVeToken {
     }
 
     function totalSupplyAndBalanceCurrent(address user) external returns (uint128, uint128) {
-        return (balanceOf(user), totalSupplyCurrent());
+        return (totalSupplyCurrent(), balanceOf(user));
     }
 }

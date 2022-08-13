@@ -77,18 +77,7 @@ contract PendleVotingControllerUpg is
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (_isPoolActive(pools[i])) applyPoolSlopeChanges(pools[i]);
-        }
-
-        // Process weight-decrease pools first
-        for (uint256 i = 0; i < pools.length; ++i) {
-            if (uData.voteForPools[pools[i]].weight > weights[i])
-                _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
-        }
-
-        // Process weight-increase pools
-        for (uint256 i = 0; i < pools.length; ++i) {
-            if (uData.voteForPools[pools[i]].weight <= weights[i])
-                _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
+            _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
         }
 
         require(
