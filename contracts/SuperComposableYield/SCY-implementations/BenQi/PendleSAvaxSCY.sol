@@ -35,7 +35,7 @@ contract PendleSAvaxSCY is SCYBase {
     /**
      * @dev See {SCYBase-_deposit}
      *
-     * The underlying yield token is sAvax. Tokens accepted for deposit are NATIVE, WVAX, and sAVAX.
+     * The underlying yield token is sAvax. Tokens accepted for deposit are NATIVE, WAVAX, and sAVAX.
      *
      *If the base token deposited is native AVAX, the function converts it into sAVAX first. Then the corresponding amount of shares is returned.
      *

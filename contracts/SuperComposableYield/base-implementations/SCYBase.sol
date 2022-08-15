@@ -149,7 +149,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
     }
 
     /**
-     * @dev See {ISuperComposableYield-accruredRewards}
+     * @dev See {ISuperComposableYield-accruedRewards}
      */
     function accruedRewards(
         address /*user*/

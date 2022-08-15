@@ -26,7 +26,6 @@ contract PendleStargateSCY is SCYBaseWithRewards {
     ) SCYBaseWithRewards(_name, _symbol, _stgPool) {
         stgRouter = _stgRouter;
 
-        // I dont think we need safecast for a trusted call like this
         stgRouterPoolId = uint16(IStargatePool(_stgPool).poolId());
 
         stgStakingLP = _stgStakingLP;

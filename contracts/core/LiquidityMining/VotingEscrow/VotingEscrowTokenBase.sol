@@ -10,7 +10,7 @@ import "../../../libraries/helpers/MiniHelpers.sol";
  * @dev this contract is an abstract for its mainchain and sidechain variant
  * PRINCIPLE:
  *   - All functions implemented in this contract should be either view or pure
- *     to ensure that no writing logic is inheritted by sidechain version
+ *     to ensure that no writing logic is inherited by sidechain version
  *   - Mainchain version will handle the logic which are:
  *        + Deposit, withdraw, increase lock, increase amount
  *        + Mainchain logic will be ensured to have _totalSupply = linear sum of

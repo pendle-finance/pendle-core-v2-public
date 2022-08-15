@@ -17,7 +17,7 @@ import "../PendleERC20.sol";
 import "./InterestManagerYT.sol";
 
 /**
-Invariances to maintain:
+Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */

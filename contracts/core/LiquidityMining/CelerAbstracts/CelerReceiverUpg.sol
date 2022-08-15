@@ -41,7 +41,7 @@ abstract contract CelerReceiverUpg is ICelerMessageReceiverApp, PermissionsV2Upg
         bytes calldata _message,
         address /* executor */
     ) external payable onlyCelerOrGov returns (ExecutionStatus) {
-        // if the message sender is not celer bus, there is no harm to have the transcation failed
+        // if the message sender is not celer bus, there is no harm to have the transaction failed
         if (_sender != originAddress || _srcChainId != originChainId) {
             return ExecutionStatus.Fail;
         }

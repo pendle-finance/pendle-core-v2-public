@@ -69,8 +69,8 @@ contract PendleVotingControllerUpg is
     function vote(address[] calldata pools, uint64[] calldata weights) external {
         address user = msg.sender;
 
-        require(weights.length == pools.length, "invaid array length");
-        require(vePendle.balanceOf(user) > 0 || user == _governance(), "zero vependle balance");
+        require(weights.length == pools.length, "invalid array length");
+        require(vePendle.balanceOf(user) > 0 || user == _governance(), "zero vePENDLE balance");
 
         UserData storage uData = userData[user];
         LockedPosition memory userPosition = _getUserVePendlePosition(user);
@@ -200,7 +200,7 @@ contract PendleVotingControllerUpg is
     /**
      * @notice use the gov-privilege to force broadcast a message in case there are issues with Celer
      * @dev it's intentional for this function to have minimal checks since we assume gov has done the
-        due dilligence
+        due diligence
      * @dev gov should always call finalizeEpoch beforehand
      * @dev state changes expected:
         - the gaugeController receives the new pendle allocation

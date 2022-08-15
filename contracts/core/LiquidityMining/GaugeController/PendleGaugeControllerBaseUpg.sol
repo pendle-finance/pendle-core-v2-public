@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  * set it directly to contract state
  *
  * @dev All of the core data in this function will be set to private to prevent unintended assignments
- * on inheritting contracts
+ * on inheriting contracts
  */
 
 /// This contract is upgradable because

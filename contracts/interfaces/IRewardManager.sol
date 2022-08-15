@@ -5,5 +5,5 @@ interface IRewardManager {
     function userReward(address token, address user)
         external
         view
-        returns (uint128 index, uint128 accured);
+        returns (uint128 index, uint128 accrued);
 }

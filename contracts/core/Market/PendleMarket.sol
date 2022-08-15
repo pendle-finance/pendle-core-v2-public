@@ -16,8 +16,8 @@ import "../LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
-Invariances to maintain:
-- Internal balances totalPt & totalScy not interferred by people transferring tokens in directly
+Invariance to maintain:
+- Internal balances totalPt & totalScy not interfered by people transferring tokens in directly
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
