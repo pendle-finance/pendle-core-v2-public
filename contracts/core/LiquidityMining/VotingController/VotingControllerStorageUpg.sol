@@ -96,7 +96,7 @@ abstract contract VotingControllerStorageUpg {
         lengthOfRemovedPools = allRemovedPools.length();
         require(end < lengthOfRemovedPools, "end is out of bounds");
         arr = new address[](end - start + 1);
-        for (uint256 i = start; i <= end; i++) arr[i] = allRemovedPools.at(i);
+        for (uint256 i = start; i <= end; i++) arr[i - start] = allRemovedPools.at(i);
     }
 
     /// @dev trivial view function
