@@ -23,7 +23,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
     /// @dev For doPull: if doPull is true, this function will do transferFrom as necessary from msg.sender. Else, it will
     /// assume tokens have already been transferred in.
 
-    function _addLiquidity(
+    function _addLiquidityDualScyAndPt(
         address receiver,
         address market,
         uint256 scyDesired,
@@ -63,31 +63,88 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netLpOut >= minLpOut, "FS insufficient lp out");
     }
 
-    function _removeLiquidity(
+    function _addLiquidityDualIbTokenAndPt(
+        address receiver,
+        address market,
+        uint256 ibTokenDesired,
+        uint256 ptDesired,
+        uint256 minLpOut
+    )
+        internal
+        returns (
+            uint256 netLpOut,
+            uint256 ibTokenUsed,
+            uint256 ptUsed
+        )
+    {
+        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
+            .readTokens();
+
+        address ibToken = SCY.yieldToken();
+        uint256 scyDesired = SCY.previewDeposit(ibToken, ibTokenDesired);
+        uint256 scyUsed;
+
+        {
+            MarketState memory state = IPMarket(market).readState(false);
+            (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
+                YT.newIndex(),
+                scyDesired,
+                ptDesired,
+                block.timestamp
+            );
+        }
+
+        // early-check
+        require(netLpOut >= minLpOut, "insufficient lp out");
+
+        IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
+
+        // convert ibToken to SCY to deposit
+        ibTokenUsed = (ibTokenDesired * scyUsed).rawDivUp(scyDesired);
+
+        IERC20(ibToken).safeTransferFrom(msg.sender, address(this), ibTokenUsed);
+
+        _safeApproveInf(ibToken, address(SCY));
+
+        SCY.deposit(market, ibToken, ibTokenUsed, scyDesired);
+
+        netLpOut = IPMarket(market).mint(receiver);
+        // fail-safe
+        require(netLpOut >= minLpOut, "FS insufficient lp out");
+    }
+
+    function _removeLiquidityDualScyAndPt(
         address receiver,
         address market,
         uint256 lpToRemove,
         uint256 scyOutMin,
-        uint256 ptOutMin,
-        bool doPull
+        uint256 ptOutMin
     ) internal returns (uint256 netScyOut, uint256 netPtOut) {
-        MarketState memory state = IPMarket(market).readState(false);
-
-        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
-
-        // early-check
-        require(netScyOut >= scyOutMin, "insufficient SCY out");
-        require(netPtOut >= ptOutMin, "insufficient PT out");
-
-        if (doPull) {
-            IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
-        }
+        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
 
         (netScyOut, netPtOut) = IPMarket(market).burn(receiver, receiver);
 
-        // fail-safe
-        require(netScyOut >= scyOutMin, "FS insufficient SCY out");
-        require(netPtOut >= ptOutMin, "FS insufficient PT out");
+        require(netScyOut >= scyOutMin, "insufficient SCY out");
+        require(netPtOut >= ptOutMin, "insufficient PT out");
+    }
+
+    function _removeLiquidityDualIbTokenAndPt(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 ibTokenOutMin,
+        uint256 ptOutMin
+    ) internal returns (uint256 netIbTokenOut, uint256 netPtOut) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        address ibToken = SCY.yieldToken();
+
+        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+
+        (, netPtOut) = IPMarket(market).burn(address(SCY), receiver);
+
+        netIbTokenOut = SCY.redeemAfterTransfer(receiver, ibToken, ibTokenOutMin);
+
+        require(netPtOut >= ptOutMin, "insufficient PT out");
     }
 
     function _swapExactPtForScy(

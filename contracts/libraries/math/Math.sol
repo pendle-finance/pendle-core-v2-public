@@ -59,6 +59,10 @@ library Math {
         }
     }
 
+    function rawDivUp(uint256 a, uint256 b) internal pure returns (uint256) {
+        return (a + b - 1) / b;
+    }
+
     // @author Uniswap
     function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {
