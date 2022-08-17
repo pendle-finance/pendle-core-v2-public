@@ -201,7 +201,7 @@ abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
     ) internal returns (uint256 netTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        uint256 netScyOut = _swapExactYtForScy(receiver, market, netYtIn, 1, doPull);
+        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, netYtIn, 1, doPull);
 
         netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyOut, output, false);
     }
