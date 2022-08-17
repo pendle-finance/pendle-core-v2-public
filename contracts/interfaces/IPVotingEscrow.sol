@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 
 import "./IPVeToken.sol";
 import "../libraries/VeBalanceLib.sol";
+import "../libraries/VeHistoryLib.sol";
 
 interface IPVotingEscrow {
     event NewLockPosition(address indexed user, uint128 amount, uint128 expiry);
@@ -21,4 +22,13 @@ interface IPVotingEscrow {
         returns (uint128);
 
     function withdraw() external returns (uint128);
+
+    function totalSupplyAt(uint128 timestamp) external view returns (uint128);
+
+    function getUserHistoryLength(address user) external view returns (uint256);
+
+    function getUserHistoryAt(address user, uint256 index)
+        external
+        view
+        returns (Checkpoint memory);
 }

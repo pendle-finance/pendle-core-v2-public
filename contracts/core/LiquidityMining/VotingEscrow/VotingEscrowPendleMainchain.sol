@@ -151,9 +151,16 @@ contract VotingEscrowPendleMainchain is
         _broadcastPosition(user, chainIds);
     }
 
-    /// @notice binary search to find balance at a timestamp. This timestamp does not need to be divisible by week
-    function getUserVeBalanceAt(address user, uint128 timestamp) external view returns (uint128) {
-        return userHistory[user].getAtTimestamp(timestamp);
+    function getUserHistoryLength(address user) external view returns (uint256) {
+        return userHistory[user].length();
+    }
+
+    function getUserHistoryAt(address user, uint256 index)
+        external
+        view
+        returns (Checkpoint memory)
+    {
+        return userHistory[user].get(index);
     }
 
     function getBroadcastSupplyFee(uint256[] calldata chainIds)

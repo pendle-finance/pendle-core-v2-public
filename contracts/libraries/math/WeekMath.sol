@@ -16,4 +16,8 @@ library WeekMath {
     function isValidWTime(uint128 time) internal pure returns (bool) {
         return time % WEEK == 0;
     }
+
+    function isInTheSameEpoch(uint256 x, uint256 y) internal pure returns (bool) {
+        return x / WEEK == y / WEEK;
+    }
 }

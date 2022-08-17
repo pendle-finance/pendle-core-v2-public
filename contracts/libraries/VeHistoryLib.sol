@@ -4,42 +4,24 @@ pragma solidity ^0.8.0;
 
 import "./math/Math.sol";
 import "./VeBalanceLib.sol";
+import "./math/WeekMath.sol";
+
+struct Checkpoint {
+    uint128 timestamp;
+    VeBalance value;
+}
 
 library Checkpoints {
-    struct Checkpoint {
-        uint32 _timestamp;
-        VeBalance _value;
-    }
-
     struct History {
         Checkpoint[] _checkpoints;
     }
 
-    /**
-     * @dev Returns the value at a given block number. If a checkpoint is not available at that block, the closest one
-     * before it is returned, or zero otherwise.
-     */
-    function getAtTimestamp(History storage self, uint256 timestamp)
-        internal
-        view
-        returns (uint128)
-    {
-        require(timestamp < block.timestamp, "Checkpoints: block not yet mined");
+    function length(History storage self) internal view returns (uint256) {
+        return self._checkpoints.length;
+    }
 
-        uint256 high = self._checkpoints.length;
-        uint256 low = 0;
-        while (low < high) {
-            uint256 mid = (low + high) / 2;
-            if (self._checkpoints[mid]._timestamp > timestamp) {
-                high = mid;
-            } else {
-                low = mid + 1;
-            }
-        }
-        return
-            high == 0
-                ? 0
-                : VeBalanceLib.getValueAt(self._checkpoints[high - 1]._value, uint128(timestamp));
+    function get(History storage self, uint256 index) internal view returns (Checkpoint memory) {
+        return self._checkpoints[index];
     }
 
     /**
@@ -49,11 +31,14 @@ library Checkpoints {
      */
     function push(History storage self, VeBalance memory value) internal {
         uint256 pos = self._checkpoints.length;
-        if (pos > 0 && self._checkpoints[pos - 1]._timestamp == block.timestamp) {
-            self._checkpoints[pos - 1]._value = value;
+        if (
+            pos > 0 &&
+            WeekMath.isInTheSameEpoch(self._checkpoints[pos - 1].timestamp, block.timestamp)
+        ) {
+            self._checkpoints[pos - 1].value = value;
         } else {
             self._checkpoints.push(
-                Checkpoint({ _timestamp: uint32(block.timestamp), _value: value })
+                Checkpoint({ timestamp: uint128(block.timestamp), value: value })
             );
         }
     }

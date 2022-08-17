@@ -6,13 +6,14 @@ import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../libraries/VeHistoryLib.sol";
+import "../../../interfaces/IPVotingController.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /// This contract is upgradable because
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract VotingControllerStorageUpg {
+abstract contract VotingControllerStorageUpg is IPVotingControllerStorage {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -170,16 +171,16 @@ abstract contract VotingControllerStorageUpg {
         return userData[user].voteForPools[pool];
     }
 
-    /**
-     * @dev binary search to get the vote of an user on a pool at a specific timestamp
-     * @param timestamp can be any time, not necessary divisible by week
-     */
-    function getUserPoolVoteAt(
+    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256) {
+        return userPoolHistory[user][pool].length();
+    }
+
+    function getUserPoolHistoryAt(
         address user,
         address pool,
-        uint128 timestamp
-    ) external view returns (uint128) {
-        return userPoolHistory[user][pool].getAtTimestamp(timestamp);
+        uint256 index
+    ) external view returns (Checkpoint memory) {
+        return userPoolHistory[user][pool].get(index);
     }
 
     /*///////////////////////////////////////////////////////////////

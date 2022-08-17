@@ -1,6 +1,7 @@
 pragma solidity 0.8.15;
 
 import "../libraries/VeBalanceLib.sol";
+import "../libraries/VeHistoryLib.sol";
 
 interface IPVotingController {
     event AddPool(uint64 indexed chainId, address indexed pool);
@@ -16,4 +17,14 @@ interface IPVotingController {
         uint128 indexed wTime,
         uint128 totalPendlePerSec
     );
+}
+
+interface IPVotingControllerStorage {
+    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256);
+
+    function getUserPoolHistoryAt(
+        address user,
+        address pool,
+        uint256 index
+    ) external view returns (Checkpoint memory);
 }
