@@ -139,6 +139,14 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         IBenQiComptroller(comptroller).claimReward(0, holders, qiTokens, false, true);
         IBenQiComptroller(comptroller).claimReward(1, holders, qiTokens, false, true);
 
+        require(
+            Math.max(
+                IBenQiComptroller(comptroller).rewardAccrued(0, address(this)),
+                IBenQiComptroller(comptroller).rewardAccrued(1, address(this))
+            ) == 0,
+            "BENQI: redeem reward failed"
+        );
+
         if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance }();
     }
 

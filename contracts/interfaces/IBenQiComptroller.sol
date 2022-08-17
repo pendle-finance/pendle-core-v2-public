@@ -32,4 +32,6 @@ interface IBenQiComptroller {
     ) external;
 
     function qiAddress() external view returns (address);
+
+    function rewardAccrued(uint8 rewardType, address user) external view returns (uint256);
 }
