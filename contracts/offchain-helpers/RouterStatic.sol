@@ -139,7 +139,7 @@ contract RouterStatic is IPRouterStatic {
 
     // ============= MARKET ACTIONS =============
 
-    function addLiquidityStatic(
+    function addLiquidityDualScyAndPtStatic(
         address market,
         uint256 scyDesired,
         uint256 ptDesired
@@ -158,6 +158,35 @@ contract RouterStatic is IPRouterStatic {
             ptDesired,
             block.timestamp
         );
+    }
+
+    function addLiquidityDualIbTokenAndPtStatic(
+        address market,
+        uint256 ibTokenDesired,
+        uint256 ptDesired
+    )
+        external
+        returns (
+            uint256 netLpOut,
+            uint256 ibTokenUsed,
+            uint256 ptUsed
+        )
+    {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        address ibToken = SCY.yieldToken();
+        uint256 scyDesired = SCY.previewDeposit(ibToken, ibTokenDesired);
+        uint256 scyUsed;
+
+        MarketState memory state = IPMarket(market).readState(false);
+        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
+            pyIndex(market),
+            scyDesired,
+            ptDesired,
+            block.timestamp
+        );
+
+        ibTokenUsed = (ibTokenDesired * scyUsed).rawDivUp(scyDesired);
     }
 
     function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
@@ -197,13 +226,20 @@ contract RouterStatic is IPRouterStatic {
         require(false, "NOT IMPLEMENTED");
     }
 
-    function removeLiquidityStatic(address market, uint256 lpToRemove)
+    function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
         external
         view
-        returns (uint256 netScyOut, uint256 netPtOut)
+        returns (uint256 netIbTokenOut, uint256 netPtOut)
     {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        address ibToken = SCY.yieldToken();
+
+        uint256 netScyOut;
         MarketState memory state = IPMarket(market).readState(false);
         (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
+
+        netIbTokenOut = SCY.previewRedeem(ibToken, netScyOut);
     }
 
     function removeLiquiditySinglePtStatic(address market, uint256 lpToRemove)

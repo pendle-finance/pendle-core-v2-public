@@ -86,7 +86,7 @@ interface IPRouterStatic {
 
     // ============= MARKET ACTIONS =============
 
-    function addLiquidityStatic(
+    function addLiquidityDualScyAndPtStatic(
         address market,
         uint256 scyDesired,
         uint256 ptDesired
@@ -98,7 +98,7 @@ interface IPRouterStatic {
             uint256 ptUsed
         );
 
-    function removeLiquidityStatic(address market, uint256 lpToRemove)
+    function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
         external
         view
         returns (uint256 netScyOut, uint256 netPtOut);
