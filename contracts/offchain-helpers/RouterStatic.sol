@@ -229,6 +229,15 @@ contract RouterStatic is IPRouterStatic {
     function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
         external
         view
+        returns (uint256 netScyOut, uint256 netPtOut)
+    {
+        MarketState memory state = IPMarket(market).readState(false);
+        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
+    }
+
+    function removeLiquidityDualIbTokenAndPtStatic(address market, uint256 lpToRemove)
+        external
+        view
         returns (uint256 netIbTokenOut, uint256 netPtOut)
     {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
