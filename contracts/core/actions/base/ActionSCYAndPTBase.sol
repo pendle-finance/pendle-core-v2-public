@@ -63,25 +63,25 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netLpOut >= minLpOut, "FS insufficient lp out");
     }
 
-    function _addLiquidityDualIbTokenAndPt(
+    function _addLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        uint256 ibTokenDesired,
+        address tokenIn,
+        uint256 tokenDesired,
         uint256 ptDesired,
         uint256 minLpOut
     )
         internal
         returns (
             uint256 netLpOut,
-            uint256 ibTokenUsed,
+            uint256 tokenUsed,
             uint256 ptUsed
         )
     {
         (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
             .readTokens();
 
-        address ibToken = SCY.yieldToken();
-        uint256 scyDesired = SCY.previewDeposit(ibToken, ibTokenDesired);
+        uint256 scyDesired = SCY.previewDeposit(tokenIn, tokenDesired);
         uint256 scyUsed;
 
         {
@@ -99,14 +99,14 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
 
         IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
 
-        // convert ibToken to SCY to deposit
-        ibTokenUsed = (ibTokenDesired * scyUsed).rawDivUp(scyDesired);
+        // convert tokenIn to SCY to deposit
+        tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
 
-        IERC20(ibToken).safeTransferFrom(msg.sender, address(this), ibTokenUsed);
+        IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), tokenUsed);
 
-        _safeApproveInf(ibToken, address(SCY));
+        _safeApproveInf(tokenIn, address(SCY));
 
-        SCY.deposit(market, ibToken, ibTokenUsed, scyDesired);
+        SCY.deposit(market, tokenIn, tokenUsed, scyDesired);
 
         netLpOut = IPMarket(market).mint(receiver);
         // fail-safe
@@ -128,21 +128,21 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netPtOut >= ptOutMin, "insufficient PT out");
     }
 
-    function _removeLiquidityDualIbTokenAndPt(
+    function _removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 ibTokenOutMin,
+        address tokenOut,
+        uint256 tokenOutMin,
         uint256 ptOutMin
-    ) internal returns (uint256 netIbTokenOut, uint256 netPtOut) {
+    ) internal returns (uint256 netTokenOut, uint256 netPtOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-        address ibToken = SCY.yieldToken();
 
         IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
 
         (, netPtOut) = IPMarket(market).burn(address(SCY), receiver);
 
-        netIbTokenOut = SCY.redeemAfterTransfer(receiver, ibToken, ibTokenOutMin);
+        netTokenOut = SCY.redeemAfterTransfer(receiver, tokenOut, tokenOutMin);
 
         require(netPtOut >= ptOutMin, "insufficient PT out");
     }

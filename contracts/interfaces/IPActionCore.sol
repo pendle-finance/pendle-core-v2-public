@@ -14,11 +14,12 @@ interface IPActionCore {
         uint256 lpOut
     );
 
-    event AddLiquidityDualIbTokenAndPt(
+    event AddLiquidityDualTokenAndPt(
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 ibTokenUsed,
+        address tokenIn,
+        uint256 tokenUsed,
         uint256 ptUsed,
         uint256 lpOut
     );
@@ -27,7 +28,7 @@ interface IPActionCore {
         address indexed caller,
         address indexed market,
         address receiver,
-        uint256 lpIn,
+        uint256 netlpIn,
         uint256 amountPTOut,
         uint256 amountSCYOut
     );
@@ -124,18 +125,18 @@ interface IPActionCore {
             uint256 ptUsed
         );
 
-    /// @dev refer to the internal function
-    function addLiquidityDualIbTokenAndPt(
+    function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        uint256 ibTokenDesired,
+        address tokenIn,
+        uint256 tokenDesired,
         uint256 ptDesired,
         uint256 minLpOut
     )
         external
         returns (
             uint256 netLpOut,
-            uint256 ibTokenUsed,
+            uint256 tokenUsed,
             uint256 ptUsed
         );
 
@@ -171,14 +172,14 @@ interface IPActionCore {
         uint256 ptOutMin
     ) external returns (uint256 netScyOut, uint256 netPtOut);
 
-    /// @dev refer to the internal function
-    function removeLiquidityDualIbTokenAndPt(
+    function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 ibTokenMin,
+        address tokenOut,
+        uint256 tokenOutMin,
         uint256 ptOutMin
-    ) external returns (uint256 netIbTokenOut, uint256 netPtOut);
+    ) external returns (uint256 netTokenOut, uint256 netPtOut);
 
     function removeLiquiditySinglePt(
         address receiver,

@@ -44,32 +44,35 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     }
 
     /// @dev refer to the internal function
-    function addLiquidityDualIbTokenAndPt(
+    function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        uint256 ibTokenDesired,
+        address tokenIn,
+        uint256 tokenDesired,
         uint256 ptDesired,
         uint256 minLpOut
     )
         external
         returns (
             uint256 netLpOut,
-            uint256 ibTokenUsed,
+            uint256 tokenUsed,
             uint256 ptUsed
         )
     {
-        (netLpOut, ibTokenUsed, ptUsed) = _addLiquidityDualIbTokenAndPt(
+        (netLpOut, tokenUsed, ptUsed) = _addLiquidityDualTokenAndPt(
             receiver,
             market,
-            ibTokenDesired,
+            tokenIn,
+            tokenDesired,
             ptDesired,
             minLpOut
         );
-        emit AddLiquidityDualIbTokenAndPt(
+        emit AddLiquidityDualTokenAndPt(
             msg.sender,
             market,
             receiver,
-            ibTokenDesired,
+            tokenIn,
+            tokenDesired,
             ptUsed,
             netLpOut
         );
@@ -131,18 +134,20 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
     }
 
     /// @dev refer to the internal function
-    function removeLiquidityDualIbTokenAndPt(
+    function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
         uint256 lpToRemove,
-        uint256 ibTokenMin,
+        address tokenOut,
+        uint256 tokenOutMin,
         uint256 ptOutMin
-    ) external returns (uint256 netIbTokenOut, uint256 netPtOut) {
-        (netIbTokenOut, netPtOut) = _removeLiquidityDualIbTokenAndPt(
+    ) external returns (uint256 netTokenOut, uint256 netPtOut) {
+        (netTokenOut, netPtOut) = _removeLiquidityDualTokenAndPt(
             receiver,
             market,
             lpToRemove,
-            ibTokenMin,
+            tokenOut,
+            tokenOutMin,
             ptOutMin
         );
         emit RemoveLiquidityDualIbTokenAndPt(
@@ -151,7 +156,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
             receiver,
             lpToRemove,
             netPtOut,
-            netIbTokenOut
+            netTokenOut
         );
     }
 
