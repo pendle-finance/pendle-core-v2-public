@@ -73,7 +73,7 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         setTreasury(_treasury);
     }
 
-    function initialize(bytes memory _pendleYtCreationCode) external initializer {
+    function initialize(bytes memory _pendleYtCreationCode) external initializer onlyGovernance {
         pendleYtCreationCodePointer = SSTORE2Deployer.setCreationCode(_pendleYtCreationCode);
     }
 

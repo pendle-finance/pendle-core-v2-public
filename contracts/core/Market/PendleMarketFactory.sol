@@ -62,7 +62,7 @@ contract PendleMarketFactory is PermissionsV2Upg, Initializable, IPMarketFactory
         address newVePendle,
         address newGaugeController,
         bytes memory _marketCreationCode
-    ) external onlyGovernance initializer {
+    ) external initializer onlyGovernance {
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
