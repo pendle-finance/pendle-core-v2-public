@@ -65,7 +65,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         address[] memory rewardTokens = _getRewardTokens();
         rewardAmounts = new uint256[](rewardTokens.length);
         for (uint256 i = 0; i < rewardTokens.length; ) {
-            rewardAmounts[i] = userReward[user][rewardTokens[i]].accrued;
+            rewardAmounts[i] = userReward[rewardTokens[i]][user].accrued;
             unchecked {
                 i++;
             }
