@@ -184,9 +184,12 @@ library MarketApproxLib {
         VarsSwapExactScyForYt memory vars;
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
+        vars.maxAssetIn = index.scyToAsset(maxScyIn);
+
         if (approx.guessMax == type(uint256).max) approx.guessMax = calcMaxPtIn(comp.totalAsset);
 
-        vars.maxAssetIn = index.scyToAsset(maxScyIn);
+        // at minimum we will flashswap maxAssetIn since we have enough SCY to payback the PT loan
+        if (approx.guessMin == 0) approx.guessMin = vars.maxAssetIn;
 
         for (uint256 iter = 0; iter < approx.maxIteration; ) {
             // ytOutGuess = ptInGuess
