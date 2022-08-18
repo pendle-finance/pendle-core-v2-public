@@ -106,7 +106,7 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
 
         _safeApproveInf(tokenIn, address(SCY));
 
-        SCY.deposit(market, tokenIn, tokenUsed, scyDesired);
+        SCY.deposit(market, tokenIn, tokenUsed, scyUsed);
 
         netLpOut = IPMarket(market).mint(receiver);
         // fail-safe
