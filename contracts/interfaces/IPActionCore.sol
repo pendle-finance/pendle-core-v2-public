@@ -134,6 +134,7 @@ interface IPActionCore {
         uint256 minLpOut
     )
         external
+        payable
         returns (
             uint256 netLpOut,
             uint256 tokenUsed,
@@ -162,7 +163,7 @@ interface IPActionCore {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy,
         TokenInput calldata input
-    ) external returns (uint256 netLpOut);
+    ) external payable returns (uint256 netLpOut);
 
     function removeLiquidityDualScyAndPt(
         address receiver,
@@ -238,7 +239,7 @@ interface IPActionCore {
         address SCY,
         uint256 minScyOut,
         TokenInput calldata input
-    ) external returns (uint256 netScyOut);
+    ) external payable returns (uint256 netScyOut);
 
     function redeemScyToToken(
         address receiver,
@@ -252,7 +253,7 @@ interface IPActionCore {
         address YT,
         uint256 minPyOut,
         TokenInput calldata input
-    ) external returns (uint256 netPyOut);
+    ) external payable returns (uint256 netPyOut);
 
     function redeemPyToToken(
         address receiver,
@@ -281,7 +282,7 @@ interface IPActionCore {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut,
         TokenInput calldata input
-    ) external returns (uint256 netPtOut);
+    ) external payable returns (uint256 netPtOut);
 
     function swapExactPtForToken(
         address receiver,

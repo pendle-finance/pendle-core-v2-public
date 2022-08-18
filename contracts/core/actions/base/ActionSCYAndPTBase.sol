@@ -102,11 +102,16 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         // convert tokenIn to SCY to deposit
         tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
 
-        IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), tokenUsed);
+        _transferIn(tokenIn, msg.sender, tokenUsed);
 
         _safeApproveInf(tokenIn, address(SCY));
 
-        SCY.deposit(market, tokenIn, tokenUsed, scyUsed);
+        SCY.deposit{ value: tokenIn == NATIVE ? msg.value : 0 }(
+            market,
+            tokenIn,
+            tokenUsed,
+            scyUsed
+        );
 
         netLpOut = IPMarket(market).mint(receiver);
         // fail-safe

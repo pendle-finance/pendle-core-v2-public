@@ -69,7 +69,7 @@ contract ActionYT is IPActionYT, ActionSCYAndYTBase {
         uint256 minYtOut,
         ApproxParams memory guessYtOut,
         TokenInput calldata input
-    ) external returns (uint256 netYtOut) {
+    ) external payable returns (uint256 netYtOut) {
         netYtOut = _swapExactTokenForYt(receiver, market, minYtOut, guessYtOut, input);
         emit SwapYTAndToken(
             receiver,

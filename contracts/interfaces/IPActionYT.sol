@@ -56,7 +56,7 @@ interface IPActionYT {
         uint256 minYtOut,
         ApproxParams memory guessYtOut,
         TokenInput calldata input
-    ) external returns (uint256 netYtOut);
+    ) external payable returns (uint256 netYtOut);
 
     function swapExactYtForToken(
         address receiver,

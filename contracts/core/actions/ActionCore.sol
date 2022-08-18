@@ -53,6 +53,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut
     )
         external
+        payable
         returns (
             uint256 netLpOut,
             uint256 tokenUsed,
@@ -104,7 +105,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy,
         TokenInput calldata input
-    ) external returns (uint256 netLpOut) {
+    ) external payable returns (uint256 netLpOut) {
         require(false, "NOT IMPLEMENTED");
     }
 
@@ -240,7 +241,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address SCY,
         uint256 minScyOut,
         TokenInput calldata input
-    ) external returns (uint256 netScyOut) {
+    ) external payable returns (uint256 netScyOut) {
         netScyOut = _mintScyFromToken(receiver, SCY, minScyOut, input);
 
         emit MintScyFromToken(
@@ -270,7 +271,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         address YT,
         uint256 minPyOut,
         TokenInput calldata input
-    ) external returns (uint256 netPyOut) {
+    ) external payable returns (uint256 netPyOut) {
         netPyOut = _mintPyFromToken(receiver, YT, minPyOut, input);
         emit MintPyFromToken(msg.sender, receiver, YT, input.tokenIn, input.netTokenIn, netPyOut);
     }
@@ -313,7 +314,7 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut,
         TokenInput calldata input
-    ) external returns (uint256 netPtOut) {
+    ) external payable returns (uint256 netPtOut) {
         netPtOut = _swapExactTokenForPt(receiver, market, minPtOut, guessPtOut, input);
 
         emit SwapPtAndToken(
