@@ -682,4 +682,20 @@ contract RouterStatic is IPRouterStatic {
             userPYInfo.unclaimedInterest.amount > 0 ||
             userPYInfo.unclaimedRewards.length > 0);
     }
+
+    // either but not both pyToken or market must be != 0
+    function getTokensInOut(address pyToken, address market)
+        public
+        view
+        returns (address[] memory tokensIn, address[] memory tokensOut)
+    {
+        if (pyToken != address(0)) {
+            // SCY interface is shared between pt & yt
+            ISuperComposableYield SCY = ISuperComposableYield(IPPrincipalToken(pyToken).SCY());
+            return (SCY.getTokensIn(), SCY.getTokensOut());
+        } else {
+            (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+            return (SCY.getTokensIn(), SCY.getTokensOut());
+        }
+    }
 }
