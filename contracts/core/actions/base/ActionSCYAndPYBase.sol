@@ -33,9 +33,16 @@ abstract contract ActionSCYAndPYBase is TokenHelper, KyberSwapHelper {
         }
 
         _safeApproveInf(input.tokenMintScy, SCY);
-        netScyOut = ISuperComposableYield(SCY).deposit{
-            value: input.tokenIn == NATIVE ? _selfBalance(input.tokenMintScy) : 0
-        }(receiver, input.tokenMintScy, _selfBalance(input.tokenMintScy), minScyOut);
+
+        uint256 tokenMintScyBal = _selfBalance(input.tokenMintScy);
+        uint256 nativeAmountToAttach = input.tokenMintScy == NATIVE ? tokenMintScyBal : 0;
+
+        netScyOut = ISuperComposableYield(SCY).deposit{ value: nativeAmountToAttach }(
+            receiver,
+            input.tokenMintScy,
+            tokenMintScyBal,
+            minScyOut
+        );
     }
 
     /**
