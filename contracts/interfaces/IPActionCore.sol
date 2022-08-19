@@ -40,10 +40,19 @@ interface IPActionCore {
         uint256 netLpOut
     );
 
+    event AddLiquiditySingleToken(
+        address indexed caller,
+        address indexed market,
+        address indexed token,
+        address receiver,
+        uint256 netTokenIn,
+        uint256 netLpOut
+    );
+
     event RemoveLiquidityDualScyAndPt(
         address indexed caller,
         address indexed market,
-        address receiver,
+        address indexed receiver,
         uint256 netlpIn,
         uint256 amountPTOut,
         uint256 amountSCYOut
@@ -52,7 +61,7 @@ interface IPActionCore {
     event RemoveLiquidityDualIbTokenAndPt(
         address indexed caller,
         address indexed market,
-        address receiver,
+        address indexed receiver,
         uint256 lpIn,
         uint256 amountPTOut,
         uint256 amountIbTokenOut
@@ -61,17 +70,26 @@ interface IPActionCore {
     event RemoveLiquiditySinglePt(
         address indexed caller,
         address indexed market,
-        address receiver,
-        uint256 lpToRemove, 
+        address indexed receiver,
+        uint256 lpToRemove,
         uint256 netPtOut
     );
 
     event RemoveLiquiditySingleScy(
         address indexed caller,
         address indexed market,
+        address indexed receiver,
+        uint256 lpToRemove,
+        uint256 netScyOut
+    );
+
+    event RemoveLiquiditySingleToken(
+        address indexed caller,
+        address indexed market,
+        address indexed token,
         address receiver,
-        uint256 scyToRemove, 
-        uint256 netPtOut
+        uint256 lpToRemove,
+        uint256 netTokenOut
     );
 
     event SwapPtAndScy(

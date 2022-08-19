@@ -175,6 +175,29 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netLpOut >= minLpOut, "insufficient lp out");
     }
 
+    function _addLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtReceivedFromScy,
+        TokenInput calldata input
+    ) internal returns (uint256 netLpOut) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        // all output SCY is transferred directly to the market
+        uint256 netScyUsed = _mintScyFromToken(address(market), address(SCY), 1, input);
+
+        // SCY is already in the market, hence doPull = false
+        netLpOut = _addLiquiditySingleScy(
+            receiver,
+            market,
+            netScyUsed,
+            minLpOut,
+            guessPtReceivedFromScy,
+            false
+        );
+    }
+
     function _removeLiquidityDualScyAndPt(
         address receiver,
         address market,
@@ -267,6 +290,21 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
 
         require(scyFromBurn + scyFromSwap >= minScyOut, "insufficient lp out");
         return scyFromBurn + scyFromSwap;
+    }
+
+    function _removeLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        TokenOutput calldata output
+    ) internal returns (uint256 netTokenOut) {
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        // all output SCY is directly transferred to the SCY contract
+        uint256 netScyReceived = _removeLiquiditySingleScy(address(SCY), market, lpToRemove, 1);
+
+        // since all SCY is already at the SCY contract, doPull = false
+        netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyReceived, output, false);
     }
 
     function _swapExactPtForScy(

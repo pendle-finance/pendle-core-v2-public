@@ -416,6 +416,8 @@ library MarketApproxLib {
         uint256 newTotalPt;
         uint256 newTotalAsset;
         uint256 largestGoodSlope;
+        uint256 assetNumerator;
+        uint256 ptNumerator;
         bool isSlopeNonNeg;
     }
 
@@ -434,12 +436,24 @@ library MarketApproxLib {
             uint256 /*netScyToReserve*/
         )
     {
+        /*
+        The algorithm is essentially to:
+        1. Binary search netPtIn (therefore netScyOut)
+        2. Swap netPtIn for netScyOut
+        3. Use (netPtAdded - netPtIn) and netScyOut to mint LP
+        4. If (netPtAdded - netPtIn) / netScyOut ratio is close enough to the market's PT/SCY ratio
+        => answer found
+
+        Note that market maintains PT/SCY ratio, but here PT/asset is used instead
+        */
+
         require(market.totalLp != 0, "no existing lp");
 
         VarsSwapPtToAddLiquidity memory vars;
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
 
         if (approx.guessMax == type(uint256).max) {
+            // ensures that netPtIn is always valid and not greater than netPtAdded
             approx.guessMax = Math.min(calcMaxPtIn(comp.totalAsset), netPtAdded);
         }
 
@@ -470,13 +484,15 @@ library MarketApproxLib {
             vars.newTotalAsset = (comp.totalAsset - vars.assetToAccount - vars.assetToReserve)
                 .Uint();
 
-            if (
-                Math.isAApproxB(
-                    vars.netAssetOut * vars.newTotalPt,
-                    vars.netPtRemaining * vars.newTotalAsset,
-                    approx.eps
-                )
-            ) {
+            // it is desired that
+            // netAssetOut / newTotalAsset = netPtRemaining / newTotalPt
+            // which is equivalent to
+            // netAssetOut * newTotalPt = netPtRemaining * newTotalAsset
+
+            vars.assetNumerator = vars.netAssetOut * vars.newTotalPt;
+            vars.ptNumerator = vars.netPtRemaining * vars.newTotalAsset;
+
+            if (Math.isAApproxB(vars.assetNumerator, vars.ptNumerator, approx.eps)) {
                 return (
                     vars.netPtInGuess,
                     index.assetToScy(vars.netAssetOut),
@@ -484,9 +500,11 @@ library MarketApproxLib {
                 );
             }
 
-            if (vars.netAssetOut * vars.newTotalPt <= vars.netPtRemaining * vars.newTotalAsset) {
+            if (vars.assetNumerator <= vars.ptNumerator) {
+                // needs more asset --> swap more PT
                 approx.guessMin = vars.netPtInGuess + 1;
             } else {
+                // needs less asset --> swap less PT
                 approx.guessMax = vars.netPtInGuess - 1;
             }
 
@@ -506,6 +524,8 @@ library MarketApproxLib {
         uint256 netAssetRemaining;
         uint256 newTotalPt;
         uint256 newTotalAsset;
+        uint256 ptNumerator;
+        uint256 assetNumerator;
     }
 
     function approxSwapScyToAddLiquidity(
@@ -523,6 +543,16 @@ library MarketApproxLib {
             uint256 /*netScyToReserve*/
         )
     {
+        /*
+        The algorithm is essentially to:
+        1. Binary search netPtOut (therefore netScyIn)
+        2. Swap netScyIn for netPtOut
+        3. Use netPtOut and (netScyAdded - netScyIn) to mint LP
+        4. If netPtOut / (netScyAdded - netScyIn) ratio is close enough to the market's PT/SCY ratio
+        => answer found
+
+        Note that market maintains PT/SCY ratio, but here PT/asset is used instead
+        */
         require(market.totalLp != 0, "no existing lp");
 
         VarsSwapScyToAddLiquidity memory vars;
@@ -557,13 +587,15 @@ library MarketApproxLib {
             vars.newTotalAsset = (comp.totalAsset - vars.assetToAccount - vars.assetToReserve)
                 .Uint();
 
-            if (
-                Math.isAApproxB(
-                    vars.ptOutGuess * vars.newTotalAsset,
-                    vars.netAssetRemaining * vars.newTotalPt,
-                    approx.eps
-                )
-            ) {
+            // it is desired that
+            // ptOutGuess / newTotalPt = netAssetRemaining / newTotalAsset
+            // which is equivalent to
+            // ptOutGuess * newTotalAsset = netAssetRemaining * newTotalPt
+
+            vars.ptNumerator = vars.ptOutGuess * vars.newTotalAsset;
+            vars.assetNumerator = vars.netAssetRemaining * vars.newTotalPt;
+
+            if (Math.isAApproxB(vars.ptNumerator, vars.assetNumerator, approx.eps)) {
                 return (
                     vars.ptOutGuess,
                     index.assetToScy(vars.netAssetIn),
@@ -571,9 +603,11 @@ library MarketApproxLib {
                 );
             }
 
-            if (vars.ptOutGuess * vars.newTotalAsset <= vars.netAssetRemaining * vars.newTotalPt) {
+            if (vars.ptNumerator <= vars.assetNumerator) {
+                // needs more PT
                 approx.guessMin = vars.ptOutGuess + 1;
             } else {
+                // needs less PT
                 approx.guessMax = vars.ptOutGuess - 1;
             }
 

@@ -86,7 +86,14 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut,
         ApproxParams calldata guessPtSwapToScy
     ) external returns (uint256 netLpOut) {
-        netLpOut = _addLiquiditySinglePt(receiver, market, netPtIn, minLpOut, guessPtSwapToScy, true);
+        netLpOut = _addLiquiditySinglePt(
+            receiver,
+            market,
+            netPtIn,
+            minLpOut,
+            guessPtSwapToScy,
+            true
+        );
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
 
@@ -97,7 +104,14 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy
     ) external returns (uint256 netLpOut) {
-        netLpOut = _addLiquiditySingleScy(receiver, market, netScyIn, minLpOut, guessPtReceivedFromScy, true);
+        netLpOut = _addLiquiditySingleScy(
+            receiver,
+            market,
+            netScyIn,
+            minLpOut,
+            guessPtReceivedFromScy,
+            true
+        );
         emit AddLiquiditySingleScy(msg.sender, market, receiver, netScyIn, netLpOut);
     }
 
@@ -108,7 +122,21 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         ApproxParams calldata guessPtReceivedFromScy,
         TokenInput calldata input
     ) external payable returns (uint256 netLpOut) {
-        require(false, "NOT IMPLEMENTED");
+        netLpOut = _addLiquiditySingleToken(
+            receiver,
+            market,
+            minLpOut,
+            guessPtReceivedFromScy,
+            input
+        );
+        emit AddLiquiditySingleToken(
+            msg.sender,
+            market,
+            input.tokenIn,
+            receiver,
+            input.netTokenIn,
+            netLpOut
+        );
     }
 
     /// @dev refer to the internal function
@@ -190,7 +218,15 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 lpToRemove,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut) {
-        require(false, "NOT IMPLEMENTED");
+        netTokenOut = _removeLiquiditySingleToken(receiver, market, lpToRemove, output);
+        emit RemoveLiquiditySingleToken(
+            msg.sender,
+            market,
+            output.tokenOut,
+            receiver,
+            lpToRemove,
+            netTokenOut
+        );
     }
 
     /// @dev refer to the internal function

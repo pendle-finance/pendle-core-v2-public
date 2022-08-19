@@ -223,7 +223,7 @@ contract RouterStatic is IPRouterStatic {
     }
 
     function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
-        external
+        public
         returns (
             uint256 netLpOut,
             uint256 netScyFee,
@@ -267,7 +267,9 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+
+        return addLiquiditySingleScyStatic(market, SCY.previewDeposit(baseToken, netBaseTokenIn));
     }
 
     function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
@@ -317,7 +319,7 @@ contract RouterStatic is IPRouterStatic {
     }
 
     function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
-        external
+        public
         returns (
             uint256 netScyOut,
             uint256 netScyFee,
@@ -350,7 +352,11 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        uint256 netScyOut;
+        (netScyOut, netScyFee, priceImpact) = removeLiquiditySingleScyStatic(market, lpToRemove);
+
+        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
     }
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
