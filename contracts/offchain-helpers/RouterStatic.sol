@@ -197,7 +197,29 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
+            pyIndex(market),
+            netPtIn,
+            block.timestamp,
+            approxParams
+        );
+
+        uint256 netScyReceived;
+        (netScyReceived, netScyFee) = state.swapExactPtForScy(
+            pyIndex(market),
+            netPtSwap,
+            block.timestamp
+        );
+        (, netLpOut, , ) = state.addLiquidity(
+            pyIndex(market),
+            netScyReceived,
+            netPtIn - netPtSwap,
+            block.timestamp
+        );
+
+        priceImpact = calcPriceImpact(market, netPtSwap.neg());
     }
 
     function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
@@ -208,7 +230,29 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
+            pyIndex(market),
+            netScyIn,
+            block.timestamp,
+            approxParams
+        );
+
+        uint256 netScySwap;
+        (netScySwap, netScyFee) = state.swapScyForExactPt(
+            pyIndex(market),
+            netPtReceived,
+            block.timestamp
+        );
+        (, netLpOut, , ) = state.addLiquidity(
+            pyIndex(market),
+            netScyIn - netScySwap,
+            netPtReceived,
+            block.timestamp
+        );
+
+        priceImpact = calcPriceImpact(market, netPtReceived.Int());
     }
 
     function addLiquiditySingleBaseTokenStatic(
@@ -257,7 +301,19 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        uint256 ptFromSwap;
+        (ptFromSwap, , netScyFee) = state.approxSwapExactScyForPt(
+            pyIndex(market),
+            scyFromBurn,
+            block.timestamp,
+            approxParams
+        );
+
+        netPtOut = ptFromBurn + ptFromSwap;
+        priceImpact = calcPriceImpact(market, ptFromSwap.Int());
     }
 
     function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
@@ -268,7 +324,18 @@ contract RouterStatic is IPRouterStatic {
             uint256 priceImpact
         )
     {
-        require(false, "NOT IMPLEMENTED");
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        uint256 scyFromSwap;
+        (scyFromSwap, netScyFee) = state.swapExactPtForScy(
+            pyIndex(market),
+            ptFromBurn,
+            block.timestamp
+        );
+
+        netScyOut = scyFromBurn + scyFromSwap;
+        priceImpact = calcPriceImpact(market, ptFromBurn.neg());
     }
 
     function removeLiquiditySingleBaseTokenStatic(

@@ -117,6 +117,64 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         require(netLpOut >= minLpOut, "FS insufficient lp out");
     }
 
+    function _addLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtSwapToScy,
+        bool doPull
+    ) internal returns (uint256 netLpOut) {
+        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
+
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
+            YT.newIndex(),
+            netPtIn,
+            block.timestamp,
+            guessPtSwapToScy
+        );
+
+        if (doPull) {
+            IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
+        }
+
+        IPMarket(market).swapExactPtForScy(market, netPtSwap, EMPTY_BYTES); // ignore return, receiver = market
+        netLpOut = IPMarket(market).mint(receiver);
+
+        require(netLpOut >= minLpOut, "insufficient lp out");
+    }
+
+    function _addLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 netScyIn,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtReceivedFromScy,
+        bool doPull
+    ) internal returns (uint256 netLpOut) {
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
+            YT.newIndex(),
+            netScyIn,
+            block.timestamp,
+            guessPtReceivedFromScy
+        );
+
+        if (doPull) {
+            IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
+        }
+
+        IPMarket(market).swapScyForExactPt(market, netPtReceived, EMPTY_BYTES); // ignore return, receiver = market
+        netLpOut = IPMarket(market).mint(receiver);
+
+        require(netLpOut >= minLpOut, "insufficient lp out");
+    }
+
     function _removeLiquidityDualScyAndPt(
         address receiver,
         address market,
@@ -149,6 +207,66 @@ abstract contract ActionSCYAndPTBase is ActionSCYAndPYBase {
         netTokenOut = SCY.redeemAfterTransfer(receiver, tokenOut, tokenOutMin);
 
         require(netPtOut >= ptOutMin, "insufficient PT out");
+    }
+
+    function _removeLiquiditySinglePt(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minPtOut,
+        ApproxParams calldata guessPtOut
+    )
+        internal
+        returns (
+            uint256 /*netPtOut*/
+        )
+    {
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+
+        MarketState memory state = IPMarket(market).readState(false);
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        (uint256 ptFromSwap, , ) = state.approxSwapExactScyForPt(
+            YT.newIndex(),
+            scyFromBurn,
+            block.timestamp,
+            guessPtOut
+        );
+
+        // early-check
+        require(ptFromBurn + ptFromSwap >= minPtOut, "insufficient lp out");
+
+        (, ptFromBurn) = IPMarket(market).burn(market, receiver);
+        IPMarket(market).swapScyForExactPt(receiver, ptFromSwap, EMPTY_BYTES); // ignore return
+
+        // fail-safe
+        require(ptFromBurn + ptFromSwap >= minPtOut, "FS insufficient lp out");
+        return ptFromBurn + ptFromSwap;
+    }
+
+    function _removeLiquiditySingleScy(
+        address receiver,
+        address market,
+        uint256 lpToRemove,
+        uint256 minScyOut
+    )
+        internal
+        returns (
+            uint256 /*netScyOut*/
+        )
+    {
+        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+
+        (uint256 scyFromBurn, uint256 ptFromBurn) = IPMarket(market).burn(receiver, market);
+        (uint256 scyFromSwap, ) = IPMarket(market).swapExactPtForScy(
+            receiver,
+            ptFromBurn,
+            EMPTY_BYTES
+        );
+
+        require(scyFromBurn + scyFromSwap >= minScyOut, "insufficient lp out");
+        return scyFromBurn + scyFromSwap;
     }
 
     function _swapExactPtForScy(

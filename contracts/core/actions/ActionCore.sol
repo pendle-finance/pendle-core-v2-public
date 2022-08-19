@@ -86,7 +86,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut,
         ApproxParams calldata guessPtSwapToScy
     ) external returns (uint256 netLpOut) {
-        require(false, "NOT IMPLEMENTED");
+        netLpOut = _addLiquiditySinglePt(receiver, market, netPtIn, minLpOut, guessPtSwapToScy, true);
+        emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
 
     function addLiquiditySingleScy(
@@ -96,7 +97,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy
     ) external returns (uint256 netLpOut) {
-        require(false, "NOT IMPLEMENTED");
+        netLpOut = _addLiquiditySingleScy(receiver, market, netScyIn, minLpOut, guessPtReceivedFromScy, true);
+        emit AddLiquiditySingleScy(msg.sender, market, receiver, netScyIn, netLpOut);
     }
 
     function addLiquiditySingleToken(
@@ -168,7 +170,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut) {
-        require(false, "NOT IMPLEMENTED");
+        netPtOut = _removeLiquiditySinglePt(receiver, market, lpToRemove, minPtOut, guessPtOut);
+        emit RemoveLiquiditySinglePt(msg.sender, market, receiver, lpToRemove, netPtOut);
     }
 
     function removeLiquiditySingleScy(
@@ -177,7 +180,8 @@ contract ActionCore is IPActionCore, ActionSCYAndPTBase {
         uint256 lpToRemove,
         uint256 minScyOut
     ) external returns (uint256 netScyOut) {
-        require(false, "NOT IMPLEMENTED");
+        netScyOut = _removeLiquiditySingleScy(receiver, market, lpToRemove, minScyOut);
+        emit RemoveLiquiditySingleScy(msg.sender, market, receiver, lpToRemove, netScyOut);
     }
 
     function removeLiquiditySingleToken(
