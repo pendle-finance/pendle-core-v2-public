@@ -131,7 +131,7 @@ library MarketApproxLib {
     }
 
     struct VarsSwapExactScyForYt {
-        uint256 ptInGuess;
+        uint256 netPtInGuess;
         int256 assetToAccount;
         int256 assetToReserve;
         uint256 netAssetOut;
@@ -192,28 +192,28 @@ library MarketApproxLib {
 
         for (uint256 iter = 0; iter < approx.maxIteration; ) {
             // ytOutGuess = ptInGuess
-            vars.ptInGuess = getCurrentGuess(iter, approx);
+            vars.netPtInGuess = getCurrentGuess(iter, approx);
 
             (vars.isSlopeNonNeg, vars.largestGoodSlope) = updateSlope(
                 comp,
                 market.totalPt,
-                vars.ptInGuess,
+                vars.netPtInGuess,
                 vars.largestGoodSlope
             );
             if (!vars.isSlopeNonNeg) {
-                approx.guessMax = vars.ptInGuess - 1;
+                approx.guessMax = vars.netPtInGuess - 1;
                 continue;
             }
 
             (vars.assetToAccount, vars.assetToReserve) = market.calcTrade(
                 comp,
-                vars.ptInGuess.neg()
+                vars.netPtInGuess.neg()
             );
             vars.netAssetOut = vars.assetToAccount.Uint();
-            vars.amountAssetNeedMore = vars.ptInGuess - vars.netAssetOut;
+            vars.amountAssetNeedMore = vars.netPtInGuess - vars.netAssetOut;
 
             if (vars.amountAssetNeedMore <= vars.maxAssetIn) {
-                approx.guessMin = vars.ptInGuess;
+                approx.guessMin = vars.netPtInGuess;
                 bool isAnswerAccepted = Math.isASmallerApproxB(
                     vars.amountAssetNeedMore,
                     vars.maxAssetIn,
@@ -221,12 +221,12 @@ library MarketApproxLib {
                 );
                 if (isAnswerAccepted)
                     return (
-                        vars.ptInGuess,
+                        vars.netPtInGuess,
                         index.assetToScy(vars.amountAssetNeedMore),
                         index.assetToScy(vars.assetToReserve.Uint())
                     );
             } else {
-                approx.guessMax = vars.ptInGuess - 1;
+                approx.guessMax = vars.netPtInGuess - 1;
             }
 
             unchecked {
