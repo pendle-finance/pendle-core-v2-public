@@ -3,7 +3,6 @@ pragma solidity 0.8.15;
 
 import "../interfaces/ISuperComposableYield.sol";
 import "../interfaces/IRewardManager.sol";
-import "../interfaces/IPRouterStatic.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
@@ -13,7 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
-contract RouterStatic is IPRouterStatic {
+contract RouterStatic {
     using MarketMathCore for MarketState;
     using MarketApproxLib for MarketState;
     using Math for uint256;
@@ -21,6 +20,39 @@ contract RouterStatic is IPRouterStatic {
     using LogExpMath for int256;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
+
+    struct TokenAmount {
+        address token;
+        uint256 amount;
+    }
+
+    struct AssetAmount {
+        ISuperComposableYield.AssetType assetType;
+        address assetAddress;
+        uint256 amount;
+    }
+
+    struct RewardIndex {
+        address rewardToken;
+        uint256 index;
+    }
+
+    struct UserPYInfo {
+        address yt;
+        address pt;
+        uint256 ytBalance;
+        uint256 ptBalance;
+        TokenAmount unclaimedInterest;
+        TokenAmount[] unclaimedRewards;
+    }
+
+    struct UserMarketInfo {
+        address market;
+        uint256 lpBalance;
+        TokenAmount ptBalance;
+        TokenAmount scyBalance;
+        AssetAmount assetBalance;
+    }
 
     IPYieldContractFactory internal immutable yieldContractFactory;
     IPMarketFactory internal immutable marketFactory;

@@ -4,9 +4,7 @@ pragma solidity 0.8.15;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
-import "../interfaces/IPActionCore.sol";
-import "../interfaces/IPActionYT.sol";
-import "../interfaces/IPRouterStatic.sol";
+import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
 import "../periphery/PermissionsV2Upg.sol";
 
@@ -16,24 +14,24 @@ import "../periphery/PermissionsV2Upg.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg {
-    address public immutable ACTION_CORE;
-    address public immutable ACTION_YT;
+    address public immutable ACTION_MINT_REDEEM;
+    address public immutable ACTION_ADD_REMOVE_LIQ;
+    address public immutable ACTION_SWAP_PT;
+    address public immutable ACTION_SWAP_YT;
     address public immutable ACTION_CALLBACK;
 
     constructor(
-        address _ACTION_CORE,
-        address _ACTION_YT,
+        address _ACTION_MINT_REDEEM,
+        address _ACTION_ADD_REMOVE_LIQ,
+        address _ACTION_SWAP_PT,
+        address _ACTION_SWAP_YT,
         address _ACTION_CALLBACK,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) initializer {
-        require(
-            _ACTION_CORE != address(0) &&
-                _ACTION_YT != address(0) &&
-                _ACTION_CALLBACK != address(0),
-            "zero address"
-        );
-        ACTION_CORE = _ACTION_CORE;
-        ACTION_YT = _ACTION_YT;
+        ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
+        ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
+        ACTION_SWAP_PT = _ACTION_SWAP_PT;
+        ACTION_SWAP_YT = _ACTION_SWAP_YT;
         ACTION_CALLBACK = _ACTION_CALLBACK;
     }
 
@@ -44,40 +42,46 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
         if (
-            sig == IPActionCore.mintScyFromToken.selector ||
-            sig == IPActionCore.redeemScyToToken.selector ||
-            sig == IPActionCore.mintPyFromToken.selector ||
-            sig == IPActionCore.redeemPyToToken.selector ||
-            sig == IPActionCore.mintPyFromScy.selector ||
-            sig == IPActionCore.redeemPyToScy.selector ||
-            sig == IPActionCore.addLiquidityDualScyAndPt.selector ||
-            sig == IPActionCore.addLiquidityDualTokenAndPt.selector ||
-            sig == IPActionCore.addLiquiditySinglePt.selector ||
-            sig == IPActionCore.addLiquiditySingleScy.selector ||
-            sig == IPActionCore.addLiquiditySingleToken.selector ||
-            sig == IPActionCore.removeLiquidityDualScyAndPt.selector ||
-            sig == IPActionCore.removeLiquidityDualTokenAndPt.selector ||
-            sig == IPActionCore.removeLiquiditySinglePt.selector ||
-            sig == IPActionCore.removeLiquiditySingleScy.selector ||
-            sig == IPActionCore.removeLiquiditySingleToken.selector ||
-            sig == IPActionCore.swapExactPtForScy.selector ||
-            sig == IPActionCore.swapPtForExactScy.selector ||
-            sig == IPActionCore.swapScyForExactPt.selector ||
-            sig == IPActionCore.swapExactScyForPt.selector ||
-            sig == IPActionCore.swapExactTokenForPt.selector ||
-            sig == IPActionCore.swapExactPtForToken.selector ||
-            sig == IPActionCore.redeemDueInterestAndRewards.selector
+            sig == IPActionMintRedeem.mintScyFromToken.selector ||
+            sig == IPActionMintRedeem.redeemScyToToken.selector ||
+            sig == IPActionMintRedeem.mintPyFromToken.selector ||
+            sig == IPActionMintRedeem.redeemPyToToken.selector ||
+            sig == IPActionMintRedeem.mintPyFromScy.selector ||
+            sig == IPActionMintRedeem.redeemPyToScy.selector ||
+            sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector
         ) {
-            return ACTION_CORE;
+            return ACTION_MINT_REDEEM;
         } else if (
-            sig == IPActionYT.swapExactYtForScy.selector ||
-            sig == IPActionYT.swapScyForExactYt.selector ||
-            sig == IPActionYT.swapExactScyForYt.selector ||
-            sig == IPActionYT.swapExactTokenForYt.selector ||
-            sig == IPActionYT.swapExactYtForToken.selector ||
-            sig == IPActionYT.swapYtForExactScy.selector
+            sig == IPActionAddRemoveLiq.addLiquidityDualScyAndPt.selector ||
+            sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector ||
+            sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector ||
+            sig == IPActionAddRemoveLiq.addLiquiditySingleScy.selector ||
+            sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquidityDualScyAndPt.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquiditySingleScy.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector
         ) {
-            return ACTION_YT;
+            return ACTION_ADD_REMOVE_LIQ;
+        } else if (
+            sig == IPActionSwapPT.swapExactPtForScy.selector ||
+            sig == IPActionSwapPT.swapPtForExactScy.selector ||
+            sig == IPActionSwapPT.swapScyForExactPt.selector ||
+            sig == IPActionSwapPT.swapExactScyForPt.selector ||
+            sig == IPActionSwapPT.swapExactTokenForPt.selector ||
+            sig == IPActionSwapPT.swapExactPtForToken.selector
+        ) {
+            return ACTION_SWAP_PT;
+        } else if (
+            sig == IPActionSwapYT.swapExactYtForScy.selector ||
+            sig == IPActionSwapYT.swapScyForExactYt.selector ||
+            sig == IPActionSwapYT.swapExactScyForYt.selector ||
+            sig == IPActionSwapYT.swapExactTokenForYt.selector ||
+            sig == IPActionSwapYT.swapExactYtForToken.selector ||
+            sig == IPActionSwapYT.swapYtForExactScy.selector
+        ) {
+            return ACTION_SWAP_YT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
         }

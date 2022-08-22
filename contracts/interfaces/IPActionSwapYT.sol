@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import "../libraries/math/MarketApproxLib.sol";
 import "../libraries/kyberswap/KyberSwapHelper.sol";
 
-interface IPActionYT {
+interface IPActionSwapYT {
     event SwapYTAndSCY(
         address indexed user,
         address indexed market,

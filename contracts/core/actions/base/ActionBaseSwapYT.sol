@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../libraries/SCY/SCYUtils.sol";
 import "../../../libraries/math/MarketApproxLib.sol";
-import "./ActionSCYAndPYBase.sol";
+import "./ActionBaseTokenSCY.sol";
 import "./CallbackHelper.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract ActionSCYAndYTBase is ActionSCYAndPYBase, CallbackHelper {
+abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;

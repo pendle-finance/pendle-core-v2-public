@@ -1,22 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/kyberswap/KyberSwapHelper.sol";
-import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../libraries/helpers/TokenHelper.sol";
 import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
 // solhint-disable no-empty-blocks
-abstract contract ActionSCYAndPYBase is TokenHelper, KyberSwapHelper {
+abstract contract ActionBaseTokenSCY is TokenHelper, KyberSwapHelper {
     using SafeERC20 for IERC20;
+
+    bytes internal constant EMPTY_BYTES = abi.encode();
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _kyberSwapRouter) KyberSwapHelper(_kyberSwapRouter) {}
-
-    /// @dev for Path. If no swap is needed, path = [token]
-    /// else, path = [inputToken, token0, token1, ...., outputToken]
 
     /**
      * @notice swap token to baseToken through Uniswap's forks & use it to mint SCY
