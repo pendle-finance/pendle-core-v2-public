@@ -27,6 +27,7 @@
     "@typechain/hardhat": "^4.0.0",
     "hardhat": "^2.10.2",
     "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-storage-layout-diff": "^0.0.4",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.24",
     "solc": "^0.8.16",

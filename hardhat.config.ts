@@ -1,6 +1,7 @@
 import '@typechain/hardhat';
-import { HardhatUserConfig } from "hardhat/types";
 import "hardhat-contract-sizer";
+import 'hardhat-storage-layout-diff';
+import { HardhatUserConfig } from "hardhat/types";
 
 const config: HardhatUserConfig = {
     paths: {
