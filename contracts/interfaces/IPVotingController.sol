@@ -7,8 +7,6 @@ interface IPVotingController {
 
     event RemovePool(uint64 indexed chainId, address indexed pool);
 
-    event Unvote(address indexed user, address indexed pool, VeBalance vote);
-
     event Vote(address indexed user, address indexed pool, uint64 weight, VeBalance vote);
 
     event SetPendlePerSec(uint256 newPendlePerSec);

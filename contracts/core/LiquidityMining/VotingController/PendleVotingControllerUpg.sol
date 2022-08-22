@@ -77,7 +77,8 @@ contract PendleVotingControllerUpg is
 
         for (uint256 i = 0; i < pools.length; ++i) {
             if (_isPoolActive(pools[i])) applyPoolSlopeChanges(pools[i]);
-            _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
+            VeBalance memory newVote = _modifyVoteWeight(user, pools[i], userPosition, weights[i]);
+            emit Vote(user, pools[i], weights[i], newVote);
         }
 
         require(
