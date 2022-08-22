@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "../../interfaces/IPGauge.sol";
 import "../../interfaces/IPGaugeController.sol";
 import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/ISuperComposableYield.sol";
@@ -13,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 Invariants to maintain:
 - before any changes to active balance, updateAndDistributeRewards() must be called
  */
-abstract contract PendleGauge is RewardManager {
+abstract contract PendleGauge is RewardManager, IPGauge {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
