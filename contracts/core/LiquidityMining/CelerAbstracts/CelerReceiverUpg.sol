@@ -2,36 +2,36 @@
 pragma solidity 0.8.15;
 
 import "../../../interfaces/ICelerMessageReceiverApp.sol";
-import "../../../periphery/PermissionsV2Upg.sol";
+import "../../../periphery/BoringOwnable.sol";
 
 // solhint-disable no-empty-blocks
 /// This contract is upgradable because
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract CelerReceiverUpg is ICelerMessageReceiverApp, PermissionsV2Upg {
+abstract contract CelerReceiverUpg is ICelerMessageReceiverApp, BoringOwnable {
     address public celerMessageBus;
     address public originAddress;
     uint256 public originChainId;
 
     uint256[100] private __gap;
 
-    constructor(address _governanceManager) PermissionsV2Upg(_governanceManager) {}
+    constructor() {}
 
     modifier onlyCelerOrGov() {
         require(
-            msg.sender == celerMessageBus || msg.sender == _governance(),
+            msg.sender == celerMessageBus || msg.sender == owner,
             "only celer message bus or gov"
         );
         _;
     }
 
-    function setOrigin(address _addr, uint256 _chainId) external onlyGovernance {
+    function setOrigin(address _addr, uint256 _chainId) external onlyOwner {
         originAddress = _addr;
         originChainId = _chainId;
     }
 
-    function setCelerMessageBus(address _celerMessageBus) external onlyGovernance {
+    function setCelerMessageBus(address _celerMessageBus) external onlyOwner {
         celerMessageBus = _celerMessageBus;
     }
 

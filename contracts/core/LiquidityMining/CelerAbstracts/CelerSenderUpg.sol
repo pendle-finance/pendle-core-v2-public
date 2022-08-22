@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "../../../interfaces/ICelerMessageBus.sol";
-import "../../../periphery/PermissionsV2Upg.sol";
+import "../../../periphery/BoringOwnable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract CelerSenderUpg is PermissionsV2Upg {
+abstract contract CelerSenderUpg is BoringOwnable {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     ICelerMessageBus public celerMessageBus;
@@ -28,9 +28,9 @@ abstract contract CelerSenderUpg is PermissionsV2Upg {
         }
     }
 
-    constructor(address _governanceManager) PermissionsV2Upg(_governanceManager) {}
+    constructor() {}
 
-    function setCelerMessageBus(address _celerMessageBus) external onlyGovernance {
+    function setCelerMessageBus(address _celerMessageBus) external onlyOwner {
         celerMessageBus = ICelerMessageBus(_celerMessageBus);
     }
 
@@ -48,7 +48,7 @@ abstract contract CelerSenderUpg is PermissionsV2Upg {
     function addDestinationContract(address _address, uint256 _chainId)
         external
         payable
-        onlyGovernance
+        onlyOwner
     {
         destinationContracts.set(_chainId, _address);
         _afterAddDestinationContract(_address, _chainId);

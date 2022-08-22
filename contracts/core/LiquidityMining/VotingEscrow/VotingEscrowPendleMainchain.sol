@@ -34,9 +34,7 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoints.History) internal userHistory;
 
-    constructor(IERC20 _pendle, address _governanceManager)
-        CelerSenderUpg(_governanceManager) // only sets immutable variables
-    {
+    constructor(IERC20 _pendle) {
         pendle = _pendle;
     }
 

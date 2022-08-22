@@ -32,13 +32,13 @@ import "../../libraries/helpers/ExpiryUtilsLib.sol";
 import "../../libraries/helpers/SSTORE2Deployer.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
-import "../../periphery/PermissionsV2Upg.sol";
+import "../../periphery/BoringOwnable.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
-contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldContractFactory {
+contract PendleYieldContractFactory is BoringOwnable, Initializable, IPYieldContractFactory {
     using ExpiryUtils for string;
 
     string private constant PT_PREFIX = "PT";
@@ -64,16 +64,15 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         uint96 _expiryDivisor,
         uint128 _interestFeeRate,
         uint128 _rewardFeeRate,
-        address _treasury,
-        address _governanceManager
-    ) PermissionsV2Upg(_governanceManager) {
+        address _treasury
+    ) {
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setRewardFeeRate(_rewardFeeRate);
         setTreasury(_treasury);
     }
 
-    function initialize(bytes memory _pendleYtCreationCode) external initializer onlyGovernance {
+    function initialize(bytes memory _pendleYtCreationCode) external initializer onlyOwner {
         pendleYtCreationCodePointer = SSTORE2Deployer.setCreationCode(_pendleYtCreationCode);
     }
 
@@ -131,23 +130,23 @@ contract PendleYieldContractFactory is PermissionsV2Upg, Initializable, IPYieldC
         emit CreateYieldContract(SCY, PT, YT, expiry);
     }
 
-    function setExpiryDivisor(uint96 newExpiryDivisor) public onlyGovernance {
+    function setExpiryDivisor(uint96 newExpiryDivisor) public onlyOwner {
         require(newExpiryDivisor != 0, "zero value");
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
 
-    function setInterestFeeRate(uint128 newInterestFeeRate) public onlyGovernance {
+    function setInterestFeeRate(uint128 newInterestFeeRate) public onlyOwner {
         interestFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
-    function setRewardFeeRate(uint128 newInterestFeeRate) public onlyGovernance {
+    function setRewardFeeRate(uint128 newInterestFeeRate) public onlyOwner {
         rewardFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
-    function setTreasury(address newTreasury) public onlyGovernance {
+    function setTreasury(address newTreasury) public onlyOwner {
         require(newTreasury != address(0), "zero address");
         treasury = newTreasury;
         emit SetTreasury(newTreasury);

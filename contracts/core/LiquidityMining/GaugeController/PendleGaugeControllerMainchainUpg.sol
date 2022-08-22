@@ -17,9 +17,8 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg {
     constructor(
         address _votingController,
         address _pendle,
-        address _marketFactory,
-        address _governanceManager
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) PermissionsV2Upg(_governanceManager) {
+        address _marketFactory
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) {
         votingController = _votingController;
     }
 

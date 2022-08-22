@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
-import "../periphery/PermissionsV2Upg.sol";
+import "../periphery/BoringOwnable.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
@@ -40,7 +40,6 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
 
     function initialize() external initializer {
         __UUPSUpgradeable_init();
-        // no need to initialize PermissionsV2Upg
     }
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
@@ -93,7 +92,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         require(false, "invalid market sig");
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function _implementation() internal view override returns (address) {
         return getRouterImplementation(msg.sig);

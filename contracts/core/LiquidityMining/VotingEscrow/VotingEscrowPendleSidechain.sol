@@ -17,7 +17,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
 
     event SetNewUserPosition(LockedPosition position);
 
-    constructor(address _governanceManager) CelerReceiverUpg(_governanceManager) {}
+    constructor() {}
 
     function totalSupplyCurrent() public view virtual override returns (uint128) {
         return totalSupplyStored();
@@ -27,7 +27,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
      * @dev The mechanism of delegating is for governance to support protocol to build on top
      * This way, it is more gas efficient and does not affect the crosschain messaging cost
      */
-    function setDelegatorFor(address receiver, address delegator) external onlyGovernance {
+    function setDelegatorFor(address receiver, address delegator) external onlyOwner {
         delegatorOf[receiver] = delegator;
         emit SetNewDelegator(delegator, receiver);
     }

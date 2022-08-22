@@ -8,7 +8,7 @@ import "../../../libraries/math/WeekMath.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../periphery/PermissionsV2Upg.sol";
+import "../../../periphery/BoringOwnable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, PermissionsV2Upg {
+abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnable {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -80,7 +80,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, Permissions
         IERC20(pendle).safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdrawPendle(uint256 amount) external onlyGovernance {
+    function withdrawPendle(uint256 amount) external onlyOwner {
         IERC20(pendle).safeTransfer(msg.sender, amount);
     }
 

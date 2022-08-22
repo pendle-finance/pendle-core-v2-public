@@ -49,9 +49,8 @@ contract PendleVotingControllerUpg is
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    constructor(address _vePendle, address _governanceManager)
+    constructor(address _vePendle)
         VotingControllerStorageUpg(_vePendle) // constructor only set immutable variables
-        CelerSenderUpg(_governanceManager) // constructor only set immutable variables
     {}
 
     /*///////////////////////////////////////////////////////////////
@@ -70,7 +69,7 @@ contract PendleVotingControllerUpg is
         address user = msg.sender;
 
         require(weights.length == pools.length, "invalid array length");
-        require(vePendle.balanceOf(user) > 0 || user == _governance(), "zero vePENDLE balance");
+        require(vePendle.balanceOf(user) > 0 || user == owner, "zero vePENDLE balance");
 
         UserData storage uData = userData[user];
         LockedPosition memory userPosition = _getUserVePendlePosition(user);
@@ -158,7 +157,7 @@ contract PendleVotingControllerUpg is
      * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
       this function
      */
-    function addPool(uint64 chainId, address pool) external onlyGovernance {
+    function addPool(uint64 chainId, address pool) external onlyOwner {
         require(!_isPoolActive(pool), "pool already added");
         require(!allRemovedPools.contains(pool), "not allowed to add a removed pool");
 
@@ -176,7 +175,7 @@ contract PendleVotingControllerUpg is
      * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
       this function
      */
-    function removePool(address pool) external onlyGovernance {
+    function removePool(address pool) external onlyOwner {
         require(_isPoolActive(pool), "invalid pool");
 
         uint64 chainId = poolData[pool].chainId;
@@ -199,7 +198,7 @@ contract PendleVotingControllerUpg is
         uint64 chainId,
         uint128 wTime,
         uint128 forcedPendlePerSec
-    ) external payable onlyGovernance refundUnusedEth {
+    ) external payable onlyOwner refundUnusedEth {
         _broadcastResults(chainId, wTime, forcedPendlePerSec);
     }
 
@@ -210,7 +209,7 @@ contract PendleVotingControllerUpg is
      * @dev NOTE TO GOV: This should be done mid-week, well before the next broadcast to avoid
         race condition
      */
-    function setPendlePerSec(uint128 newPendlePerSec) external onlyGovernance {
+    function setPendlePerSec(uint128 newPendlePerSec) external onlyOwner {
         pendlePerSec = newPendlePerSec;
         emit SetPendlePerSec(newPendlePerSec);
     }
@@ -275,7 +274,7 @@ contract PendleVotingControllerUpg is
         view
         returns (LockedPosition memory userPosition)
     {
-        if (user == _governance()) {
+        if (user == owner) {
             (userPosition.amount, userPosition.expiry) = (
                 GOVERNANCE_PENDLE_VOTE,
                 WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME)
@@ -285,5 +284,5 @@ contract PendleVotingControllerUpg is
         }
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGovernance {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

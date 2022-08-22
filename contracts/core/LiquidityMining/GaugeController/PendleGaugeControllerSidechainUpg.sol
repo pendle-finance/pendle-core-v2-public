@@ -12,9 +12,8 @@ import "../CelerAbstracts/CelerReceiverUpg.sol";
 contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, CelerReceiverUpg {
     constructor(
         address _pendle,
-        address _marketFactory,
-        address _governanceManager
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) CelerReceiverUpg(_governanceManager) {}
+        address _marketFactory
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) {}
 
     function _executeMessage(bytes memory message) internal virtual override {
         (uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) = abi.decode(
