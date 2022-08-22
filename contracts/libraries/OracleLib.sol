@@ -26,7 +26,7 @@ library OracleLib {
     }
 
     function initialize(Observation[65535] storage self, uint32 time)
-        internal
+        public
         returns (uint16 cardinality, uint16 cardinalityNext)
     {
         self[0] = Observation({
@@ -44,7 +44,7 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 cardinality,
         uint16 cardinalityNext
-    ) internal returns (uint16 indexUpdated, uint16 cardinalityUpdated) {
+    ) public returns (uint16 indexUpdated, uint16 cardinalityUpdated) {
         Observation memory last = self[index];
 
         // early return if we've already written an observation this block
@@ -65,7 +65,7 @@ library OracleLib {
         Observation[65535] storage self,
         uint16 current,
         uint16 next
-    ) internal returns (uint16) {
+    ) public returns (uint16) {
         require(current != 0, "uninitialized");
         // no-op if the passed next value isn't greater than the current next value
         if (next <= current) return current;
@@ -151,7 +151,7 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 index,
         uint16 cardinality
-    ) internal view returns (uint128 lnImpliedRateCumulative) {
+    ) public view returns (uint128 lnImpliedRateCumulative) {
         if (secondsAgo == 0) {
             Observation memory last = self[index];
             if (last.blockTimestamp != time) {
@@ -195,7 +195,7 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 index,
         uint16 cardinality
-    ) internal view returns (uint128[] memory lnImpliedRateCumulative) {
+    ) public view returns (uint128[] memory lnImpliedRateCumulative) {
         require(cardinality != 0, "cardinality must be positive");
 
         lnImpliedRateCumulative = new uint128[](secondsAgos.length);

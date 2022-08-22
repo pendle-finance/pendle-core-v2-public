@@ -245,58 +245,9 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         return _getRewardTokens();
     }
 
-    function readTokens()
-        external
-        view
-        returns (
-            ISuperComposableYield _SCY,
-            IPPrincipalToken _PT,
-            IPYieldToken _YT
-        )
-    {
-        _SCY = SCY;
-        _PT = PT;
-        _YT = YT;
-    }
-
-    function isExpired() public view returns (bool) {
-        return MiniHelpers.isCurrentlyExpired(expiry);
-    }
-
-    /**
-     * @notice read the state of the market from storage into memory for gas-efficient manipulation
-     */
-    function readState() public view returns (MarketState memory market) {
-        market.totalPt = _storage.totalPt;
-        market.totalScy = _storage.totalScy;
-        market.totalLp = totalSupply().Int();
-
-        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
-            factory
-        ).marketConfig();
-
-        market.scalarRoot = scalarRoot;
-        market.expiry = expiry;
-
-        market.lastLnImpliedRate = _storage.lastLnImpliedRate;
-    }
-
-    /// @notice write back the state of the market from memory to storage
-    function _writeState(MarketState memory market) internal {
-        _storage.totalPt = market.totalPt.Int128();
-        _storage.totalScy = market.totalScy.Int128();
-        _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
-
-        (_storage.observationIndex, _storage.observationCardinality) = observations.write(
-            _storage.observationIndex,
-            block.timestamp.Uint32(),
-            market.lastLnImpliedRate.Uint96(),
-            _storage.observationCardinality,
-            _storage.observationCardinalityNext
-        );
-
-        emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
-    }
+    /*///////////////////////////////////////////////////////////////
+                                ORACLE
+    //////////////////////////////////////////////////////////////*/
 
     function observe(uint32[] memory secondsAgos)
         public
@@ -334,6 +285,67 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
             _storage.observationCardinalityNext = cardinalityNextNew;
             emit IncreaseObservationCardinalityNext(cardinalityNextOld, cardinalityNextNew);
         }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                                READ/WRITE STATES
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice read the state of the market from storage into memory for gas-efficient manipulation
+     */
+    function readState() public view returns (MarketState memory market) {
+        market.totalPt = _storage.totalPt;
+        market.totalScy = _storage.totalScy;
+        market.totalLp = totalSupply().Int();
+
+        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
+            factory
+        ).marketConfig();
+
+        market.scalarRoot = scalarRoot;
+        market.expiry = expiry;
+
+        market.lastLnImpliedRate = _storage.lastLnImpliedRate;
+    }
+
+    /// @notice write back the state of the market from memory to storage
+    function _writeState(MarketState memory market) internal {
+        _storage.totalPt = market.totalPt.Int128();
+        _storage.totalScy = market.totalScy.Int128();
+        _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
+
+        (_storage.observationIndex, _storage.observationCardinality) = observations.write(
+            _storage.observationIndex,
+            block.timestamp.Uint32(),
+            market.lastLnImpliedRate.Uint96(),
+            _storage.observationCardinality,
+            _storage.observationCardinalityNext
+        );
+
+        emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            TRIVIAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function readTokens()
+        external
+        view
+        returns (
+            ISuperComposableYield _SCY,
+            IPPrincipalToken _PT,
+            IPYieldToken _YT
+        )
+    {
+        _SCY = SCY;
+        _PT = PT;
+        _YT = YT;
+    }
+
+    function isExpired() public view returns (bool) {
+        return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
     /*///////////////////////////////////////////////////////////////
