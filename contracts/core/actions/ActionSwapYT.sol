@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "../../../interfaces/IPMarket.sol";
-import "../../../libraries/math/MarketApproxLib.sol";
-import "./ActionBaseTokenSCY.sol";
-import "./CallbackHelper.sol";
+import "./base/ActionBaseTokenSCY.sol";
+import "./base/CallbackHelper.sol";
+import "../../interfaces/IPActionSwapYT.sol";
+import "../../interfaces/IPMarket.sol";
 
-abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
+contract ActionSwapYT is IPActionSwapYT, ActionBaseTokenSCY, CallbackHelper {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -14,6 +14,11 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
     using PYIndexLib for IPYieldToken;
+
+    /// @dev since this contract will be proxied, it must not contains non-immutable variables
+    constructor(address _kyberSwapRouter)
+        ActionBaseTokenSCY(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+    {}
 
     /**
     * @notice swap exact SCY to YT with the help of flashswaps & YT tokenization / redemption
@@ -25,36 +30,20 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         transferred to the receiver
     * @dev this function works in conjunction with ActionCallback
      */
-    function _swapExactScyForYt(
+    function swapExactScyForYt(
         address receiver,
         address market,
         uint256 exactScyIn,
         uint256 minYtOut,
-        ApproxParams memory guessYtOut,
-        bool doPull
-    ) internal returns (uint256 netYtOut) {
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState(false);
 
-        (netYtOut, , ) = state.approxSwapExactScyForYt(
-            YT.newIndex(),
-            exactScyIn,
-            block.timestamp,
-            guessYtOut
-        );
+        SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
 
-        // early-check
-        require(netYtOut >= minYtOut, "insufficient YT out");
+        _swapExactScyForYt(receiver, market, YT, exactScyIn, minYtOut, guessYtOut);
 
-        if (doPull) {
-            SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
-        }
-
-        IPMarket(market).swapExactPtForScy(
-            address(YT),
-            netYtOut, // exactPtIn = netYtOut
-            _encodeSwapExactScyForYt(receiver, minYtOut)
-        );
+        emit SwapYTAndSCY(receiver, market, netYtOut.Int(), exactScyIn.neg());
     }
 
     /**
@@ -67,28 +56,19 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         the rest is transferred to the `receiver`
     * @dev this function works in conjunction with ActionCallback
      */
-    function _swapExactYtForScy(
+    function swapExactYtForScy(
         address receiver,
         address market,
         uint256 exactYtIn,
-        uint256 minScyOut,
-        bool doPull
-    ) internal returns (uint256 netScyOut) {
+        uint256 minScyOut
+    ) external returns (uint256 netScyOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        if (doPull) {
-            YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
-        }
+        YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
 
-        uint256 preScyBalance = SCY.balanceOf(receiver);
+        netScyOut = _swapExactYtForScy(receiver, market, SCY, YT, exactYtIn, minScyOut);
 
-        IPMarket(market).swapScyForExactPt(
-            address(YT),
-            exactYtIn, // exactPtOut = exactYtIn
-            _encodeSwapYtForScy(receiver, minScyOut)
-        ); // ignore return
-
-        netScyOut = SCY.balanceOf(receiver) - preScyBalance;
+        emit SwapYTAndSCY(receiver, market, exactYtIn.neg(), netScyOut.Int());
     }
 
     /**
@@ -100,12 +80,12 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         while YT is transferred to the user
     * @dev this function works in conjunction with ActionCallback
      */
-    function _swapScyForExactYt(
+    function swapScyForExactYt(
         address receiver,
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
-    ) internal returns (uint256 netScyIn) {
+    ) external returns (uint256 netScyIn) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 preScyBalance = SCY.balanceOf(msg.sender);
@@ -117,6 +97,8 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         );
 
         netScyIn = preScyBalance - SCY.balanceOf(msg.sender);
+
+        emit SwapYTAndSCY(receiver, market, exactYtOut.Int(), netScyIn.neg());
     }
 
     /**
@@ -129,14 +111,13 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         transferred to `receiver`
     * @dev this function works in conjunction with ActionCallback
      */
-    function _swapYtForExactScy(
+    function swapYtForExactScy(
         address receiver,
         address market,
         uint256 exactScyOut,
         uint256 maxYtIn,
-        ApproxParams memory guessYtIn,
-        bool doPull
-    ) internal returns (uint256 netYtIn) {
+        ApproxParams memory guessYtIn
+    ) external returns (uint256 netYtIn) {
         MarketState memory state = IPMarket(market).readState(false);
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -149,28 +130,24 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
 
         require(netYtIn <= maxYtIn, "exceed YT in limit");
 
-        if (doPull) {
-            YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
-        }
+        YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
 
         IPMarket(market).swapScyForExactPt(
             address(YT),
             netYtIn, // exactPtOut = netYtIn
             _encodeSwapYtForScy(receiver, exactScyOut)
         ); // ignore return
+
+        emit SwapYTAndSCY(receiver, market, netYtIn.neg(), exactScyOut.Int());
     }
 
-    /**
-     * @notice swap any ERC20 tokens, through Uniswap's forks, to baseToken of the corresponding SCY of YT. These SCY is then
-        used to swap to YT. Please refer to swapExactScyForYt for more details.
-     */
-    function _swapExactTokenForYt(
+    function swapExactTokenForYt(
         address receiver,
         address market,
         uint256 minYtOut,
         ApproxParams memory guessYtOut,
         TokenInput calldata input
-    ) internal returns (uint256 netYtOut) {
+    ) external payable returns (uint256 netYtOut) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 netScyUsedToBuyYT = _mintScyFromToken(address(YT), address(SCY), 1, input);
@@ -178,28 +155,81 @@ abstract contract ActionBaseSwapYT is ActionBaseTokenSCY, CallbackHelper {
         netYtOut = _swapExactScyForYt(
             receiver,
             market,
+            YT,
             netScyUsedToBuyYT,
             minYtOut,
-            guessYtOut,
-            false
+            guessYtOut
+        );
+
+        emit SwapYTAndToken(
+            receiver,
+            market,
+            input.tokenIn,
+            netYtOut.Int(),
+            input.netTokenIn.neg()
         );
     }
 
-    /**
-     * @notice swap YT to SCY (using `swapExactYtForScy` logic), then redeem SCY to baseToken & swap baseToken to token
-        through Uniswap's forks
-     */
-    function _swapExactYtForToken(
+    function swapExactYtForToken(
         address receiver,
         address market,
         uint256 netYtIn,
-        TokenOutput calldata output,
-        bool doPull
-    ) internal returns (uint256 netTokenOut) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut) {
+        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, netYtIn, 1, doPull);
+        YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
+
+        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, SCY, YT, netYtIn, 1);
 
         netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyOut, output, false);
+
+        emit SwapYTAndToken(receiver, market, output.tokenOut, netYtIn.neg(), netTokenOut.Int());
+    }
+
+    function _swapExactScyForYt(
+        address receiver,
+        address market,
+        IPYieldToken YT,
+        uint256 exactScyIn,
+        uint256 minYtOut,
+        ApproxParams memory guessYtOut
+    ) internal returns (uint256 netYtOut) {
+        MarketState memory state = IPMarket(market).readState(false);
+
+        (netYtOut, , ) = state.approxSwapExactScyForYt(
+            YT.newIndex(),
+            exactScyIn,
+            block.timestamp,
+            guessYtOut
+        );
+
+        // early-check
+        require(netYtOut >= minYtOut, "insufficient YT out");
+
+        IPMarket(market).swapExactPtForScy(
+            address(YT),
+            netYtOut, // exactPtIn = netYtOut
+            _encodeSwapExactScyForYt(receiver, minYtOut)
+        );
+    }
+
+    function _swapExactYtForScy(
+        address receiver,
+        address market,
+        ISuperComposableYield SCY,
+        IPYieldToken YT,
+        uint256 exactYtIn,
+        uint256 minScyOut
+    ) internal returns (uint256 netScyOut) {
+        uint256 preScyBalance = SCY.balanceOf(receiver);
+
+        IPMarket(market).swapScyForExactPt(
+            address(YT),
+            exactYtIn, // exactPtOut = exactYtIn
+            _encodeSwapYtForScy(receiver, minScyOut)
+        ); // ignore return
+
+        netScyOut = SCY.balanceOf(receiver) - preScyBalance;
     }
 }
