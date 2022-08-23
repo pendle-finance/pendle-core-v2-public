@@ -15,7 +15,7 @@ library OracleLib {
         Observation memory last,
         uint32 blockTimestamp,
         uint96 lnImpliedRate
-    ) private pure returns (Observation memory) {
+    ) public pure returns (Observation memory) {
         return
             Observation({
                 blockTimestamp: blockTimestamp,
@@ -86,7 +86,7 @@ library OracleLib {
         uint32 target,
         uint16 index,
         uint16 cardinality
-    ) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
+    ) public view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
         uint256 l = (index + 1) % cardinality; // oldest observation
         uint256 r = l + cardinality - 1; // newest observation
         uint256 i;
@@ -119,7 +119,7 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 index,
         uint16 cardinality
-    ) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
+    ) public view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
         // optimistically set before to the newest observation
         beforeOrAt = self[index];
 

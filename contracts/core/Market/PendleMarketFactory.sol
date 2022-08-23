@@ -39,18 +39,11 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     MarketConfig public marketConfig;
 
     constructor(
-        address _yieldContractFactory,
-        address _treasury,
-        uint96 _lnFeeRateRoot,
-        uint8 _reserveFeePercent
+        address _yieldContractFactory
     ) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
-
-        setTreasury(_treasury);
-        setlnFeeRateRoot(_lnFeeRateRoot);
-        setReserveFeePercent(_reserveFeePercent);
     }
 
     function initialize(
