@@ -27,7 +27,6 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeable {
     using SafeERC20 for IERC20;
     using Math for uint256;
-    using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketRewardData {
         uint128 pendlePerSec;

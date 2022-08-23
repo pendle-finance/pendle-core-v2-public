@@ -17,6 +17,7 @@ abstract contract VotingControllerStorageUpg {
     using VeBalanceLib for LockedPosition;
     using EnumerableSet for EnumerableSet.AddressSet;
     using Checkpoints for Checkpoints.History;
+    using WeekMath for uint128;
 
     struct PoolData {
         uint64 chainId;
@@ -60,13 +61,13 @@ abstract contract VotingControllerStorageUpg {
     mapping(uint64 => EnumerableSet.AddressSet) internal activeChainPools;
 
     // [poolAddress] -> PoolData
-    mapping(address => PoolData) public poolData;
+    mapping(address => PoolData) internal poolData;
 
     // [wTime] => WeekData
-    mapping(uint128 => WeekData) public weekData;
+    mapping(uint128 => WeekData) internal weekData;
 
     // user voting data
-    mapping(address => UserData) public userData;
+    mapping(address => UserData) internal userData;
 
     // [user][pool] => checkpoint
     mapping(address => mapping(address => Checkpoints.History)) internal userPoolHistory;
@@ -82,6 +83,62 @@ abstract contract VotingControllerStorageUpg {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function getPoolData(address pool, uint128[] calldata wTimes)
+        public
+        view
+        returns (
+            uint64 chainId,
+            uint128 lastSlopeChangeAppliedAt,
+            VeBalance memory totalVote,
+            uint128[] memory slopeChanges
+        )
+    {
+        PoolData storage data = poolData[pool];
+        (chainId, lastSlopeChangeAppliedAt, totalVote) = (
+            data.chainId,
+            data.lastSlopeChangeAppliedAt,
+            data.totalVote
+        );
+
+        slopeChanges = new uint128[](wTimes.length);
+        for (uint256 i = 0; i < wTimes.length; ++i) {
+            require(wTimes[i].isValidWTime(), "invalid wTimes");
+            slopeChanges[i] = data.slopeChanges[wTimes[i]];
+        }
+    }
+
+    function getUserData(address user, address[] calldata pools)
+        public
+        view
+        returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools)
+    {
+        UserData storage data = userData[user];
+
+        totalVotedWeight = data.totalVotedWeight;
+
+        voteForPools = new UserPoolData[](pools.length);
+        for (uint256 i = 0; i < pools.length; ++i) voteForPools[i] = data.voteForPools[pools[i]];
+    }
+
+    function getWeekData(uint128 wTime, address[] calldata pools)
+        public
+        view
+        returns (
+            bool isEpochFinalized,
+            uint128 totalVotes,
+            uint128[] memory poolVotes
+        )
+    {
+        require(wTime.isValidWTime(), "invalid wTimes");
+
+        WeekData storage data = weekData[wTime];
+
+        (isEpochFinalized, totalVotes) = (data.isEpochFinalized, data.totalVotes);
+
+        poolVotes = new uint128[](pools.length);
+        for (uint256 i = 0; i < pools.length; ++i) poolVotes[i] = data.poolVotes[pools[i]];
+    }
+
     /// @dev trivial view function
     function getAllActivePools() external view returns (address[] memory) {
         return allActivePools.values();
@@ -96,7 +153,7 @@ abstract contract VotingControllerStorageUpg {
         lengthOfRemovedPools = allRemovedPools.length();
         require(end < lengthOfRemovedPools, "end is out of bounds");
         arr = new address[](end - start + 1);
-        for (uint256 i = start; i <= end; i++) arr[i - start] = allRemovedPools.at(i);
+        for (uint256 i = start; i <= end; ++i) arr[i - start] = allRemovedPools.at(i);
     }
 
     /// @dev trivial view function
