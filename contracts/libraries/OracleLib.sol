@@ -6,8 +6,9 @@ pragma solidity 0.8.15;
 library OracleLib {
     struct Observation {
         uint32 blockTimestamp;
-        uint128 lnImpliedRateCumulative;
+        uint216 lnImpliedRateCumulative;
         bool initialized;
+        // 1 SLOT = 256 bits
     }
 
     function transform(
@@ -19,7 +20,7 @@ library OracleLib {
             Observation({
                 blockTimestamp: blockTimestamp,
                 lnImpliedRateCumulative: last.lnImpliedRateCumulative +
-                    uint128(lnImpliedRate) *
+                    uint216(lnImpliedRate) *
                     (blockTimestamp - last.blockTimestamp),
                 initialized: true
             });
@@ -151,7 +152,7 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 index,
         uint16 cardinality
-    ) public view returns (uint128 lnImpliedRateCumulative) {
+    ) public view returns (uint216 lnImpliedRateCumulative) {
         if (secondsAgo == 0) {
             Observation memory last = self[index];
             if (last.blockTimestamp != time) {
@@ -179,7 +180,7 @@ library OracleLib {
         } else {
             // we're in the middle
             return (beforeOrAt.lnImpliedRateCumulative +
-                uint128(
+                uint216(
                     (uint256(
                         atOrAfter.lnImpliedRateCumulative - beforeOrAt.lnImpliedRateCumulative
                     ) * (target - beforeOrAt.blockTimestamp)) /
@@ -195,10 +196,10 @@ library OracleLib {
         uint96 lnImpliedRate,
         uint16 index,
         uint16 cardinality
-    ) public view returns (uint128[] memory lnImpliedRateCumulative) {
+    ) public view returns (uint216[] memory lnImpliedRateCumulative) {
         require(cardinality != 0, "cardinality must be positive");
 
-        lnImpliedRateCumulative = new uint128[](secondsAgos.length);
+        lnImpliedRateCumulative = new uint216[](secondsAgos.length);
         for (uint256 i = 0; i < lnImpliedRateCumulative.length; ++i) {
             lnImpliedRateCumulative[i] = observeSingle(
                 self,

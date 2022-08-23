@@ -6,10 +6,12 @@ import "./IPActionAddRemoveLiq.sol";
 import "./IPActionSwapPT.sol";
 import "./IPActionSwapYT.sol";
 import "./IPActionMintRedeem.sol";
+import "./IPActionMisc.sol";
 
 interface IPAllAction is
     IPActionAddRemoveLiq,
     IPActionSwapPT,
     IPActionSwapYT,
-    IPActionMintRedeem
+    IPActionMintRedeem,
+    IPActionMisc
 {}

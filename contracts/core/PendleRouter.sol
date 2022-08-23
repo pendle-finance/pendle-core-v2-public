@@ -19,6 +19,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
     address public immutable ACTION_SWAP_PT;
     address public immutable ACTION_SWAP_YT;
     address public immutable ACTION_CALLBACK;
+    address public immutable ACTION_MISC;
 
     constructor(
         address _ACTION_MINT_REDEEM,
@@ -26,6 +27,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         address _ACTION_SWAP_PT,
         address _ACTION_SWAP_YT,
         address _ACTION_CALLBACK,
+        address _ACTION_MISC,
         address _governanceManager
     ) PermissionsV2Upg(_governanceManager) initializer {
         ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
@@ -33,6 +35,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
         ACTION_SWAP_YT = _ACTION_SWAP_YT;
         ACTION_CALLBACK = _ACTION_CALLBACK;
+        ACTION_MISC = _ACTION_MISC;
     }
 
     function initialize() external initializer {
@@ -84,6 +87,8 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
             return ACTION_SWAP_YT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
+        } else if (sig == IPActionMisc.consult.selector) {
+            return ACTION_MISC;
         }
         require(false, "invalid market sig");
     }

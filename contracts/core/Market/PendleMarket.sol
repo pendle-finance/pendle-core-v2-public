@@ -77,7 +77,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         YT = IPYieldToken(PT.YT());
 
         (_storage.observationCardinality, _storage.observationCardinalityNext) = observations
-            .initialize(block.timestamp.Uint32());
+            .initialize(uint32(block.timestamp));
 
         require(_scalarRoot > 0, "scalarRoot must be positive");
         scalarRoot = _scalarRoot;
@@ -252,30 +252,16 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     function observe(uint32[] memory secondsAgos)
         public
         view
-        returns (uint128[] memory lnImpliedRateCumulative)
+        returns (uint216[] memory lnImpliedRateCumulative)
     {
         return
             observations.observe(
-                block.timestamp.Uint32(),
+                uint32(block.timestamp),
                 secondsAgos,
                 _storage.lastLnImpliedRate,
                 _storage.observationIndex,
                 _storage.observationCardinality
             );
-    }
-
-    function consult(uint32 secondsAgo) external view returns (uint96 lnImpliedRateMean) {
-        require(secondsAgo != 0, "time range is zero");
-
-        uint32[] memory secondsAgos = new uint32[](2);
-        secondsAgos[0] = secondsAgo;
-        secondsAgos[1] = 0;
-
-        uint128[] memory lnImpliedRateCumulatives = observe(secondsAgos);
-
-        return
-            (uint256(lnImpliedRateCumulatives[1] - lnImpliedRateCumulatives[0]) / secondsAgo)
-                .Uint96();
     }
 
     function increaseObservationsCardinalityNext(uint16 cardinalityNext) external nonReentrant {
@@ -311,14 +297,16 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
 
     /// @notice write back the state of the market from memory to storage
     function _writeState(MarketState memory market) internal {
+        uint96 lastLnImpliedRate96 = market.lastLnImpliedRate.Uint96();
+
         _storage.totalPt = market.totalPt.Int128();
         _storage.totalScy = market.totalScy.Int128();
-        _storage.lastLnImpliedRate = market.lastLnImpliedRate.Uint96();
+        _storage.lastLnImpliedRate = lastLnImpliedRate96;
 
         (_storage.observationIndex, _storage.observationCardinality) = observations.write(
             _storage.observationIndex,
-            block.timestamp.Uint32(),
-            market.lastLnImpliedRate.Uint96(),
+            uint32(block.timestamp),
+            lastLnImpliedRate96,
             _storage.observationCardinality,
             _storage.observationCardinalityNext
         );
