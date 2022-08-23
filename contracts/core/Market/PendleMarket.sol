@@ -90,12 +90,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
      * @notice PendleMarket allows users to provide in PT & SCY in exchange for LPs, which
      * will grant LP holders more exchange fee over time
      */
-    function mint(address receiver)
-        external
-        nonReentrant
-        notExpired
-        returns (uint256 lpToAccount)
-    {
+    function mint(address receiver) external nonReentrant notExpired returns (uint256 netLpOut) {
         MarketState memory market = readState();
         PYIndex index = YT.newIndex();
 
@@ -106,7 +101,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         uint256 scyUsed;
         uint256 ptUsed;
 
-        (lpToReserve, lpToAccount, scyUsed, ptUsed) = market.addLiquidity(
+        (lpToReserve, netLpOut, scyUsed, ptUsed) = market.addLiquidity(
             index,
             scyDesired,
             ptDesired,
@@ -119,11 +114,11 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
             _mint(address(1), lpToReserve);
         }
 
-        _mint(receiver, lpToAccount);
+        _mint(receiver, netLpOut);
 
         _writeState(market);
 
-        emit Mint(receiver, lpToAccount, scyUsed, ptUsed);
+        emit Mint(receiver, netLpOut, scyUsed, ptUsed);
     }
 
     /**
@@ -133,21 +128,21 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
     function burn(address receiverScy, address receiverPt)
         external
         nonReentrant
-        returns (uint256 scyToAccount, uint256 ptToAccount)
+        returns (uint256 netScyOut, uint256 netPtOut)
     {
         MarketState memory market = readState();
 
         uint256 lpToRemove = balanceOf(address(this));
         _burn(address(this), lpToRemove);
 
-        (scyToAccount, ptToAccount) = market.removeLiquidity(lpToRemove);
+        (netScyOut, netPtOut) = market.removeLiquidity(lpToRemove);
 
-        IERC20(SCY).safeTransfer(receiverScy, scyToAccount);
-        IERC20(PT).safeTransfer(receiverPt, ptToAccount);
+        IERC20(SCY).safeTransfer(receiverScy, netScyOut);
+        IERC20(PT).safeTransfer(receiverPt, netPtOut);
 
         _writeState(market);
 
-        emit Burn(receiverScy, receiverPt, lpToRemove, scyToAccount, ptToAccount);
+        emit Burn(receiverScy, receiverPt, lpToRemove, netScyOut, netPtOut);
     }
 
     /**

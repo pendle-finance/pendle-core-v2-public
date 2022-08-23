@@ -9,20 +9,25 @@ import "../libraries/math/MarketMathCore.sol";
 import "./IPGauge.sol";
 
 interface IPMarket is IERC20Metadata, IPGauge {
-    event Mint(address indexed receiver, uint256 lpMinted, uint256 scyUsed, uint256 ptUsed);
+    event Mint(
+        address indexed receiver,
+        uint256 netLpMinted,
+        uint256 netScyUsed,
+        uint256 netPtUsed
+    );
 
     event Burn(
         address indexed receiverScy,
         address indexed receiverPt,
-        uint256 lpBurned,
-        uint256 scyToAccount,
-        uint256 ptToAccount
+        uint256 netLpBurned,
+        uint256 netScyOut,
+        uint256 netPtOut
     );
 
     event Swap(
         address indexed receiver,
-        int256 ptToAccount,
-        int256 scyToAccount,
+        int256 netPtOut,
+        int256 netScyOut,
         uint256 netScyToReserve
     );
 
@@ -33,11 +38,11 @@ interface IPMarket is IERC20Metadata, IPGauge {
         uint16 observationCardinalityNextNew
     );
 
-    function mint(address receiver) external returns (uint256);
+    function mint(address receiver) external returns (uint256 netLpOut);
 
     function burn(address receiverScy, address receiverPt)
         external
-        returns (uint256 scyToAccount, uint256 ptToAccount);
+        returns (uint256 netScyOut, uint256 netPtOut);
 
     function swapExactPtForScy(
         address receiver,
