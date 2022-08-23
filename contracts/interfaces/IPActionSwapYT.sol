@@ -5,19 +5,21 @@ import "../libraries/math/MarketApproxLib.sol";
 import "../libraries/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionSwapYT {
-    event SwapYTAndSCY(
-        address indexed user,
+    event SwapYtAndScy(
+        address indexed caller,
         address indexed market,
-        int256 ytToAccount,
-        int256 scyToAccount
+        address indexed receiver,
+        int256 netYtToAccount,
+        int256 netScyToAccount
     );
 
-    event SwapYTAndToken(
-        address indexed user,
+    event SwapYtAndToken(
+        address indexed caller,
         address indexed market,
         address indexed token,
-        int256 ytToAccount,
-        int256 tokenToAccount
+        address receiver,
+        int256 netYtToAccount,
+        int256 netTokenToAccount
     );
 
     function swapExactYtForScy(

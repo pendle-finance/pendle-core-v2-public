@@ -64,10 +64,10 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         (address receiver, uint256 minYtOut) = _decodeSwapExactScyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
-        uint256 amountPYout = YT.mintPY(market, receiver);
+        uint256 netPyOut = YT.mintPY(market, receiver);
 
-        require(amountPYout >= ptOwed, "insufficient PT to pay");
-        require(amountPYout >= minYtOut, "insufficient YT out");
+        require(netPyOut >= ptOwed, "insufficient PT to pay");
+        require(netPyOut >= minYtOut, "insufficient YT out");
     }
 
     struct VarsSwapScyForExactYt {
@@ -108,8 +108,8 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
             SCY.safeTransferFrom(vars.payer, address(YT), netScyToPull);
         }
 
-        uint256 amountPYout = YT.mintPY(market, vars.receiver);
-        require(amountPYout >= ptOwed, "insufficient pt to pay");
+        uint256 netPyOut = YT.mintPY(market, vars.receiver);
+        require(netPyOut >= ptOwed, "insufficient pt to pay");
     }
 
     /// @dev refer to _swapExactYtForScy or _swapYtForExactScy

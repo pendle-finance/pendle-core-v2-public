@@ -9,8 +9,8 @@ interface IPActionSwapPT {
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        int256 amountPtToAccount,
-        int256 amountScyToAccount
+        int256 netPtToAccount,
+        int256 netScyToAccount
     );
 
     event SwapPtAndToken(
@@ -18,8 +18,8 @@ interface IPActionSwapPT {
         address indexed market,
         address indexed token,
         address receiver,
-        int256 amountPtToAccount,
-        int256 amountTokenToAccount
+        int256 netPtToAccount,
+        int256 netTokenToAccount
     );
 
     function swapExactPtForScy(

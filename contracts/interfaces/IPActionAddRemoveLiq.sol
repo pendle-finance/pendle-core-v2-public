@@ -9,9 +9,9 @@ interface IPActionAddRemoveLiq {
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 scyUsed,
-        uint256 ptUsed,
-        uint256 lpOut
+        uint256 netScyUsed,
+        uint256 netPtUsed,
+        uint256 netLpOut
     );
 
     event AddLiquidityDualTokenAndPt(
@@ -20,8 +20,8 @@ interface IPActionAddRemoveLiq {
         address indexed receiver,
         address tokenIn,
         uint256 tokenUsed,
-        uint256 ptUsed,
-        uint256 lpOut
+        uint256 netPtUsed,
+        uint256 netLpOut
     );
 
     event AddLiquiditySinglePt(
@@ -53,26 +53,26 @@ interface IPActionAddRemoveLiq {
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 netLpIn,
-        uint256 amountPTOut,
-        uint256 amountSCYOut
+        uint256 netLpToRemove,
+        uint256 netPtOut,
+        uint256 netScyOut
     );
 
     event RemoveLiquidityDualTokenAndPt(
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 lpIn,
-        uint256 amountPTOut,
+        uint256 netLpToRemove,
+        uint256 netPtOut,
         address tokenOut,
-        uint256 amountTokenOut
+        uint256 netTokenOut
     );
 
     event RemoveLiquiditySinglePt(
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 netPtOut
     );
 
@@ -80,7 +80,7 @@ interface IPActionAddRemoveLiq {
         address indexed caller,
         address indexed market,
         address indexed receiver,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 netScyOut
     );
 
@@ -89,38 +89,38 @@ interface IPActionAddRemoveLiq {
         address indexed market,
         address indexed token,
         address receiver,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 netTokenOut
     );
 
     function addLiquidityDualScyAndPt(
         address receiver,
         address market,
-        uint256 scyDesired,
-        uint256 ptDesired,
+        uint256 netScyDesired,
+        uint256 netPtDesired,
         uint256 minLpOut
     )
         external
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
-            uint256 ptUsed
+            uint256 netPtUsed
         );
 
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
         address tokenIn,
-        uint256 tokenDesired,
-        uint256 ptDesired,
+        uint256 netTokenDesired,
+        uint256 netPtDesired,
         uint256 minLpOut
     )
         external
         payable
         returns (
             uint256 netLpOut,
-            uint256 tokenUsed,
-            uint256 ptUsed
+            uint256 netTokenUsed,
+            uint256 netPtUsed
         );
 
     function addLiquiditySinglePt(
@@ -150,24 +150,24 @@ interface IPActionAddRemoveLiq {
     function removeLiquidityDualScyAndPt(
         address receiver,
         address market,
-        uint256 lpToRemove,
-        uint256 scyOutMin,
-        uint256 ptOutMin
+        uint256 netLpToRemove,
+        uint256 minScyOut,
+        uint256 minPtOut
     ) external returns (uint256 netScyOut, uint256 netPtOut);
 
     function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         address tokenOut,
-        uint256 tokenOutMin,
-        uint256 ptOutMin
+        uint256 minTokenOut,
+        uint256 minPtOut
     ) external returns (uint256 netTokenOut, uint256 netPtOut);
 
     function removeLiquiditySinglePt(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut);
@@ -175,14 +175,14 @@ interface IPActionAddRemoveLiq {
     function removeLiquiditySingleScy(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 minScyOut
     ) external returns (uint256 netScyOut);
 
     function removeLiquiditySingleToken(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut);
 }

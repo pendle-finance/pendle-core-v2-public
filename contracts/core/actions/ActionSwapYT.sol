@@ -43,7 +43,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         _swapExactScyForYt(receiver, market, YT, exactScyIn, minYtOut, guessYtOut);
 
-        emit SwapYTAndSCY(receiver, market, netYtOut.Int(), exactScyIn.neg());
+        emit SwapYtAndScy(msg.sender, market, receiver, netYtOut.Int(), exactScyIn.neg());
     }
 
     /**
@@ -68,7 +68,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         netScyOut = _swapExactYtForScy(receiver, market, SCY, YT, exactYtIn, minScyOut);
 
-        emit SwapYTAndSCY(receiver, market, exactYtIn.neg(), netScyOut.Int());
+        emit SwapYtAndScy(msg.sender, market, receiver, exactYtIn.neg(), netScyOut.Int());
     }
 
     /**
@@ -98,7 +98,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         netScyIn = preScyBalance - SCY.balanceOf(msg.sender);
 
-        emit SwapYTAndSCY(receiver, market, exactYtOut.Int(), netScyIn.neg());
+        emit SwapYtAndScy(msg.sender, market, receiver, exactYtOut.Int(), netScyIn.neg());
     }
 
     /**
@@ -138,7 +138,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
             _encodeSwapYtForScy(receiver, exactScyOut)
         ); // ignore return
 
-        emit SwapYTAndSCY(receiver, market, netYtIn.neg(), exactScyOut.Int());
+        emit SwapYtAndScy(msg.sender, market, receiver, netYtIn.neg(), exactScyOut.Int());
     }
 
     function swapExactTokenForYt(
@@ -161,9 +161,10 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
             guessYtOut
         );
 
-        emit SwapYTAndToken(
-            receiver,
+        emit SwapYtAndToken(
+            msg.sender,
             market,
+            receiver,
             input.tokenIn,
             netYtOut.Int(),
             input.netTokenIn.neg()
@@ -184,7 +185,14 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyOut, output, false);
 
-        emit SwapYTAndToken(receiver, market, output.tokenOut, netYtIn.neg(), netTokenOut.Int());
+        emit SwapYtAndToken(
+            msg.sender,
+            market,
+            receiver,
+            output.tokenOut,
+            netYtIn.neg(),
+            netTokenOut.Int()
+        );
     }
 
     function _swapExactScyForYt(

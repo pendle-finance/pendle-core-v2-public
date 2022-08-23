@@ -18,29 +18,28 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
     {}
 
-    /// @dev refer to the internal function
     function addLiquidityDualScyAndPt(
         address receiver,
         address market,
-        uint256 scyDesired,
-        uint256 ptDesired,
+        uint256 netScyDesired,
+        uint256 netPtDesired,
         uint256 minLpOut
     )
         external
         returns (
             uint256 netLpOut,
             uint256 scyUsed,
-            uint256 ptUsed
+            uint256 netPtUsed
         )
     {
         (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
             .readTokens();
 
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
+        (, netLpOut, scyUsed, netPtUsed) = state.addLiquidity(
             YT.newIndex(),
-            scyDesired,
-            ptDesired,
+            netScyDesired,
+            netPtDesired,
             block.timestamp
         );
 
@@ -48,44 +47,43 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         require(netLpOut >= minLpOut, "insufficient lp out");
 
         IERC20(SCY).safeTransferFrom(msg.sender, market, scyUsed);
-        IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
+        IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
 
         netLpOut = IPMarket(market).mint(receiver);
 
         // fail-safe
         require(netLpOut >= minLpOut, "FS insufficient lp out");
-        emit AddLiquidityDualScyAndPt(msg.sender, market, receiver, scyUsed, ptUsed, netLpOut);
+        emit AddLiquidityDualScyAndPt(msg.sender, market, receiver, scyUsed, netPtUsed, netLpOut);
     }
 
-    /// @dev refer to the internal function
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
         address tokenIn,
-        uint256 tokenDesired,
-        uint256 ptDesired,
+        uint256 netTokenDesired,
+        uint256 netPtDesired,
         uint256 minLpOut
     )
         external
         payable
         returns (
             uint256 netLpOut,
-            uint256 tokenUsed,
-            uint256 ptUsed
+            uint256 netTokenUsed,
+            uint256 netPtUsed
         )
     {
         (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
             .readTokens();
 
-        uint256 scyDesired = SCY.previewDeposit(tokenIn, tokenDesired);
+        uint256 netScyDesired = SCY.previewDeposit(tokenIn, netTokenDesired);
         uint256 scyUsed;
 
         {
             MarketState memory state = IPMarket(market).readState();
-            (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
+            (, netLpOut, scyUsed, netPtUsed) = state.addLiquidity(
                 YT.newIndex(),
-                scyDesired,
-                ptDesired,
+                netScyDesired,
+                netPtDesired,
                 block.timestamp
             );
         }
@@ -93,19 +91,19 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         // early-check
         require(netLpOut >= minLpOut, "insufficient lp out");
 
-        IERC20(PT).safeTransferFrom(msg.sender, market, ptUsed);
+        IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
 
         // convert tokenIn to SCY to deposit
-        tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
+        netTokenUsed = (netTokenDesired * scyUsed).rawDivUp(netScyDesired);
 
         if (tokenIn == NATIVE) {
-            _transferIn(tokenIn, msg.sender, tokenDesired);
-            SCY.deposit{ value: tokenUsed }(market, tokenIn, tokenUsed, scyUsed);
-            _transferOut(tokenIn, msg.sender, tokenDesired - tokenUsed);
+            _transferIn(tokenIn, msg.sender, netTokenDesired);
+            SCY.deposit{ value: netTokenUsed }(market, tokenIn, netTokenUsed, scyUsed);
+            _transferOut(tokenIn, msg.sender, netTokenDesired - netTokenUsed);
         } else {
-            _transferIn(tokenIn, msg.sender, tokenUsed);
+            _transferIn(tokenIn, msg.sender, netTokenUsed);
             _safeApproveInf(tokenIn, address(SCY));
-            SCY.deposit(market, tokenIn, tokenUsed, scyUsed);
+            SCY.deposit(market, tokenIn, netTokenUsed, scyUsed);
         }
 
         netLpOut = IPMarket(market).mint(receiver);
@@ -117,8 +115,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             market,
             receiver,
             tokenIn,
-            tokenDesired,
-            ptUsed,
+            netTokenDesired,
+            netPtUsed,
             netLpOut
         );
     }
@@ -204,55 +202,53 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
-    /// @dev refer to the internal function
     function removeLiquidityDualScyAndPt(
         address receiver,
         address market,
-        uint256 lpToRemove,
-        uint256 scyOutMin,
-        uint256 ptOutMin
+        uint256 netLpToRemove,
+        uint256 minScyOut,
+        uint256 minPtOut
     ) external returns (uint256 netScyOut, uint256 netPtOut) {
-        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
         (netScyOut, netPtOut) = IPMarket(market).burn(receiver, receiver);
 
-        require(netScyOut >= scyOutMin, "insufficient SCY out");
-        require(netPtOut >= ptOutMin, "insufficient PT out");
+        require(netScyOut >= minScyOut, "insufficient SCY out");
+        require(netPtOut >= minPtOut, "insufficient PT out");
 
         emit RemoveLiquidityDualScyAndPt(
             msg.sender,
             market,
             receiver,
-            lpToRemove,
+            netLpToRemove,
             netPtOut,
             netScyOut
         );
     }
 
-    /// @dev refer to the internal function
     function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         address tokenOut,
-        uint256 tokenOutMin,
-        uint256 ptOutMin
+        uint256 minTokenOut,
+        uint256 minPtOut
     ) external returns (uint256 netTokenOut, uint256 netPtOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
         (, netPtOut) = IPMarket(market).burn(address(SCY), receiver);
 
-        netTokenOut = SCY.redeemAfterTransfer(receiver, tokenOut, tokenOutMin);
+        netTokenOut = SCY.redeemAfterTransfer(receiver, tokenOut, minTokenOut);
 
-        require(netPtOut >= ptOutMin, "insufficient PT out");
+        require(netPtOut >= minPtOut, "insufficient PT out");
 
         emit RemoveLiquidityDualTokenAndPt(
             msg.sender,
             market,
             receiver,
-            lpToRemove,
+            netLpToRemove,
             netPtOut,
             tokenOut,
             netTokenOut
@@ -262,16 +258,16 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     function removeLiquiditySinglePt(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
     ) external returns (uint256 netPtOut) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
         MarketState memory state = IPMarket(market).readState();
-        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
         (uint256 ptFromSwap, , ) = state.approxSwapExactScyForPt(
             YT.newIndex(),
             scyFromBurn,
@@ -289,29 +285,29 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         require(ptFromBurn + ptFromSwap >= minPtOut, "FS insufficient lp out");
         netPtOut = ptFromBurn + ptFromSwap;
 
-        emit RemoveLiquiditySinglePt(msg.sender, market, receiver, lpToRemove, netPtOut);
+        emit RemoveLiquiditySinglePt(msg.sender, market, receiver, netLpToRemove, netPtOut);
     }
 
     function removeLiquiditySingleScy(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         uint256 minScyOut
     ) external returns (uint256 netScyOut) {
-        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
         netScyOut = _removeLiquiditySingleScy(receiver, market, minScyOut);
-        emit RemoveLiquiditySingleScy(msg.sender, market, receiver, lpToRemove, netScyOut);
+        emit RemoveLiquiditySingleScy(msg.sender, market, receiver, netLpToRemove, netScyOut);
     }
 
     function removeLiquiditySingleToken(
         address receiver,
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        IERC20(market).safeTransferFrom(msg.sender, market, lpToRemove);
+        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
         // all output SCY is directly transferred to the SCY contract
         uint256 netScyReceived = _removeLiquiditySingleScy(address(SCY), market, 1);
@@ -324,7 +320,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             market,
             output.tokenOut,
             receiver,
-            lpToRemove,
+            netLpToRemove,
             netTokenOut
         );
     }
