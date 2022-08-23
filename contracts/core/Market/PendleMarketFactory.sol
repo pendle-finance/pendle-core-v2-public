@@ -56,7 +56,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     function initialize(
         address _treasury,
         uint96 _lnFeeRateRoot,
-        uint32 _rateOracleTimeWindow,
         uint8 _reserveFeePercent,
         address newVePendle,
         address newGaugeController,
@@ -65,7 +64,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         __BoringOwnable_init();
         setTreasury(_treasury);
         setlnFeeRateRoot(_lnFeeRateRoot);
-        setRateOracleTimeWindow(_rateOracleTimeWindow);
         setReserveFeePercent(_reserveFeePercent);
 
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
@@ -121,7 +119,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         _emitNewMarketConfigEvent();
     }
 
-    function setReserveFeePercent(uint8 newReserveFeePercent) public onlyGovernance {
+    function setReserveFeePercent(uint8 newReserveFeePercent) public onlyOwner {
         require(newReserveFeePercent <= 100, "invalid reserve fee percent");
         marketConfig.reserveFeePercent = newReserveFeePercent;
         _emitNewMarketConfigEvent();
