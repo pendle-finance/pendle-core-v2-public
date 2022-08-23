@@ -15,6 +15,10 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Cele
         address _marketFactory
     ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) {}
 
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
     function _executeMessage(bytes memory message) internal virtual override {
         (uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) = abi.decode(
             message,

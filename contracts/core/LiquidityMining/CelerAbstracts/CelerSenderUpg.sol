@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "../../../interfaces/ICelerMessageBus.sol";
-import "../../../periphery/BoringOwnable.sol";
+import "../../../periphery/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract CelerSenderUpg is BoringOwnable {
+abstract contract CelerSenderUpg is BoringOwnableUpgradeable {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     ICelerMessageBus public celerMessageBus;

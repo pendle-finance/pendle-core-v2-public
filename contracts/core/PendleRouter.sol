@@ -6,14 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
-import "../periphery/BoringOwnable.sol";
+import "../periphery/BoringOwnableUpgradeable.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
 /// corresponding implementation contracts
 
 // solhint-disable no-empty-blocks
-contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg {
+contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpgradeable {
     address public immutable ACTION_MINT_REDEEM;
     address public immutable ACTION_ADD_REMOVE_LIQ;
     address public immutable ACTION_SWAP_PT;
@@ -27,9 +27,8 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
         address _ACTION_SWAP_PT,
         address _ACTION_SWAP_YT,
         address _ACTION_CALLBACK,
-        address _ACTION_MISC,
-        address _governanceManager
-    ) PermissionsV2Upg(_governanceManager) initializer {
+        address _ACTION_MISC
+    ) initializer {
         ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
         ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
@@ -40,6 +39,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, PermissionsV2Upg
 
     function initialize() external initializer {
         __UUPSUpgradeable_init();
+        __BoringOwnable_init();
     }
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {

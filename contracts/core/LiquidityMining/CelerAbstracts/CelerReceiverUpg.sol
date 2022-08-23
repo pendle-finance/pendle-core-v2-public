@@ -2,14 +2,14 @@
 pragma solidity 0.8.15;
 
 import "../../../interfaces/ICelerMessageReceiverApp.sol";
-import "../../../periphery/BoringOwnable.sol";
+import "../../../periphery/BoringOwnableUpgradeable.sol";
 
 // solhint-disable no-empty-blocks
 /// This contract is upgradable because
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract CelerReceiverUpg is ICelerMessageReceiverApp, BoringOwnable {
+abstract contract CelerReceiverUpg is ICelerMessageReceiverApp, BoringOwnableUpgradeable {
     address public celerMessageBus;
     address public originAddress;
     uint256 public originChainId;

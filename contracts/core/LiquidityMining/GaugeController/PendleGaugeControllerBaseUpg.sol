@@ -8,7 +8,7 @@ import "../../../libraries/math/WeekMath.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
-import "../../../periphery/BoringOwnable.sol";
+import "../../../periphery/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnable {
+abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeable {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;

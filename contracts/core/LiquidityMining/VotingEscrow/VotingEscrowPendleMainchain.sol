@@ -38,6 +38,10 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         pendle = _pendle;
     }
 
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
     /// @notice basically a proxy function to call increaseLockPosition & broadcastUserPosition at the same time
     function increaseLockPositionAndBroadcast(
         uint128 additionalAmountToLock,

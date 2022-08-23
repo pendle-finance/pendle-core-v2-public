@@ -32,13 +32,13 @@ import "../../libraries/helpers/ExpiryUtilsLib.sol";
 import "../../libraries/helpers/SSTORE2Deployer.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
-import "../../periphery/BoringOwnable.sol";
+import "../../periphery/BoringOwnableUpgradeable.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
-contract PendleYieldContractFactory is BoringOwnable, Initializable, IPYieldContractFactory {
+contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContractFactory {
     using ExpiryUtils for string;
 
     string private constant PT_PREFIX = "PT";
@@ -60,19 +60,20 @@ contract PendleYieldContractFactory is BoringOwnable, Initializable, IPYieldCont
     mapping(address => bool) public isPT;
     mapping(address => bool) public isYT;
 
-    constructor(
+    constructor() {}
+
+    function initialize(
         uint96 _expiryDivisor,
         uint128 _interestFeeRate,
         uint128 _rewardFeeRate,
-        address _treasury
-    ) {
+        address _treasury,
+        bytes memory _pendleYtCreationCode
+    ) external initializer {
+        __BoringOwnable_init();
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setRewardFeeRate(_rewardFeeRate);
         setTreasury(_treasury);
-    }
-
-    function initialize(bytes memory _pendleYtCreationCode) external initializer onlyOwner {
         pendleYtCreationCodePointer = SSTORE2Deployer.setCreationCode(_pendleYtCreationCode);
     }
 

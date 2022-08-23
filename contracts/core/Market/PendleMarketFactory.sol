@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
 import "../../libraries/helpers/SSTORE2Deployer.sol";
-import "../../periphery/BoringOwnable.sol";
+import "../../periphery/BoringOwnableUpgradeable.sol";
 
 import "./PendleMarket.sol";
 import "../LiquidityMining/PendleGauge.sol";
 
-contract PendleMarketFactory is BoringOwnable, Initializable, IPMarketFactory {
+contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct MarketConfig {
@@ -55,10 +54,20 @@ contract PendleMarketFactory is BoringOwnable, Initializable, IPMarketFactory {
     }
 
     function initialize(
+        address _treasury,
+        uint96 _lnFeeRateRoot,
+        uint32 _rateOracleTimeWindow,
+        uint8 _reserveFeePercent,
         address newVePendle,
         address newGaugeController,
         bytes memory _marketCreationCode
-    ) external initializer onlyOwner {
+    ) external initializer {
+        __BoringOwnable_init();
+        setTreasury(_treasury);
+        setlnFeeRateRoot(_lnFeeRateRoot);
+        setRateOracleTimeWindow(_rateOracleTimeWindow);
+        setReserveFeePercent(_reserveFeePercent);
+
         require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;

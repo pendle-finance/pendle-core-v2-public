@@ -22,6 +22,10 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg {
         votingController = _votingController;
     }
 
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
     function updateVotingResults(
         uint128 wTime,
         address[] memory markets,

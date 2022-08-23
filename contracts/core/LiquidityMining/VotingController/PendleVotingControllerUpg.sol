@@ -53,6 +53,10 @@ contract PendleVotingControllerUpg is
         VotingControllerStorageUpg(_vePendle) // constructor only set immutable variables
     {}
 
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
     /*///////////////////////////////////////////////////////////////
                 FUNCTIONS CAN BE CALLED BY ANYONE
     //////////////////////////////////////////////////////////////*/

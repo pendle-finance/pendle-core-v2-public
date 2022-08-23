@@ -24,5 +24,5 @@ interface IPGaugeController {
             uint128
         );
 
-
+    function initialize() external;
 }

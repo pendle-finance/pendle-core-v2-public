@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
-// Source: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol + Claimable.sol
-// Simplified by BoringCrypto
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract BoringOwnableData {
+contract BoringOwnableUpgradeableData {
     address public owner;
     address public pendingOwner;
 }
 
-contract BoringOwnable is BoringOwnableData {
+contract BoringOwnableUpgradeable is BoringOwnableUpgradeableData, Initializable {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    /// @notice `owner` defaults to msg.sender on construction.
-    constructor() {
+    function __BoringOwnable_init() internal onlyInitializing {
         owner = msg.sender;
-        emit OwnershipTransferred(address(0), msg.sender);
     }
 
     /// @notice Transfers ownership to `newOwner`. Either directly or claimable by the new pending owner.
@@ -60,4 +57,6 @@ contract BoringOwnable is BoringOwnableData {
         require(msg.sender == owner, "Ownable: caller is not the owner");
         _;
     }
+
+    uint256[48] private __gap;
 }
