@@ -6,7 +6,7 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
-import "./base/ActionBaseTokenSCY.sol";
+import "./base/ActionBaseMintRedeem.sol";
 import "./base/CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 

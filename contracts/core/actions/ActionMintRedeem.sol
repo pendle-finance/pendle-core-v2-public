@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "./base/ActionBaseTokenSCY.sol";
+import "./base/ActionBaseMintRedeem.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPActionMintRedeem.sol";
 
-contract ActionMintRedeem is IPActionMintRedeem, ActionBaseTokenSCY {
+contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using Math for uint256;
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _kyberSwapRouter)
-        ActionBaseTokenSCY(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+        ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
     {}
 
     /// @dev refer to the internal function

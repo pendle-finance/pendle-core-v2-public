@@ -7,7 +7,7 @@ import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
 
 // solhint-disable no-empty-blocks
-abstract contract ActionBaseTokenSCY is TokenHelper, KyberSwapHelper {
+abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     using SafeERC20 for IERC20;
 
     bytes internal constant EMPTY_BYTES = abi.encode();
