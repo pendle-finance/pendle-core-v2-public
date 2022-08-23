@@ -51,6 +51,7 @@ contract PendleVotingControllerUpg is
 
     constructor(address _vePendle)
         VotingControllerStorageUpg(_vePendle) // constructor only set immutable variables
+        initializer
     {}
 
     function initialize() external initializer {

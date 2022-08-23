@@ -18,7 +18,7 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg {
         address _votingController,
         address _pendle,
         address _marketFactory
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) {
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) initializer {
         votingController = _votingController;
     }
 

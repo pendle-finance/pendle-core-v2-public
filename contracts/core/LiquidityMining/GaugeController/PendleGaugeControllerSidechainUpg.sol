@@ -13,7 +13,7 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Cele
     constructor(
         address _pendle,
         address _marketFactory
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) {}
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) initializer {}
 
     function initialize() external initializer {
         __BoringOwnable_init();
