@@ -85,6 +85,8 @@ library MarketMathStatic {
             approxParams
         );
 
+        state = IPMarket(market).readState(); // re-read
+
         uint256 netScyReceived;
         (netScyReceived, netScyFee) = state.swapExactPtForScy(
             pyIndex(market),
@@ -121,6 +123,8 @@ library MarketMathStatic {
             block.timestamp,
             approxParams
         );
+
+        state = IPMarket(market).readState(); // re-read
 
         uint256 netScySwap;
         (netScySwap, netScyFee) = state.swapScyForExactPt(
