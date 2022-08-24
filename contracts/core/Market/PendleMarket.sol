@@ -137,8 +137,8 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
 
         (netScyOut, netPtOut) = market.removeLiquidity(lpToRemove);
 
-        IERC20(SCY).safeTransfer(receiverScy, netScyOut);
-        IERC20(PT).safeTransfer(receiverPt, netPtOut);
+        if (receiverScy != address(this)) IERC20(SCY).safeTransfer(receiverScy, netScyOut);
+        if (receiverPt != address(this)) IERC20(PT).safeTransfer(receiverPt, netPtOut);
 
         _writeState(market);
 
@@ -168,7 +168,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
             block.timestamp
         );
 
-        IERC20(SCY).safeTransfer(receiver, netScyOut);
+        if (receiver != address(this)) IERC20(SCY).safeTransfer(receiver, netScyOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
         _writeState(market);
@@ -205,7 +205,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
             block.timestamp
         );
 
-        IERC20(PT).safeTransfer(receiver, exactPtOut);
+        if (receiver != address(this)) IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SCY).safeTransfer(market.treasury, netScyToReserve);
 
         _writeState(market);
