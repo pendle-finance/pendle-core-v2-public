@@ -41,7 +41,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
 
-        _swapExactScyForYt(receiver, market, YT, exactScyIn, minYtOut, guessYtOut);
+        netYtOut = _swapExactScyForYt(receiver, market, YT, exactScyIn, minYtOut, guessYtOut);
 
         emit SwapYtAndScy(msg.sender, market, receiver, netYtOut.Int(), exactScyIn.neg());
     }
