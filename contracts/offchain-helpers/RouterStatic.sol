@@ -47,14 +47,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
 
     IPYieldContractFactory internal immutable yieldContractFactory;
     IPMarketFactory internal immutable marketFactory;
-    ApproxParams internal approxParams =
-        ApproxParams({
-            guessMin: 0,
-            guessMax: type(uint256).max,
-            guessOffchain: 0,
-            maxIteration: 256,
-            eps: 1e15
-        });
+    ApproxParams internal approxParams;
 
     constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory)
         initializer
@@ -65,6 +58,16 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
 
     function initialize() external initializer {
         __Ownable_init();
+    }
+
+    function setDefaultApproxParams() external onlyOwner {
+        approxParams = ApproxParams({
+            guessMin: 0,
+            guessMax: type(uint256).max,
+            guessOffchain: 0,
+            maxIteration: 256,
+            eps: 1e15
+        });
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
