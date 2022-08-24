@@ -47,7 +47,6 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
 
     IPYieldContractFactory internal immutable yieldContractFactory;
     IPMarketFactory internal immutable marketFactory;
-    ApproxParams internal approxParams;
 
     constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory)
         initializer
@@ -60,14 +59,15 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         __Ownable_init();
     }
 
-    function setDefaultApproxParams() external onlyOwner {
-        approxParams = ApproxParams({
-            guessMin: 0,
-            guessMax: type(uint256).max,
-            guessOffchain: 0,
-            maxIteration: 256,
-            eps: 1e15
-        });
+    function getDefaultApproxParams() public pure returns (ApproxParams memory) {
+        return
+            ApproxParams({
+                guessMin: 0,
+                guessMax: type(uint256).max,
+                guessOffchain: 0,
+                maxIteration: 256,
+                eps: 1e15
+            });
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -294,7 +294,8 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn, approxParams);
+        return
+            MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn, getDefaultApproxParams());
     }
 
     function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
@@ -305,7 +306,12 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.addLiquiditySingleScyStatic(market, netScyIn, approxParams);
+        return
+            MarketMathStatic.addLiquiditySingleScyStatic(
+                market,
+                netScyIn,
+                getDefaultApproxParams()
+            );
     }
 
     function addLiquiditySingleBaseTokenStatic(
@@ -325,7 +331,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
                 market,
                 baseToken,
                 netBaseTokenIn,
-                approxParams
+                getDefaultApproxParams()
             );
     }
 
@@ -353,7 +359,12 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.removeLiquiditySinglePtStatic(market, lpToRemove, approxParams);
+        return
+            MarketMathStatic.removeLiquiditySinglePtStatic(
+                market,
+                lpToRemove,
+                getDefaultApproxParams()
+            );
     }
 
     function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
@@ -413,7 +424,8 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapExactScyForPtStatic(market, exactScyIn, approxParams);
+        return
+            MarketMathStatic.swapExactScyForPtStatic(market, exactScyIn, getDefaultApproxParams());
     }
 
     function swapPtForExactScyStatic(address market, uint256 exactScyOut)
@@ -424,7 +436,12 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapPtForExactScyStatic(market, exactScyOut, approxParams);
+        return
+            MarketMathStatic.swapPtForExactScyStatic(
+                market,
+                exactScyOut,
+                getDefaultApproxParams()
+            );
     }
 
     function swapExactBaseTokenForPtStatic(
@@ -444,7 +461,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
                 market,
                 baseToken,
                 amountBaseToken,
-                approxParams
+                getDefaultApproxParams()
             );
     }
 
@@ -482,7 +499,8 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapExactScyForYtStatic(market, exactScyIn, approxParams);
+        return
+            MarketMathStatic.swapExactScyForYtStatic(market, exactScyIn, getDefaultApproxParams());
     }
 
     function swapExactYtForScyStatic(address market, uint256 exactYtIn)
@@ -504,7 +522,12 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapYtForExactScyStatic(market, exactScyOut, approxParams);
+        return
+            MarketMathStatic.swapYtForExactScyStatic(
+                market,
+                exactScyOut,
+                getDefaultApproxParams()
+            );
     }
 
     function swapExactYtForBaseTokenStatic(
@@ -539,7 +562,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
                 market,
                 baseToken,
                 amountBaseToken,
-                approxParams
+                getDefaultApproxParams()
             );
     }
 
