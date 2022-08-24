@@ -6,7 +6,8 @@ import "../interfaces/IPMarket.sol";
 
 library MarketMathStatic {
     using MarketMathCore for MarketState;
-    using MarketApproxLib for MarketState;
+    using MarketApproxPtInLib for MarketState;
+    using MarketApproxPtOutLib for MarketState;
     using Math for uint256;
     using Math for int256;
     using LogExpMath for int256;

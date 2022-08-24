@@ -9,7 +9,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
-    using MarketApproxLib for MarketState;
+    using MarketApproxPtInLib for MarketState;
+    using MarketApproxPtOutLib for MarketState;
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
 
