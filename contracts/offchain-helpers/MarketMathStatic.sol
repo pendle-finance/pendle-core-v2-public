@@ -64,6 +64,7 @@ library MarketMathStatic {
         tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
     }
 
+    /// @dev netPtToSwap is the parameter to approx
     function addLiquiditySinglePtStatic(
         address market,
         uint256 netPtIn,
@@ -72,13 +73,14 @@ library MarketMathStatic {
         external
         returns (
             uint256 netLpOut,
+            uint256 netPtToSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
+        (netPtToSwap, , ) = state.approxSwapPtToAddLiquidity(
             pyIndex(market),
             netPtIn,
             block.timestamp,
@@ -90,19 +92,20 @@ library MarketMathStatic {
         uint256 netScyReceived;
         (netScyReceived, netScyFee) = state.swapExactPtForScy(
             pyIndex(market),
-            netPtSwap,
+            netPtToSwap,
             block.timestamp
         );
         (, netLpOut, , ) = state.addLiquidity(
             pyIndex(market),
             netScyReceived,
-            netPtIn - netPtSwap,
+            netPtIn - netPtToSwap,
             block.timestamp
         );
 
-        priceImpact = calcPriceImpact(market, netPtSwap.neg());
+        priceImpact = calcPriceImpact(market, netPtToSwap.neg());
     }
 
+    /// @dev netPtFromSwap is the parameter to approx
     function addLiquiditySingleScyStatic(
         address market,
         uint256 netScyIn,
@@ -111,13 +114,14 @@ library MarketMathStatic {
         public
         returns (
             uint256 netLpOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
+        (netPtFromSwap, , ) = state.approxSwapScyToAddLiquidity(
             pyIndex(market),
             netScyIn,
             block.timestamp,
@@ -129,19 +133,20 @@ library MarketMathStatic {
         uint256 netScySwap;
         (netScySwap, netScyFee) = state.swapScyForExactPt(
             pyIndex(market),
-            netPtReceived,
+            netPtFromSwap,
             block.timestamp
         );
         (, netLpOut, , ) = state.addLiquidity(
             pyIndex(market),
             netScyIn - netScySwap,
-            netPtReceived,
+            netPtFromSwap,
             block.timestamp
         );
 
-        priceImpact = calcPriceImpact(market, netPtReceived.Int());
+        priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
 
+    /// @dev netPtFromSwap is the parameter to approx
     function addLiquiditySingleBaseTokenStatic(
         address market,
         address baseToken,
@@ -151,6 +156,7 @@ library MarketMathStatic {
         external
         returns (
             uint256 netLpOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
@@ -188,6 +194,7 @@ library MarketMathStatic {
         netTokenOut = SCY.previewRedeem(tokenOut, netScyOut);
     }
 
+    /// @dev netPtFromSwap is the parameter to approx
     function removeLiquiditySinglePtStatic(
         address market,
         uint256 lpToRemove,
@@ -196,6 +203,7 @@ library MarketMathStatic {
         external
         returns (
             uint256 netPtOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
@@ -203,16 +211,15 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
 
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
-        uint256 ptFromSwap;
-        (ptFromSwap, , netScyFee) = state.approxSwapExactScyForPt(
+        (netPtFromSwap, , netScyFee) = state.approxSwapExactScyForPt(
             pyIndex(market),
             scyFromBurn,
             block.timestamp,
             approxParams
         );
 
-        netPtOut = ptFromBurn + ptFromSwap;
-        priceImpact = calcPriceImpact(market, ptFromSwap.Int());
+        netPtOut = ptFromBurn + netPtFromSwap;
+        priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
 
     function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
@@ -290,6 +297,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, exactPtOut.Int());
     }
 
+    /// @dev netPtOut is the parameter to approx
     function swapExactScyForPtStatic(
         address market,
         uint256 exactScyIn,
@@ -312,6 +320,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netPtOut.Int());
     }
 
+    /// @dev netPtIn is the parameter to approx
     function swapPtForExactScyStatic(
         address market,
         uint256 exactScyOut,
@@ -335,6 +344,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netPtIn.neg());
     }
 
+    /// @dev netPtOut is the parameter to approx
     function swapExactBaseTokenForPtStatic(
         address market,
         address baseToken,
@@ -402,6 +412,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, exactYtOut.neg());
     }
 
+    /// @dev netYtOut is the parameter to approx
     function swapExactScyForYtStatic(
         address market,
         uint256 exactScyIn,
@@ -449,6 +460,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, exactYtIn.Int());
     }
 
+    /// @dev netYtIn is the parameter to approx
     function swapYtForExactScyStatic(
         address market,
         uint256 exactScyOut,
@@ -493,6 +505,7 @@ library MarketMathStatic {
         netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
     }
 
+    /// @dev netYtOut is the parameter to approx
     function swapExactBaseTokenForYtStatic(
         address market,
         address baseToken,
@@ -501,7 +514,7 @@ library MarketMathStatic {
     )
         external
         returns (
-            uint256 netPtOut,
+            uint256 netYtOut,
             uint256 netScyFee,
             uint256 priceImpact
         )
