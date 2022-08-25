@@ -290,6 +290,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         external
         returns (
             uint256 netLpOut,
+            uint256 netPtToSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
@@ -302,6 +303,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         public
         returns (
             uint256 netLpOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
@@ -322,6 +324,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         external
         returns (
             uint256 netLpOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
@@ -355,6 +358,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
         external
         returns (
             uint256 netPtOut,
+            uint256 netPtFromSwap,
             uint256 netScyFee,
             uint256 priceImpact
         )
