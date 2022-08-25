@@ -72,7 +72,12 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         }
     }
 
-    function rewardIndexesCurrent() external override returns (uint256[] memory indexes) {
+    function rewardIndexesCurrent()
+        external
+        override
+        nonReentrant
+        returns (uint256[] memory indexes)
+    {
         _updateRewardIndex();
         return rewardIndexesStored();
     }
