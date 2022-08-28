@@ -90,21 +90,29 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
      * @notice PendleMarket allows users to provide in PT & SCY in exchange for LPs, which
      * will grant LP holders more exchange fee over time
      */
-    function mint(address receiver) external nonReentrant notExpired returns (uint256 netLpOut) {
+    function mint(
+        address receiver,
+        uint256 netScyDesired,
+        uint256 netPtDesired
+    )
+        external
+        nonReentrant
+        notExpired
+        returns (
+            uint256 netLpOut,
+            uint256 netScyUsed,
+            uint256 netPtUsed
+        )
+    {
         MarketState memory market = readState();
         PYIndex index = YT.newIndex();
 
-        uint256 scyDesired = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
-        uint256 ptDesired = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
-
         uint256 lpToReserve;
-        uint256 scyUsed;
-        uint256 ptUsed;
 
-        (lpToReserve, netLpOut, scyUsed, ptUsed) = market.addLiquidity(
+        (lpToReserve, netLpOut, netScyUsed, netPtUsed) = market.addLiquidity(
             index,
-            scyDesired,
-            ptDesired,
+            netScyDesired,
+            netPtDesired,
             block.timestamp
         );
 
@@ -118,31 +126,36 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        emit Mint(receiver, netLpOut, scyUsed, ptUsed);
+        require(
+            IERC20(SCY).balanceOf(address(this)) >= market.totalScy.Uint(),
+            "insufficient SCY"
+        );
+        require(IERC20(PT).balanceOf(address(this)) >= market.totalPt.Uint(), "insufficient PT");
+
+        emit Mint(receiver, netLpOut, netScyUsed, netPtUsed);
     }
 
     /**
      * @notice LP Holders can burn their LP to receive back SCY & PT proportionally
      * to their share of market
      */
-    function burn(address receiverScy, address receiverPt)
-        external
-        nonReentrant
-        returns (uint256 netScyOut, uint256 netPtOut)
-    {
+    function burn(
+        address receiverScy,
+        address receiverPt,
+        uint256 netLpToBurn
+    ) external nonReentrant returns (uint256 netScyOut, uint256 netPtOut) {
         MarketState memory market = readState();
 
-        uint256 lpToRemove = balanceOf(address(this));
-        _burn(address(this), lpToRemove);
+        _burn(address(this), netLpToBurn);
 
-        (netScyOut, netPtOut) = market.removeLiquidity(lpToRemove);
+        (netScyOut, netPtOut) = market.removeLiquidity(netLpToBurn);
 
         if (receiverScy != address(this)) IERC20(SCY).safeTransfer(receiverScy, netScyOut);
         if (receiverPt != address(this)) IERC20(PT).safeTransfer(receiverPt, netPtOut);
 
         _writeState(market);
 
-        emit Burn(receiverScy, receiverPt, lpToRemove, netScyOut, netPtOut);
+        emit Burn(receiverScy, receiverPt, netLpToBurn, netScyOut, netPtOut);
     }
 
     /**

@@ -38,11 +38,23 @@ interface IPMarket is IERC20Metadata, IPGauge {
         uint16 observationCardinalityNextNew
     );
 
-    function mint(address receiver) external returns (uint256 netLpOut);
-
-    function burn(address receiverScy, address receiverPt)
+    function mint(
+        address receiver,
+        uint256 netScyDesired,
+        uint256 netPtDesired
+    )
         external
-        returns (uint256 netScyOut, uint256 netPtOut);
+        returns (
+            uint256 netLpOut,
+            uint256 netScyUsed,
+            uint256 netPtUsed
+        );
+
+    function burn(
+        address receiverScy,
+        address receiverPt,
+        uint256 netLpToBurn
+    ) external returns (uint256 netScyOut, uint256 netPtOut);
 
     function swapExactPtForScy(
         address receiver,
