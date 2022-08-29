@@ -68,6 +68,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
                 output.tokenRedeemScy,
                 1
             );
+            _safeApproveInf(output.tokenRedeemScy, SCY);
             _kyberswap(output.tokenRedeemScy, netTokenRedeemed, output.kybercall);
 
             netTokenOut = _selfBalance(output.tokenOut);
