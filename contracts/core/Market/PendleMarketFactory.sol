@@ -17,48 +17,47 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     struct MarketConfig {
         address treasury;
-        uint96 lnFeeRateRoot;
-        // 1 SLOT = 256 bits
+        uint88 lnFeeRateRoot;
         uint8 reserveFeePercent;
-        // 1 SLOT = 8 bits
+        // 1 SLOT = 256 bits
     }
 
     address public immutable yieldContractFactory;
-    address public marketCreationCodePointer;
+    address public immutable marketCreationCodePointer;
     uint256 public immutable maxLnFeeRateRoot;
 
     // PT -> scalarRoot -> initialAnchor
     mapping(address => mapping(int256 => mapping(int256 => address))) internal markets;
     EnumerableSet.AddressSet internal allMarkets;
-
     address public vePendle;
     address public gaugeController;
 
     MarketConfig public marketConfig;
 
-    constructor(address _yieldContractFactory) {
+    constructor(address _yieldContractFactory, address _marketCreationCodePointer) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
+
+        marketCreationCodePointer = _marketCreationCodePointer;
     }
 
     function initialize(
         address _treasury,
-        uint96 _lnFeeRateRoot,
+        uint88 _lnFeeRateRoot,
         uint8 _reserveFeePercent,
         address newVePendle,
-        address newGaugeController,
-        bytes memory _marketCreationCode
+        address newGaugeController
     ) external initializer {
+        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
+
         __BoringOwnable_init();
         setTreasury(_treasury);
         setlnFeeRateRoot(_lnFeeRateRoot);
         setReserveFeePercent(_reserveFeePercent);
 
-        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
         vePendle = newVePendle;
         gaugeController = newGaugeController;
-        marketCreationCodePointer = SSTORE2Deployer.setCreationCode(_marketCreationCode);
     }
 
     /**
@@ -102,7 +101,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         _emitNewMarketConfigEvent();
     }
 
-    function setlnFeeRateRoot(uint96 newlnFeeRateRoot) public onlyOwner {
+    function setlnFeeRateRoot(uint88 newlnFeeRateRoot) public onlyOwner {
         require(newlnFeeRateRoot <= maxLnFeeRateRoot, "invalid fee rate root");
         marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
         _emitNewMarketConfigEvent();

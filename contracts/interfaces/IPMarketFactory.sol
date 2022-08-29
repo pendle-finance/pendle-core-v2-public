@@ -21,7 +21,7 @@ interface IPMarketFactory {
         view
         returns (
             address treasury,
-            uint96 lnFeeRateRoot,
+            uint88 lnFeeRateRoot,
             uint8 reserveFeePercent
         );
 }
