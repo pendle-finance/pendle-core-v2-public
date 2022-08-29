@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ISJoe {
     function joe() external view returns (address);
@@ -23,7 +23,7 @@ interface ISJoe {
      * @return The amount of JOE user has deposited
      * @return The reward debt for the chosen token
      */
-    function getUserInfo(address _user, IERC20Upgradeable _rewardToken)
+    function getUserInfo(address _user, IERC20 _rewardToken)
         external
         view
         returns (uint256, uint256);
@@ -42,10 +42,7 @@ interface ISJoe {
      * @param _token The address of the token
      * @return `_user`'s pending reward token
      */
-    function pendingReward(address _user, IERC20Upgradeable _token)
-        external
-        view
-        returns (uint256);
+    function pendingReward(address _user, IERC20 _token) external view returns (uint256);
 
     /**
      * @notice Withdraw JOE and harvest the rewards

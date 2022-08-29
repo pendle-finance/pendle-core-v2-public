@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
@@ -38,7 +37,6 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
     }
 
     function initialize() external initializer {
-        __UUPSUpgradeable_init();
         __BoringOwnable_init();
     }
 

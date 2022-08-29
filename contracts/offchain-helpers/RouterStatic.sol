@@ -4,12 +4,12 @@ pragma solidity 0.8.15;
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "./MarketMathStatic.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "contracts/periphery/BoringOwnableUpgradeable.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
-contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
+contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
     struct TokenAmount {
@@ -56,7 +56,7 @@ contract RouterStatic is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function initialize() external initializer {
-        __Ownable_init();
+        __BoringOwnable_init();
     }
 
     function getDefaultApproxParams() public pure returns (ApproxParams memory) {

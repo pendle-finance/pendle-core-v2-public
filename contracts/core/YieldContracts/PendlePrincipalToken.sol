@@ -6,7 +6,7 @@ import "../../interfaces/IPYieldToken.sol";
 
 import "../PendleERC20.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
     address public immutable SCY;

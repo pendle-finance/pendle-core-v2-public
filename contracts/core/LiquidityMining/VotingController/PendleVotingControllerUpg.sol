@@ -7,8 +7,7 @@ import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../../interfaces/IPVotingController.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /*
 Voting accounting:

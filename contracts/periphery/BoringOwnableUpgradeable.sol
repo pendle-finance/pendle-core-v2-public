@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract BoringOwnableUpgradeableData {
     address public owner;
     address public pendingOwner;
 }
 
-contract BoringOwnableUpgradeable is BoringOwnableUpgradeableData, Initializable {
+abstract contract BoringOwnableUpgradeable is BoringOwnableUpgradeableData, Initializable {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     function __BoringOwnable_init() internal onlyInitializing {
