@@ -62,7 +62,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         - rewardData[market] is updated with the data up to now
         - all accumulatedPendle is transferred out & the accumulatedPendle is set to 0
      */
-    function claimMarketReward() external onlyPendleMarket {
+    function redeemMarketReward() external onlyPendleMarket {
         address market = msg.sender;
         rewardData[market] = _getUpdatedMarketReward(market);
 

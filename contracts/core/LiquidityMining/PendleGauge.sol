@@ -97,7 +97,7 @@ abstract contract PendleGauge is RewardManager, IPGauge {
 
     function _redeemExternalReward() internal virtual override {
         ISuperComposableYield(SCY).claimRewards(address(this));
-        IPGaugeController(gaugeController).claimMarketReward();
+        IPGaugeController(gaugeController).redeemMarketReward();
     }
 
     function _stakedBalance(address user) internal view virtual returns (uint256);

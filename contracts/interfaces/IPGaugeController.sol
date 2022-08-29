@@ -12,7 +12,7 @@ interface IPGaugeController {
 
     function pendle() external returns (address);
 
-    function claimMarketReward() external;
+    function redeemMarketReward() external;
 
     function rewardData(address pool)
         external
