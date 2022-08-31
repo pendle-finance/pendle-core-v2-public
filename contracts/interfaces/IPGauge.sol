@@ -3,4 +3,6 @@ pragma solidity 0.8.15;
 
 interface IPGauge {
     function totalActiveSupply() external view returns (uint256);
+
+    function activeBalance(address user) external view returns (uint256);
 }
