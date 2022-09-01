@@ -26,6 +26,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "../helpers/TokenHelper.sol";
+import "./AggregationRouterHelper.sol";
 
 struct TokenInput {
     address tokenIn;
@@ -53,9 +54,14 @@ abstract contract KyberSwapHelper is TokenHelper {
     function _kyberswap(
         address tokenIn,
         uint256 amountIn,
-        bytes calldata kybercall
+        bytes calldata rawKybercall
     ) internal {
         _safeApproveInf(tokenIn, kyberSwapRouter);
+
+        bytes memory kybercall = AggregationRouterHelper.getScaledInputData(
+            rawKybercall,
+            amountIn
+        );
         kyberSwapRouter.functionCallWithValue(kybercall, tokenIn == NATIVE ? amountIn : 0);
     }
 }
