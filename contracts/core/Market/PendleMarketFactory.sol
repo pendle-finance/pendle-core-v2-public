@@ -23,8 +23,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         // 1 SLOT = 8 bits
     }
 
-    uint256 private constant MIN_RATE_ORACLE_TIME_WINDOW = 300 seconds;
-
     address public immutable yieldContractFactory;
     address public marketCreationCodePointer;
     uint256 public immutable maxLnFeeRateRoot;
@@ -38,9 +36,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     MarketConfig public marketConfig;
 
-    constructor(
-        address _yieldContractFactory
-    ) {
+    constructor(address _yieldContractFactory) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
