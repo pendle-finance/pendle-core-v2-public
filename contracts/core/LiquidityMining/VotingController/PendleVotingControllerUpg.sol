@@ -39,8 +39,7 @@ Cons:
 contract PendleVotingControllerUpg is
     PendleMsgSenderAppUpg,
     VotingControllerStorageUpg,
-    UUPSUpgradeable,
-    IPVotingController
+    UUPSUpgradeable
 {
     using VeBalanceLib for VeBalance;
     using Math for uint256;

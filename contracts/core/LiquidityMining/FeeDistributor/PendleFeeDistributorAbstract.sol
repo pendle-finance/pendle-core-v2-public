@@ -6,9 +6,10 @@ import "../../../libraries/helpers/ArrayLib.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/VeHistoryLib.sol";
+import "../../../interfaces/IPFeeDistributor.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-abstract contract FeeDistributorAbstract {
+abstract contract PendleFeeDistributorAbstract is IPFeeDistributor {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
@@ -42,13 +43,16 @@ abstract contract FeeDistributorAbstract {
         uint256 amount,
         uint256 numEpoch
     ) external {
-        uint256 epoch = WeekMath.getCurrentWeekStart();
+        uint256 epoch = WeekMath.getCurrentWeekStart() + WeekMath.WEEK;
         uint256 incentiveForEach = amount / numEpoch;
+
         for (uint256 i = 0; i < numEpoch; ++i) {
-            epoch += WeekMath.WEEK;
             incentivesForEpoch[epoch][rewardToken] += incentiveForEach;
+            epoch += WeekMath.WEEK;
         }
         IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit Fund(rewardToken, numEpoch, incentiveForEach);
     }
 
     function updateUserShare(address user) external {
@@ -83,6 +87,8 @@ abstract contract FeeDistributorAbstract {
         if (amountRewardOut > 0) {
             IERC20(rewardToken).safeTransfer(user, amountRewardOut);
         }
+
+        emit ClaimReward(user, rewardToken, currentEpoch, amountRewardOut);
     }
 
     function _updateUserShare(address user) internal {

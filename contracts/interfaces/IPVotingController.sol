@@ -17,9 +17,9 @@ interface IPVotingController {
         uint128 indexed wTime,
         uint128 totalPendlePerSec
     );
-}
 
-interface IPVotingControllerStorage {
+    function applyPoolSlopeChanges(address pool) external;
+
     function getUserPoolHistoryLength(address user, address pool) external view returns (uint256);
 
     function getUserPoolHistoryAt(
@@ -27,4 +27,13 @@ interface IPVotingControllerStorage {
         address pool,
         uint256 index
     ) external view returns (Checkpoint memory);
+
+    function getWeekData(uint128 wTime, address[] calldata pools)
+        external
+        view
+        returns (
+            bool isEpochFinalized,
+            uint128 totalVotes,
+            uint128[] memory poolVotes
+        );
 }

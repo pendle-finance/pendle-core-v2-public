@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "./FeeDistributorAbstract.sol";
+import "./PendleFeeDistributorAbstract.sol";
 import "../../../interfaces/IPVotingEscrow.sol";
 
-contract FeeDistributorVePendle is FeeDistributorAbstract {
+contract FeeDistributorVePendle is PendleFeeDistributorAbstract {
+    using Math for uint256;
+
     address public immutable vePendle;
 
     constructor(address _vePendle) {
@@ -38,6 +40,7 @@ contract FeeDistributorVePendle is FeeDistributorAbstract {
         override
         returns (uint256)
     {
+        assert(WeekMath.isValidWTime(timestamp.Uint128()));
         return IPVotingEscrow(vePendle).totalSupplyAt(uint128(timestamp));
     }
 

@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract VotingControllerStorageUpg is IPVotingControllerStorage {
+abstract contract VotingControllerStorageUpg is IPVotingController {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
     using EnumerableSet for EnumerableSet.AddressSet;
