@@ -3,12 +3,16 @@ pragma solidity 0.8.15;
 import "../../../interfaces/IPVotingEscrow.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "./VotingEscrowTokenBase.sol";
-import "../CelerAbstracts/CelerSenderUpg.sol";
+import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 import "../../../libraries/VeHistoryLib.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, CelerSenderUpg {
+contract VotingEscrowPendleMainchain is
+    IPVotingEscrow,
+    VotingEscrowTokenBase,
+    PendleMsgSenderAppUpg
+{
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
@@ -34,7 +38,9 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
     // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoints.History) internal userHistory;
 
-    constructor(IERC20 _pendle) {
+    constructor(IERC20 _pendle, address _pendleMsgSendEndpoint)
+        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint)
+    {
         pendle = _pendle;
     }
 
@@ -152,12 +158,34 @@ contract VotingEscrowPendleMainchain is IPVotingEscrow, VotingEscrowTokenBase, C
         return userHistory[user].getAtTimestamp(timestamp);
     }
 
-    function getBroadcastSupplyFee(uint256[] calldata chainIds) external view returns (uint256) {
-        return celerMessageBus.calcFee(SAMPLE_SUPPLY_UPDATE_MESSAGE) * chainIds.length;
+    function getBroadcastSupplyFee(uint256[] calldata chainIds)
+        external
+        view
+        returns (uint256[] memory fees)
+    {
+        fees = new uint256[](chainIds.length);
+        for (uint256 i = 0; i < chainIds.length; i++) {
+            fees[i] = pendleMsgSendEndpoint.calcFee(
+                destinationContracts.get(chainIds[i]),
+                chainIds[i],
+                SAMPLE_SUPPLY_UPDATE_MESSAGE
+            );
+        }
     }
 
-    function getBroadcastPositionFee(uint256[] calldata chainIds) external view returns (uint256) {
-        return celerMessageBus.calcFee(SAMPLE_POSITION_UPDATE_MESSAGE) * chainIds.length;
+    function getBroadcastPositionFee(uint256[] calldata chainIds)
+        external
+        view
+        returns (uint256[] memory fees)
+    {
+        fees = new uint256[](chainIds.length);
+        for (uint256 i = 0; i < chainIds.length; i++) {
+            fees[i] = pendleMsgSendEndpoint.calcFee(
+                destinationContracts.get(chainIds[i]),
+                chainIds[i],
+                SAMPLE_POSITION_UPDATE_MESSAGE
+            );
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
+import "../periphery/BoringOwnableUpgradeable.sol";
 import "./MarketMathStatic.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";

@@ -5,10 +5,10 @@ pragma solidity 0.8.15;
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "./VotingEscrowTokenBase.sol";
-import "../CelerAbstracts/CelerReceiverUpg.sol";
+import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
-contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg {
+contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg {
     mapping(address => address) internal delegatorOf;
 
     event SetNewDelegator(address delegator, address receiver);
@@ -17,7 +17,9 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, CelerReceiverUpg 
 
     event SetNewUserPosition(LockedPosition position);
 
-    constructor() {}
+    constructor(address _PendleMsgReceiveEndpointUpg)
+        PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
+    {}
 
     function initialize() external initializer {
         __BoringOwnable_init();

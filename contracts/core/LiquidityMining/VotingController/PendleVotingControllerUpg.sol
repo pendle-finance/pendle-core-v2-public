@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "./VotingControllerStorageUpg.sol";
-import "../CelerAbstracts/CelerSenderUpg.sol";
+import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../interfaces/IPGaugeControllerMainchain.sol";
@@ -37,7 +37,7 @@ Cons:
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
 contract PendleVotingControllerUpg is
-    CelerSenderUpg,
+    PendleMsgSenderAppUpg,
     VotingControllerStorageUpg,
     UUPSUpgradeable,
     IPVotingController
@@ -48,10 +48,14 @@ contract PendleVotingControllerUpg is
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    constructor(address _vePendle)
-        VotingControllerStorageUpg(_vePendle) // constructor only set immutable variables
+    constructor(address _vePendle, address _pendleMsgSendEndpoint)
+        VotingControllerStorageUpg(_vePendle)
+        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint) // constructor only set immutable variables
         initializer
-    {}
+    //solhint-disable-next-line
+    {
+
+    }
 
     function initialize() external initializer {
         __BoringOwnable_init();
@@ -227,7 +231,12 @@ contract PendleVotingControllerUpg is
         address[] memory pools = new address[](length);
         uint256[] memory totalPendleAmounts = new uint256[](length);
 
-        return celerMessageBus.calcFee(abi.encode(uint128(0), pools, totalPendleAmounts));
+        return
+            pendleMsgSendEndpoint.calcFee(
+                destinationContracts.get(chainId),
+                chainId,
+                abi.encode(uint128(0), pools, totalPendleAmounts)
+            );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -288,5 +297,6 @@ contract PendleVotingControllerUpg is
         }
     }
 
+    //solhint-disable-next-line
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
