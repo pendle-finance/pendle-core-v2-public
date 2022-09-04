@@ -66,4 +66,13 @@ library PYIndexLib {
         return sign * (SCYUtils.assetToScy(PYIndex.unwrap(index), assetAmount.abs())).Int();
     }
 
+    function assetToScyUp(PYIndex index, int256 assetAmount)
+        internal
+        pure
+        returns (int256)
+    {
+        int256 sign = assetAmount < 0 ? int256(-1) : int256(1);
+        return sign * (SCYUtils.assetToScyUp(PYIndex.unwrap(index), assetAmount.abs())).Int();
+    }
+
 }
