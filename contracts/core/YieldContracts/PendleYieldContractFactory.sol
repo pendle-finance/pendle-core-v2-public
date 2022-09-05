@@ -44,7 +44,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
 
-    address public pendleYtCreationCodePointer;
+    address public immutable pendleYtCreationCodePointer;
 
     // 1 SLOT
     uint128 public interestFeeRate; // a fixed point number
@@ -60,21 +60,21 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     mapping(address => bool) public isPT;
     mapping(address => bool) public isYT;
 
-    constructor() {}
+    constructor(address _pendleYtCreationCodePointer) {
+        pendleYtCreationCodePointer = _pendleYtCreationCodePointer;
+    }
 
     function initialize(
         uint96 _expiryDivisor,
         uint128 _interestFeeRate,
         uint128 _rewardFeeRate,
-        address _treasury,
-        bytes memory _pendleYtCreationCode
+        address _treasury
     ) external initializer {
         __BoringOwnable_init();
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setRewardFeeRate(_rewardFeeRate);
         setTreasury(_treasury);
-        pendleYtCreationCodePointer = SSTORE2Deployer.setCreationCode(_pendleYtCreationCode);
     }
 
     /**
