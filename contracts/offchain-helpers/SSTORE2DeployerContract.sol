@@ -6,6 +6,10 @@ import "../periphery/BoringOwnableUpgradeable.sol";
 contract SSTORE2DeployerContract is BoringOwnableUpgradeable {
     event Deployed(string name, address addr);
 
+    constructor() initializer {
+        __BoringOwnable_init();
+    }
+
     function deploy(string memory name, bytes calldata creationCode)
         external
         onlyOwner
