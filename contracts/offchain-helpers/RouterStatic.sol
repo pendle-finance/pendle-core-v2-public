@@ -6,7 +6,7 @@ import "../interfaces/IPMarketFactory.sol";
 import "./MarketMathStatic.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "contracts/periphery/BoringOwnableUpgradeable.sol";
+import "../periphery/BoringOwnableUpgradeable.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {
