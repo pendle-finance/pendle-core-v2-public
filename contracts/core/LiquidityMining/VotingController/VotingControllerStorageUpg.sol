@@ -84,6 +84,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function getPoolTotalVoteAt(address pool, uint128 wTime) public view returns (uint128) {
+        return weekData[wTime].poolVotes[pool];
+    }
+
     function getPoolData(address pool, uint128[] calldata wTimes)
         public
         view

@@ -36,4 +36,6 @@ interface IPVotingController {
             uint128 totalVotes,
             uint128[] memory poolVotes
         );
+
+    function getPoolTotalVoteAt(address pool, uint128 wTime) external view returns (uint128);
 }
