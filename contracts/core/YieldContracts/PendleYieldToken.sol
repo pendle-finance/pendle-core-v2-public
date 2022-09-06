@@ -186,12 +186,10 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
         emit NewInterestIndex(currentIndex);
     }
 
-    function pyIndexStored() public view returns (uint256) {
-        return _pyIndexStored;
-    }
-
-    function isExpired() public view returns (bool) {
-        return MiniHelpers.isCurrentlyExpired(expiry);
+    function setPostExpiryData() external nonReentrant {
+        if (isExpired()) {
+            _setPostExpiryData();
+        }
     }
 
     function getPostExpiryData()
@@ -217,6 +215,14 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
             firstRewardIndexes[i] = postExpiry.firstRewardIndex[tokens[i]];
             userRewardOwed[i] = postExpiry.userRewardOwed[tokens[i]];
         }
+    }
+
+    function pyIndexStored() public view returns (uint256) {
+        return _pyIndexStored;
+    }
+
+    function isExpired() public view returns (bool) {
+        return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
     function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
