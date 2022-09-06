@@ -29,7 +29,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../../libraries/helpers/ExpiryUtilsLib.sol";
-import "../../libraries/helpers/SSTORE2Deployer.sol";
+import "../../libraries/helpers/BaseSplitCodeFactory.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 
 import "../../periphery/BoringOwnableUpgradeable.sol";
@@ -44,7 +44,10 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
 
-    address public immutable pendleYtCreationCodePointer;
+    address public immutable ytCreationCodeContractA;
+    uint256 public immutable ytCreationCodeSizeA;
+    address public immutable ytCreationCodeContractB;
+    uint256 public immutable ytCreationCodeSizeB;
 
     // 1 SLOT
     uint128 public interestFeeRate; // a fixed point number
@@ -60,8 +63,16 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     mapping(address => bool) public isPT;
     mapping(address => bool) public isYT;
 
-    constructor(address _pendleYtCreationCodePointer) {
-        pendleYtCreationCodePointer = _pendleYtCreationCodePointer;
+    constructor(
+        address _ytCreationCodeContractA,
+        uint256 _ytCreationCodeSizeA,
+        address _ytCreationCodeContractB,
+        uint256 _ytCreationCodeSizeB
+    ) {
+        ytCreationCodeContractA = _ytCreationCodeContractA;
+        ytCreationCodeSizeA = _ytCreationCodeSizeA;
+        ytCreationCodeContractB = _ytCreationCodeContractB;
+        ytCreationCodeSizeB = _ytCreationCodeSizeB;
     }
 
     function initialize(
@@ -95,21 +106,23 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
 
         (, , uint8 assetDecimals) = _SCY.assetInfo();
 
-        // no need salt since PT (and also YT) existence has been checked before hand
-        PT = SSTORE2Deployer.create2(
-            type(PendlePrincipalToken).creationCode,
+        PT = Create2.deploy(
+            0,
             bytes32(block.chainid),
-            abi.encode(
-                SCY,
-                PT_PREFIX.concat(_SCY.name(), expiry, " "),
-                PT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
-                assetDecimals,
-                expiry
+            abi.encodePacked(
+                type(PendlePrincipalToken).creationCode,
+                abi.encode(
+                    SCY,
+                    PT_PREFIX.concat(_SCY.name(), expiry, " "),
+                    PT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
+                    assetDecimals,
+                    expiry
+                )
             )
         );
 
-        YT = SSTORE2Deployer.create2(
-            pendleYtCreationCodePointer,
+        YT = BaseSplitCodeFactory._create2(
+            0,
             bytes32(block.chainid),
             abi.encode(
                 SCY,
@@ -118,7 +131,11 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
                 YT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
                 assetDecimals,
                 expiry
-            )
+            ),
+            ytCreationCodeContractA,
+            ytCreationCodeSizeA,
+            ytCreationCodeContractB,
+            ytCreationCodeSizeB
         );
 
         IPPrincipalToken(PT).initialize(YT);

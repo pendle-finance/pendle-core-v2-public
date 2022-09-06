@@ -6,7 +6,7 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
-import "../../libraries/helpers/SSTORE2Deployer.sol";
+import "../../libraries/helpers/BaseSplitCodeFactory.sol";
 import "../../periphery/BoringOwnableUpgradeable.sol";
 
 import "./PendleMarket.sol";
@@ -22,8 +22,12 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         // 1 SLOT = 256 bits
     }
 
+    address public immutable marketCreationCodeContractA;
+    uint256 public immutable marketCreationCodeSizeA;
+    address public immutable marketCreationCodeContractB;
+    uint256 public immutable marketCreationCodeSizeB;
+
     address public immutable yieldContractFactory;
-    address public immutable marketCreationCodePointer;
     uint256 public immutable maxLnFeeRateRoot;
 
     // PT -> scalarRoot -> initialAnchor
@@ -34,12 +38,21 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     MarketConfig public marketConfig;
 
-    constructor(address _yieldContractFactory, address _marketCreationCodePointer) {
+    constructor(
+        address _yieldContractFactory,
+        address _marketCreationCodeContractA,
+        uint256 _marketCreationCodeSizeA,
+        address _marketCreationCodeContractB,
+        uint256 _marketCreationCodeSizeB
+    ) {
         require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
 
-        marketCreationCodePointer = _marketCreationCodePointer;
+        marketCreationCodeContractA = _marketCreationCodeContractA;
+        marketCreationCodeSizeA = _marketCreationCodeSizeA;
+        marketCreationCodeContractB = _marketCreationCodeContractB;
+        marketCreationCodeSizeB = _marketCreationCodeSizeB;
     }
 
     function initialize(
@@ -73,11 +86,14 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
         require(markets[PT][scalarRoot][initialAnchor] == address(0), "market already created");
 
-        // no need salt since market's existence has been checked before hand
-        market = SSTORE2Deployer.create2(
-            marketCreationCodePointer,
+        market = BaseSplitCodeFactory._create2(
+            0,
             bytes32(block.chainid),
-            abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController)
+            abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController),
+            marketCreationCodeContractA,
+            marketCreationCodeSizeA,
+            marketCreationCodeContractB,
+            marketCreationCodeSizeB
         );
 
         markets[PT][scalarRoot][initialAnchor] = market;
