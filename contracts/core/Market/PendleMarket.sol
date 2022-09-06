@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "../PendleERC20.sol";
+import "../PendleERC20Permit.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPMarket.sol";
@@ -22,7 +22,7 @@ Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
-contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
+contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     using Math for uint256;
     using Math for int256;
     using MarketMathCore for MarketState;
@@ -69,7 +69,7 @@ contract PendleMarket is PendleERC20, PendleGauge, IPMarket {
         address _vePendle,
         address _gaugeController
     )
-        PendleERC20(NAME, SYMBOL, 18)
+        PendleERC20Permit(NAME, SYMBOL, 18)
         PendleGauge(IPPrincipalToken(_PT).SCY(), _vePendle, _gaugeController)
     {
         PT = IPPrincipalToken(_PT);

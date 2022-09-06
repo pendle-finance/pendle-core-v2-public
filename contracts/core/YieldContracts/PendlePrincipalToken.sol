@@ -4,11 +4,11 @@ pragma solidity 0.8.15;
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-import "../PendleERC20.sol";
+import "../PendleERC20Permit.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
+contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {
     address public immutable SCY;
     address public immutable factory;
     uint256 public immutable expiry;
@@ -30,7 +30,7 @@ contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleERC20(_name, _symbol, __decimals) {
+    ) PendleERC20Permit(_name, _symbol, __decimals) {
         SCY = _SCY;
         expiry = _expiry;
         factory = msg.sender;
