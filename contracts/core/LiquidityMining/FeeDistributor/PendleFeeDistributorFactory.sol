@@ -4,7 +4,6 @@ pragma solidity 0.8.15;
 import "./PendleFeeDistributor.sol";
 import "./EpochResultManager.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
-
 import "../../../interfaces/IPFeeDistributorFactory.sol";
 
 contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultManager {
@@ -29,6 +28,7 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
     }
 
     function initialize(uint256 _startEpoch) external initializer {
+        require(WeekMath.isValidWTime(_startEpoch), "invalid startEpoch");
         __BoringOwnable_init();
         lastFinishedEpoch = _startEpoch;
     }
@@ -39,6 +39,15 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
         // to use create2 later
         address distributor = address(new PendleFeeDistributor(pool, rewardToken, startTime));
         poolInfos[pool] = PoolInfo({ distributor: distributor, startTime: startTime });
+    }
+
+    function setLastFinishedEpoch(uint256 _newLastFinishedEpoch) external onlyOwner {
+        require(
+            WeekMath.isValidWTime(_newLastFinishedEpoch) &&
+                _newLastFinishedEpoch > lastFinishedEpoch,
+            "invalid lastFinishedEpoch"
+        );
+        lastFinishedEpoch = _newLastFinishedEpoch;
     }
 
     function _getPoolStartTime(address pool) internal view virtual override returns (uint64) {
