@@ -54,6 +54,11 @@ contract PendleYieldToken is
         _updateScyReserve();
     }
 
+    modifier notExpired() {
+        require(!isExpired(), "PendleYieldToken: expired");
+        _;
+    }
+
     constructor(
         address _SCY,
         address _PT,
@@ -72,20 +77,41 @@ contract PendleYieldToken is
     function mintPY(address receiverPT, address receiverYT)
         external
         nonReentrant
+        notExpired
         updateData
         returns (uint256 amountPYOut)
     {
-        require(!isExpired(), "yield contract expired");
+        address[] memory receiverPTs = new address[](1);
+        address[] memory receiverYTs = new address[](1);
+        uint256[] memory amountScyToMints = new uint256[](1);
 
-        uint256 amountScyToMint = _getFloatingScyAmount();
+        (receiverPTs[0], receiverYTs[0], amountScyToMints[0]) = (
+            receiverPT,
+            receiverYT,
+            _getFloatingScyAmount()
+        );
 
-        amountPYOut = _calcPYToMint(amountScyToMint);
+        uint256[] memory amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountScyToMints);
+        amountPYOut = amountPYOuts[0];
+    }
 
-        _mint(receiverYT, amountPYOut);
+    /// @notice Tokenize SCY into PT + YT of equal qty. Every unit of underlying of SCY will create 1 PT + 1 YT
+    function mintPYMulti(
+        address[] calldata receiverPTs,
+        address[] calldata receiverYTs,
+        uint256[] calldata amountScyToMints
+    ) external nonReentrant notExpired updateData returns (uint256[] memory amountPYOuts) {
+        uint256 length = receiverPTs.length;
+        require(
+            receiverYTs.length == length && amountScyToMints.length == length,
+            "not same length"
+        );
+        require(length != 0, "empty array");
 
-        IPPrincipalToken(PT).mintByYT(receiverPT, amountPYOut);
+        uint256 totalScyToMint = amountScyToMints.sum();
+        require(totalScyToMint <= _getFloatingScyAmount(), "not enough scy to mint");
 
-        emit Mint(msg.sender, receiverPT, receiverYT, amountScyToMint, amountPYOut);
+        amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountScyToMints);
     }
 
     /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
@@ -222,6 +248,31 @@ contract PendleYieldToken is
         }
     }
 
+    function _mintPY(
+        address[] memory receiverPTs,
+        address[] memory receiverYTs,
+        uint256[] memory amountScyToMints
+    ) internal returns (uint256[] memory amountPYOuts) {
+        amountPYOuts = new uint256[](amountScyToMints.length);
+
+        uint256 index = pyIndexCurrent();
+
+        for (uint256 i = 0; i < amountScyToMints.length; i++) {
+            amountPYOuts[i] = _calcPYToMint(amountScyToMints[i], index);
+
+            _mint(receiverYTs[i], amountPYOuts[i]);
+            IPPrincipalToken(PT).mintByYT(receiverPTs[i], amountPYOuts[i]);
+
+            emit Mint(
+                msg.sender,
+                receiverPTs[i],
+                receiverYTs[i],
+                amountScyToMints[i],
+                amountPYOuts[i]
+            );
+        }
+    }
+
     function pyIndexStored() public view returns (uint256) {
         return _pyIndexStored;
     }
@@ -258,9 +309,13 @@ contract PendleYieldToken is
         }
     }
 
-    function _calcPYToMint(uint256 amountScy) internal returns (uint256 amountPY) {
+    function _calcPYToMint(uint256 amountScy, uint256 indexCurrent)
+        internal
+        pure
+        returns (uint256 amountPY)
+    {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
-        return SCYUtils.scyToAsset(pyIndexCurrent(), amountScy);
+        return SCYUtils.scyToAsset(indexCurrent, amountScy);
     }
 
     function _calcScyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
