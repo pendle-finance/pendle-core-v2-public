@@ -132,22 +132,6 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         );
     }
 
-    struct RouterYtRedeemStruct {
-        address[] yts;
-        // key-value pair
-        address[] scyAddrs;
-        address[] tokenRedeemScys;
-        //
-    }
-
-    struct RouterSwapAllStruct {
-        // key-value pair
-        address[] tokens;
-        bytes[] kybercalls;
-        //
-        address outputToken;
-    }
-
     struct RouterTokenAmounts {
         address[] tokens;
         uint256[] amounts;

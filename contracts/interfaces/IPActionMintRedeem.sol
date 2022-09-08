@@ -132,4 +132,27 @@ interface IPActionMintRedeem {
             uint256[][] memory ytRewards,
             uint256[][] memory marketRewards
         );
+
+    struct RouterYtRedeemStruct {
+        address[] yts;
+        // key-value pair
+        address[] scyAddrs;
+        address[] tokenRedeemScys;
+        //
+    }
+
+    struct RouterSwapAllStruct {
+        // key-value pair
+        address[] tokens;
+        bytes[] kybercalls;
+        //
+        address outputToken;
+    }
+
+    function redeemDueInterestAndRewardsThenSwapAll(
+        address[] calldata scys,
+        RouterYtRedeemStruct calldata dataYT,
+        address[] calldata markets,
+        RouterSwapAllStruct calldata dataSwap
+    ) external returns (uint256 netTokenOut, uint256[] memory amountsSwapped);
 }
