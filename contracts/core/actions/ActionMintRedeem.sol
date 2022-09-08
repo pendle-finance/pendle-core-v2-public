@@ -121,4 +121,138 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
         }
     }
+
+    struct RouterYtRedeemStruct {
+        address[] yts;
+        address[] scyAddrs;
+        address[] tokenRedeemScys;
+    }
+
+    struct RouterSwapAllStruct {
+        address[] tokens;
+        bytes[] kybercalls;
+        address outputToken;
+    }
+
+    struct RouterTokenAmounts {
+        address[] tokens;
+        uint256[] amounts;
+    }
+
+    function redeemDueInterestAndRewardsThenSwapAll(
+        address[] calldata scys,
+        RouterYtRedeemStruct calldata dataYT,
+        address[] calldata markets,
+        RouterSwapAllStruct calldata dataSwap
+    ) external returns (uint256 netTokenOut, uint256[] memory amountsSwapped) {
+        require(dataSwap.tokens.length == dataSwap.kybercalls.length, "invalid dataSwap");
+        require(dataYT.tokenRedeemScys.length == dataYT.scyAddrs.length, "invalid dataYT");
+
+        RouterTokenAmounts memory tokensOut = _newRouterTokenAmounts(dataSwap.tokens);
+        RouterTokenAmounts memory scysOut = _newRouterTokenAmounts(dataYT.scyAddrs);
+
+        // redeem SCY
+        for (uint256 i = 0; i < scys.length; ++i) {
+            ISuperComposableYield SCY = ISuperComposableYield(scys[i]);
+
+            address[] memory rewardTokens = SCY.getRewardTokens();
+            uint256[] memory rewardAmounts = SCY.claimRewards(msg.sender);
+            _addTokenAmounts(tokensOut, rewardTokens, rewardAmounts);
+        }
+
+        // redeem YT
+        for (uint256 i = 0; i < dataYT.yts.length; ++i) {
+            IPYieldToken YT = IPYieldToken(dataYT.yts[i]);
+
+            (uint256 interestAmount, uint256[] memory rewardAmounts) = YT
+                .redeemDueInterestAndRewards(msg.sender, true, true);
+
+            address scyAddr = YT.SCY();
+            address[] memory rewardTokens = YT.getRewardTokens();
+
+            _addTokenAmount(scysOut, scyAddr, interestAmount);
+            _addTokenAmounts(tokensOut, rewardTokens, rewardAmounts);
+        }
+
+        // redeem market
+        for (uint256 i = 0; i < markets.length; ++i) {
+            IPMarket market = IPMarket(markets[i]);
+
+            address[] memory rewardTokens = market.getRewardTokens();
+            uint256[] memory rewardAmounts = market.redeemRewards(msg.sender);
+            _addTokenAmounts(tokensOut, rewardTokens, rewardAmounts);
+        }
+
+        // guaranteed no ETH, all rewards are ERC20
+        _transferFrom(tokensOut.tokens, msg.sender, address(this), tokensOut.amounts);
+        _redeemAllScys(scysOut, dataYT.tokenRedeemScys, tokensOut);
+
+        // now swap all to outputToken
+        netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
+        amountsSwapped = tokensOut.amounts;
+    }
+
+    function _newRouterTokenAmounts(address[] memory tokens)
+        internal
+        pure
+        returns (RouterTokenAmounts memory)
+    {
+        return RouterTokenAmounts(tokens, new uint256[](tokens.length));
+    }
+
+    /// @dev pull SCYs from users & redeem them, then add to tokensOut
+    function _redeemAllScys(
+        RouterTokenAmounts memory scys,
+        address[] calldata tokenRedeemScys,
+        RouterTokenAmounts memory tokensOut
+    ) internal {
+        for (uint256 i = 0; i < scys.tokens.length; ++i) {
+            if (scys.amounts[i] == 0) continue;
+
+            _transferFrom(scys.tokens[i], msg.sender, scys.tokens[i], scys.amounts[i]);
+            uint256 amountOut = ISuperComposableYield(scys.tokens[i]).redeemAfterTransfer(
+                address(this),
+                tokenRedeemScys[i],
+                1
+            );
+
+            _addTokenAmount(tokensOut, tokenRedeemScys[i], amountOut);
+        }
+    }
+
+    function _swapAllToOutputToken(
+        RouterTokenAmounts memory tokens,
+        RouterSwapAllStruct memory dataSwap
+    ) internal returns (uint256 netTokenOut) {
+        for (uint256 i = 0; i < tokens.tokens.length; ++i) {
+            if (tokens.amounts[i] == 0) continue;
+            _kyberswap(tokens.tokens[i], tokens.amounts[i], dataSwap.kybercalls[i]);
+        }
+        netTokenOut = _selfBalance(dataSwap.outputToken);
+        _transferOut(dataSwap.outputToken, msg.sender, netTokenOut);
+    }
+
+    function _addTokenAmount(
+        RouterTokenAmounts memory data,
+        address token,
+        uint256 amount
+    ) internal pure {
+        for (uint256 j = 0; j < data.tokens.length; j++) {
+            if (data.tokens[j] == token) {
+                data.amounts[j] += amount;
+                return;
+            }
+        }
+        revert("token not found");
+    }
+
+    function _addTokenAmounts(
+        RouterTokenAmounts memory data,
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal pure {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _addTokenAmount(data, tokens[i], amounts[i]);
+        }
+    }
 }

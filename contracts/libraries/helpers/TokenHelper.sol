@@ -8,6 +8,39 @@ abstract contract TokenHelper {
     address internal constant NATIVE = address(0);
     uint256 internal constant LOWER_BOUND_APPROVAL = type(uint96).max / 2; // some tokens use 96 bits for approval
 
+    function _transferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        if (token == NATIVE) require(msg.value == amount, "eth mismatch");
+        else if (amount != 0) IERC20(token).safeTransferFrom(from, to, amount);
+    }
+
+    function _transferFrom(
+        address[] memory tokens,
+        address from,
+        address to,
+        uint256[] memory amounts
+    ) internal {
+        uint256 length = tokens.length;
+        require(length == amounts.length, "length mismatch");
+
+        for (uint256 i = 0; i < length; ) {
+            if (amounts[i] > 0) {
+                if (tokens[i] == NATIVE) {
+                    require(msg.value == amounts[i], "native mismatch");
+                } else {
+                    IERC20(tokens[i]).safeTransferFrom(from, to, amounts[i]);
+                }
+            }
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     function _transferIn(
         address token,
         address from,
@@ -41,30 +74,6 @@ abstract contract TokenHelper {
         for (uint256 i = 0; i < numTokens; ) {
             _transferOut(tokens[i], to, amounts[i]);
             unchecked {
-                i++;
-            }
-        }
-    }
-
-    function _transferOutMaxMulti(
-        address token,
-        uint256 totalAmount,
-        address[] memory tos,
-        uint256[] memory maxAmounts
-    ) internal returns (uint256 leftover) {
-        uint256 numTos = tos.length;
-        require(numTos == maxAmounts.length, "invalid length");
-
-        leftover = totalAmount;
-        for (uint256 i = 0; i < numTos; ) {
-            uint256 maxAmount = maxAmounts[i];
-            if (maxAmount > leftover) {
-                maxAmount = leftover;
-            }
-            _transferOut(token, tos[i], maxAmount);
-            unchecked {
-                leftover -= maxAmount;
-                if (leftover == 0) break;
                 i++;
             }
         }

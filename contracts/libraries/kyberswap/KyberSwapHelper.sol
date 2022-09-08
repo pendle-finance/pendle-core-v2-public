@@ -54,7 +54,7 @@ abstract contract KyberSwapHelper is TokenHelper {
     function _kyberswap(
         address tokenIn,
         uint256 amountIn,
-        bytes calldata rawKybercall
+        bytes memory rawKybercall
     ) internal {
         _safeApproveInf(tokenIn, kyberSwapRouter);
 
