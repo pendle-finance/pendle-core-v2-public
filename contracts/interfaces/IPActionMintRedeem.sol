@@ -57,6 +57,26 @@ interface IPActionMintRedeem {
         uint256 netTokenOut
     );
 
+    event RedeemDueInterestAndRewards(
+        address indexed user,
+        address[] scys,
+        address[] yts,
+        address[] markets,
+        uint256[][] scyRewards,
+        uint256[] ytInterests,
+        uint256[][] ytRewards,
+        uint256[][] marketRewards
+    );
+
+    event RedeemDueInterestAndRewardsThenSwapAll(
+        address indexed user,
+        address[] scys,
+        address[] yts,
+        address[] markets,
+        address indexed tokenOut,
+        uint256 netTokenOut
+    );
+
     function mintScyFromToken(
         address receiver,
         address SCY,

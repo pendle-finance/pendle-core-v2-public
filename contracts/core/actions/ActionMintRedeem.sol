@@ -120,6 +120,16 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         for (uint256 i = 0; i < markets.length; ++i) {
             marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
         }
+        emit RedeemDueInterestAndRewards(
+            user,
+            scys,
+            yts,
+            markets,
+            scyRewards,
+            ytInterests,
+            ytRewards,
+            marketRewards
+        );
     }
 
     struct RouterYtRedeemStruct {
@@ -190,6 +200,15 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
         amountsSwapped = tokensOut.amounts;
+
+        emit RedeemDueInterestAndRewardsThenSwapAll(
+            msg.sender,
+            scys,
+            dataYT.yts,
+            markets,
+            dataSwap.outputToken,
+            netTokenOut
+        );
     }
 
     function _newRouterTokenAmounts(address[] memory tokens)
