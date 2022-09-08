@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import "./PendleFeeDistributor.sol";
 import "./EpochResultManager.sol";
-import "../../../periphery/BoringOwnableUpgradeable.sol";
+import "../../../interfaces/IBoringOwnableUpgradeable.sol";
 import "../../../interfaces/IPFeeDistributorFactory.sol";
 
 contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultManager {
@@ -27,27 +27,18 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
         rewardToken = _rewardToken;
     }
 
-    function initialize(uint256 _startEpoch) external initializer {
-        require(WeekMath.isValidWTime(_startEpoch), "invalid startEpoch");
-        __BoringOwnable_init();
-        lastFinishedEpoch = _startEpoch;
-    }
-
-    function createFeeDistributor(address pool, uint64 startTime) external onlyOwner {
+    function createFeeDistributor(address pool, uint64 startTime)
+        external
+        onlyOwner
+        returns (address distributor)
+    {
         require(poolInfos[pool].distributor == address(0), "distributor already created");
 
         // to use create2 later
-        address distributor = address(new PendleFeeDistributor(pool, rewardToken, startTime));
-        poolInfos[pool] = PoolInfo({ distributor: distributor, startTime: startTime });
-    }
+        distributor = address(new PendleFeeDistributor(pool, rewardToken, startTime));
+        IBoringOwnableUpgradeable(distributor).transferOwnership(msg.sender, true, false);
 
-    function setLastFinishedEpoch(uint256 _newLastFinishedEpoch) external onlyOwner {
-        require(
-            WeekMath.isValidWTime(_newLastFinishedEpoch) &&
-                _newLastFinishedEpoch > lastFinishedEpoch,
-            "invalid lastFinishedEpoch"
-        );
-        lastFinishedEpoch = _newLastFinishedEpoch;
+        poolInfos[pool] = PoolInfo({ distributor: distributor, startTime: startTime });
     }
 
     function _getPoolStartTime(address pool) internal view virtual override returns (uint64) {

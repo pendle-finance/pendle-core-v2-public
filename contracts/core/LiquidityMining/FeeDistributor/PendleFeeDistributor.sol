@@ -8,9 +8,10 @@ import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/VeHistoryLib.sol";
 import "../../../interfaces/IPFeeDistributor.sol";
 import "../../../interfaces/IPFeeDistributorFactory.sol";
+import "../../../periphery/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract PendleFeeDistributor is IPFeeDistributor {
+contract PendleFeeDistributor is IPFeeDistributor, BoringOwnableUpgradeable {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
@@ -20,6 +21,8 @@ contract PendleFeeDistributor is IPFeeDistributor {
     address public immutable pool;
     address public immutable rewardToken;
     uint256 public immutable startEpoch;
+
+    uint256 public lastFinishedEpoch;
 
     // [user] => [epoch]
     mapping(address => uint256) public userLastClaimedEpoch;
@@ -31,23 +34,22 @@ contract PendleFeeDistributor is IPFeeDistributor {
         address _pool,
         address _rewardToken,
         uint256 _startEpoch
-    ) {
+    ) initializer {
         pool = _pool;
         factory = msg.sender;
         rewardToken = _rewardToken;
         startEpoch = _startEpoch;
+        lastFinishedEpoch = _startEpoch;
+        __BoringOwnable_init();
     }
 
-    function fund(uint256[] calldata epochs, uint256[] calldata rewardsForEpoch) external {
-        require(epochs.length == rewardsForEpoch.length, "epochs length mismatched");
-
+    function fund(uint256[] calldata rewardsForEpoch) external onlyOwner {
+        uint256 epoch = lastFinishedEpoch;
         uint256 totalRewardFunding = 0;
-        uint256 lastFinishedEpoch = IPFeeDistributorFactory(factory).lastFinishedEpoch();
-        for (uint256 i = 0; i < epochs.length; ++i) {
-            uint256 epoch = epochs[i];
+        for (uint256 i = 0; i < rewardsForEpoch.length; ++i) {
+            epoch += WeekMath.WEEK;
             uint256 incentive = rewardsForEpoch[i];
 
-            require(epoch > lastFinishedEpoch, "invalid epoch");
             incentivesForEpoch[epoch] += incentive;
             totalRewardFunding += incentive;
 
@@ -55,18 +57,19 @@ contract PendleFeeDistributor is IPFeeDistributor {
         }
 
         IERC20(rewardToken).transferFrom(msg.sender, address(this), totalRewardFunding);
+        lastFinishedEpoch = epoch;
     }
 
     function claimReward(address user) external returns (uint256 amountRewardOut) {
         IPFeeDistributorFactory(factory).updateUserShare(user, pool);
 
-        uint256 lastFinishedEpoch = IPFeeDistributorFactory(factory).lastFinishedEpoch();
+        uint256 finishedEpoch = lastFinishedEpoch;
         uint256 userEpoch = userLastClaimedEpoch[user];
 
-        if (userEpoch == lastFinishedEpoch) return 0;
+        if (userEpoch == finishedEpoch) return 0;
         if (userEpoch == 0) userEpoch = startEpoch;
 
-        while (userEpoch < lastFinishedEpoch) {
+        while (userEpoch < finishedEpoch) {
             userEpoch += WeekMath.WEEK;
 
             uint256 incentive = incentivesForEpoch[userEpoch];
@@ -78,11 +81,11 @@ contract PendleFeeDistributor is IPFeeDistributor {
             amountRewardOut += (userShare * incentive) / totalShare;
         }
 
-        userLastClaimedEpoch[user] = lastFinishedEpoch;
+        userLastClaimedEpoch[user] = finishedEpoch;
         if (amountRewardOut > 0) {
             IERC20(rewardToken).safeTransfer(user, amountRewardOut);
         }
 
-        emit ClaimReward(user, rewardToken, lastFinishedEpoch, amountRewardOut);
+        emit ClaimReward(user, rewardToken, finishedEpoch, amountRewardOut);
     }
 }
