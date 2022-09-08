@@ -37,12 +37,19 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 exactScyIn,
         uint256 minYtOut,
         ApproxParams memory guessYtOut
-    ) external returns (uint256 netYtOut) {
+    ) external returns (uint256 netYtOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         SCY.safeTransferFrom(msg.sender, address(YT), exactScyIn);
 
-        netYtOut = _swapExactScyForYt(receiver, market, YT, exactScyIn, minYtOut, guessYtOut);
+        (netYtOut, netScyFee) = _swapExactScyForYt(
+            receiver,
+            market,
+            YT,
+            exactScyIn,
+            minYtOut,
+            guessYtOut
+        );
 
         emit SwapYtAndScy(msg.sender, market, receiver, netYtOut.Int(), exactScyIn.neg());
     }
@@ -62,12 +69,19 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address market,
         uint256 exactYtIn,
         uint256 minScyOut
-    ) external returns (uint256 netScyOut) {
+    ) external returns (uint256 netScyOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
 
-        netScyOut = _swapExactYtForScy(receiver, market, SCY, YT, exactYtIn, minScyOut);
+        (netScyOut, netScyFee) = _swapExactYtForScy(
+            receiver,
+            market,
+            SCY,
+            YT,
+            exactYtIn,
+            minScyOut
+        );
 
         emit SwapYtAndScy(msg.sender, market, receiver, exactYtIn.neg(), netScyOut.Int());
     }
@@ -86,12 +100,12 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address market,
         uint256 exactYtOut,
         uint256 maxScyIn
-    ) external returns (uint256 netScyIn) {
+    ) external returns (uint256 netScyIn, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 preScyBalance = SCY.balanceOf(msg.sender);
 
-        IPMarket(market).swapExactPtForScy(
+        (, netScyFee) = IPMarket(market).swapExactPtForScy(
             address(YT),
             exactYtOut, // exactPtIn = exactYtOut
             _encodeSwapScyForExactYt(msg.sender, receiver, maxScyIn)
@@ -118,7 +132,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 exactScyOut,
         uint256 maxYtIn,
         ApproxParams memory guessYtIn
-    ) external returns (uint256 netYtIn) {
+    ) external returns (uint256 netYtIn, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -133,11 +147,11 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
 
-        IPMarket(market).swapScyForExactPt(
+        (, netScyFee) = IPMarket(market).swapScyForExactPt(
             address(YT),
             netYtIn, // exactPtOut = netYtIn
             _encodeSwapYtForScy(receiver, exactScyOut)
-        ); // ignore return
+        );
 
         emit SwapYtAndScy(msg.sender, market, receiver, netYtIn.neg(), exactScyOut.Int());
     }
@@ -148,12 +162,12 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 minYtOut,
         ApproxParams memory guessYtOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netYtOut) {
+    ) external payable returns (uint256 netYtOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 netScyUsedToBuyYT = _mintScyFromToken(address(YT), address(SCY), 1, input);
 
-        netYtOut = _swapExactScyForYt(
+        (netYtOut, netScyFee) = _swapExactScyForYt(
             receiver,
             market,
             YT,
@@ -177,12 +191,14 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address market,
         uint256 netYtIn,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut) {
+    ) external returns (uint256 netTokenOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
 
-        uint256 netScyOut = _swapExactYtForScy(address(SCY), market, SCY, YT, netYtIn, 1);
+        uint256 netScyOut;
+
+        (netScyOut, netScyFee) = _swapExactYtForScy(address(SCY), market, SCY, YT, netYtIn, 1);
 
         netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyOut, output, false);
 
@@ -203,7 +219,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 exactScyIn,
         uint256 minYtOut,
         ApproxParams memory guessYtOut
-    ) internal returns (uint256 netYtOut) {
+    ) internal returns (uint256 netYtOut, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
 
         (netYtOut, , ) = state.approxSwapExactScyForYt(
@@ -216,7 +232,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         // early-check
         require(netYtOut >= minYtOut, "insufficient YT out");
 
-        IPMarket(market).swapExactPtForScy(
+        (, netScyFee) = IPMarket(market).swapExactPtForScy(
             address(YT),
             netYtOut, // exactPtIn = netYtOut
             _encodeSwapExactScyForYt(receiver, minYtOut)
@@ -230,10 +246,10 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         IPYieldToken YT,
         uint256 exactYtIn,
         uint256 minScyOut
-    ) internal returns (uint256 netScyOut) {
+    ) internal returns (uint256 netScyOut, uint256 netScyFee) {
         uint256 preScyBalance = SCY.balanceOf(receiver);
 
-        IPMarket(market).swapScyForExactPt(
+        (, netScyFee) = IPMarket(market).swapScyForExactPt(
             address(YT),
             exactYtIn, // exactPtOut = exactYtIn
             _encodeSwapYtForScy(receiver, minScyOut)

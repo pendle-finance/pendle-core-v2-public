@@ -24,11 +24,15 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         address market,
         uint256 exactPtIn,
         uint256 minScyOut
-    ) external returns (uint256 netScyOut) {
+    ) external returns (uint256 netScyOut, uint256 netScyFee) {
         (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
         IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
 
-        (netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, exactPtIn, EMPTY_BYTES);
+        (netScyOut, netScyFee) = IPMarket(market).swapExactPtForScy(
+            receiver,
+            exactPtIn,
+            EMPTY_BYTES
+        );
 
         require(netScyOut >= minScyOut, "insufficient SCY out");
 
@@ -45,7 +49,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 exactScyOut,
         uint256 maxPtIn,
         ApproxParams calldata guessPtIn
-    ) external returns (uint256 netPtIn) {
+    ) external returns (uint256 netPtIn, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -59,7 +63,12 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
 
-        (uint256 netScyOut, ) = IPMarket(market).swapExactPtForScy(receiver, netPtIn, EMPTY_BYTES);
+        uint256 netScyOut;
+        (netScyOut, netScyFee) = IPMarket(market).swapExactPtForScy(
+            receiver,
+            netPtIn,
+            EMPTY_BYTES
+        );
 
         // fail-safe
         require(netScyOut >= exactScyOut, "FS insufficient SCY out");
@@ -72,7 +81,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         address market,
         uint256 exactPtOut,
         uint256 maxScyIn
-    ) external returns (uint256 netScyIn) {
+    ) external returns (uint256 netScyIn, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -82,7 +91,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
 
-        IPMarket(market).swapScyForExactPt(receiver, exactPtOut, EMPTY_BYTES); // ignore return
+        (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, exactPtOut, EMPTY_BYTES); // ignore return
 
         // no fail-safe since exactly netScyIn will go into the market
         emit SwapPtAndScy(msg.sender, market, receiver, exactPtOut.Int(), netScyIn.neg());
@@ -94,12 +103,19 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 exactScyIn,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) external returns (uint256 netPtOut) {
+    ) external returns (uint256 netPtOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
 
-        netPtOut = _swapExactScyForPt(receiver, market, YT, exactScyIn, minPtOut, guessPtOut);
+        (netPtOut, netScyFee) = _swapExactScyForPt(
+            receiver,
+            market,
+            YT,
+            exactScyIn,
+            minPtOut,
+            guessPtOut
+        );
 
         emit SwapPtAndScy(msg.sender, market, receiver, netPtOut.Int(), exactScyIn.neg());
     }
@@ -115,14 +131,14 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netPtOut) {
+    ) external payable returns (uint256 netPtOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         // all output SCY is transferred directly to the market
         uint256 netScyUseToBuyPt = _mintScyFromToken(address(market), address(SCY), 1, input);
 
         // SCY is already in the market, hence doPull = false
-        netPtOut = _swapExactScyForPt(
+        (netPtOut, netScyFee) = _swapExactScyForPt(
             receiver,
             market,
             YT,
@@ -150,13 +166,14 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         address market,
         uint256 exactPtIn,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut) {
+    ) external returns (uint256 netTokenOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
 
         // all output SCY is directly transferred to the SCY contract
-        (uint256 netScyReceived, ) = IPMarket(market).swapExactPtForScy(
+        uint256 netScyReceived;
+        (netScyReceived, netScyFee) = IPMarket(market).swapExactPtForScy(
             address(SCY),
             exactPtIn,
             EMPTY_BYTES
@@ -182,7 +199,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 exactScyIn,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) internal returns (uint256 netPtOut) {
+    ) internal returns (uint256 netPtOut, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
 
         (netPtOut, , ) = state.approxSwapExactScyForPt(
@@ -194,7 +211,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         require(netPtOut >= minPtOut, "insufficient PT out");
 
-        IPMarket(market).swapScyForExactPt(receiver, netPtOut, EMPTY_BYTES); // ignore return
+        (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, netPtOut, EMPTY_BYTES);
         // no fail-safe since exactly netPtOut >= minPtOut will be out
     }
 }

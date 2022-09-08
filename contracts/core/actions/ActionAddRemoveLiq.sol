@@ -135,7 +135,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netPtIn,
         uint256 minLpOut,
         ApproxParams calldata guessPtSwapToScy
-    ) external returns (uint256 netLpOut) {
+    ) external returns (uint256 netLpOut, uint256 netScyFee) {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
         MarketState memory state = IPMarket(market).readState();
@@ -149,7 +149,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
 
-        (uint256 netScyReceived, ) = IPMarket(market).swapExactPtForScy(
+        uint256 netScyReceived;
+        (netScyReceived, netScyFee) = IPMarket(market).swapExactPtForScy(
             market,
             netPtSwap,
             EMPTY_BYTES
@@ -167,11 +168,11 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netScyIn,
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy
-    ) external returns (uint256 netLpOut) {
+    ) external returns (uint256 netLpOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
         IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
 
-        netLpOut = _addLiquiditySingleScy(
+        (netLpOut, netScyFee) = _addLiquiditySingleScy(
             receiver,
             market,
             YT,
@@ -189,13 +190,13 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy,
         TokenInput calldata input
-    ) external payable returns (uint256 netLpOut) {
+    ) external payable returns (uint256 netLpOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         // all output SCY is transferred directly to the market
         uint256 netScyUsed = _mintScyFromToken(address(market), address(SCY), 1, input);
 
-        netLpOut = _addLiquiditySingleScy(
+        (netLpOut, netScyFee) = _addLiquiditySingleScy(
             receiver,
             market,
             YT,
@@ -273,7 +274,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netLpToRemove,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) external returns (uint256 netPtOut) {
+    ) external returns (uint256 netPtOut, uint256 netScyFee) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
@@ -291,7 +292,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         require(ptFromBurn + ptFromSwap >= minPtOut, "insufficient lp out");
 
         (, ptFromBurn) = IPMarket(market).burn(market, receiver, netLpToRemove);
-        IPMarket(market).swapScyForExactPt(receiver, ptFromSwap, EMPTY_BYTES); // ignore return
+        (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, ptFromSwap, EMPTY_BYTES);
 
         // fail-safe
         require(ptFromBurn + ptFromSwap >= minPtOut, "FS insufficient lp out");
@@ -305,9 +306,14 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         address market,
         uint256 netLpToRemove,
         uint256 minScyOut
-    ) external returns (uint256 netScyOut) {
+    ) external returns (uint256 netScyOut, uint256 netScyFee) {
         IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
-        netScyOut = _removeLiquiditySingleScy(receiver, market, netLpToRemove, minScyOut);
+        (netScyOut, netScyFee) = _removeLiquiditySingleScy(
+            receiver,
+            market,
+            netLpToRemove,
+            minScyOut
+        );
         emit RemoveLiquiditySingleScy(msg.sender, market, receiver, netLpToRemove, netScyOut);
     }
 
@@ -316,13 +322,20 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         address market,
         uint256 netLpToRemove,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut) {
+    ) external returns (uint256 netTokenOut, uint256 netScyFee) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
         // all output SCY is directly transferred to the SCY contract
-        uint256 netScyReceived = _removeLiquiditySingleScy(address(SCY), market, netLpToRemove, 1);
+        uint256 netScyReceived;
+
+        (netScyReceived, netScyFee) = _removeLiquiditySingleScy(
+            address(SCY),
+            market,
+            netLpToRemove,
+            1
+        );
 
         // since all SCY is already at the SCY contract, doPull = false
         netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyReceived, output, false);
@@ -344,7 +357,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netScyIn,
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromScy
-    ) internal returns (uint256 netLpOut) {
+    ) internal returns (uint256 netLpOut, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
 
         (uint256 netPtReceived, , ) = state.approxSwapScyToAddLiquidity(
@@ -354,7 +367,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             guessPtReceivedFromScy
         );
 
-        (uint256 netScySwapped, ) = IPMarket(market).swapScyForExactPt(
+        uint256 netScySwapped;
+        (netScySwapped, netScyFee) = IPMarket(market).swapScyForExactPt(
             market,
             netPtReceived,
             EMPTY_BYTES
@@ -369,13 +383,15 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         address market,
         uint256 netLpToRemove,
         uint256 minScyOut
-    ) internal returns (uint256 netScyOut) {
+    ) internal returns (uint256 netScyOut, uint256 netScyFee) {
         (uint256 scyFromBurn, uint256 ptFromBurn) = IPMarket(market).burn(
             receiver,
             market,
             netLpToRemove
         );
-        (uint256 scyFromSwap, ) = IPMarket(market).swapExactPtForScy(
+
+        uint256 scyFromSwap;
+        (scyFromSwap, netScyFee) = IPMarket(market).swapExactPtForScy(
             receiver,
             ptFromBurn,
             EMPTY_BYTES
