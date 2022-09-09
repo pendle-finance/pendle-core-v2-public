@@ -31,14 +31,11 @@ library Checkpoints {
      */
     function push(History storage self, VeBalance memory value) internal {
         uint256 pos = self._checkpoints.length;
-        if (
-            pos > 0 &&
-            WeekMath.isInTheSameEpoch(self._checkpoints[pos - 1].timestamp, block.timestamp)
-        ) {
+        if (pos > 0 && self._checkpoints[pos - 1].timestamp == WeekMath.getCurrentWeekStart()) {
             self._checkpoints[pos - 1].value = value;
         } else {
             self._checkpoints.push(
-                Checkpoint({ timestamp: uint128(block.timestamp), value: value })
+                Checkpoint({ timestamp: WeekMath.getCurrentWeekStart(), value: value })
             );
         }
     }
