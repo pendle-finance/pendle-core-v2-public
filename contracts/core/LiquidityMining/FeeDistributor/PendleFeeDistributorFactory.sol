@@ -17,7 +17,6 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
 
     address public immutable rewardToken;
     address public immutable feeDistributorCreationCodePointer;
-    
     uint256 public lastFinishedEpoch;
     mapping(address => PoolInfo) public poolInfos;
 
@@ -39,14 +38,12 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
     {
         require(poolInfos[pool].distributor == address(0), "distributor already created");
 
-        // to use create2 later
         distributor = SSTORE2Deployer.create2(
             feeDistributorCreationCodePointer,
             bytes32(""),
-            abi.encode(pool, rewardToken, startTime)
+            abi.encode(pool, rewardToken, uint256(startTime))
         );
         IBoringOwnableUpgradeable(distributor).transferOwnership(msg.sender, true, false);
-
         poolInfos[pool] = PoolInfo({ distributor: distributor, startTime: startTime });
     }
 
