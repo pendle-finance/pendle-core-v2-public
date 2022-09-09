@@ -56,6 +56,8 @@ contract PendleFeeDistributor is IPFeeDistributor, BoringOwnableUpgradeable {
             emit Fund(epoch, incentive);
         }
 
+        require(epoch <= WeekMath.getCurrentWeekStart(), "cant fund for future epoch");
+
         IERC20(rewardToken).transferFrom(msg.sender, address(this), totalRewardFunding);
         lastFinishedEpoch = epoch;
     }

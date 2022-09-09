@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "./PendleFeeDistributor.sol";
 import "./EpochResultManager.sol";
+import "../../../libraries/helpers/SSTORE2Deployer.sol";
 import "../../../interfaces/IBoringOwnableUpgradeable.sol";
 import "../../../interfaces/IPFeeDistributorFactory.sol";
 
@@ -15,16 +16,20 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
     }
 
     address public immutable rewardToken;
+    address public immutable feeDistributorCreationCodePointer;
+    
     uint256 public lastFinishedEpoch;
-
     mapping(address => PoolInfo) public poolInfos;
 
     constructor(
         address _rewardToken,
         address _votingController,
-        address _vePendle
-    ) EpochResultManager(_votingController, _vePendle) {
+        address _vePendle,
+        address _feeDistributorCreationCodePointer
+    ) EpochResultManager(_votingController, _vePendle) initializer {
+        __BoringOwnable_init();
         rewardToken = _rewardToken;
+        feeDistributorCreationCodePointer = _feeDistributorCreationCodePointer;
     }
 
     function createFeeDistributor(address pool, uint64 startTime)
@@ -35,7 +40,11 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
         require(poolInfos[pool].distributor == address(0), "distributor already created");
 
         // to use create2 later
-        distributor = address(new PendleFeeDistributor(pool, rewardToken, startTime));
+        distributor = SSTORE2Deployer.create2(
+            feeDistributorCreationCodePointer,
+            bytes32(""),
+            abi.encode(pool, rewardToken, startTime)
+        );
         IBoringOwnableUpgradeable(distributor).transferOwnership(msg.sender, true, false);
 
         poolInfos[pool] = PoolInfo({ distributor: distributor, startTime: startTime });
