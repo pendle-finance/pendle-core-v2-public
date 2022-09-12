@@ -18,10 +18,9 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiver
     event SetNewUserPosition(LockedPosition position);
 
     constructor(address _PendleMsgReceiveEndpointUpg)
+        initializer
         PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
-    {}
-
-    function initialize() external initializer {
+    {
         __BoringOwnable_init();
     }
 

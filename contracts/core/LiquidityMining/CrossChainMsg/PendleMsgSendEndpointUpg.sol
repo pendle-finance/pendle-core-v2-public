@@ -24,8 +24,12 @@ contract PendleMsgSendEndpointUpg is
         _;
     }
 
-    constructor(ICelerMessageBus _celerMessageBus) {
+    constructor(ICelerMessageBus _celerMessageBus) initializer {
         celerMessageBus = _celerMessageBus;
+    }
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
     }
 
     function calcFee(

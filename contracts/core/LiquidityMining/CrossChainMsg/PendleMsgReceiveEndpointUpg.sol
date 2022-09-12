@@ -34,7 +34,7 @@ contract PendleMsgReceiveEndpointUpg is
         ICelerMessageBus _celerMessageBus,
         address _sendEndpointAddr,
         uint64 _sendEndpointChainId
-    ) {
+    ) initializer {
         celerMessageBus = _celerMessageBus;
         sendEndpointAddr = _sendEndpointAddr;
         sendEndpointChainId = _sendEndpointChainId;

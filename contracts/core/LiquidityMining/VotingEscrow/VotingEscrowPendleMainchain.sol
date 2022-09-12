@@ -39,12 +39,10 @@ contract VotingEscrowPendleMainchain is
     mapping(address => Checkpoints.History) internal userHistory;
 
     constructor(IERC20 _pendle, address _pendleMsgSendEndpoint)
+        initializer
         PendleMsgSenderAppUpg(_pendleMsgSendEndpoint)
     {
         pendle = _pendle;
-    }
-
-    function initialize() external initializer {
         __BoringOwnable_init();
     }
 

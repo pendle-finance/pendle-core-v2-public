@@ -91,4 +91,6 @@ interface IPMarket is IERC20Metadata, IPGauge {
     function getRewardTokens() external view returns (address[] memory);
 
     function isExpired() external view returns (bool);
+
+    function expiry() external view returns (uint256);
 }
