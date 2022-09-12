@@ -35,8 +35,8 @@ contract PendleMsgSendEndpointUpg is
     function calcFee(
         address dstAddress,
         uint256, /*dstChainId*/
-        bytes calldata message
-    ) external view returns (uint256) {
+        bytes memory message
+    ) public view returns (uint256) {
         return celerMessageBus.calcFee(abi.encode(dstAddress, message));
     }
 
@@ -45,7 +45,8 @@ contract PendleMsgSendEndpointUpg is
         uint256 dstChainId,
         bytes calldata message
     ) external payable onlyWhitelisted {
-        celerMessageBus.sendMessage(
+        uint256 fee = calcFee(dstAddress, dstChainId, message);
+        celerMessageBus.sendMessage{ value: fee }(
             receiveEndpoints.get(dstChainId),
             dstChainId,
             abi.encode(dstAddress, message)
