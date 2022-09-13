@@ -47,12 +47,8 @@ contract PendleWstEthSCY is SCYBase {
             if (tokenIn == stETH) {
                 amountStETH = amountDeposited;
             } else {
-                uint256 stETHBalanceBefore = _selfBalance(stETH);
-                if (tokenIn == wETH) {
-                    IWETH(wETH).withdraw(amountDeposited);
-                }
-                IStETH(stETH).submit{ value: amountDeposited }(address(0));
-                amountStETH = _selfBalance(stETH) - stETHBalanceBefore;
+                if (tokenIn == wETH) IWETH(wETH).withdraw(amountDeposited);
+                amountStETH = IStETH(stETH).submit{ value: amountDeposited }(address(0));
             }
             amountSharesOut = IWstETH(wstETH).wrap(amountStETH);
         }
@@ -103,7 +99,7 @@ contract PendleWstEthSCY is SCYBase {
         else {
             uint256 amountStETH;
             if (tokenIn == stETH) {
-                amountStETH = amountTokenToDeposit; 
+                amountStETH = amountTokenToDeposit;
             } else {
                 amountStETH = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
             }
@@ -124,10 +120,9 @@ contract PendleWstEthSCY is SCYBase {
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](4);
         res[0] = NATIVE;
-        res[1] = wETH;        
+        res[1] = wETH;
         res[2] = stETH;
         res[3] = wstETH;
-
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
