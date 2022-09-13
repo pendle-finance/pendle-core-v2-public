@@ -36,7 +36,7 @@ contract PendleMsgSendEndpointUpg is
         address dstAddress,
         uint256, /*dstChainId*/
         bytes memory message
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         return celerMessageBus.calcFee(abi.encode(dstAddress, message));
     }
 
@@ -45,8 +45,7 @@ contract PendleMsgSendEndpointUpg is
         uint256 dstChainId,
         bytes calldata message
     ) external payable onlyWhitelisted {
-        uint256 fee = calcFee(dstAddress, dstChainId, message);
-        celerMessageBus.sendMessage{ value: fee }(
+        celerMessageBus.sendMessage{ value: msg.value }(
             receiveEndpoints.get(dstChainId),
             dstChainId,
             abi.encode(dstAddress, message)
@@ -66,7 +65,7 @@ contract PendleMsgSendEndpointUpg is
     }
 
     function getAllReceiveEndpoints()
-        public
+        external
         view
         returns (uint256[] memory chainIds, address[] memory addrs)
     {
