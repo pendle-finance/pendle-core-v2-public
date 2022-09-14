@@ -33,12 +33,10 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             uint256 netPtUsed
         )
     {
-        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
-            .readTokens();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         MarketState memory state = IPMarket(market).readState();
         (, netLpOut, netScyUsed, netPtUsed) = state.addLiquidity(
-            YT.newIndex(),
             netScyDesired,
             netPtDesired,
             block.timestamp
@@ -80,8 +78,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             uint256 netPtUsed
         )
     {
-        (ISuperComposableYield SCY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
-            .readTokens();
+        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         uint256 netScyDesired = SCY.previewDeposit(tokenIn, netTokenDesired);
         uint256 netScyUsed;
@@ -89,7 +86,6 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         {
             MarketState memory state = IPMarket(market).readState();
             (, netLpOut, netScyUsed, netPtUsed) = state.addLiquidity(
-                YT.newIndex(),
                 netScyDesired,
                 netPtDesired,
                 block.timestamp

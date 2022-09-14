@@ -105,12 +105,10 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         )
     {
         MarketState memory market = readState();
-        PYIndex index = YT.newIndex();
 
         uint256 lpToReserve;
 
         (lpToReserve, netLpOut, netScyUsed, netPtUsed) = market.addLiquidity(
-            index,
             netScyDesired,
             netPtDesired,
             block.timestamp
@@ -118,6 +116,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         // initializing the market
         if (lpToReserve != 0) {
+            PYIndex index = YT.newIndex();
             market.setInitialLnImpliedRate(index, initialAnchor, block.timestamp);
             _mint(address(1), lpToReserve);
         }

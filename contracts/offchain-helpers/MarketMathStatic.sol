@@ -27,12 +27,7 @@ library MarketMathStatic {
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
-            pyIndex(market),
-            scyDesired,
-            ptDesired,
-            block.timestamp
-        );
+        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(scyDesired, ptDesired, block.timestamp);
     }
 
     function addLiquidityDualTokenAndPtStatic(
@@ -54,12 +49,7 @@ library MarketMathStatic {
         uint256 scyUsed;
 
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(
-            pyIndex(market),
-            scyDesired,
-            ptDesired,
-            block.timestamp
-        );
+        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(scyDesired, ptDesired, block.timestamp);
 
         tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
     }
@@ -96,7 +86,6 @@ library MarketMathStatic {
             block.timestamp
         );
         (, netLpOut, , ) = state.addLiquidity(
-            pyIndex(market),
             netScyReceived,
             netPtIn - netPtToSwap,
             block.timestamp
@@ -137,7 +126,6 @@ library MarketMathStatic {
             block.timestamp
         );
         (, netLpOut, , ) = state.addLiquidity(
-            pyIndex(market),
             netScyIn - netScySwap,
             netPtFromSwap,
             block.timestamp

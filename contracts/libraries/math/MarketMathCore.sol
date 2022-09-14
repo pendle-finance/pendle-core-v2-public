@@ -51,7 +51,6 @@ library MarketMathCore {
 
     function addLiquidity(
         MarketState memory market,
-        PYIndex index,
         uint256 scyDesired,
         uint256 ptDesired,
         uint256 blockTime
@@ -70,7 +69,7 @@ library MarketMathCore {
             int256 _lpToAccount,
             int256 _scyUsed,
             int256 _otUsed
-        ) = addLiquidityCore(market, index, scyDesired.Int(), ptDesired.Int(), blockTime);
+        ) = addLiquidityCore(market, scyDesired.Int(), ptDesired.Int(), blockTime);
 
         lpToReserve = _lpToReserve.Uint();
         lpToAccount = _lpToAccount.Uint();
@@ -132,7 +131,6 @@ library MarketMathCore {
 
     function addLiquidityCore(
         MarketState memory market,
-        PYIndex index,
         int256 scyDesired,
         int256 ptDesired,
         uint256 blockTime
@@ -156,9 +154,7 @@ library MarketMathCore {
         /// MATH
         /// ------------------------------------------------------------
         if (market.totalLp == 0) {
-            lpToAccount =
-                Math.sqrt((index.scyToAsset(scyDesired) * ptDesired).Uint()).Int() -
-                MINIMUM_LIQUIDITY;
+            lpToAccount = Math.sqrt((scyDesired * ptDesired).Uint()).Int() - MINIMUM_LIQUIDITY;
             lpToReserve = MINIMUM_LIQUIDITY;
             scyUsed = scyDesired;
             ptUsed = ptDesired;
