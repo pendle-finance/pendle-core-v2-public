@@ -655,18 +655,17 @@ library MarketApproxPtOutLib {
 
         p.guessMin = Math.max(p.guessMin, arg.maxYtIn);
 
+        uint256 maxScyRedeemableFromPY = _index.assetToScy(arg.maxYtIn);
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
             (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
 
-            uint256 assetRedeemFromPY = arg.maxYtIn;
-
-            if (netAssetIn <= assetRedeemFromPY) {
+            if (_index.assetToScyUp(netAssetIn) <= maxScyRedeemableFromPY) {
                 p.guessMin = guess;
-                if (Math.isASmallerApproxB(netAssetIn, assetRedeemFromPY, p.eps)) {
+                if (Math.isASmallerApproxB(netAssetIn, arg.maxYtIn, p.eps)) {
                     return (
-                        guess - assetRedeemFromPY,
+                        guess - arg.maxYtIn,
                         arg.maxYtIn,
                         guess,
                         arg.index.assetToScy(netAssetToReserve)
