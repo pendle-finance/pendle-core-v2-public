@@ -272,6 +272,63 @@ library MarketApproxPtInLib {
         revert("approx fail");
     }
 
+    struct Args7 {
+        MarketState market;
+        PYIndex index;
+        uint256 maxPtIn;
+        uint256 blockTime;
+    }
+
+    function approxSwapExactPtForYt(
+        MarketState memory _market,
+        PYIndex _index,
+        uint256 _maxPtIn,
+        uint256 _blockTime,
+        ApproxParams memory _approx // approx for totalPtToSwap
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netYtOut*/
+            uint256, /*netPtIn*/
+            uint256, /*totalPtToSwap*/
+            uint256 /*netScyToReserve*/
+        )
+    {
+        Args7 memory arg = Args7(_market, _index, _maxPtIn, _blockTime);
+
+        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
+
+        p.guessMin = Math.max(p.guessMin, arg.maxPtIn);
+
+        for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
+            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, arg.market.totalPt, iter);
+
+            if (!isGoodSlope) {
+                p.guessMax = guess;
+                continue;
+            }
+
+            (uint256 netAssetOut, uint256 netAssetToReserve) = calcAssetOut(
+                arg.market,
+                comp,
+                guess
+            );
+
+            uint256 netPtPayable = netAssetOut + arg.maxPtIn;
+            if (guess <= netPtPayable) {
+                uint256 netPtIn = guess - netAssetOut; // guess >= netAssetOut (market invariant)
+                if (Math.isASmallerApproxB(netPtIn, arg.maxPtIn, p.eps)) {
+                    return (netAssetOut, netPtIn, guess, arg.index.assetToScy(netAssetToReserve));
+                }
+            } else {
+                p.guessMax = guess - 1;
+            }
+        }
+        revert("approx fail");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
 
     function calcAssetOut(
@@ -563,6 +620,59 @@ library MarketApproxPtOutLib {
                 p.guessMin = guess + 1;
             } else {
                 // needs less PT
+                p.guessMax = guess - 1;
+            }
+        }
+        revert("approx fail");
+    }
+
+    struct Args8 {
+        MarketState market;
+        PYIndex index;
+        uint256 maxYtIn;
+        uint256 blockTime;
+    }
+
+    function approxSwapExactYtForPt(
+        MarketState memory _market,
+        PYIndex _index,
+        uint256 _maxYtIn,
+        uint256 _blockTime,
+        ApproxParams memory _approx
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtOut*/
+            uint256, /*netYtIn*/
+            uint256, /*totalPtSwapped*/
+            uint256 /*netScyToReserve*/
+        )
+    {
+        Args8 memory arg = Args8(_market, _index, _maxYtIn, _blockTime);
+        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
+
+        p.guessMin = Math.max(p.guessMin, arg.maxYtIn);
+
+        for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
+            uint256 guess = nextGuess(p, iter);
+
+            (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
+
+            uint256 assetRedeemFromPY = arg.maxYtIn;
+
+            if (netAssetIn <= assetRedeemFromPY) {
+                p.guessMin = guess;
+                if (Math.isASmallerApproxB(netAssetIn, assetRedeemFromPY, p.eps)) {
+                    return (
+                        guess - assetRedeemFromPY,
+                        arg.maxYtIn,
+                        guess,
+                        arg.index.assetToScy(netAssetToReserve)
+                    );
+                }
+            } else {
                 p.guessMax = guess - 1;
             }
         }

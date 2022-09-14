@@ -15,6 +15,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
     using Math for uint256;
     using SafeERC20 for ISuperComposableYield;
     using SafeERC20 for IPYieldToken;
+    using SafeERC20 for IPPrincipalToken;
     using SafeERC20 for IERC20;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
@@ -48,6 +49,10 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
             _callbackSwapScyForExactYt(market, ptToAccount, scyToAccount, data);
         } else if (swapType == ActionType.SwapYtForScy) {
             _callbackSwapYtForScy(market, ptToAccount, scyToAccount, data);
+        } else if (swapType == ActionType.SwapExactYtForPt) {
+            _callbackSwapExactYtForPt(market, ptToAccount, scyToAccount, data);
+        } else if (swapType == ActionType.SwapExactPtForYt) {
+            _callbackSwapExactPtForYt(market, ptToAccount, scyToAccount, data);
         } else {
             require(false, "unknown swapType");
         }
@@ -136,5 +141,39 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
 
         uint256[] memory amountScyOuts = YT.redeemPYMulti(receivers, amountPYToRedeems);
         require(amountScyOuts[1] >= minScyOut, "insufficient SCY out");
+    }
+
+    function _callbackSwapExactPtForYt(
+        address market,
+        int256 ptToAccount,
+        int256, /*scyToAccount*/
+        bytes calldata data
+    ) internal {
+        (address receiver, uint256 exactPtIn, uint256 minYtOut) = _decodeSwapExactPtForYt(data);
+        uint256 netPtOwed = ptToAccount.abs();
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        uint256 netPyOut = YT.mintPY(market, receiver);
+        require(netPyOut >= minYtOut, "insufficient YT out");
+        require(exactPtIn + netPyOut >= netPtOwed, "insufficient PT to pay");
+    }
+
+    function _callbackSwapExactYtForPt(
+        address market,
+        int256 ptToAccount,
+        int256 scyToAccount,
+        bytes calldata data
+    ) internal {
+        (address receiver, uint256 exactYtIn, uint256 minPtOut) = _decodeSwapExactYtForPt(data);
+        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
+
+        uint256 netScyOwed = scyToAccount.abs();
+
+        PT.safeTransfer(address(YT), exactYtIn);
+        uint256 netScyToMarket = YT.redeemPY(market);
+
+        require(netScyToMarket >= netScyOwed, "insufficient SCY to pay");
+        require(ptToAccount.Uint() - exactYtIn >= minPtOut, "insufficient PT out");
+        PT.safeTransfer(receiver, ptToAccount.Uint() - exactYtIn);
     }
 }

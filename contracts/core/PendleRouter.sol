@@ -17,6 +17,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
     address public immutable ACTION_ADD_REMOVE_LIQ;
     address public immutable ACTION_SWAP_PT;
     address public immutable ACTION_SWAP_YT;
+    address public immutable ACTION_SWAP_PTYT;
     address public immutable ACTION_CALLBACK;
     address public immutable ACTION_MISC;
 
@@ -25,6 +26,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
         address _ACTION_ADD_REMOVE_LIQ,
         address _ACTION_SWAP_PT,
         address _ACTION_SWAP_YT,
+        address _ACTION_SWAP_PTYT,
         address _ACTION_CALLBACK,
         address _ACTION_MISC
     ) initializer {
@@ -32,6 +34,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
         ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
         ACTION_SWAP_YT = _ACTION_SWAP_YT;
+        ACTION_SWAP_PTYT = _ACTION_SWAP_PTYT;
         ACTION_CALLBACK = _ACTION_CALLBACK;
         ACTION_MISC = _ACTION_MISC;
     }
@@ -82,6 +85,11 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
             sig == IPActionSwapYT.swapYtForExactScy.selector
         ) {
             return ACTION_SWAP_YT;
+        } else if (
+            sig == IPActionSwapPTYT.swapExactPtForYt.selector ||
+            sig == IPActionSwapPTYT.swapExactYtForPt.selector
+        ) {
+            return ACTION_SWAP_PTYT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
         } else if (sig == IPActionMisc.consult.selector) {

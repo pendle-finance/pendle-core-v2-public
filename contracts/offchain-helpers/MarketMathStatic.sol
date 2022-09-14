@@ -529,6 +529,59 @@ library MarketMathStatic {
             );
     }
 
+    // totalPtToSwap is the param to approx
+    function swapExactPtForYt(
+        address market,
+        uint256 exactPtIn,
+        ApproxParams memory approxParams
+    )
+        external
+        returns (
+            uint256 netYtOut,
+            uint256 totalPtToSwap,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
+        MarketState memory state = IPMarket(market).readState();
+        PYIndex index = pyIndex(market);
+
+        (netYtOut, , totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
+            index,
+            exactPtIn,
+            block.timestamp,
+            approxParams
+        );
+        priceImpact = calcPriceImpact(market, totalPtToSwap.neg());
+    }
+
+    // totalPtSwapped is the param to approx
+    function swapExactYtForPt(
+        address market,
+        uint256 exactYtIn,
+        ApproxParams memory approxParams
+    )
+        external
+        returns (
+            uint256 netPtOut,
+            uint256 totalPtSwapped,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
+        MarketState memory state = IPMarket(market).readState();
+        PYIndex index = pyIndex(market);
+
+        (netPtOut, , totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
+            index,
+            exactYtIn,
+            block.timestamp,
+            approxParams
+        );
+
+        priceImpact = calcPriceImpact(market, totalPtSwapped.Int());
+    }
+
     function pyIndex(address market) public returns (PYIndex index) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 

@@ -571,6 +571,30 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
+    function swapExactPtForYt(address market, uint256 exactPtIn)
+        external
+        returns (
+            uint256 netYtOut,
+            uint256 totalPtToSwap,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
+        return MarketMathStatic.swapExactPtForYt(market, exactPtIn, getDefaultApproxParams());
+    }
+
+    function swapExactYtForPt(address market, uint256 exactYtIn)
+        external
+        returns (
+            uint256 netPtOut,
+            uint256 totalPtSwapped,
+            uint256 netScyFee,
+            uint256 priceImpact
+        )
+    {
+        return MarketMathStatic.swapExactYtForPt(market, exactYtIn, getDefaultApproxParams());
+    }
+
     // ============= OTHER HELPERS =============
 
     function mintPYFromScyStatic(address YT, uint256 amountScyToMint)

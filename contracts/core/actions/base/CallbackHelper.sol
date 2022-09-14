@@ -5,7 +5,9 @@ abstract contract CallbackHelper {
     enum ActionType {
         SwapScyForExactYt,
         SwapExactScyForYt,
-        SwapYtForScy
+        SwapYtForScy,
+        SwapExactYtForPt,
+        SwapExactPtForYt
     }
 
     /// ------------------------------------------------------------
@@ -70,6 +72,52 @@ abstract contract CallbackHelper {
         returns (address receiver, uint256 minScyOut)
     {
         (, receiver, minScyOut) = abi.decode(data, (ActionType, address, uint256));
+    }
+
+    function _encodeSwapExactYtForPt(
+        address receiver,
+        uint256 exactYtIn,
+        uint256 minPtOut
+    ) internal pure returns (bytes memory) {
+        return abi.encode(ActionType.SwapExactYtForPt, receiver, exactYtIn, minPtOut);
+    }
+
+    function _decodeSwapExactYtForPt(bytes memory data)
+        internal
+        pure
+        returns (
+            address receiver,
+            uint256 exactYtIn,
+            uint256 minPtOut
+        )
+    {
+        (, receiver, exactYtIn, minPtOut) = abi.decode(
+            data,
+            (ActionType, address, uint256, uint256)
+        );
+    }
+
+    function _encodeSwapExactPtForYt(
+        address receiver,
+        uint256 exactPtIn,
+        uint256 minYtOut
+    ) internal pure returns (bytes memory) {
+        return abi.encode(ActionType.SwapExactPtForYt, receiver, exactPtIn, minYtOut);
+    }
+
+    function _decodeSwapExactPtForYt(bytes memory data)
+        internal
+        pure
+        returns (
+            address receiver,
+            uint256 exactPtIn,
+            uint256 minYtOut
+        )
+    {
+        (, receiver, exactPtIn, minYtOut) = abi.decode(
+            data,
+            (ActionType, address, uint256, uint256)
+        );
     }
 
     /// ------------------------------------------------------------
