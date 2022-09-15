@@ -51,7 +51,8 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
             sig == IPActionMintRedeem.redeemPyToToken.selector ||
             sig == IPActionMintRedeem.mintPyFromScy.selector ||
             sig == IPActionMintRedeem.redeemPyToScy.selector ||
-            sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector
+            sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector ||
+            sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector
         ) {
             return ACTION_MINT_REDEEM;
         } else if (
