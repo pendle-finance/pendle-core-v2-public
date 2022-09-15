@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
-import "./base/ActionBaseMintRedeem.sol";
 import "../../interfaces/IPActionSwapPTYT.sol";
 import "../../interfaces/IPMarket.sol";
 import "./base/CallbackHelper.sol";
 
-contract ActionSwapPTYT is IPActionSwapPTYT, ActionBaseMintRedeem, CallbackHelper {
+contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;
@@ -19,9 +18,10 @@ contract ActionSwapPTYT is IPActionSwapPTYT, ActionBaseMintRedeem, CallbackHelpe
     using SafeERC20 for IPPrincipalToken;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter)
-        ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
-    {}
+    constructor() //solhint-disable-next-line no-empty-blocks
+    {
+
+    }
 
     function swapExactPtForYt(
         address receiver,

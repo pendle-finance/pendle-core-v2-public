@@ -631,6 +631,7 @@ library MarketApproxPtOutLib {
         PYIndex index;
         uint256 maxYtIn;
         uint256 blockTime;
+        uint256 maxScyRedeemableFromPY;
     }
 
     function approxSwapExactYtForPt(
@@ -649,19 +650,25 @@ library MarketApproxPtOutLib {
             uint256 /*netScyToReserve*/
         )
     {
-        Args8 memory arg = Args8(_market, _index, _maxYtIn, _blockTime);
+        Args8 memory arg = Args8(
+            _market,
+            _index,
+            _maxYtIn,
+            _blockTime,
+            _index.assetToScy(_maxYtIn)
+        );
         MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
         ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
 
         p.guessMin = Math.max(p.guessMin, arg.maxYtIn);
 
-        uint256 maxScyRedeemableFromPY = _index.assetToScy(arg.maxYtIn);
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
             (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
+            uint256 netScyIn = arg.index.assetToScyUp(netAssetIn);
 
-            if (_index.assetToScyUp(netAssetIn) <= maxScyRedeemableFromPY) {
+            if (netScyIn <= arg.maxScyRedeemableFromPY) {
                 p.guessMin = guess;
                 if (Math.isASmallerApproxB(netAssetIn, arg.maxYtIn, p.eps)) {
                     return (
