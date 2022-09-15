@@ -571,7 +571,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
-    function swapExactPtForYt(address market, uint256 exactPtIn)
+    function swapExactPtForYtStatic(address market, uint256 exactPtIn)
         external
         returns (
             uint256 netYtOut,
@@ -583,7 +583,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         return MarketMathStatic.swapExactPtForYt(market, exactPtIn, getDefaultApproxParams());
     }
 
-    function swapExactYtForPt(address market, uint256 exactYtIn)
+    function swapExactYtForPtStatic(address market, uint256 exactYtIn)
         external
         returns (
             uint256 netPtOut,
