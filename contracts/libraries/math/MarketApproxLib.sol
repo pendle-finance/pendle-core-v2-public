@@ -318,6 +318,7 @@ library MarketApproxPtInLib {
 
             uint256 netPtPayable = netAssetOut + arg.maxPtIn;
             if (guess <= netPtPayable) {
+                p.guessMin = guess;
                 uint256 netPtIn = guess - netAssetOut; // guess >= netAssetOut (market invariant)
                 if (Math.isASmallerApproxB(netPtIn, arg.maxPtIn, p.eps)) {
                     return (netAssetOut, netPtIn, guess, arg.index.assetToScy(netAssetToReserve));
