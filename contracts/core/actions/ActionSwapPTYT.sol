@@ -36,7 +36,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
         PT.safeTransferFrom(msg.sender, market, exactPtIn);
 
         uint256 totalPtToSwap;
-        (netYtOut, , totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
+        (netYtOut, totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
             YT.newIndex(),
             exactPtIn,
             block.timestamp,
@@ -67,7 +67,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
         YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
 
         uint256 totalPtSwapped;
-        (netPtOut, , totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
+        (netPtOut, totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
             YT.newIndex(),
             exactYtIn,
             block.timestamp,

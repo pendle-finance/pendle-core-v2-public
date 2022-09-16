@@ -280,7 +280,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         MarketState memory state = IPMarket(market).readState();
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
-        (uint256 ptFromSwap, , ) = state.approxSwapExactScyForPt(
+        (uint256 ptFromSwap, ) = state.approxSwapExactScyForPt(
             YT.newIndex(),
             scyFromBurn,
             block.timestamp,

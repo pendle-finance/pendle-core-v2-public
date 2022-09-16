@@ -223,7 +223,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     ) internal returns (uint256 netYtOut, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
 
-        (netYtOut, , ) = state.approxSwapExactScyForYt(
+        (netYtOut, ) = state.approxSwapExactScyForYt(
             YT.newIndex(),
             exactScyIn,
             block.timestamp,

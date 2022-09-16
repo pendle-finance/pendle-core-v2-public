@@ -204,7 +204,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     ) internal returns (uint256 netPtOut, uint256 netScyFee) {
         MarketState memory state = IPMarket(market).readState();
 
-        (netPtOut, , ) = state.approxSwapExactScyForPt(
+        (netPtOut, ) = state.approxSwapExactScyForPt(
             YT.newIndex(),
             exactScyIn,
             block.timestamp,

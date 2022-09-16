@@ -209,7 +209,7 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
 
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
-        (netPtFromSwap, , netScyFee) = state.approxSwapExactScyForPt(
+        (netPtFromSwap, netScyFee) = state.approxSwapExactScyForPt(
             pyIndex(market),
             scyFromBurn,
             block.timestamp,
@@ -317,7 +317,7 @@ library MarketMathStatic {
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (netPtOut, , netScyFee) = state.approxSwapExactScyForPt(
+        (netPtOut, netScyFee) = state.approxSwapExactScyForPt(
             pyIndex(market),
             exactScyIn,
             block.timestamp,
@@ -434,7 +434,7 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netYtOut, , netScyFee) = state.approxSwapExactScyForYt(
+        (netYtOut, netScyFee) = state.approxSwapExactScyForYt(
             index,
             exactScyIn,
             block.timestamp,
@@ -552,7 +552,7 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netYtOut, , totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
+        (netYtOut, totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
             index,
             exactPtIn,
             block.timestamp,
@@ -578,7 +578,7 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netPtOut, , totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
+        (netPtOut, totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
             index,
             exactYtIn,
             block.timestamp,

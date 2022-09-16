@@ -227,16 +227,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         MarketPreCompute memory comp = getMarketPreCompute(market, index, blockTime);
 
-        (int256 netAssetToAccount, int256 netAssetToReserve) = calcTrade(
-            market,
-            comp,
-            netPtToAccount
-        );
-
-        netScyToAccount = netAssetToAccount < 0
-            ? index.assetToScyUp(netAssetToAccount)
-            : index.assetToScy(netAssetToAccount);
-        netScyToReserve = index.assetToScy(netAssetToReserve);
+        (netScyToAccount, netScyToReserve) = calcTrade(market, comp, index, netPtToAccount);
 
         /// ------------------------------------------------------------
         /// WRITE
@@ -280,8 +271,9 @@ library MarketMathCore {
     function calcTrade(
         MarketState memory market,
         MarketPreCompute memory comp,
+        PYIndex index,
         int256 netPtToAccount
-    ) internal pure returns (int256 netAssetToAccount, int256 netAssetToReserve) {
+    ) internal pure returns (int256 netScyToAccount, int256 netScyToReserve) {
         int256 preFeeExchangeRate = _getExchangeRate(
             market.totalPt,
             comp.totalAsset,
@@ -303,8 +295,13 @@ library MarketMathCore {
             fee = ((preFeeAssetToAccount * (Math.IONE - fee)) / fee).neg();
         }
 
-        netAssetToReserve = (fee * market.reserveFeePercent.Int()) / PERCENTAGE_DECIMALS;
-        netAssetToAccount = preFeeAssetToAccount - fee;
+        int256 netAssetToReserve = (fee * market.reserveFeePercent.Int()) / PERCENTAGE_DECIMALS;
+        int256 netAssetToAccount = preFeeAssetToAccount - fee;
+
+        netScyToAccount = netAssetToAccount < 0
+            ? index.assetToScyUp(netAssetToAccount)
+            : index.assetToScy(netAssetToAccount);
+        netScyToReserve = index.assetToScy(netAssetToReserve);
     }
 
     function _setNewMarketStateTrade(

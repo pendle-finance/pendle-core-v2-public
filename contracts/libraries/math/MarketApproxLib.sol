@@ -63,7 +63,7 @@ library MarketApproxPtInLib {
         returns (
             uint256, /*netPtIn*/
             uint256, /*netScyOut*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
         /*
@@ -72,35 +72,24 @@ library MarketApproxPtInLib {
         2. if netScyOut is greater & approx minScyOut => answer found
         */
 
-        Args1 memory arg = Args1(_market, _index, _minScyOut, _blockTime);
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        Args1 memory a = Args1(_market, _index, _minScyOut, _blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
 
-        uint256 minAssetOut = arg.index.scyToAssetUp(arg.minScyOut);
-
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
-            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, arg.market.totalPt, iter);
-
+            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
             if (!isGoodSlope) {
                 p.guessMax = guess;
                 continue;
             }
 
-            (uint256 netAssetOut, uint256 netAssetToReserve) = calcAssetOut(
-                arg.market,
-                comp,
-                guess
-            );
+            (uint256 netScyOut, uint256 netScyFee) = calcScyOut(a.market, comp, a.index, guess);
 
-            if (netAssetOut >= minAssetOut) {
+            if (netScyOut >= a.minScyOut) {
                 p.guessMax = guess;
-                bool isAnswerAccepted = Math.isAGreaterApproxB(netAssetOut, minAssetOut, p.eps);
+                bool isAnswerAccepted = Math.isAGreaterApproxB(netScyOut, a.minScyOut, p.eps);
                 if (isAnswerAccepted) {
-                    return (
-                        guess,
-                        arg.index.assetToScy(netAssetOut),
-                        arg.index.assetToScy(netAssetToReserve)
-                    );
+                    return (guess, netScyOut, netScyFee);
                 }
             } else {
                 p.guessMin = guess;
@@ -112,14 +101,14 @@ library MarketApproxPtInLib {
     struct Args2 {
         MarketState market;
         PYIndex index;
-        uint256 maxScyIn;
+        uint256 exactScyIn;
         uint256 blockTime;
     }
 
     function approxSwapExactScyForYt(
         MarketState memory _market,
         PYIndex _index,
-        uint256 _maxScyIn,
+        uint256 _exactScyIn,
         uint256 _blockTime,
         ApproxParams memory _approx
     )
@@ -127,54 +116,32 @@ library MarketApproxPtInLib {
         pure
         returns (
             uint256, /*netYtOut*/
-            uint256, /*netScyIn*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
-        /*
-        the algorithm is essentially to:
-        1. Binary search netPtIn (therefore netScyOut)
-        2. flashswap some netScyOut (now we owe netPtIn)
-        3. Use netScyOut + additional SCY from user => convert to PT + YT
-        4. Pay back PT & give user YT.
-        5. If the PT loan can be successfully & amount of additional SCY is smallerApprox maxScyIn
-        => answer found
-        */
-
-        Args2 memory arg = Args2(_market, _index, _maxScyIn, _blockTime);
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        Args2 memory a = Args2(_market, _index, _exactScyIn, _blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
 
-        uint256 maxAssetIn = arg.index.scyToAsset(arg.maxScyIn);
-
-        // at minimum we will flashswap maxAssetIn since we have enough SCY to payback the PT loan
-        if (p.guessMin == 0) p.guessMin = maxAssetIn;
+        // at minimum we will flashswap exactScyIn since we have enough SCY to payback the PT loan
+        if (p.guessMin == 0) p.guessMin = a.index.scyToAsset(a.exactScyIn);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             // ytOutGuess = ptInGuess
-            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, arg.market.totalPt, iter);
+            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
             if (!isGoodSlope) {
                 p.guessMax = guess;
                 continue;
             }
 
-            (uint256 netAssetOut, uint256 netAssetToReserve) = calcAssetOut(
-                arg.market,
-                comp,
-                guess
-            );
+            (uint256 netScyOut, uint256 netScyFee) = calcScyOut(a.market, comp, a.index, guess);
 
-            uint256 netAssetToPull = guess - netAssetOut;
+            uint256 maxPtPayable = a.index.scyToAsset(netScyOut + a.exactScyIn);
 
-            if (netAssetToPull <= maxAssetIn) {
+            if (guess <= maxPtPayable) {
                 p.guessMin = guess;
-                bool isAnswerAccepted = Math.isASmallerApproxB(netAssetToPull, maxAssetIn, p.eps);
-                if (isAnswerAccepted)
-                    return (
-                        guess,
-                        arg.index.assetToScy(netAssetToPull),
-                        arg.index.assetToScy(netAssetToReserve)
-                    );
+                bool isAnswerAccepted = Math.isASmallerApproxB(guess, maxPtPayable, p.eps);
+                if (isAnswerAccepted) return (guess, netScyFee);
             } else {
                 p.guessMax = guess;
             }
@@ -201,7 +168,7 @@ library MarketApproxPtInLib {
         returns (
             uint256, /*netPtSwap*/
             uint256, /*netScyFromSwap*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
         /*
@@ -215,53 +182,45 @@ library MarketApproxPtInLib {
         Note that market maintains PT/SCY ratio, but here PT/asset is used instead
         */
 
-        Args6 memory arg = Args6(_market, _index, _totalPtIn, _blockTime);
-        require(arg.market.totalLp != 0, "no existing lp");
+        Args6 memory a = Args6(_market, _index, _totalPtIn, _blockTime);
+        require(a.market.totalLp != 0, "no existing lp");
 
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
 
-        p.guessMax = Math.min(p.guessMax, arg.totalPtIn);
+        p.guessMax = Math.min(p.guessMax, a.totalPtIn);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
-            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, arg.market.totalPt, iter);
+            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
 
             if (!isGoodSlope) {
                 p.guessMax = guess;
                 continue;
             }
 
-            (uint256 netAssetOut, uint256 netAssetToReserve) = calcAssetOut(
-                arg.market,
-                comp,
-                guess
-            );
+            (uint256 netScyOut, uint256 netScyFee) = calcScyOut(a.market, comp, a.index, guess);
 
-            uint256 assetNumerator;
+            uint256 scyNumerator;
             uint256 ptNumerator;
             {
-                uint256 newTotalPt = arg.market.totalPt.Uint() + guess;
-                uint256 netPtRemaining = arg.totalPtIn - guess;
-                uint256 newTotalAsset = (comp.totalAsset.Uint() - netAssetOut - netAssetToReserve);
+                uint256 newTotalPt = a.market.totalPt.Uint() + guess;
+                uint256 netPtRemaining = a.totalPtIn - guess;
+                uint256 newTotalScy = (a.market.totalScy.Uint() - netScyOut - netScyFee);
 
                 // it is desired that
-                // netAssetOut / newTotalAsset = netPtRemaining / newTotalPt
+                // netAssetOut / newTotalScy = netPtRemaining / newTotalPt
                 // which is equivalent to
-                // netAssetOut * newTotalPt = netPtRemaining * newTotalAsset
+                // netAssetOut * newTotalPt = netPtRemaining * newTotalScy
 
-                assetNumerator = netAssetOut * newTotalPt;
-                ptNumerator = netPtRemaining * newTotalAsset;
+                scyNumerator = netScyOut * newTotalPt;
+                ptNumerator = netPtRemaining * newTotalScy;
             }
 
-            if (Math.isAApproxB(assetNumerator, ptNumerator, p.eps)) {
-                return (
-                    guess,
-                    arg.index.assetToScy(netAssetOut),
-                    arg.index.assetToScy(netAssetToReserve)
-                );
+            if (Math.isAApproxB(scyNumerator, ptNumerator, p.eps)) {
+                return (guess, netScyOut, netScyFee);
             }
 
-            if (assetNumerator <= ptNumerator) {
+            if (scyNumerator <= ptNumerator) {
                 // needs more asset --> swap more PT
                 p.guessMin = guess + 1;
             } else {
@@ -275,14 +234,14 @@ library MarketApproxPtInLib {
     struct Args7 {
         MarketState market;
         PYIndex index;
-        uint256 maxPtIn;
+        uint256 exactPtIn;
         uint256 blockTime;
     }
 
     function approxSwapExactPtForYt(
         MarketState memory _market,
         PYIndex _index,
-        uint256 _maxPtIn,
+        uint256 _exactPtIn,
         uint256 _blockTime,
         ApproxParams memory _approx // approx for totalPtToSwap
     )
@@ -290,38 +249,34 @@ library MarketApproxPtInLib {
         pure
         returns (
             uint256, /*netYtOut*/
-            uint256, /*netPtIn*/
             uint256, /*totalPtToSwap*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
-        Args7 memory arg = Args7(_market, _index, _maxPtIn, _blockTime);
+        Args7 memory a = Args7(_market, _index, _exactPtIn, _blockTime);
 
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
 
-        p.guessMin = Math.max(p.guessMin, arg.maxPtIn);
+        p.guessMin = Math.max(p.guessMin, a.exactPtIn);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
-            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, arg.market.totalPt, iter);
+            (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
 
             if (!isGoodSlope) {
                 p.guessMax = guess;
                 continue;
             }
 
-            (uint256 netAssetOut, uint256 netAssetToReserve) = calcAssetOut(
-                arg.market,
-                comp,
-                guess
-            );
+            (uint256 netScyOut, uint256 netScyFee) = calcScyOut(a.market, comp, a.index, guess);
 
-            uint256 netPtPayable = netAssetOut + arg.maxPtIn;
-            if (guess <= netPtPayable) {
+            uint256 netAssetOut = a.index.scyToAsset(netScyOut);
+
+            uint256 maxPtPayable = netAssetOut + a.exactPtIn;
+            if (guess <= maxPtPayable) {
                 p.guessMin = guess;
-                uint256 netPtIn = guess - netAssetOut; // guess >= netAssetOut (market invariant)
-                if (Math.isASmallerApproxB(netPtIn, arg.maxPtIn, p.eps)) {
-                    return (netAssetOut, netPtIn, guess, arg.index.assetToScy(netAssetToReserve));
+                if (Math.isASmallerApproxB(guess, maxPtPayable, p.eps)) {
+                    return (netAssetOut, guess, netScyFee);
                 }
             } else {
                 p.guessMax = guess - 1;
@@ -332,15 +287,15 @@ library MarketApproxPtInLib {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    function calcAssetOut(
+    function calcScyOut(
         MarketState memory market,
         MarketPreCompute memory comp,
+        PYIndex index,
         uint256 netPtIn
-    ) internal pure returns (uint256 netAssetOut, uint256 netAssetToReserve) {
-        (int256 assetToAccount, int256 assetToReserve) = market.calcTrade(comp, netPtIn.neg());
-
-        netAssetOut = assetToAccount.Uint();
-        netAssetToReserve = assetToReserve.Uint();
+    ) internal pure returns (uint256 netScyOut, uint256 netScyFee) {
+        (int256 _netScyOut, int256 _netScyFee) = market.calcTrade(comp, index, netPtIn.neg());
+        netScyOut = _netScyOut.Uint();
+        netScyFee = _netScyFee.Uint();
     }
 
     function newApproxParamsPtIn(ApproxParams memory _approx, int256 totalAsset)
@@ -426,14 +381,14 @@ library MarketApproxPtOutLib {
     struct Args4 {
         MarketState market;
         PYIndex index;
-        uint256 maxScyIn;
+        uint256 exactScyIn;
         uint256 blockTime;
     }
 
     function approxSwapExactScyForPt(
         MarketState memory _market,
         PYIndex _index,
-        uint256 _maxScyIn,
+        uint256 _exactScyIn,
         uint256 _blockTime,
         ApproxParams memory _approx
     )
@@ -441,36 +396,28 @@ library MarketApproxPtOutLib {
         pure
         returns (
             uint256, /*netPtOut*/
-            uint256, /*netScyIn*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
         /*
         1. Binary search netPtOut
         2. Calc netScyIn to swap to receive netPtOut
-        2. If netScyIn < maxScyIn && netScyIn ~ maxScyIn => answer found
+        2. If netScyIn < exactScyIn && netScyIn ~ exactScyIn => answer found
         */
 
-        Args4 memory arg = Args4(_market, _index, _maxScyIn, _blockTime);
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
-
-        uint256 maxAssetIn = arg.index.scyToAsset(arg.maxScyIn);
+        Args4 memory a = Args4(_market, _index, _exactScyIn, _blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
+            (uint256 netScyIn, uint256 netScyFee) = calcScyIn(a.market, comp, a.index, guess);
 
-            if (netAssetIn <= maxAssetIn) {
+            if (netScyIn <= a.exactScyIn) {
                 p.guessMin = guess;
-                bool isAnswerAccepted = Math.isASmallerApproxB(netAssetIn, maxAssetIn, p.eps);
-                if (isAnswerAccepted)
-                    return (
-                        guess,
-                        arg.index.assetToScy(netAssetIn),
-                        arg.index.assetToScy(netAssetToReserve)
-                    );
+                bool isAnswerAccepted = Math.isASmallerApproxB(netScyIn, a.exactScyIn, p.eps);
+                if (isAnswerAccepted) return (guess, netScyFee);
             } else {
                 p.guessMax = guess - 1;
             }
@@ -497,7 +444,7 @@ library MarketApproxPtOutLib {
         returns (
             uint256, /*netYtIn*/
             uint256, /*netScyOut*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
         /*
@@ -508,31 +455,22 @@ library MarketApproxPtOutLib {
         5. If netScyOut > minScyOut && netScyOut ~ minScyOut => answer found
         */
 
-        Args5 memory arg = Args5(_market, _index, _minScyOut, _blockTime);
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
-
-        uint256 minAssetOut = arg.index.scyToAssetUp(arg.minScyOut);
+        Args5 memory a = Args5(_market, _index, _minScyOut, _blockTime);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netAssetOwed, uint256 netAssetToReserve) = calcAssetIn(
-                arg.market,
-                comp,
-                guess
-            );
+            (uint256 netScyOwed, uint256 netScyFee) = calcScyIn(a.market, comp, a.index, guess);
 
-            uint256 netAssetOut = guess - netAssetOwed;
+            uint256 netAssetToRepay = a.index.scyToAssetUp(netScyOwed);
+            uint256 netScyOut = a.index.assetToScy(guess - netAssetToRepay);
 
-            if (netAssetOut >= minAssetOut) {
+            if (netScyOut >= a.minScyOut) {
                 p.guessMax = guess;
-                if (Math.isAGreaterApproxB(netAssetOut, minAssetOut, p.eps)) {
-                    return (
-                        guess,
-                        arg.index.assetToScy(netAssetOut),
-                        arg.index.assetToScy(netAssetToReserve)
-                    );
+                if (Math.isAGreaterApproxB(netScyOut, a.minScyOut, p.eps)) {
+                    return (guess, netScyOut, netScyFee);
                 }
             } else {
                 p.guessMin = guess + 1;
@@ -560,7 +498,7 @@ library MarketApproxPtOutLib {
         returns (
             uint256, /*netPtFromSwap*/
             uint256, /*netScySwap*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
         /*
@@ -573,50 +511,44 @@ library MarketApproxPtOutLib {
         Note that market maintains PT/SCY ratio, but here PT/asset is used instead
         */
 
-        Args6 memory arg = Args6(_market, _index, _totalScyIn, _blockTime);
-        require(arg.market.totalLp != 0, "no existing lp");
+        Args6 memory a = Args6(_market, _index, _totalScyIn, _blockTime);
+        require(a.market.totalLp != 0, "no existing lp");
 
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
-
-        uint256 totalAssetIn = arg.index.scyToAsset(arg.totalScyIn);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
+            (uint256 netScyIn, uint256 netScyFee) = calcScyIn(a.market, comp, a.index, guess);
 
-            if (netAssetIn > totalAssetIn) {
+            if (netScyIn > a.totalScyIn) {
                 p.guessMax = guess - 1;
                 continue;
             }
 
+            uint256 scyNumerator;
             uint256 ptNumerator;
-            uint256 assetNumerator;
 
             {
-                uint256 netAssetRemaining = totalAssetIn - netAssetIn;
-                uint256 newTotalPt = arg.market.totalPt.Uint() - guess;
-                uint256 newTotalAsset = comp.totalAsset.Uint() + netAssetIn - netAssetToReserve;
+                uint256 netScyRemaining = a.totalScyIn - netScyIn;
+                uint256 newTotalPt = a.market.totalPt.Uint() - guess;
+                uint256 netTotalScy = comp.totalAsset.Uint() + netScyIn - netScyFee;
 
                 // it is desired that
-                // guess / newTotalPt = netAssetRemaining / newTotalAsset
+                // guess / newTotalPt = netScyRemaining / netTotalScy
                 // which is equivalent to
-                // guess * newTotalAsset = netAssetRemaining * newTotalPt
+                // guess * netTotalScy = netScyRemaining * newTotalPt
 
-                ptNumerator = guess * newTotalAsset;
-                assetNumerator = netAssetRemaining * newTotalPt;
+                ptNumerator = guess * netTotalScy;
+                scyNumerator = netScyRemaining * newTotalPt;
             }
 
-            if (Math.isAApproxB(ptNumerator, assetNumerator, p.eps)) {
-                return (
-                    guess,
-                    arg.index.assetToScy(netAssetIn),
-                    arg.index.assetToScy(netAssetToReserve)
-                );
+            if (Math.isAApproxB(ptNumerator, scyNumerator, p.eps)) {
+                return (guess, netScyIn, netScyFee);
             }
 
-            if (ptNumerator <= assetNumerator) {
+            if (ptNumerator <= scyNumerator) {
                 // needs more PT
                 p.guessMin = guess + 1;
             } else {
@@ -630,15 +562,15 @@ library MarketApproxPtOutLib {
     struct Args8 {
         MarketState market;
         PYIndex index;
-        uint256 maxYtIn;
+        uint256 exactYtIn;
         uint256 blockTime;
-        uint256 maxScyRedeemableFromPY;
+        uint256 maxScyPayable;
     }
 
     function approxSwapExactYtForPt(
         MarketState memory _market,
         PYIndex _index,
-        uint256 _maxYtIn,
+        uint256 _exactYtIn,
         uint256 _blockTime,
         ApproxParams memory _approx
     )
@@ -646,38 +578,31 @@ library MarketApproxPtOutLib {
         pure
         returns (
             uint256, /*netPtOut*/
-            uint256, /*netYtIn*/
             uint256, /*totalPtSwapped*/
-            uint256 /*netScyToReserve*/
+            uint256 /*netScyFee*/
         )
     {
-        Args8 memory arg = Args8(
+        Args8 memory a = Args8(
             _market,
             _index,
-            _maxYtIn,
+            _exactYtIn,
             _blockTime,
-            _index.assetToScy(_maxYtIn)
+            _index.assetToScy(_exactYtIn)
         );
-        MarketPreCompute memory comp = arg.market.getMarketPreCompute(arg.index, arg.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, arg.market.totalPt);
+        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
 
-        p.guessMin = Math.max(p.guessMin, arg.maxYtIn);
+        p.guessMin = Math.max(p.guessMin, a.exactYtIn);
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netAssetIn, uint256 netAssetToReserve) = calcAssetIn(arg.market, comp, guess);
-            uint256 netScyIn = arg.index.assetToScyUp(netAssetIn);
+            (uint256 netScyOwed, uint256 netScyFee) = calcScyIn(a.market, comp, a.index, guess);
 
-            if (netScyIn <= arg.maxScyRedeemableFromPY) {
+            if (netScyOwed <= a.maxScyPayable) {
                 p.guessMin = guess;
-                if (Math.isASmallerApproxB(netAssetIn, arg.maxYtIn, p.eps)) {
-                    return (
-                        guess - arg.maxYtIn,
-                        arg.maxYtIn,
-                        guess,
-                        arg.index.assetToScy(netAssetToReserve)
-                    );
+                if (Math.isASmallerApproxB(netScyOwed, a.maxScyPayable, p.eps)) {
+                    return (guess - a.exactYtIn, guess, netScyFee);
                 }
             } else {
                 p.guessMax = guess - 1;
@@ -688,15 +613,16 @@ library MarketApproxPtOutLib {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    function calcAssetIn(
+    function calcScyIn(
         MarketState memory market,
         MarketPreCompute memory comp,
+        PYIndex index,
         uint256 netPtOut
-    ) internal pure returns (uint256 netAssetIn, uint256 netAssetToReserve) {
-        (int256 assetToAccount, int256 assetToReserve) = market.calcTrade(comp, netPtOut.Int());
+    ) internal pure returns (uint256 netScyIn, uint256 netScyFee) {
+        (int256 _netScyIn, int256 _netScyFee) = market.calcTrade(comp, index, netPtOut.Int());
 
-        netAssetIn = assetToAccount.abs();
-        netAssetToReserve = assetToReserve.Uint();
+        netScyIn = _netScyIn.abs();
+        netScyFee = _netScyFee.Uint();
     }
 
     function newApproxParamsPtOut(
