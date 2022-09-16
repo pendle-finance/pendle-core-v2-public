@@ -80,6 +80,8 @@ contract PendleFeeDistributor is IPFeeDistributor, BoringOwnableUpgradeable {
             (uint256 userShare, uint256 totalShare) = IPFeeDistributorFactory(factory)
                 .getUserAndTotalSharesAt(user, pool, userEpoch);
 
+            if (userShare == 0) continue;
+
             amountRewardOut += (userShare * incentive) / totalShare;
         }
 

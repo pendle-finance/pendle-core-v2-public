@@ -55,6 +55,9 @@ library VeBalanceLib {
     }
 
     function getValueAt(VeBalance memory a, uint128 t) internal pure returns (uint128) {
+        if (a.slope * t > a.bias) {
+            return 0;
+        }
         return a.bias - a.slope * t;
     }
 
