@@ -13,6 +13,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
     using Math for uint256;
     using ArrayLib for address[];
     using VeBalanceLib for VeBalance;
+    using CheckpointHelper for Checkpoint;
 
     struct UserInfo {
         uint128 timestamp;
@@ -100,10 +101,10 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
         Checkpoint memory upperCheckpoint,
         uint128 nextEpoch
     ) internal view returns (uint128) {
-        while (iter + 1 < userHistoryLength && nextEpoch >= upperCheckpoint.timestamp) {
-            lowerCheckpoint = upperCheckpoint;
+        while (iter + 1 < userHistoryLength && nextEpoch > upperCheckpoint.timestamp) {
+            lowerCheckpoint.assignWith(upperCheckpoint);
             if (iter + 2 < userHistoryLength) {
-                upperCheckpoint = _getExternalUserCheckpointAt(user, pool, iter + 2);
+                upperCheckpoint.assignWith(_getExternalUserCheckpointAt(user, pool, iter + 2));
             }
             ++iter;
         }

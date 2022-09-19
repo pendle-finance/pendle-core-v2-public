@@ -11,6 +11,13 @@ struct Checkpoint {
     VeBalance value;
 }
 
+library CheckpointHelper {
+    function assignWith(Checkpoint memory a, Checkpoint memory b) internal pure {
+        a.timestamp = b.timestamp;
+        a.value = b.value;
+    }
+}
+
 library Checkpoints {
     struct History {
         Checkpoint[] _checkpoints;
