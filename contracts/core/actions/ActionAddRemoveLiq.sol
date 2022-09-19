@@ -380,6 +380,29 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netLpToRemove,
         uint256 minScyOut
     ) internal returns (uint256 netScyOut, uint256 netScyFee) {
+        if (IPMarket(market).isExpired()) {
+            netScyOut = __removeLpToScyAfterExpiry(receiver, market, netLpToRemove);
+        } else {
+            (netScyOut, netScyFee) = __removeLpToScyBeforeExpiry(receiver, market, netLpToRemove);
+        }
+        require(netScyOut >= minScyOut, "insufficient lp out");
+    }
+
+    function __removeLpToScyAfterExpiry(
+        address receiver,
+        address market,
+        uint256 netLpToRemove
+    ) internal returns (uint256 netScyOut) {
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (uint256 scyFromBurn, ) = IPMarket(market).burn(receiver, address(YT), netLpToRemove);
+        netScyOut = scyFromBurn + IPYieldToken(YT).redeemPY(receiver);
+    }
+
+    function __removeLpToScyBeforeExpiry(
+        address receiver,
+        address market,
+        uint256 netLpToRemove
+    ) internal returns (uint256 netScyOut, uint256 netScyFee) {
         (uint256 scyFromBurn, uint256 ptFromBurn) = IPMarket(market).burn(
             receiver,
             market,
@@ -392,8 +415,6 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             ptFromBurn,
             EMPTY_BYTES
         );
-
-        require(scyFromBurn + scyFromSwap >= minScyOut, "insufficient lp out");
         netScyOut = scyFromBurn + scyFromSwap;
     }
 }
