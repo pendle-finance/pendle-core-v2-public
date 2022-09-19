@@ -206,12 +206,12 @@ contract PendleYieldToken is
         _transferOut(SCY, treasury, interestOut);
     }
 
-    function rewardIndexesCurrent() external override returns (uint256[] memory) {
+    function rewardIndexesCurrent() external override nonReentrant returns (uint256[] memory) {
         return ISuperComposableYield(SCY).rewardIndexesCurrent();
     }
 
     /// @dev maximize the current rate with the previous rate to guarantee non-decreasing rate
-    function pyIndexCurrent() public returns (uint256 currentIndex) {
+    function pyIndexCurrent() public nonReentrant returns (uint256 currentIndex) {
         currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _pyIndexStored);
         _pyIndexStored = currentIndex.Uint128();
         emit NewInterestIndex(currentIndex);
