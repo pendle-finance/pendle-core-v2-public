@@ -57,16 +57,20 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         if (output.tokenRedeemScy == output.tokenOut) {
-            netTokenOut = ISuperComposableYield(SCY).redeemAfterTransfer(
+            netTokenOut = ISuperComposableYield(SCY).redeem(
                 receiver,
+                netScyIn,
                 output.tokenRedeemScy,
-                output.minTokenOut
+                output.minTokenOut,
+                true
             );
         } else {
-            uint256 netTokenRedeemed = ISuperComposableYield(SCY).redeemAfterTransfer(
+            uint256 netTokenRedeemed = ISuperComposableYield(SCY).redeem(
                 address(this),
+                netScyIn,
                 output.tokenRedeemScy,
-                1
+                1,
+                true
             );
             _kyberswap(output.tokenRedeemScy, netTokenRedeemed, output.kybercall);
 

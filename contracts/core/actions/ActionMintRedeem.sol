@@ -217,10 +217,12 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             if (scys.amounts[i] == 0) continue;
 
             _transferFrom(scys.tokens[i], msg.sender, scys.tokens[i], scys.amounts[i]);
-            uint256 amountOut = ISuperComposableYield(scys.tokens[i]).redeemAfterTransfer(
+            uint256 amountOut = ISuperComposableYield(scys.tokens[i]).redeem(
                 address(this),
+                scys.amounts[i],
                 tokenRedeemScys[i],
-                1
+                1,
+                true
             );
 
             _addTokenAmount(tokensOut, tokenRedeemScys[i], amountOut);

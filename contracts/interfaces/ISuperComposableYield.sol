@@ -87,13 +87,8 @@ interface ISuperComposableYield is IERC20Metadata {
         address receiver,
         uint256 amountSharesToRedeem,
         address tokenOut,
-        uint256 minTokenOut
-    ) external returns (uint256 amountTokenOut);
-
-    function redeemAfterTransfer(
-        address receiver,
-        address tokenOut,
-        uint256 minTokenOut
+        uint256 minTokenOut,
+        bool burnFromInternalBalance
     ) external returns (uint256 amountTokenOut);
 
     /**

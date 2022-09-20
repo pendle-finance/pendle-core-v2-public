@@ -58,34 +58,20 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         address receiver,
         uint256 amountSharesToRedeem,
         address tokenOut,
-        uint256 minTokenOut
+        uint256 minTokenOut,
+        bool burnFromInternalBalance
     ) external nonReentrant returns (uint256 amountTokenOut) {
-        _burn(msg.sender, amountSharesToRedeem);
-        amountTokenOut = _redeem(receiver, amountSharesToRedeem, tokenOut, minTokenOut);
-    }
-
-    function redeemAfterTransfer(
-        address receiver,
-        address tokenOut,
-        uint256 minTokenOut
-    ) external nonReentrant returns (uint256 amountTokenOut) {
-        uint256 amountSharesToRedeem = balanceOf(address(this));
-        _burn(address(this), amountSharesToRedeem);
-        amountTokenOut = _redeem(receiver, amountSharesToRedeem, tokenOut, minTokenOut);
-    }
-
-    function _redeem(
-        address receiver,
-        uint256 amountSharesToRedeem,
-        address tokenOut,
-        uint256 minTokenOut
-    ) internal returns (uint256 amountTokenOut) {
         require(isValidTokenOut(tokenOut), "SCY: invalid tokenOut");
         require(amountSharesToRedeem != 0, "SCY: amountSharesToRedeem cannot be 0");
 
+        if (burnFromInternalBalance) {
+            _burn(address(this), amountSharesToRedeem);
+        } else {
+            _burn(msg.sender, amountSharesToRedeem);
+        }
+
         amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
         require(amountTokenOut >= minTokenOut, "SCY: insufficient out");
-
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
 
@@ -106,10 +92,11 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
      * @param amountSharesToRedeem amount of shares to be burned
      * @return amountTokenOut amount of base tokens redeemed
      */
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        virtual
-        returns (uint256 amountTokenOut);
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual returns (uint256 amountTokenOut);
 
     /*///////////////////////////////////////////////////////////////
                                EXCHANGE-RATE

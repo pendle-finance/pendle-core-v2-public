@@ -247,9 +247,10 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
 
-        (, netPtOut) = IPMarket(market).burn(address(SCY), receiver, netLpToRemove);
+        uint256 netScyOut;
+        (netScyOut, netPtOut) = IPMarket(market).burn(address(SCY), receiver, netLpToRemove);
 
-        netTokenOut = SCY.redeemAfterTransfer(receiver, tokenOut, minTokenOut);
+        netTokenOut = SCY.redeem(receiver, netScyOut, tokenOut, minTokenOut, true);
 
         require(netPtOut >= minPtOut, "insufficient PT out");
 
