@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/helpers/TokenHelper.sol";
-import "../../../contracts/core/PendleERC20.sol";
+import "../../../contracts/core/PendleERC20Permit.sol";
 
-abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
+abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelper {
     using Math for uint256;
 
     address public immutable yieldToken;
@@ -18,7 +18,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         string memory _name,
         string memory _symbol,
         address _yieldToken
-    ) PendleERC20(_name, _symbol, IERC20Metadata(_yieldToken).decimals()) {
+    ) PendleERC20Permit(_name, _symbol, IERC20Metadata(_yieldToken).decimals()) {
         yieldToken = _yieldToken;
     }
 
