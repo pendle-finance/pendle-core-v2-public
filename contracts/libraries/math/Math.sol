@@ -161,7 +161,7 @@ library Math {
         uint256 b,
         uint256 eps
     ) internal pure returns (bool) {
-        return a >= b && a <= mulDown(b, Math.ONE + eps);
+        return a >= b && a <= mulDown(b, ONE + eps);
     }
 
     function isASmallerApproxB(
@@ -169,6 +169,6 @@ library Math {
         uint256 b,
         uint256 eps
     ) internal pure returns (bool) {
-        return a <= b && a >= mulDown(b, Math.ONE - eps);
+        return a <= b && a >= mulDown(b, ONE - eps);
     }
 }
