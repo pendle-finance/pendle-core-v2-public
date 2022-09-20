@@ -86,13 +86,6 @@ library AggregationRouterHelper {
             return (desc, executorData);
         }
 
-        //if the difference of newAmount and oldAmount > 5%, revert
-        require(
-            (oldAmount * (100 - SLIPPAGE_RANGE)) / 100 <= newAmount &&
-                newAmount <= (oldAmount * (100 + SLIPPAGE_RANGE)) / 100,
-            "kyber: difference too large"
-        );
-
         // simple mode swap
         if (flags & _SIMPLE_SWAP != 0) {
             require(desc.srcReceivers.length == 0, "kyber: can't scale if take fee");
