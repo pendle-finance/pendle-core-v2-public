@@ -68,13 +68,13 @@ library MarketMathCore {
             int256 _lpToReserve,
             int256 _lpToAccount,
             int256 _scyUsed,
-            int256 _otUsed
+            int256 _ptUsed
         ) = addLiquidityCore(market, scyDesired.Int(), ptDesired.Int(), blockTime);
 
         lpToReserve = _lpToReserve.Uint();
         lpToAccount = _lpToAccount.Uint();
         scyUsed = _scyUsed.Uint();
-        ptUsed = _otUsed.Uint();
+        ptUsed = _ptUsed.Uint();
     }
 
     function removeLiquidity(MarketState memory market, uint256 lpToRemove)
