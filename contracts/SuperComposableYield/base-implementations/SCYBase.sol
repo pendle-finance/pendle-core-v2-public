@@ -83,10 +83,8 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
         require(isValidTokenOut(tokenOut), "SCY: invalid tokenOut");
         require(amountSharesToRedeem != 0, "SCY: amountSharesToRedeem cannot be 0");
 
-        amountTokenOut = _redeem(tokenOut, amountSharesToRedeem);
+        amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
         require(amountTokenOut >= minTokenOut, "SCY: insufficient out");
-
-        _transferOut(tokenOut, receiver, amountTokenOut);
 
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
@@ -108,7 +106,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20, TokenHelper {
      * @param amountSharesToRedeem amount of shares to be burned
      * @return amountTokenOut amount of base tokens redeemed
      */
-    function _redeem(address tokenOut, uint256 amountSharesToRedeem)
+    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
         internal
         virtual
         returns (uint256 amountTokenOut);

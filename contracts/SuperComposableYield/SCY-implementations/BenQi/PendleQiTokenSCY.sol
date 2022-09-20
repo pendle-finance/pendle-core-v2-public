@@ -82,7 +82,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
      * The shares are redeemed into the same amount of qiTokens. If `tokenOut` is the underlying asset,
      * the function also redeems said asset from the corresponding amount of qiToken.
      */
-    function _redeem(address tokenOut, uint256 amountSharesToRedeem)
+    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
         internal
         override
         returns (uint256 amountTokenOut)
@@ -103,6 +103,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
             // underlying is potentially also rewardToken, hence we need to manually track the balance here
             amountTokenOut = _selfBalance(underlying) - preBalanceUnderlying;
         }
+        _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////

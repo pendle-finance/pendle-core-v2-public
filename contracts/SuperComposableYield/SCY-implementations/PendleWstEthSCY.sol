@@ -60,7 +60,7 @@ contract PendleWstEthSCY is SCYBase {
      * The shares are redeemed into the same amount of wstETH. If `tokenOut` is stETH, the function also
      * unwraps said amount of wstETH into stETH for redemption.
      */
-    function _redeem(address tokenOut, uint256 amountSharesToRedeem)
+    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
         internal
         virtual
         override
@@ -71,6 +71,7 @@ contract PendleWstEthSCY is SCYBase {
         } else {
             amountTokenOut = IWstETH(wstETH).unwrap(amountSharesToRedeem);
         }
+        _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////
