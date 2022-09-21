@@ -133,7 +133,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         address[] memory receivers = new address[](2);
         uint256[] memory amountPYToRedeems = new uint256[](2);
 
-        (receivers[0], amountPYToRedeems[0]) = (market, pyIndex.scyToAsset(scyOwed));
+        (receivers[0], amountPYToRedeems[0]) = (market, pyIndex.scyToAssetUp(scyOwed));
         (receivers[1], amountPYToRedeems[1]) = (
             receiver,
             ptToAccount.Uint() - amountPYToRedeems[0]
