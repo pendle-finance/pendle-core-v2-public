@@ -602,6 +602,7 @@ library MarketMathStatic {
         public
         returns (uint256)
     {
+        if (IPMarket(market).isExpired()) return Math.ONE; 
         int256 netPtToAccount = netPtOut;
         MarketState memory state = IPMarket(market).readState();
         MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
