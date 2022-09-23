@@ -103,7 +103,7 @@ interface IPActionAddRemoveLiq {
         external
         returns (
             uint256 netLpOut,
-            uint256 scyUsed,
+            uint256 netScyUsed,
             uint256 netPtUsed
         );
 

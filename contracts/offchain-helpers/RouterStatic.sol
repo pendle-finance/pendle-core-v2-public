@@ -263,38 +263,41 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
     function addLiquidityDualScyAndPtStatic(
         address market,
-        uint256 scyDesired,
-        uint256 ptDesired
+        uint256 netScyDesired,
+        uint256 netPtDesired
     )
         external
+        view
         returns (
             uint256 netLpOut,
-            uint256 scyUsed,
-            uint256 ptUsed
+            uint256 netScyUsed,
+            uint256 netPtUsed
         )
     {
-        return MarketMathStatic.addLiquidityDualScyAndPtStatic(market, scyDesired, ptDesired);
+        return
+            MarketMathStatic.addLiquidityDualScyAndPtStatic(market, netScyDesired, netPtDesired);
     }
 
     function addLiquidityDualTokenAndPtStatic(
         address market,
         address tokenIn,
-        uint256 tokenDesired,
-        uint256 ptDesired
+        uint256 netTokenDesired,
+        uint256 netPtDesired
     )
         external
+        view
         returns (
             uint256 netLpOut,
-            uint256 tokenUsed,
-            uint256 ptUsed
+            uint256 netTokenUsed,
+            uint256 netPtUsed
         )
     {
         return
             MarketMathStatic.addLiquidityDualTokenAndPtStatic(
                 market,
                 tokenIn,
-                tokenDesired,
-                ptDesired
+                netTokenDesired,
+                netPtDesired
             );
     }
 
@@ -350,23 +353,24 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
-    function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
+    function removeLiquidityDualScyAndPt(address market, uint256 netLpToRemove)
         external
         view
         returns (uint256 netScyOut, uint256 netPtOut)
     {
-        return MarketMathStatic.removeLiquidityDualScyAndPtStatic(market, lpToRemove);
+        return MarketMathStatic.removeLiquidityDualScyAndPtStatic(market, netLpToRemove);
     }
 
     function removeLiquidityDualTokenAndPtStatic(
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         address tokenOut
     ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
-        return MarketMathStatic.removeLiquidityDualTokenAndPtStatic(market, lpToRemove, tokenOut);
+        return
+            MarketMathStatic.removeLiquidityDualTokenAndPtStatic(market, netLpToRemove, tokenOut);
     }
 
-    function removeLiquiditySinglePtStatic(address market, uint256 lpToRemove)
+    function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
         external
         returns (
             uint256 netPtOut,
@@ -378,12 +382,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         return
             MarketMathStatic.removeLiquiditySinglePtStatic(
                 market,
-                lpToRemove,
+                netLpToRemove,
                 getDefaultApproxParams()
             );
     }
 
-    function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
+    function removeLiquiditySingleScyStatic(address market, uint256 netLpToRemove)
         public
         returns (
             uint256 netScyOut,
@@ -391,12 +395,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.removeLiquiditySingleScyStatic(market, lpToRemove);
+        return MarketMathStatic.removeLiquiditySingleScyStatic(market, netLpToRemove);
     }
 
     function removeLiquiditySingleBaseTokenStatic(
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         address baseToken
     )
         external
@@ -407,7 +411,11 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         )
     {
         return
-            MarketMathStatic.removeLiquiditySingleBaseTokenStatic(market, lpToRemove, baseToken);
+            MarketMathStatic.removeLiquiditySingleBaseTokenStatic(
+                market,
+                netLpToRemove,
+                baseToken
+            );
     }
 
     function swapExactPtForScyStatic(address market, uint256 exactPtIn)
@@ -483,7 +491,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
     function swapExactPtForBaseTokenStatic(
         address market,
-        uint256 exactYtIn,
+        uint256 exactPtIn,
         address baseToken
     )
         external
@@ -493,7 +501,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapExactPtForBaseTokenStatic(market, exactYtIn, baseToken);
+        return MarketMathStatic.swapExactPtForBaseTokenStatic(market, exactPtIn, baseToken);
     }
 
     function swapScyForExactYtStatic(address market, uint256 exactYtOut)
@@ -568,7 +576,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     )
         external
         returns (
-            uint256 netPtOut,
+            uint256 netYtOut,
             uint256 netScyFee,
             uint256 priceImpact
         )

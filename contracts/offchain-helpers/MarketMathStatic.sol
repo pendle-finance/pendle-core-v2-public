@@ -16,42 +16,52 @@ library MarketMathStatic {
 
     function addLiquidityDualScyAndPtStatic(
         address market,
-        uint256 scyDesired,
-        uint256 ptDesired
+        uint256 netScyDesired,
+        uint256 netPtDesired
     )
         external
+        view
         returns (
             uint256 netLpOut,
-            uint256 scyUsed,
-            uint256 ptUsed
+            uint256 netScyUsed,
+            uint256 netPtUsed
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(scyDesired, ptDesired, block.timestamp);
+        (, netLpOut, netScyUsed, netPtUsed) = state.addLiquidity(
+            netScyDesired,
+            netPtDesired,
+            block.timestamp
+        );
     }
 
     function addLiquidityDualTokenAndPtStatic(
         address market,
         address tokenIn,
-        uint256 tokenDesired,
-        uint256 ptDesired
+        uint256 netTokenDesired,
+        uint256 netPtDesired
     )
         external
+        view
         returns (
             uint256 netLpOut,
-            uint256 tokenUsed,
-            uint256 ptUsed
+            uint256 netTokenUsed,
+            uint256 netPtUsed
         )
     {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
-        uint256 scyDesired = SCY.previewDeposit(tokenIn, tokenDesired);
+        uint256 scyDesired = SCY.previewDeposit(tokenIn, netTokenDesired);
         uint256 scyUsed;
 
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, ptUsed) = state.addLiquidity(scyDesired, ptDesired, block.timestamp);
+        (, netLpOut, scyUsed, netPtUsed) = state.addLiquidity(
+            scyDesired,
+            netPtDesired,
+            block.timestamp
+        );
 
-        tokenUsed = (tokenDesired * scyUsed).rawDivUp(scyDesired);
+        netTokenUsed = (netTokenDesired * scyUsed).rawDivUp(scyDesired);
     }
 
     /// @dev netPtToSwap is the parameter to approx
@@ -159,25 +169,25 @@ library MarketMathStatic {
             );
     }
 
-    function removeLiquidityDualScyAndPtStatic(address market, uint256 lpToRemove)
+    function removeLiquidityDualScyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
         returns (uint256 netScyOut, uint256 netPtOut)
     {
         MarketState memory state = IPMarket(market).readState();
-        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
+        (netScyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
     }
 
     function removeLiquidityDualTokenAndPtStatic(
         address market,
-        uint256 lpToRemove,
+        uint256 metLpToRemove,
         address tokenOut
     ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
 
         uint256 netScyOut;
         MarketState memory state = IPMarket(market).readState();
-        (netScyOut, netPtOut) = state.removeLiquidity(lpToRemove);
+        (netScyOut, netPtOut) = state.removeLiquidity(metLpToRemove);
 
         netTokenOut = SCY.previewRedeem(tokenOut, netScyOut);
     }
@@ -185,7 +195,7 @@ library MarketMathStatic {
     /// @dev netPtFromSwap is the parameter to approx
     function removeLiquiditySinglePtStatic(
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         ApproxParams memory approxParams
     )
         external
@@ -198,7 +208,7 @@ library MarketMathStatic {
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
         (netPtFromSwap, , netScyFee) = state.approxSwapExactScyForPt(
             pyIndex(market),
             scyFromBurn,
@@ -210,7 +220,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
 
-    function removeLiquiditySingleScyStatic(address market, uint256 lpToRemove)
+    function removeLiquiditySingleScyStatic(address market, uint256 netLpToRemove)
         public
         returns (
             uint256 netScyOut,
@@ -220,12 +230,10 @@ library MarketMathStatic {
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
+        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
 
         if (IPMarket(market).isExpired()) {
-            (,, IPYieldToken YT) = IPMarket(market).readTokens(); 
-            PYIndex index = PYIndex.wrap(YT.pyIndexCurrent());
-            netScyOut = scyFromBurn + index.assetToScy(ptFromBurn);
+            netScyOut = scyFromBurn + pyIndex(market).assetToScy(ptFromBurn);
         } else {
             uint256 scyFromSwap;
             (scyFromSwap, netScyFee) = state.swapExactPtForScy(
@@ -241,7 +249,7 @@ library MarketMathStatic {
 
     function removeLiquiditySingleBaseTokenStatic(
         address market,
-        uint256 lpToRemove,
+        uint256 netLpToRemove,
         address baseToken
     )
         external
@@ -252,7 +260,10 @@ library MarketMathStatic {
         )
     {
         uint256 netScyOut;
-        (netScyOut, netScyFee, priceImpact) = removeLiquiditySingleScyStatic(market, lpToRemove);
+        (netScyOut, netScyFee, priceImpact) = removeLiquiditySingleScyStatic(
+            market,
+            netLpToRemove
+        );
 
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
         netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
@@ -365,7 +376,7 @@ library MarketMathStatic {
 
     function swapExactPtForBaseTokenStatic(
         address market,
-        uint256 exactYtIn,
+        uint256 exactPtIn,
         address baseToken
     )
         external
@@ -376,7 +387,7 @@ library MarketMathStatic {
         )
     {
         uint256 netScyOut;
-        (netScyOut, netScyFee, priceImpact) = swapExactPtForScyStatic(market, exactYtIn);
+        (netScyOut, netScyFee, priceImpact) = swapExactPtForScyStatic(market, exactPtIn);
 
         (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
         netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);

@@ -22,6 +22,14 @@ interface IPActionSwapYT {
         int256 netTokenToAccount
     );
 
+    function swapExactScyForYt(
+        address receiver,
+        address market,
+        uint256 exactScyIn,
+        uint256 minYtOut,
+        ApproxParams memory guessYtOut
+    ) external returns (uint256 netYtOut, uint256 netScyFee);
+
     function swapExactYtForScy(
         address receiver,
         address market,
@@ -35,14 +43,6 @@ interface IPActionSwapYT {
         uint256 exactYtOut,
         uint256 maxScyIn
     ) external returns (uint256 netScyIn, uint256 netScyFee);
-
-    function swapExactScyForYt(
-        address receiver,
-        address market,
-        uint256 exactScyIn,
-        uint256 minYtOut,
-        ApproxParams memory guessYtOut
-    ) external returns (uint256 netYtOut, uint256 netScyFee);
 
     function swapYtForExactScy(
         address receiver,
