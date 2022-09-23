@@ -221,15 +221,22 @@ library MarketMathStatic {
         MarketState memory state = IPMarket(market).readState();
 
         (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(lpToRemove);
-        uint256 scyFromSwap;
-        (scyFromSwap, netScyFee) = state.swapExactPtForScy(
-            pyIndex(market),
-            ptFromBurn,
-            block.timestamp
-        );
 
-        netScyOut = scyFromBurn + scyFromSwap;
-        priceImpact = calcPriceImpact(market, ptFromBurn.neg());
+        if (IPMarket(market).isExpired()) {
+            (,, IPYieldToken YT) = IPMarket(market).readTokens(); 
+            PYIndex index = PYIndex.wrap(YT.pyIndexCurrent());
+            netScyOut = scyFromBurn + index.assetToScy(ptFromBurn);
+        } else {
+            uint256 scyFromSwap;
+            (scyFromSwap, netScyFee) = state.swapExactPtForScy(
+                pyIndex(market),
+                ptFromBurn,
+                block.timestamp
+            );
+
+            netScyOut = scyFromBurn + scyFromSwap;
+            priceImpact = calcPriceImpact(market, ptFromBurn.neg());
+        }
     }
 
     function removeLiquiditySingleBaseTokenStatic(
