@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "./PendleFeeDistributor.sol";
-import "../../../interfaces/IPVotingEscrow.sol";
+import "../../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../../interfaces/IPVotingController.sol";
 import "../../../interfaces/IPFeeDistributorFactory.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
@@ -125,7 +125,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
         returns (uint256)
     {
         if (pool == vePendle) {
-            return IPVotingEscrow(vePendle).totalSupplyAt(timestamp);
+            return IPVotingEscrowMainchain(vePendle).totalSupplyAt(timestamp);
         } else {
             return IPVotingController(votingController).getPoolTotalVoteAt(pool, timestamp);
         }
@@ -137,7 +137,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
         uint256 index
     ) internal view returns (Checkpoint memory) {
         if (pool == vePendle) {
-            return IPVotingEscrow(vePendle).getUserHistoryAt(user, index);
+            return IPVotingEscrowMainchain(vePendle).getUserHistoryAt(user, index);
         } else {
             return IPVotingController(votingController).getUserPoolHistoryAt(user, pool, index);
         }
@@ -149,7 +149,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
         returns (uint256)
     {
         if (pool == vePendle) {
-            return IPVotingEscrow(vePendle).getUserHistoryLength(user);
+            return IPVotingEscrowMainchain(vePendle).getUserHistoryLength(user);
         } else {
             return IPVotingController(votingController).getUserPoolHistoryLength(user, pool);
         }

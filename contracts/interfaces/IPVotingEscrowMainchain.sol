@@ -6,7 +6,7 @@ import "./IPVeToken.sol";
 import "../libraries/VeBalanceLib.sol";
 import "../libraries/VeHistoryLib.sol";
 
-interface IPVotingEscrow {
+interface IPVotingEscrowMainchain is IPVeToken {
     event NewLockPosition(address indexed user, uint128 amount, uint128 expiry);
 
     event Withdraw(address indexed user, uint128 amount);

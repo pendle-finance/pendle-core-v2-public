@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
-import "../../../interfaces/IPVotingEscrow.sol";
+import "../../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
@@ -9,8 +9,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract VotingEscrowPendleMainchain is
-    IPVotingEscrow,
     VotingEscrowTokenBase,
+    IPVotingEscrowMainchain,
     PendleMsgSenderAppUpg
 {
     using SafeERC20 for IERC20;
@@ -123,7 +123,12 @@ contract VotingEscrowPendleMainchain is
      * @dev state changes expected:
         - _totalSupply & lastSlopeChangeAppliedAt is updated
      */
-    function totalSupplyCurrent() public virtual override returns (uint128) {
+    function totalSupplyCurrent()
+        public
+        virtual
+        override(IPVeToken, VotingEscrowTokenBase)
+        returns (uint128)
+    {
         (VeBalance memory supply, ) = _applySlopeChange();
         return supply.getCurrentValue();
     }

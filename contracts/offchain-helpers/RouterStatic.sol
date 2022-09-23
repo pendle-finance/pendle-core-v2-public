@@ -3,15 +3,22 @@ pragma solidity 0.8.15;
 
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
+import "../interfaces/IPVotingEscrowMainchain.sol";
 import "../periphery/BoringOwnableUpgradeable.sol";
 import "./MarketMathStatic.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../periphery/BoringOwnableUpgradeable.sol";
+import "../libraries/math/WeekMath.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {
     using Math for uint256;
+    using VeBalanceLib for VeBalance;
+    using VeBalanceLib for LockedPosition;
+
+    uint128 public constant MAX_LOCK_TIME = 104 weeks;
+    uint128 public constant MIN_LOCK_TIME = 1 weeks;
 
     struct TokenAmount {
         address token;
@@ -48,12 +55,16 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
     IPYieldContractFactory internal immutable yieldContractFactory;
     IPMarketFactory internal immutable marketFactory;
+    IPVotingEscrowMainchain internal immutable vePENDLE;
 
-    constructor(IPYieldContractFactory _yieldContractFactory, IPMarketFactory _marketFactory)
-        initializer
-    {
+    constructor(
+        IPYieldContractFactory _yieldContractFactory,
+        IPMarketFactory _marketFactory,
+        IPVotingEscrowMainchain _vePENDLE
+    ) initializer {
         yieldContractFactory = _yieldContractFactory;
         marketFactory = _marketFactory;
+        vePENDLE = _vePENDLE;
     }
 
     function initialize() external initializer {
@@ -593,6 +604,43 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         )
     {
         return MarketMathStatic.swapExactYtForPt(market, exactYtIn, getDefaultApproxParams());
+    }
+
+    // ============= vePENDLE =============
+
+    function increaseLockPositionStatic(
+        address user,
+        uint128 additionalAmountToLock,
+        uint128 newExpiry
+    ) external view returns (uint128 newVeBalance) {
+        require(
+            WeekMath.isValidWTime(newExpiry) && !MiniHelpers.isTimeInThePast(newExpiry),
+            "invalid newExpiry"
+        );
+
+        require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
+        require(newExpiry >= block.timestamp + MIN_LOCK_TIME, "insufficient lock time");
+
+        LockedPosition memory oldPosition;
+
+        {
+            (uint128 amount, uint128 expiry) = vePENDLE.positionData(user);
+            oldPosition = LockedPosition(amount, expiry);
+        }
+
+        require(oldPosition.expiry <= newExpiry, "new expiry must be after current expiry");
+        uint128 newTotalAmountLocked = additionalAmountToLock + oldPosition.amount;
+        require(newTotalAmountLocked > 0, "zero total amount locked");
+
+        uint128 additionalDurationToLock = newExpiry - oldPosition.expiry;
+
+        LockedPosition memory newPosition = LockedPosition(
+            oldPosition.amount + additionalAmountToLock,
+            oldPosition.expiry + additionalDurationToLock
+        );
+
+        VeBalance memory newBalance = newPosition.convertToVeBalance();
+        return newBalance.getCurrentValue();
     }
 
     // ============= OTHER HELPERS =============
