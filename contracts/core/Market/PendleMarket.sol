@@ -105,6 +105,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         )
     {
         MarketState memory market = readState();
+        PYIndex index = YT.newIndex();
 
         uint256 lpToReserve;
 
@@ -116,7 +117,6 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         // initializing the market
         if (lpToReserve != 0) {
-            PYIndex index = YT.newIndex();
             market.setInitialLnImpliedRate(index, initialAnchor, block.timestamp);
             _mint(address(1), lpToReserve);
         }
@@ -305,18 +305,22 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     /// @notice write back the state of the market from memory to storage
     function _writeState(MarketState memory market) internal {
         uint96 lastLnImpliedRate96 = market.lastLnImpliedRate.Uint96();
+        int128 totalPt128 = market.totalPt.Int128();
+        int128 totalScy128 = market.totalScy.Int128();
 
-        _storage.totalPt = market.totalPt.Int128();
-        _storage.totalScy = market.totalScy.Int128();
-        _storage.lastLnImpliedRate = lastLnImpliedRate96;
-
-        (_storage.observationIndex, _storage.observationCardinality) = observations.write(
+        (uint16 observationIndex, uint16 observationCardinality) = observations.write(
             _storage.observationIndex,
             uint32(block.timestamp),
             lastLnImpliedRate96,
             _storage.observationCardinality,
             _storage.observationCardinalityNext
         );
+
+        _storage.totalPt = totalPt128;
+        _storage.totalScy = totalScy128;
+        _storage.lastLnImpliedRate = lastLnImpliedRate96;
+        _storage.observationIndex = observationIndex;
+        _storage.observationCardinality = observationCardinality;
 
         emit UpdateImpliedRate(block.timestamp, market.lastLnImpliedRate);
     }
