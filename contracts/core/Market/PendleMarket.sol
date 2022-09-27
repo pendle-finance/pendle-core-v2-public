@@ -59,7 +59,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     OracleLib.Observation[65535] public observations;
 
     modifier notExpired() {
-        require(!isExpired(), "market expired");
+        if (isExpired()) revert Errors.MarketExpired();
         _;
     }
 
@@ -80,7 +80,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         (_storage.observationCardinality, _storage.observationCardinalityNext) = observations
             .initialize(uint32(block.timestamp));
 
-        if (_scalarRoot <= 0) revert Errors.MarketScalarRootTooLow(_scalarRoot);
+        if (_scalarRoot <= 0) revert Errors.MarketScalarRootBelowZero(_scalarRoot);
 
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
@@ -128,9 +128,9 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         _writeState(market);
 
         if (_selfBalance(SCY) < market.totalScy.Uint())
-            revert Errors.MarketInsufficientSCY(_selfBalance(SCY), market.totalScy.Uint());
+            revert Errors.MarketInsufficientScyReceived(_selfBalance(SCY), market.totalScy.Uint());
         if (_selfBalance(PT) < market.totalPt.Uint())
-            revert Errors.MarketInsufficientPT(_selfBalance(PT), market.totalPt.Uint());
+            revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
 
         emit Mint(receiver, netLpOut, netScyUsed, netPtUsed);
     }
@@ -191,7 +191,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         }
 
         if (_selfBalance(PT) < market.totalPt.Uint())
-            revert Errors.MarketInsufficientPT(_selfBalance(PT), market.totalPt.Uint());
+            revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
 
         emit Swap(receiver, exactPtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
@@ -229,7 +229,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         // have received enough SCY
         if (_selfBalance(SCY) < market.totalScy.Uint())
-            revert Errors.MarketInsufficientSCY(_selfBalance(SCY), market.totalScy.Uint());
+            revert Errors.MarketInsufficientScyReceived(_selfBalance(SCY), market.totalScy.Uint());
 
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }

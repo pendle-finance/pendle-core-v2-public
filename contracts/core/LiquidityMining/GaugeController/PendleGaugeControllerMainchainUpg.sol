@@ -14,7 +14,7 @@ contract PendleGaugeControllerMainchainUpg is
     address public immutable votingController;
 
     modifier onlyVotingController() {
-        require(msg.sender == votingController, "not voting controller");
+        if (msg.sender != votingController) revert Errors.GCNotVotingController(msg.sender);
         _;
     }
 

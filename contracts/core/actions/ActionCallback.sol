@@ -6,6 +6,8 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/math/MarketApproxLib.sol";
+import "../../libraries/Errors.sol";
+
 import "./base/ActionBaseMintRedeem.sol";
 import "./base/CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -22,14 +24,14 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
 
     address public immutable marketFactory;
 
-    modifier onlyPendleMarket(address market) {
-        require(IPMarketFactory(marketFactory).isValidMarket(market), "INVALID_MARKET");
+    modifier onlyPendleMarket(address caller) {
+        if (!IPMarketFactory(marketFactory).isValidMarket(caller))
+            revert Errors.RouterCallbackNotPendleMarket(caller);
         _;
     }
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _marketFactory) {
-        require(_marketFactory != address(0), "zero address");
         marketFactory = _marketFactory;
     }
 
@@ -54,7 +56,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         } else if (swapType == ActionType.SwapExactPtForYt) {
             _callbackSwapExactPtForYt(market, ptToAccount, scyToAccount, data);
         } else {
-            require(false, "unknown swapType");
+            assert(false);
         }
     }
 
@@ -71,8 +73,8 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         uint256 ptOwed = ptToAccount.abs();
         uint256 netPyOut = YT.mintPY(market, receiver);
 
-        require(netPyOut >= ptOwed, "insufficient PT to pay");
-        require(netPyOut >= minYtOut, "insufficient YT out");
+        if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
+        if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
     }
 
     struct VarsSwapScyForExactYt {
@@ -104,7 +106,9 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         /// ------------------------------------------------------------
         uint256 scyReceived = scyToAccount.Uint();
         uint256 netScyToPull = totalScyNeed.subMax0(scyReceived);
-        require(netScyToPull <= vars.maxScyToPull, "exceed SCY in limit");
+
+        if (netScyToPull > vars.maxScyToPull)
+            revert Errors.RouterExceededLimitScyIn(netScyToPull, vars.maxScyToPull);
 
         /// ------------------------------------------------------------
         /// mint & transfer
@@ -114,7 +118,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         }
 
         uint256 netPyOut = YT.mintPY(market, vars.receiver);
-        require(netPyOut >= ptOwed, "insufficient pt to pay");
+        if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
     }
 
     /// @dev refer to _swapExactYtForScy or _swapYtForExactScy
@@ -140,7 +144,8 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         );
 
         uint256[] memory amountScyOuts = YT.redeemPYMulti(receivers, amountPYToRedeems);
-        require(amountScyOuts[1] >= minScyOut, "insufficient SCY out");
+        if (amountScyOuts[1] < minScyOut)
+            revert Errors.RouterInsufficientScyOut(amountScyOuts[1], minScyOut);
     }
 
     function _callbackSwapExactPtForYt(
@@ -154,8 +159,9 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 netPyOut = YT.mintPY(market, receiver);
-        require(netPyOut >= minYtOut, "insufficient YT out");
-        require(exactPtIn + netPyOut >= netPtOwed, "insufficient PT to pay");
+        if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
+        if (exactPtIn + netPyOut < netPtOwed)
+            revert Errors.RouterInsufficientPtRepay(exactPtIn + netPyOut, netPtOwed);
     }
 
     function _callbackSwapExactYtForPt(
@@ -172,8 +178,12 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         PT.safeTransfer(address(YT), exactYtIn);
         uint256 netScyToMarket = YT.redeemPY(market);
 
-        require(netScyToMarket >= netScyOwed, "insufficient SCY to pay");
-        require(ptToAccount.Uint() - exactYtIn >= minPtOut, "insufficient PT out");
-        PT.safeTransfer(receiver, ptToAccount.Uint() - exactYtIn);
+        if (netScyToMarket < netScyOwed)
+            revert Errors.RouterInsufficientScyRepay(netScyToMarket, netScyOwed);
+
+        uint256 netPtOut = ptToAccount.Uint() - exactYtIn;
+        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+
+        PT.safeTransfer(receiver, netPtOut);
     }
 }

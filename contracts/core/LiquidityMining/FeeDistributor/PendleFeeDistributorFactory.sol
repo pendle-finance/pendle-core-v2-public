@@ -46,7 +46,8 @@ contract PendleFeeDistributorFactory is BoringOwnableUpgradeable, EpochResultMan
         onlyOwner
         returns (address distributor)
     {
-        require(poolInfos[pool].distributor == address(0), "distributor already created");
+        if (poolInfos[pool].distributor != address(0))
+            revert Errors.FDFactoryDistributorAlreadyExisted(pool, poolInfos[pool].distributor);
 
         distributor = BaseSplitCodeFactory._create2(
             0,

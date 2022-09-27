@@ -5,6 +5,7 @@ import "./base/ActionBaseMintRedeem.sol";
 import "./base/CallbackHelper.sol";
 import "../../interfaces/IPActionSwapYT.sol";
 import "../../interfaces/IPMarket.sol";
+import "../../libraries/Errors.sol";
 
 contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using Math for uint256;
@@ -143,7 +144,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
             guessYtIn
         );
 
-        require(netYtIn <= maxYtIn, "exceed YT in limit");
+        if (netYtIn > maxYtIn) revert Errors.RouterExceededLimitYtIn(netYtIn, maxYtIn);
 
         YT.safeTransferFrom(msg.sender, address(YT), netYtIn);
 
@@ -230,7 +231,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         );
 
         // early-check
-        require(netYtOut >= minYtOut, "insufficient YT out");
+        if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
 
         (, netScyFee) = IPMarket(market).swapExactPtForScy(
             address(YT),

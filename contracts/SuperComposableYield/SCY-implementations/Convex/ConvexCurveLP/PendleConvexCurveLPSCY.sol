@@ -27,9 +27,6 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
         address _cvx,
         address _baseCrvPool
     ) SCYBaseWithRewards(_name, _symbol, _crvLpToken) {
-        require(_cvx != address(0), "zero address");
-        require(_baseCrvPool != address(0), "zero address");
-
         pid = _pid;
         CVX = _cvx;
         crvPool = _baseCrvPool;
@@ -37,7 +34,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
         booster = _convexBooster;
 
         (LP, baseRewards, CRV) = _getPoolInfo(pid);
-        require(LP == _crvLpToken, "pid and lpToken mismatched");
+        if (LP != _crvLpToken) revert Errors.SCYCurveInvalidPid();
 
         _safeApprove(LP, booster, type(uint256).max);
     }
@@ -51,7 +48,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
             address crv
         )
     {
-        require(_pid <= IBooster(booster).poolLength(), "invalid pid");
+        if (_pid > IBooster(booster).poolLength()) revert Errors.SCYCurveInvalidPid();
 
         (lptoken, , , crvRewards, , ) = IBooster(booster).poolInfo(_pid);
         crv = IBooster(booster).crv();
@@ -88,12 +85,11 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
      * If any of the base curve pool tokens is specified as 'tokenOut',
      * it will redeem the corresponding liquidity the LP token represents via the prevailing exchange rate.
      */
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
         IRewards(baseRewards).withdrawAndUnwrap(amountSharesToRedeem, false);
 
         if (_isBaseToken(tokenOut)) {

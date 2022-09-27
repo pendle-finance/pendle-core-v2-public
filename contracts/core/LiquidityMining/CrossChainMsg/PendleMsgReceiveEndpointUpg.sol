@@ -5,6 +5,7 @@ import "../../../interfaces/ICelerMessageReceiverApp.sol";
 import "../../../interfaces/IPMsgReceiverApp.sol";
 import "../../../interfaces/ICelerMessageBus.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
+import "../../../libraries/Errors.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract PendleMsgReceiveEndpointUpg is
@@ -18,15 +19,13 @@ contract PendleMsgReceiveEndpointUpg is
     uint64 public immutable sendEndpointChainId;
 
     modifier onlyCelerMessageBus() {
-        require(msg.sender == address(celerMessageBus), "only celer message bus");
+        if (msg.sender != address(celerMessageBus)) revert Errors.OnlyCelerBus();
         _;
     }
 
     modifier mustOriginateFromSendEndpoint(address srcAddress, uint64 srcChainId) {
-        require(
-            srcAddress == sendEndpointAddr && srcChainId == sendEndpointChainId,
-            "message must be created by sendEndpoint"
-        );
+        if (srcAddress != sendEndpointAddr || srcChainId != sendEndpointChainId)
+            revert Errors.MsgNotFromSendEndpoint(msg.sender);
         _;
     }
 

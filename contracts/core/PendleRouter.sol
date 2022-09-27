@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
 import "../periphery/BoringOwnableUpgradeable.sol";
+import "../libraries/Errors.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the
@@ -96,7 +97,7 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
         } else if (sig == IPActionMisc.consult.selector) {
             return ACTION_MISC;
         }
-        require(false, "invalid market sig");
+        revert Errors.RouterInvalidAction(sig);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

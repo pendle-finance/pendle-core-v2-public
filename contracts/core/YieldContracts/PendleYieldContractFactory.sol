@@ -31,6 +31,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "../../libraries/helpers/ExpiryUtilsLib.sol";
 import "../../libraries/helpers/BaseSplitCodeFactory.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
+import "../../libraries/Errors.sol";
 
 import "../../periphery/BoringOwnableUpgradeable.sol";
 
@@ -96,11 +97,10 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
         external
         returns (address PT, address YT)
     {
-        require(!MiniHelpers.isTimeInThePast(expiry), "expiry must be in the future");
+        if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0)
+            revert Errors.YCFactoryInvalidExpiry();
 
-        require(expiry % expiryDivisor == 0, "must be multiple of divisor");
-
-        require(getPT[SCY][expiry] == address(0), "PT already existed");
+        if (getPT[SCY][expiry] != address(0)) revert Errors.YCFactoryYieldContractExisted();
 
         ISuperComposableYield _SCY = ISuperComposableYield(SCY);
 
@@ -149,7 +149,6 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function setExpiryDivisor(uint96 newExpiryDivisor) public onlyOwner {
-        require(newExpiryDivisor != 0, "zero value");
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
@@ -165,7 +164,6 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function setTreasury(address newTreasury) public onlyOwner {
-        require(newTreasury != address(0), "zero address");
         treasury = newTreasury;
         emit SetTreasury(newTreasury);
     }

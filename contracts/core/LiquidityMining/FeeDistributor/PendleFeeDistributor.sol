@@ -5,6 +5,7 @@ import "../../../libraries/math/Math.sol";
 import "../../../libraries/helpers/ArrayLib.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../libraries/math/WeekMath.sol";
+import "../../../libraries/Errors.sol";
 import "../../../libraries/VeHistoryLib.sol";
 import "../../../interfaces/IPFeeDistributor.sol";
 import "../../../interfaces/IPFeeDistributorFactory.sol";
@@ -56,7 +57,7 @@ contract PendleFeeDistributor is IPFeeDistributor, BoringOwnableUpgradeable {
             emit Fund(epoch, incentive);
         }
 
-        require(epoch <= WeekMath.getCurrentWeekStart(), "cant fund for future epoch");
+        if (epoch > WeekMath.getCurrentWeekStart()) revert Errors.FDCantFundFutureEpoch();
 
         IERC20(rewardToken).transferFrom(msg.sender, address(this), totalRewardFunding);
         lastFinishedEpoch = epoch;

@@ -11,6 +11,7 @@ import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/ArrayLib.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../libraries/SCY/SCYUtils.sol";
+import "../../libraries/Errors.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
 import "../../libraries/RewardManagerAbstract.sol";
 import "../PendleERC20Permit.sol";
@@ -55,7 +56,7 @@ contract PendleYieldToken is
     }
 
     modifier notExpired() {
-        require(!isExpired(), "PendleYieldToken: expired");
+        if (isExpired()) revert Errors.YCExpired();
         _;
     }
 
@@ -102,14 +103,14 @@ contract PendleYieldToken is
         uint256[] calldata amountScyToMints
     ) external nonReentrant notExpired updateData returns (uint256[] memory amountPYOuts) {
         uint256 length = receiverPTs.length;
-        require(
-            receiverYTs.length == length && amountScyToMints.length == length,
-            "not same length"
-        );
-        require(length != 0, "empty array");
+
+        if (receiverYTs.length != length && amountScyToMints.length == length)
+            revert Errors.ArrayLengthMismatch();
+        if (length == 0) revert Errors.ArrayEmpty();
 
         uint256 totalScyToMint = amountScyToMints.sum();
-        require(totalScyToMint <= _getFloatingScyAmount(), "not enough scy to mint");
+        if (totalScyToMint > _getFloatingScyAmount())
+            revert Errors.YieldContractInsufficientScy(totalScyToMint, _getFloatingScyAmount());
 
         amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountScyToMints);
     }
@@ -140,8 +141,8 @@ contract PendleYieldToken is
         updateData
         returns (uint256[] memory amountScyOuts)
     {
-        require(receivers.length == amountPYToRedeems.length, "not same length");
-        require(receivers.length != 0, "empty array");
+        if (receivers.length != amountPYToRedeems.length) revert Errors.ArrayLengthMismatch();
+        if (receivers.length == 0) revert Errors.ArrayEmpty();
         amountScyOuts = _redeemPY(receivers, amountPYToRedeems);
     }
 
@@ -157,7 +158,7 @@ contract PendleYieldToken is
         bool redeemInterest,
         bool redeemRewards
     ) external nonReentrant updateData returns (uint256 interestOut, uint256[] memory rewardsOut) {
-        require(redeemInterest || redeemRewards, "nothing to redeem");
+        if (!redeemInterest && !redeemRewards) revert Errors.YCNothingToRedeem();
 
         // if redeemRewards == true, this line must be here for obvious reason
         // if redeemInterest == true, this line must be here because of the reason above
@@ -186,7 +187,7 @@ contract PendleYieldToken is
         updateData
         returns (uint256 interestOut, uint256[] memory rewardsOut)
     {
-        require(isExpired(), "not expired");
+        if (!isExpired()) revert Errors.YCNotExpired();
 
         address treasury = IPYieldContractFactory(factory).treasury();
 
@@ -233,7 +234,7 @@ contract PendleYieldToken is
             uint256[] memory userRewardOwed
         )
     {
-        require(postExpiry.firstPYIndex != 0, "PostExpiry data not set");
+        if (postExpiry.firstPYIndex == 0) revert Errors.YCPostExpiryDataNotSet();
 
         firstPYIndex = postExpiry.firstPYIndex;
         totalScyInterestForTreasury = postExpiry.totalScyInterestForTreasury;
@@ -341,7 +342,7 @@ contract PendleYieldToken is
 
     function _getFloatingScyAmount() internal view returns (uint256 amount) {
         amount = _selfBalance(SCY) - scyReserve;
-        require(amount > 0, "RECEIVE_ZERO");
+        if (amount == 0) revert Errors.YCNoFloatingScy();
     }
 
     function _setPostExpiryData() internal {

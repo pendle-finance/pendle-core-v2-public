@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/SCY/SCYUtils.sol";
 import "../../libraries/helpers/TokenHelper.sol";
+import "../../libraries/Errors.sol";
 import "../../../contracts/core/PendleERC20Permit.sol";
 
 abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelper {
@@ -38,14 +39,14 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         uint256 amountTokenToDeposit,
         uint256 minSharesOut
     ) external payable nonReentrant returns (uint256 amountSharesOut) {
-        require(isValidTokenIn(tokenIn), "SCY: Invalid tokenIn");
-        require(amountTokenToDeposit != 0, "SCY: amountTokenToDeposit cannot be 0");
+        if (!isValidTokenIn(tokenIn)) revert Errors.SCYInvalidTokenIn(tokenIn);
+        if (amountTokenToDeposit == 0) revert Errors.SCYZeroDeposit();
 
-        if (tokenIn == NATIVE) require(msg.value == amountTokenToDeposit, "SCY: eth mismatch");
-        else _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
+        _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
 
         amountSharesOut = _deposit(tokenIn, amountTokenToDeposit);
-        require(amountSharesOut >= minSharesOut, "SCY: insufficient out");
+        if (amountSharesOut < minSharesOut)
+            revert Errors.SCYInsufficientSharesOut(amountSharesOut, minSharesOut);
 
         _mint(receiver, amountSharesOut);
         emit Deposit(msg.sender, receiver, tokenIn, amountTokenToDeposit, amountSharesOut);
@@ -61,8 +62,8 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         uint256 minTokenOut,
         bool burnFromInternalBalance
     ) external nonReentrant returns (uint256 amountTokenOut) {
-        require(isValidTokenOut(tokenOut), "SCY: invalid tokenOut");
-        require(amountSharesToRedeem != 0, "SCY: amountSharesToRedeem cannot be 0");
+        if (!isValidTokenOut(tokenOut)) revert Errors.SCYInvalidTokenOut(tokenOut);
+        if (amountSharesToRedeem == 0) revert Errors.SCYZeroRedeem();
 
         if (burnFromInternalBalance) {
             _burn(address(this), amountSharesToRedeem);
@@ -71,7 +72,8 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         }
 
         amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
-        require(amountTokenOut >= minTokenOut, "SCY: insufficient out");
+        if (amountTokenOut < minTokenOut)
+            revert Errors.SCYInsufficientTokenOut(amountTokenOut, minTokenOut);
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
 
@@ -166,7 +168,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         virtual
         returns (uint256 amountSharesOut)
     {
-        require(isValidTokenIn(tokenIn), "SCY: Invalid tokenIn");
+        if (!isValidTokenIn(tokenIn)) revert Errors.SCYInvalidTokenIn(tokenIn);
         return _previewDeposit(tokenIn, amountTokenToDeposit);
     }
 
@@ -176,7 +178,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         virtual
         returns (uint256 amountTokenOut)
     {
-        require(isValidTokenOut(tokenOut), "SCY: Invalid tokenOut");
+        if (!isValidTokenOut(tokenOut)) revert Errors.SCYInvalidTokenOut(tokenOut);
         return _previewRedeem(tokenOut, amountSharesToRedeem);
     }
 

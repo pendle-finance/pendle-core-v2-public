@@ -5,6 +5,7 @@ import "../../../interfaces/IPGaugeController.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../../libraries/math/Math.sol";
 import "../../../libraries/math/WeekMath.sol";
+import "../../../libraries/Errors.sol";
 import "../../../interfaces/IPGaugeController.sol";
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarket.sol";
@@ -46,7 +47,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     uint256[100] private __gap;
 
     modifier onlyPendleMarket() {
-        require(marketFactory.isValidMarket(msg.sender), "invalid market");
+        if (!marketFactory.isValidMarket(msg.sender)) revert Errors.GCNotPendleMarket(msg.sender);
         _;
     }
 
@@ -95,7 +96,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         address[] memory markets,
         uint256[] memory pendleAmounts
     ) internal {
-        require(markets.length == pendleAmounts.length, "invalid markets length");
+        if (markets.length != pendleAmounts.length) revert Errors.ArrayLengthMismatch();
 
         if (epochRewardReceived[wTime]) return; // only accept the first message for the wTime
         epochRewardReceived[wTime] = true;

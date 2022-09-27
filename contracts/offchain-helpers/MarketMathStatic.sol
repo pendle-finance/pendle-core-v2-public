@@ -602,7 +602,7 @@ library MarketMathStatic {
         public
         returns (uint256)
     {
-        if (IPMarket(market).isExpired()) return Math.ONE; 
+        if (IPMarket(market).isExpired()) return Math.ONE;
         int256 netPtToAccount = netPtOut;
         MarketState memory state = IPMarket(market).readState();
         MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
@@ -617,7 +617,8 @@ library MarketMathStatic {
 
         if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(comp.feeRate);
-            require(postFeeExchangeRate >= Math.IONE, "exchange rate below 1");
+            if (postFeeExchangeRate < Math.IONE)
+                revert Errors.MarketExchangeRateBelowOne(postFeeExchangeRate);
             return postFeeExchangeRate.Uint();
         } else {
             return preFeeExchangeRate.mulDown(comp.feeRate).Uint();

@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import "./math/Math.sol";
+import "./Errors.sol";
 
 struct VeBalance {
     uint128 bias;
@@ -62,7 +63,7 @@ library VeBalanceLib {
     }
 
     function getExpiry(VeBalance memory a) internal pure returns (uint128) {
-        require(a.slope != 0, "zero slope");
+        if (a.slope == 0) revert Errors.VEZeroSlope(a.bias, a.slope);
         return a.bias / a.slope;
     }
 

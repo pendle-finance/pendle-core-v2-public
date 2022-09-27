@@ -43,7 +43,8 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
             guessTotalPtToSwap
         );
 
-        require(netYtOut >= minYtOut, "insufficient YT out");
+        if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
+
         IPMarket(market).swapExactPtForScy(
             address(YT),
             totalPtToSwap,
@@ -73,7 +74,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
             guessTotalPtSwapped
         );
 
-        require(netPtOut >= minPtOut, "insufficient PT out");
+        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
         IPMarket(market).swapScyForExactPt(
             address(this),

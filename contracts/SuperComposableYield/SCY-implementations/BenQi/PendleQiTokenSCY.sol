@@ -27,8 +27,6 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         SCYBaseWithRewards(_name, _symbol, _qiToken)
         PendleQiTokenHelper(_qiToken, _initialExchangeRateMantissa)
     {
-        require(_WAVAX != address(0), "zero address");
-
         qiToken = _qiToken;
 
         underlying = isUnderlyingNative ? NATIVE : IQiErc20(qiToken).underlying();
@@ -69,7 +67,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
                 IQiAvax(qiToken).mint{ value: amount }();
             } else {
                 uint256 errCode = IQiErc20(qiToken).mint(amount);
-                require(errCode == 0, "mint failed");
+                if (errCode != 0) revert Errors.SCYQiTokenMintFailed(errCode);
             }
 
             amountSharesOut = _selfBalance(qiToken) - preBalanceQiToken;
@@ -82,11 +80,11 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
      * The shares are redeemed into the same amount of qiTokens. If `tokenOut` is the underlying asset,
      * the function also redeems said asset from the corresponding amount of qiToken.
      */
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal override returns (uint256 amountTokenOut) {
         if (tokenOut == qiToken) {
             amountTokenOut = amountSharesToRedeem;
         } else {
@@ -94,10 +92,10 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
 
             if (underlying == NATIVE) {
                 uint256 errCode = IQiAvax(qiToken).redeem(amountSharesToRedeem);
-                require(errCode == 0, "redeem failed");
+                if (errCode != 0) revert Errors.SCYQiTokenRedeemFailed(errCode);
             } else {
                 uint256 errCode = IQiErc20(qiToken).redeem(amountSharesToRedeem);
-                require(errCode == 0, "redeem failed");
+                if (errCode != 0) revert Errors.SCYQiTokenRedeemFailed(errCode);
             }
 
             // underlying is potentially also rewardToken, hence we need to manually track the balance here
@@ -140,13 +138,17 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         IBenQiComptroller(comptroller).claimReward(0, holders, qiTokens, false, true);
         IBenQiComptroller(comptroller).claimReward(1, holders, qiTokens, false, true);
 
-        require(
-            Math.max(
-                IBenQiComptroller(comptroller).rewardAccrued(0, address(this)),
-                IBenQiComptroller(comptroller).rewardAccrued(1, address(this))
-            ) == 0,
-            "BENQI: redeem reward failed"
+        uint256 rewardAccruedType0 = IBenQiComptroller(comptroller).rewardAccrued(
+            0,
+            address(this)
         );
+        uint256 rewardAccruedType1 = IBenQiComptroller(comptroller).rewardAccrued(
+            1,
+            address(this)
+        );
+
+        if (rewardAccruedType0 > 0 || rewardAccruedType1 > 0)
+            revert Errors.SCYQiTokenRedeemRewardsFailed(rewardAccruedType0, rewardAccruedType1);
 
         if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance }();
     }

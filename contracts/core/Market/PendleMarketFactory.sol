@@ -7,6 +7,7 @@ import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
 import "../../libraries/helpers/BaseSplitCodeFactory.sol";
+import "../../libraries/Errors.sol";
 import "../../periphery/BoringOwnableUpgradeable.sol";
 
 import "./PendleMarket.sol";
@@ -45,7 +46,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         address _marketCreationCodeContractB,
         uint256 _marketCreationCodeSizeB
     ) {
-        require(_yieldContractFactory != address(0), "zero address");
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
 
@@ -62,8 +62,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         address newVePendle,
         address newGaugeController
     ) external initializer {
-        require(newVePendle != address(0) && newGaugeController != address(0), "zero address");
-
         __BoringOwnable_init();
         setTreasury(_treasury);
         setlnFeeRateRoot(_lnFeeRateRoot);
@@ -82,9 +80,12 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         int256 scalarRoot,
         int256 initialAnchor
     ) external returns (address market) {
-        require(!IPPrincipalToken(PT).isExpired(), "PT is expired");
-        require(IPYieldContractFactory(yieldContractFactory).isPT(PT), "Invalid PT");
-        require(markets[PT][scalarRoot][initialAnchor] == address(0), "market already created");
+        if (!IPYieldContractFactory(yieldContractFactory).isPT(PT))
+            revert Errors.MarketFactoryInvalidPt();
+        if (IPPrincipalToken(PT).isExpired()) revert Errors.MarketFactoryExpiredPt();
+
+        if (markets[PT][scalarRoot][initialAnchor] != address(0))
+            revert Errors.MarketFactoryMarketExists();
 
         market = BaseSplitCodeFactory._create2(
             0,
@@ -97,7 +98,8 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         );
 
         markets[PT][scalarRoot][initialAnchor] = market;
-        require(allMarkets.add(market), "IE market can't be added");
+
+        if (!allMarkets.add(market)) assert(false);
 
         emit CreateNewMarket(market, PT, scalarRoot, initialAnchor);
     }
@@ -112,19 +114,22 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     function setTreasury(address newTreasury) public onlyOwner {
-        require(newTreasury != address(0), "zero address");
         marketConfig.treasury = newTreasury;
         _emitNewMarketConfigEvent();
     }
 
-    function setlnFeeRateRoot(uint88 newlnFeeRateRoot) public onlyOwner {
-        require(newlnFeeRateRoot <= maxLnFeeRateRoot, "invalid fee rate root");
-        marketConfig.lnFeeRateRoot = newlnFeeRateRoot;
+    function setlnFeeRateRoot(uint88 newLnFeeRateRoot) public onlyOwner {
+        if (newLnFeeRateRoot > maxLnFeeRateRoot)
+            revert Errors.MFactoryLnFeeRateRootTooHigh(newLnFeeRateRoot, maxLnFeeRateRoot);
+
+        marketConfig.lnFeeRateRoot = newLnFeeRateRoot;
         _emitNewMarketConfigEvent();
     }
 
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyOwner {
-        require(newReserveFeePercent <= 100, "invalid reserve fee percent");
+        if (newReserveFeePercent > 100)
+            revert Errors.MFactoryReserveFeePercentTooHigh(newReserveFeePercent, 100);
+
         marketConfig.reserveFeePercent = newReserveFeePercent;
         _emitNewMarketConfigEvent();
     }

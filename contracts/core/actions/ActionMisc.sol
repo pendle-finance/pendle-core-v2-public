@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPActionMisc.sol";
+import "../../libraries/Errors.sol";
 
 contract ActionMisc is IPActionMisc {
     using Math for uint256;
@@ -12,7 +13,7 @@ contract ActionMisc is IPActionMisc {
         view
         returns (uint96 lnImpliedRateMean)
     {
-        require(secondsAgo != 0, "time range is zero");
+        if (secondsAgo == 0) revert Errors.RouterTimeRangeZero();
         uint32[] memory secondsAgos = new uint32[](2);
         secondsAgos[0] = secondsAgo;
         secondsAgos[1] = 0;

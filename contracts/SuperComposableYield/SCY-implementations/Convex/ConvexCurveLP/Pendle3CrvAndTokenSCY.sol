@@ -29,7 +29,8 @@ contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
             _basePoolTokens
         )
     {
-        require(_basePoolTokens.contains(Pendle3CrvHelper.TOKEN), "3Crv Pool address not found");
+        if (!_basePoolTokens.contains(Pendle3CrvHelper.TOKEN))
+            revert Errors.SCYCurve3crvPoolNotFound();
 
         _safeApproveInf(Pendle3CrvHelper.DAI, Pendle3CrvHelper.POOL);
         _safeApproveInf(Pendle3CrvHelper.USDC, Pendle3CrvHelper.POOL);
@@ -50,14 +51,17 @@ contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
         }
     }
 
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
         if (Pendle3CrvHelper.is3CrvToken(tokenOut)) {
-            uint256 amountLp = super._redeem(address(this), Pendle3CrvHelper.TOKEN, amountSharesToRedeem);
+            uint256 amountLp = super._redeem(
+                address(this),
+                Pendle3CrvHelper.TOKEN,
+                amountSharesToRedeem
+            );
             amountTokenOut = Pendle3CrvHelper.redeem3Crv(tokenOut, amountLp);
             _transferOut(tokenOut, receiver, amountTokenOut);
         } else {

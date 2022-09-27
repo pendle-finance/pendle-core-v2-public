@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "../../../interfaces/IPMsgSendEndpoint.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
+import "../../../libraries/Errors.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
@@ -36,7 +37,8 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         address toAddr = destinationContracts.get(chainId);
         uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message);
         // LM contracts won't hold ETH on its own so this is fine
-        require(address(this).balance >= fee, "Insufficient celer fee");
+        if (address(this).balance < fee)
+            revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
         pendleMsgSendEndpoint.sendMessage{ value: fee }(toAddr, chainId, message);
     }
 

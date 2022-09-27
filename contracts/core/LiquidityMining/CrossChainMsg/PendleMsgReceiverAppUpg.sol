@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import "../../../interfaces/IPMsgReceiverApp.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
+import "../../../libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 /// This contract is upgradable because
@@ -15,7 +16,8 @@ abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp, BoringOwnableUpgr
     uint256[100] private __gap;
 
     modifier onlyFromPendleMsgReceiveEndpoint() {
-        require(msg.sender == pendleMsgReceiveEndpoint, "only pendle message receive endpoint");
+        if (msg.sender != pendleMsgReceiveEndpoint)
+            revert Errors.MsgNotFromReceiveEndpoint(msg.sender);
         _;
     }
 

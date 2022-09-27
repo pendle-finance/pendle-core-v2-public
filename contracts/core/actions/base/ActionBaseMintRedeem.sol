@@ -5,6 +5,7 @@ import "../../../libraries/kyberswap/KyberSwapHelper.sol";
 import "../../../libraries/helpers/TokenHelper.sol";
 import "../../../interfaces/ISuperComposableYield.sol";
 import "../../../interfaces/IPYieldToken.sol";
+import "../../../libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
@@ -75,7 +76,9 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             _kyberswap(output.tokenRedeemScy, netTokenRedeemed, output.kybercall);
 
             netTokenOut = _selfBalance(output.tokenOut);
-            require(netTokenOut >= output.minTokenOut, "insufficient out");
+
+            if (netTokenOut < output.minTokenOut)
+                revert Errors.RouterInsufficientTokenOut(netTokenOut, output.minTokenOut);
 
             _transferOut(output.tokenOut, receiver, netTokenOut);
         }
@@ -95,7 +98,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         _mintScyFromToken(YT, SCY, 1, input);
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
-        require(netPyOut >= minPyOut, "insufficient PY out");
+        if (netPyOut < minPyOut) revert Errors.RouterInsufficientPYOut(netPyOut, minPyOut);
     }
 
     /**
@@ -137,7 +140,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
-        require(netPyOut >= minPyOut, "insufficient PY out");
+        if (netPyOut < minPyOut) revert Errors.RouterInsufficientPYOut(netPyOut, minPyOut);
     }
 
     function _redeemPyToScy(
@@ -156,6 +159,6 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         netScyOut = IPYieldToken(YT).redeemPY(receiver);
-        require(netScyOut >= minScyOut, "insufficient SCY out");
+        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
     }
 }

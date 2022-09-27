@@ -27,7 +27,7 @@ contract PendleConvexCurveLP2PoolSCY is PendleConvexCurveLPSCY {
             _baseCrvPool
         )
     {
-        require(_basePoolTokens.length == 2, "basePoolTokens length mismatch");
+        if (_basePoolTokens.length != 2) revert Errors.ArrayLengthMismatch();
 
         token1 = _basePoolTokens[0];
         token2 = _basePoolTokens[1];

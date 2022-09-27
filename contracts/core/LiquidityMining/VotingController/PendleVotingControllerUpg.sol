@@ -75,8 +75,8 @@ contract PendleVotingControllerUpg is
     function vote(address[] calldata pools, uint64[] calldata weights) external {
         address user = msg.sender;
 
-        require(weights.length == pools.length, "invalid array length");
-        require(vePendle.balanceOf(user) > 0 || user == owner, "zero vePENDLE balance");
+        if (pools.length != weights.length) revert Errors.ArrayLengthMismatch();
+        if (user != owner && vePendle.balanceOf(user) == 0) revert Errors.VCZeroVePendle(user);
 
         UserData storage uData = userData[user];
         LockedPosition memory userPosition = _getUserVePendlePosition(user);
@@ -87,10 +87,11 @@ contract PendleVotingControllerUpg is
             emit Vote(user, pools[i], weights[i], newVote);
         }
 
-        require(
-            uData.totalVotedWeight <= VeBalanceLib.USER_VOTE_MAX_WEIGHT,
-            "exceeded max weight"
-        );
+        if (uData.totalVotedWeight > VeBalanceLib.USER_VOTE_MAX_WEIGHT)
+            revert Errors.VCExceededMaxWeight(
+                uData.totalVotedWeight,
+                VeBalanceLib.USER_VOTE_MAX_WEIGHT
+            );
     }
 
     /**
@@ -102,7 +103,7 @@ contract PendleVotingControllerUpg is
         - update poolData
      */
     function applyPoolSlopeChanges(address pool) public {
-        require(_isPoolActive(pool), "invalid pool");
+        if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
         uint128 wTime = poolData[pool].lastSlopeChangeAppliedAt;
         uint128 currentWeekStart = WeekMath.getCurrentWeekStart();
@@ -146,7 +147,7 @@ contract PendleVotingControllerUpg is
      */
     function broadcastResults(uint64 chainId) external payable refundUnusedEth {
         uint128 wTime = WeekMath.getCurrentWeekStart();
-        require(weekData[wTime].isEpochFinalized, "epoch not finalized");
+        if (!weekData[wTime].isEpochFinalized) revert Errors.VCEpochNotFinalized(wTime);
         _broadcastResults(chainId, wTime, pendlePerSec);
     }
 
@@ -165,8 +166,8 @@ contract PendleVotingControllerUpg is
       this function
      */
     function addPool(uint64 chainId, address pool) external onlyOwner {
-        require(!_isPoolActive(pool), "pool already added");
-        require(!allRemovedPools.contains(pool), "not allowed to add a removed pool");
+        if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
+        if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
 
         _addPool(chainId, pool);
         emit AddPool(chainId, pool);
@@ -183,7 +184,7 @@ contract PendleVotingControllerUpg is
       this function
      */
     function removePool(address pool) external onlyOwner {
-        require(_isPoolActive(pool), "invalid pool");
+        if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
         uint64 chainId = poolData[pool].chainId;
 

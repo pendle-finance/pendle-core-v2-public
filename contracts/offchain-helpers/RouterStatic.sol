@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../periphery/BoringOwnableUpgradeable.sol";
 import "../libraries/math/WeekMath.sol";
+import "../libraries/Errors.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {
@@ -621,13 +622,11 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         uint128 additionalAmountToLock,
         uint128 newExpiry
     ) external view returns (uint128 newVeBalance) {
-        require(
-            WeekMath.isValidWTime(newExpiry) && !MiniHelpers.isTimeInThePast(newExpiry),
-            "invalid newExpiry"
-        );
+        if (!WeekMath.isValidWTime(newExpiry)) revert Errors.InvalidWTime(newExpiry);
+        if (MiniHelpers.isTimeInThePast(newExpiry)) revert Errors.ExpiryInThePast(newExpiry);
 
-        require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
-        require(newExpiry >= block.timestamp + MIN_LOCK_TIME, "insufficient lock time");
+        if (newExpiry > block.timestamp + MAX_LOCK_TIME) revert Errors.VEExceededMaxLockTime();
+        if (newExpiry < block.timestamp + MIN_LOCK_TIME) revert Errors.VEInsufficientLockTime();
 
         LockedPosition memory oldPosition;
 
@@ -636,9 +635,10 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             oldPosition = LockedPosition(amount, expiry);
         }
 
-        require(oldPosition.expiry <= newExpiry, "new expiry must be after current expiry");
+        if (newExpiry < oldPosition.expiry) revert Errors.VENotAllowedReduceExpiry();
+
         uint128 newTotalAmountLocked = additionalAmountToLock + oldPosition.amount;
-        require(newTotalAmountLocked > 0, "zero total amount locked");
+        if (newTotalAmountLocked == 0) revert Errors.VEZeroAmountLocked();
 
         uint128 additionalDurationToLock = newExpiry - oldPosition.expiry;
 
@@ -658,7 +658,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (uint256 amountPY)
     {
         IPYieldToken _YT = IPYieldToken(YT);
-        require(!_YT.isExpired(), "YT is expired");
+        if (_YT.isExpired()) revert Errors.YCExpired();
         return amountScyToMint.mulDown(_YT.pyIndexCurrent());
     }
 

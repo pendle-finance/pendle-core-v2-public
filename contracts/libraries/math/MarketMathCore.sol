@@ -219,7 +219,8 @@ library MarketMathCore {
         /// CHECKS
         /// ------------------------------------------------------------
         if (MiniHelpers.isExpired(market.expiry, blockTime)) revert Errors.MarketExpired();
-        if (market.totalPt <= netPtToAccount) revert Errors.MarketInsufficientLiquidity();
+        if (market.totalPt <= netPtToAccount)
+            revert Errors.MarketInsufficientPtForTrade(market.totalPt, netPtToAccount);
 
         /// ------------------------------------------------------------
         /// MATH
@@ -264,7 +265,7 @@ library MarketMathCore {
         res.totalAsset = index.scyToAsset(market.totalScy);
 
         if (market.totalPt == 0 || res.totalAsset == 0)
-            revert Errors.MarketInvalidState(market.totalPt, res.totalAsset);
+            revert Errors.MarketZeroTotalPtOrTotalAsset(market.totalPt, res.totalAsset);
 
         res.rateAnchor = _getRateAnchor(
             market.totalPt,
@@ -392,7 +393,8 @@ library MarketMathCore {
 
         int256 proportion = (numerator.divDown(totalPt + totalAsset));
 
-        if (proportion > MAX_MARKET_PROPORTION) revert Errors.MarketProportionTooHigh(proportion);
+        if (proportion > MAX_MARKET_PROPORTION)
+            revert Errors.MarketProportionTooHigh(proportion, MAX_MARKET_PROPORTION);
 
         int256 lnProportion = _logProportion(proportion);
 
@@ -415,7 +417,7 @@ library MarketMathCore {
         returns (int256 rateScalar)
     {
         rateScalar = (market.scalarRoot * IMPLIED_RATE_TIME.Int()) / timeToExpiry.Int();
-        if (rateScalar <= 0) revert Errors.MarketRateScalarTooLow(rateScalar);
+        if (rateScalar <= 0) revert Errors.MarketRateScalarBelowZero(rateScalar);
     }
 
     function setInitialLnImpliedRate(

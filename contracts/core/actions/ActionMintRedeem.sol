@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "./base/ActionBaseMintRedeem.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPActionMintRedeem.sol";
+import "../../libraries/Errors.sol";
 
 contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
@@ -143,8 +144,11 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address[] calldata markets,
         RouterSwapAllStruct calldata dataSwap
     ) external returns (uint256 netTokenOut, uint256[] memory amountsSwapped) {
-        require(dataSwap.tokens.length == dataSwap.kybercalls.length, "invalid dataSwap");
-        require(dataYT.tokenRedeemScys.length == dataYT.scyAddrs.length, "invalid dataYT");
+        if (dataSwap.tokens.length != dataSwap.kybercalls.length)
+            revert Errors.ArrayLengthMismatch();
+
+        if (dataYT.tokenRedeemScys.length != dataYT.scyAddrs.length)
+            revert Errors.ArrayLengthMismatch();
 
         RouterTokenAmounts memory tokensOut = _newRouterTokenAmounts(dataSwap.tokens);
         RouterTokenAmounts memory scysOut = _newRouterTokenAmounts(dataYT.scyAddrs);

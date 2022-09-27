@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import "../../../interfaces/IQiToken.sol";
+import "../../../libraries/Errors.sol";
 
 contract PendleQiTokenHelper {
     IQiToken private immutable qiToken;
@@ -33,7 +34,8 @@ contract PendleQiTokenHelper {
             reservesPrior
         );
 
-        require(borrowRateMantissa <= borrowRateMaxMantissa, "borrow rate is absurdly high");
+        if (borrowRateMantissa > borrowRateMaxMantissa)
+            revert Errors.SCYQiTokenBorrowRateTooHigh(borrowRateMantissa, borrowRateMaxMantissa);
 
         uint256 timestampDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 

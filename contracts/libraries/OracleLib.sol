@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "./Errors.sol";
+
 /// Adapted from UniswapV3's Oracle
 
 library OracleLib {
@@ -67,7 +69,7 @@ library OracleLib {
         uint16 current,
         uint16 next
     ) public returns (uint16) {
-        require(current != 0, "uninitialized");
+        if (current == 0) revert Errors.OracleUninitialized();
         // no-op if the passed next value isn't greater than the current next value
         if (next <= current) return current;
         // store in each slot to prevent fresh SSTOREs in swaps
@@ -139,7 +141,8 @@ library OracleLib {
         if (!beforeOrAt.initialized) beforeOrAt = self[0];
 
         // ensure that the target is chronologically at or after the oldest observation
-        require(beforeOrAt.blockTimestamp <= target, "target too old for observation");
+        if (target < beforeOrAt.blockTimestamp)
+            revert Errors.OracleTargetTooOld(target, beforeOrAt.blockTimestamp);
 
         // if we've reached this point, we have to binary search
         return binarySearch(self, target, index, cardinality);
@@ -197,7 +200,7 @@ library OracleLib {
         uint16 index,
         uint16 cardinality
     ) public view returns (uint216[] memory lnImpliedRateCumulative) {
-        require(cardinality != 0, "cardinality must be positive");
+        if (cardinality == 0) revert Errors.OracleZeroCardinality();
 
         lnImpliedRateCumulative = new uint216[](secondsAgos.length);
         for (uint256 i = 0; i < lnImpliedRateCumulative.length; ++i) {

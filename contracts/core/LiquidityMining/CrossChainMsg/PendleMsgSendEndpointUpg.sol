@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "../../../interfaces/IPMsgSendEndpoint.sol";
 import "../../../interfaces/ICelerMessageBus.sol";
 import "../../../periphery/BoringOwnableUpgradeable.sol";
+import "../../../libraries/Errors.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
@@ -20,7 +21,7 @@ contract PendleMsgSendEndpointUpg is
     mapping(address => bool) public isWhitelisted;
 
     modifier onlyWhitelisted() {
-        require(isWhitelisted[msg.sender], "only whitelisted");
+        if (!isWhitelisted[msg.sender]) revert Errors.OnlyWhitelisted();
         _;
     }
 

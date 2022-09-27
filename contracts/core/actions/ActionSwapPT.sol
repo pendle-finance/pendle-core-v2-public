@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "./base/ActionBaseMintRedeem.sol";
 import "../../interfaces/IPActionSwapPT.sol";
 import "../../interfaces/IPMarket.sol";
+import "../../libraries/Errors.sol";
 
 contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
@@ -34,7 +35,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
             EMPTY_BYTES
         );
 
-        require(netScyOut >= minScyOut, "insufficient SCY out");
+        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
 
         emit SwapPtAndScy(msg.sender, market, receiver, exactPtIn.neg(), netScyOut.Int());
     }
@@ -59,7 +60,8 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
             block.timestamp,
             guessPtIn
         );
-        require(netPtIn <= maxPtIn, "exceed limit PT in");
+
+        if (netPtIn > maxPtIn) revert Errors.RouterExceededLimitPtIn(netPtIn, maxPtIn);
 
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
 
@@ -71,7 +73,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         );
 
         // fail-safe
-        require(netScyOut >= exactScyOut, "FS insufficient SCY out");
+        if (netScyOut < exactScyOut) assert(false);
 
         emit SwapPtAndScy(msg.sender, market, receiver, netPtIn.neg(), exactScyOut.Int());
     }
@@ -87,7 +89,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         (netScyIn, ) = state.swapScyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
 
-        require(netScyIn <= maxScyIn, "exceed limit SCY in");
+        if (netScyIn > maxScyIn) revert Errors.RouterExceededLimitScyIn(netScyIn, maxScyIn);
 
         IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
 
@@ -209,7 +211,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
             guessPtOut
         );
 
-        require(netPtOut >= minPtOut, "insufficient PT out");
+        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
         (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, netPtOut, EMPTY_BYTES);
         // no fail-safe since exactly netPtOut >= minPtOut will be out

@@ -6,6 +6,7 @@ import "../../../libraries/VeBalanceLib.sol";
 import "../../../libraries/math/WeekMath.sol";
 import "../../../libraries/helpers/MiniHelpers.sol";
 import "../../../libraries/VeHistoryLib.sol";
+import "../../../libraries/Errors.sol";
 import "../../../interfaces/IPVotingController.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -107,7 +108,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
         slopeChanges = new uint128[](wTimes.length);
         for (uint256 i = 0; i < wTimes.length; ++i) {
-            require(wTimes[i].isValidWTime(), "invalid wTimes");
+            if (!wTimes[i].isValidWTime()) revert Errors.InvalidWTime(wTimes[i]);
             slopeChanges[i] = data.slopeChanges[wTimes[i]];
         }
     }
@@ -134,7 +135,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
             uint128[] memory poolVotes
         )
     {
-        require(wTime.isValidWTime(), "invalid wTimes");
+        if (!wTime.isValidWTime()) revert Errors.InvalidWTime(wTime);
 
         WeekData storage data = weekData[wTime];
 
@@ -156,7 +157,9 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         returns (uint256 lengthOfRemovedPools, address[] memory arr)
     {
         lengthOfRemovedPools = allRemovedPools.length();
-        require(end < lengthOfRemovedPools, "end is out of bounds");
+
+        if (end >= lengthOfRemovedPools) revert Errors.ArrayOutOfBounds();
+
         arr = new address[](end - start + 1);
         for (uint256 i = start; i <= end; ++i) arr[i - start] = allRemovedPools.at(i);
     }
@@ -197,8 +200,8 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         - set params in poolData
      */
     function _addPool(uint64 chainId, address pool) internal {
-        require(activeChainPools[chainId].add(pool), "IE");
-        require(allActivePools.add(pool), "IE");
+        if (!activeChainPools[chainId].add(pool)) assert(false);
+        if (!allActivePools.add(pool)) assert(false);
 
         poolData[pool].chainId = chainId;
         poolData[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
@@ -212,9 +215,9 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
      */
     function _removePool(address pool) internal {
         uint64 chainId = poolData[pool].chainId;
-        require(activeChainPools[chainId].remove(pool), "IE");
-        require(allActivePools.remove(pool), "IE");
-        require(allRemovedPools.add(pool), "IE");
+        if (!activeChainPools[chainId].remove(pool)) assert(false);
+        if (!allActivePools.remove(pool)) assert(false);
+        if (!allRemovedPools.add(pool)) assert(false);
 
         delete poolData[pool];
     }
@@ -264,7 +267,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
         // ADD NEW VOTE
         if (weight != 0) {
-            require(_isPoolActive(pool), "pool not active");
+            if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
             newVote = userPosition.convertToVeBalance(weight);
 

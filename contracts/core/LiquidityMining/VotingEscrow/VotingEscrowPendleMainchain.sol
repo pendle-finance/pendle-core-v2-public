@@ -5,6 +5,7 @@ import "../../../libraries/helpers/MiniHelpers.sol";
 import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 import "../../../libraries/VeHistoryLib.sol";
+import "../../../libraries/Errors.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -71,17 +72,17 @@ contract VotingEscrowPendleMainchain is
         returns (uint128 newVeBalance)
     {
         address user = msg.sender;
-        require(
-            WeekMath.isValidWTime(newExpiry) && !MiniHelpers.isTimeInThePast(newExpiry),
-            "invalid newExpiry"
-        );
 
-        require(newExpiry <= block.timestamp + MAX_LOCK_TIME, "max lock time exceeded");
-        require(newExpiry >= block.timestamp + MIN_LOCK_TIME, "insufficient lock time");
-        require(positionData[user].expiry <= newExpiry, "new expiry must be after current expiry");
+        if (!WeekMath.isValidWTime(newExpiry)) revert Errors.InvalidWTime(newExpiry);
+        if (MiniHelpers.isTimeInThePast(newExpiry)) revert Errors.ExpiryInThePast(newExpiry);
+
+        if (newExpiry < positionData[user].expiry) revert Errors.VENotAllowedReduceExpiry();
+
+        if (newExpiry > block.timestamp + MAX_LOCK_TIME) revert Errors.VEExceededMaxLockTime();
+        if (newExpiry < block.timestamp + MIN_LOCK_TIME) revert Errors.VEInsufficientLockTime();
 
         uint128 newTotalAmountLocked = additionalAmountToLock + positionData[user].amount;
-        require(newTotalAmountLocked > 0, "zero total amount locked");
+        if (newTotalAmountLocked == 0) revert Errors.VEZeroAmountLocked();
 
         uint128 additionalDurationToLock = newExpiry - positionData[user].expiry;
 
@@ -106,10 +107,11 @@ contract VotingEscrowPendleMainchain is
      */
     function withdraw() external returns (uint128 amount) {
         address user = msg.sender;
-        require(_isPositionExpired(user), "position not expired");
+
+        if (!_isPositionExpired(user)) revert Errors.VEPositionNotExpired();
         amount = positionData[user].amount;
 
-        require(amount > 0, "zero position");
+        if (amount == 0) revert Errors.VEZeroPosition();
 
         delete positionData[user];
 
@@ -152,7 +154,7 @@ contract VotingEscrowPendleMainchain is
         payable
         refundUnusedEth
     {
-        require(user != address(0), "zero address user");
+        if (user == address(0)) revert Errors.ZeroAddress();
         _broadcastPosition(user, chainIds);
     }
 
@@ -269,7 +271,7 @@ contract VotingEscrowPendleMainchain is
 
     /// @notice broadcast position to all chains in chainIds
     function _broadcastPosition(address user, uint256[] calldata chainIds) internal {
-        require(chainIds.length != 0, "empty chainIds");
+        if (chainIds.length == 0) revert Errors.ArrayEmpty();
 
         (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
 
@@ -278,7 +280,8 @@ contract VotingEscrowPendleMainchain is
         );
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
-            require(destinationContracts.contains(chainIds[i]), "not supported chain");
+            if (!destinationContracts.contains(chainIds[i]))
+                revert Errors.ChainNotSupported(chainIds[i]);
             _broadcast(chainIds[i], wTime, supply, userData);
         }
 

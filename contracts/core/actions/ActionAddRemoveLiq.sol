@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "./base/ActionBaseMintRedeem.sol";
 import "../../interfaces/IPActionAddRemoveLiq.sol";
 import "../../interfaces/IPMarket.sol";
+import "../../libraries/Errors.sol";
 
 contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using Math for uint256;
@@ -43,7 +44,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
 
         // early-check
-        require(netLpOut >= minLpOut, "insufficient lp out");
+        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
 
         IERC20(SCY).safeTransferFrom(msg.sender, market, netScyUsed);
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
@@ -51,7 +52,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (netLpOut, , ) = IPMarket(market).mint(receiver, netScyUsed, netPtUsed);
 
         // fail-safe
-        require(netLpOut >= minLpOut, "FS insufficient lp out");
+        if (netLpOut < minLpOut) assert(false);
+
         emit AddLiquidityDualScyAndPt(
             msg.sender,
             market,
@@ -92,8 +94,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             );
         }
 
-        // early-check
-        require(netLpOut >= minLpOut, "insufficient lp out");
+        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
 
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
 
@@ -111,8 +112,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         }
 
         (netLpOut, , ) = IPMarket(market).mint(receiver, netScyUsed, netPtUsed);
-        // fail-safe
-        require(netLpOut >= minLpOut, "FS insufficient lp out");
+
+        if (netLpOut < minLpOut) assert(false);
 
         emit AddLiquidityDualTokenAndPt(
             msg.sender,
@@ -151,9 +152,10 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             netPtSwap,
             EMPTY_BYTES
         ); // ignore return, receiver = market
+
         (netLpOut, , ) = IPMarket(market).mint(receiver, netScyReceived, netPtIn - netPtSwap);
 
-        require(netLpOut >= minLpOut, "insufficient lp out");
+        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
 
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
@@ -222,8 +224,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         (netScyOut, netPtOut) = IPMarket(market).burn(receiver, receiver, netLpToRemove);
 
-        require(netScyOut >= minScyOut, "insufficient SCY out");
-        require(netPtOut >= minPtOut, "insufficient PT out");
+        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
+        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
         emit RemoveLiquidityDualScyAndPt(
             msg.sender,
@@ -252,7 +254,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         netTokenOut = SCY.redeem(receiver, netScyOut, tokenOut, minTokenOut, true);
 
-        require(netPtOut >= minPtOut, "insufficient PT out");
+        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
         emit RemoveLiquidityDualTokenAndPt(
             msg.sender,
@@ -285,14 +287,15 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             guessPtOut
         );
 
-        // early-check
-        require(ptFromBurn + ptFromSwap >= minPtOut, "insufficient lp out");
+        if (ptFromBurn + ptFromSwap < minPtOut)
+            revert Errors.RouterInsufficientPtOut(ptFromBurn + ptFromSwap, minPtOut);
 
         (, ptFromBurn) = IPMarket(market).burn(market, receiver, netLpToRemove);
         (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, ptFromSwap, EMPTY_BYTES);
 
         // fail-safe
-        require(ptFromBurn + ptFromSwap >= minPtOut, "FS insufficient lp out");
+        if (ptFromBurn + ptFromSwap < minPtOut) assert(false);
+
         netPtOut = ptFromBurn + ptFromSwap;
 
         emit RemoveLiquiditySinglePt(msg.sender, market, receiver, netLpToRemove, netPtOut);
@@ -372,7 +375,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         ); // ignore return, receiver = market
         (netLpOut, , ) = IPMarket(market).mint(receiver, netScyIn - netScySwapped, netPtReceived);
 
-        require(netLpOut >= minLpOut, "insufficient lp out");
+        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
     }
 
     function _removeLiquiditySingleScy(
@@ -386,7 +389,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         } else {
             (netScyOut, netScyFee) = __removeLpToScyBeforeExpiry(receiver, market, netLpToRemove);
         }
-        require(netScyOut >= minScyOut, "insufficient lp out");
+
+        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
     }
 
     function __removeLpToScyAfterExpiry(
