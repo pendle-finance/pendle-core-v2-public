@@ -5,6 +5,7 @@ import "./Math.sol";
 import "./LogExpMath.sol";
 import "../helpers/PYIndex.sol";
 import "../helpers/MiniHelpers.sol";
+import "../Errors.sol";
 
 struct MarketState {
     int256 totalPt;
@@ -147,8 +148,8 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(scyDesired > 0 && ptDesired > 0, "ZERO_AMOUNTS");
-        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
+        if (scyDesired == 0 || ptDesired == 0) revert Errors.MarketZeroAmountsInput();
+        if (MiniHelpers.isExpired(market.expiry, blockTime)) revert Errors.MarketExpired();
 
         /// ------------------------------------------------------------
         /// MATH
@@ -172,7 +173,7 @@ library MarketMathCore {
             }
         }
 
-        require(lpToAccount > 0, "INSUFFICIENT_LIQUIDITY_MINTED");
+        if (lpToAccount == 0) revert Errors.MarketZeroAmountsOutput();
 
         /// ------------------------------------------------------------
         /// WRITE
@@ -190,7 +191,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(lpToRemove > 0, "invalid lp amount");
+        if (lpToRemove == 0) revert Errors.MarketZeroAmountsInput();
 
         /// ------------------------------------------------------------
         /// MATH
@@ -198,7 +199,8 @@ library MarketMathCore {
         netScyToAccount = (lpToRemove * market.totalScy) / market.totalLp;
         netPtToAccount = (lpToRemove * market.totalPt) / market.totalLp;
 
-        require(netScyToAccount > 0 || netPtToAccount > 0, "zero amounts out");
+        if (netScyToAccount == 0 || netPtToAccount == 0) revert Errors.MarketZeroAmountsOutput();
+
         /// ------------------------------------------------------------
         /// WRITE
         /// ------------------------------------------------------------
@@ -216,8 +218,8 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
-        require(market.totalPt > netPtToAccount, "insufficient liquidity");
+        if (MiniHelpers.isExpired(market.expiry, blockTime)) revert Errors.MarketExpired();
+        if (market.totalPt <= netPtToAccount) revert Errors.MarketInsufficientLiquidity();
 
         /// ------------------------------------------------------------
         /// MATH
@@ -254,14 +256,15 @@ library MarketMathCore {
         PYIndex index,
         uint256 blockTime
     ) internal pure returns (MarketPreCompute memory res) {
-        require(!MiniHelpers.isExpired(market.expiry, blockTime), "market expired");
+        if (MiniHelpers.isExpired(market.expiry, blockTime)) revert Errors.MarketExpired();
 
         uint256 timeToExpiry = market.expiry - blockTime;
 
         res.rateScalar = _getRateScalar(market, timeToExpiry);
         res.totalAsset = index.scyToAsset(market.totalScy);
 
-        require(market.totalPt != 0 && res.totalAsset != 0, "invalid market state");
+        if (market.totalPt == 0 || res.totalAsset == 0)
+            revert Errors.MarketInvalidState(market.totalPt, res.totalAsset);
 
         res.rateAnchor = _getRateAnchor(
             market.totalPt,
@@ -291,7 +294,9 @@ library MarketMathCore {
 
         if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
-            require(postFeeExchangeRate >= Math.IONE, "exchange rate below 1");
+            if (postFeeExchangeRate < Math.IONE)
+                revert Errors.MarketExchangeRateBelowOne(postFeeExchangeRate);
+
             fee = preFeeAssetToAccount.mulDown(Math.IONE - fee);
         } else {
             fee = ((preFeeAssetToAccount * (Math.IONE - fee)) / fee).neg();
@@ -322,7 +327,8 @@ library MarketMathCore {
             comp.rateAnchor,
             timeToExpiry
         );
-        require(market.lastLnImpliedRate != 0, "zero lnImpliedRate");
+
+        if (market.lastLnImpliedRate == 0) revert Errors.MarketZeroLnImpliedRate();
     }
 
     function _getRateAnchor(
@@ -334,7 +340,7 @@ library MarketMathCore {
     ) internal pure returns (int256 rateAnchor) {
         int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastLnImpliedRate, timeToExpiry);
 
-        require(newExchangeRate >= Math.IONE, "exchange rate below 1");
+        if (newExchangeRate < Math.IONE) revert Errors.MarketExchangeRateBelowOne(newExchangeRate);
 
         {
             int256 proportion = totalPt.divDown(totalPt + totalAsset);
@@ -386,17 +392,17 @@ library MarketMathCore {
 
         int256 proportion = (numerator.divDown(totalPt + totalAsset));
 
-        require(proportion <= MAX_MARKET_PROPORTION, "max proportion exceeded");
+        if (proportion > MAX_MARKET_PROPORTION) revert Errors.MarketProportionTooHigh(proportion);
 
         int256 lnProportion = _logProportion(proportion);
 
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
 
-        require(exchangeRate >= Math.IONE, "exchange rate below 1");
+        if (exchangeRate < Math.IONE) revert Errors.MarketExchangeRateBelowOne(exchangeRate);
     }
 
     function _logProportion(int256 proportion) internal pure returns (int256 res) {
-        require(proportion != Math.IONE, "proportion must not be one");
+        if (proportion == Math.IONE) revert Errors.MarketProportionMustNotEqualOne();
 
         int256 logitP = proportion.divDown(Math.IONE - proportion);
 
@@ -409,7 +415,7 @@ library MarketMathCore {
         returns (int256 rateScalar)
     {
         rateScalar = (market.scalarRoot * IMPLIED_RATE_TIME.Int()) / timeToExpiry.Int();
-        require(rateScalar > 0, "rateScalar underflow");
+        if (rateScalar <= 0) revert Errors.MarketRateScalarTooLow(rateScalar);
     }
 
     function setInitialLnImpliedRate(
@@ -421,7 +427,7 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
-        require(blockTime < market.expiry, "market expired");
+        if (MiniHelpers.isExpired(market.expiry, blockTime)) revert Errors.MarketExpired();
 
         /// ------------------------------------------------------------
         /// MATH

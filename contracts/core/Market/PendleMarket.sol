@@ -12,6 +12,7 @@ import "../../libraries/OracleLib.sol";
 import "../../libraries/math/LogExpMath.sol";
 import "../../libraries/math/Math.sol";
 import "../../libraries/helpers/MiniHelpers.sol";
+import "../../libraries/Errors.sol";
 
 import "../LiquidityMining/PendleGauge.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -79,7 +80,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         (_storage.observationCardinality, _storage.observationCardinalityNext) = observations
             .initialize(uint32(block.timestamp));
 
-        require(_scalarRoot > 0, "scalarRoot must be positive");
+        if (_scalarRoot <= 0) revert Errors.MarketScalarRootTooLow(_scalarRoot);
+
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
         expiry = IPPrincipalToken(_PT).expiry();
@@ -125,11 +127,10 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        require(
-            IERC20(SCY).balanceOf(address(this)) >= market.totalScy.Uint(),
-            "insufficient SCY"
-        );
-        require(IERC20(PT).balanceOf(address(this)) >= market.totalPt.Uint(), "insufficient PT");
+        if (_selfBalance(SCY) < market.totalScy.Uint())
+            revert Errors.MarketInsufficientSCY(_selfBalance(SCY), market.totalScy.Uint());
+        if (_selfBalance(PT) < market.totalPt.Uint())
+            revert Errors.MarketInsufficientPT(_selfBalance(PT), market.totalPt.Uint());
 
         emit Mint(receiver, netLpOut, netScyUsed, netPtUsed);
     }
@@ -189,8 +190,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
             IPMarketSwapCallback(msg.sender).swapCallback(exactPtIn.neg(), netScyOut.Int(), data);
         }
 
-        // have received enough PT
-        require(market.totalPt.Uint() <= IERC20(PT).balanceOf(address(this)), "insufficient PT");
+        if (_selfBalance(PT) < market.totalPt.Uint())
+            revert Errors.MarketInsufficientPT(_selfBalance(PT), market.totalPt.Uint());
 
         emit Swap(receiver, exactPtIn.neg(), netScyOut.Int(), netScyToReserve);
     }
@@ -227,10 +228,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         }
 
         // have received enough SCY
-        require(
-            market.totalScy.Uint() <= IERC20(SCY).balanceOf(address(this)),
-            "insufficient SCY"
-        );
+        if (_selfBalance(SCY) < market.totalScy.Uint())
+            revert Errors.MarketInsufficientSCY(_selfBalance(SCY), market.totalScy.Uint());
 
         emit Swap(receiver, exactPtOut.Int(), netScyIn.neg(), netScyToReserve);
     }
@@ -238,8 +237,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     /// @notice force balances to match reserves
     function skim() external nonReentrant {
         MarketState memory market = readState();
-        uint256 excessPt = IERC20(PT).balanceOf(address(this)) - market.totalPt.Uint();
-        uint256 excessScy = IERC20(SCY).balanceOf(address(this)) - market.totalScy.Uint();
+        uint256 excessPt = _selfBalance(PT) - market.totalPt.Uint();
+        uint256 excessScy = _selfBalance(SCY) - market.totalScy.Uint();
         IERC20(PT).safeTransfer(market.treasury, excessPt);
         IERC20(SCY).safeTransfer(market.treasury, excessScy);
     }

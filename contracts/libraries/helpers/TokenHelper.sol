@@ -83,6 +83,10 @@ abstract contract TokenHelper {
         return (token == NATIVE) ? address(this).balance : IERC20(token).balanceOf(address(this));
     }
 
+    function _selfBalance(IERC20 token) internal view returns (uint256) {
+        return token.balanceOf(address(this));
+    }
+
     function _selfBalances(address[] memory tokens)
         internal
         view
