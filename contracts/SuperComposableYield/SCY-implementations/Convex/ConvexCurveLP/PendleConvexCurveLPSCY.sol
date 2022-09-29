@@ -88,7 +88,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
      * If any of the base curve pool tokens is specified as 'tokenOut',
      * it will redeem the corresponding liquidity the LP token represents via the prevailing exchange rate.
      */
-    function _redeem(address tokenOut, uint256 amountSharesToRedeem)
+    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
         internal
         virtual
         override
@@ -108,6 +108,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
             // 'tokenOut' is LP
             amountTokenOut = amountSharesToRedeem;
         }
+        if (receiver != address(this)) _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////

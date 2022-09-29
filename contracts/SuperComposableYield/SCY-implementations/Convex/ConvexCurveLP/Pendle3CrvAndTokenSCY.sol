@@ -50,17 +50,18 @@ contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
         }
     }
 
-    function _redeem(address tokenOut, uint256 amountSharesToRedeem)
+    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
         internal
         virtual
         override
         returns (uint256 amountTokenOut)
     {
         if (Pendle3CrvHelper.is3CrvToken(tokenOut)) {
-            uint256 amountLp = super._redeem(Pendle3CrvHelper.TOKEN, amountSharesToRedeem);
-            return Pendle3CrvHelper.redeem3Crv(tokenOut, amountLp);
+            uint256 amountLp = super._redeem(address(this), Pendle3CrvHelper.TOKEN, amountSharesToRedeem);
+            amountTokenOut = Pendle3CrvHelper.redeem3Crv(tokenOut, amountLp);
+            _transferOut(tokenOut, receiver, amountTokenOut);
         } else {
-            return super._redeem(tokenOut, amountSharesToRedeem);
+            return super._redeem(receiver, tokenOut, amountSharesToRedeem);
         }
     }
 
