@@ -119,6 +119,10 @@ library Math {
         return int128(x);
     }
 
+    function Int128(uint256 x) internal pure returns (int128) {
+        return Int128(Int(x));
+    }
+
     /*///////////////////////////////////////////////////////////////
                                UNSIGNED CASTS
     //////////////////////////////////////////////////////////////*/
