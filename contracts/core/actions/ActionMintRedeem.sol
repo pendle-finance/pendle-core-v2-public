@@ -191,6 +191,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
+
+        if (netTokenOut < dataSwap.minTokenOut)
+            revert Errors.RouterInsufficientTokenOut(netTokenOut, dataSwap.minTokenOut);
+
         amountsSwapped = tokensOut.amounts;
 
         emit RedeemDueInterestAndRewardsThenSwapAll(

@@ -147,6 +147,7 @@ interface IPActionMintRedeem {
         bytes[] kybercalls;
         //
         address outputToken;
+        uint256 minTokenOut;
     }
 
     function redeemDueInterestAndRewardsThenSwapAll(
