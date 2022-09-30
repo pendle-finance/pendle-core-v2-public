@@ -213,9 +213,7 @@ contract PendleYieldToken is
 
     /// @dev maximize the current rate with the previous rate to guarantee non-decreasing rate
     function pyIndexCurrent() public nonReentrant returns (uint256 currentIndex) {
-        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _pyIndexStored);
-        _pyIndexStored = currentIndex.Uint128();
-        emit NewInterestIndex(currentIndex);
+        currentIndex = _pyIndexCurrent();
     }
 
     function setPostExpiryData() external nonReentrant {
@@ -256,7 +254,7 @@ contract PendleYieldToken is
     ) internal returns (uint256[] memory amountPYOuts) {
         amountPYOuts = new uint256[](amountScyToMints.length);
 
-        uint256 index = pyIndexCurrent();
+        uint256 index = _pyIndexCurrent();
 
         for (uint256 i = 0; i < amountScyToMints.length; i++) {
             amountPYOuts[i] = _calcPYToMint(amountScyToMints[i], index);
@@ -290,7 +288,7 @@ contract PendleYieldToken is
         IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
-        uint256 index = pyIndexCurrent();
+        uint256 index = _pyIndexCurrent();
         uint256 totalScyInterestPostExpiry;
         amountScyOuts = new uint256[](receivers.length);
 
@@ -351,7 +349,7 @@ contract PendleYieldToken is
 
         _redeemExternalReward(); // do a final redeem. All the future reward income will belong to the treasury
 
-        local.firstPYIndex = pyIndexCurrent().Uint128();
+        local.firstPYIndex = _pyIndexCurrent().Uint128();
         address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
         uint256[] memory rewardIndexes = ISuperComposableYield(SCY).rewardIndexesCurrent();
         for (uint256 i = 0; i < rewardTokens.length; i++) {
@@ -366,7 +364,13 @@ contract PendleYieldToken is
 
     function _getInterestIndex() internal virtual override returns (uint256 index) {
         if (isExpired()) index = postExpiry.firstPYIndex;
-        else index = pyIndexCurrent();
+        else index = _pyIndexCurrent();
+    }
+
+    function _pyIndexCurrent() internal returns (uint256 currentIndex) {
+        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _pyIndexStored);
+        _pyIndexStored = currentIndex.Uint128();
+        emit NewInterestIndex(currentIndex);
     }
 
     function _YTbalance(address user) internal view override returns (uint256) {
