@@ -28,7 +28,7 @@ contract PendleERC20Permit is PendleERC20, IERC20Permit, EIP712 {
         string memory name_,
         string memory symbol_,
         uint8 decimals_
-    ) PendleERC20(name_, symbol_, decimals) EIP712(name_, "1") {}
+    ) PendleERC20(name_, symbol_, decimals_) EIP712(name_, "1") {}
 
     /**
      * @dev See {IERC20Permit-permit}.
