@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 import "../../interfaces/ISuperComposableYield.sol";
 import "../../libraries/RewardManager.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";

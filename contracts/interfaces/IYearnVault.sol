@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 interface IYearnVault {
     function deposit(uint256 amount) external returns (uint256);
