@@ -4,6 +4,10 @@ pragma solidity 0.8.17;
 /// Adapted from UniswapV3's Oracle
 
 library Errors {
+    // APPROX
+    error ApproxFail();
+    error ApproxGuessRangeInvalid(uint256 guessMin, uint256 guessMax);
+
     // MARKET + MARKET MATH CORE
     error MarketExpired();
     error MarketZeroAmountsInput();
@@ -70,7 +74,7 @@ library Errors {
     // SCY-specific
     error SCYQiTokenMintFailed(uint256 errCode);
     error SCYQiTokenRedeemFailed(uint256 errCode);
-    error SCYQiTokenRedeemRewardsFailed(uint256 rewardAccuredType0, uint256 rewardAccuredType1);
+    error SCYQiTokenRedeemRewardsFailed(uint256 rewardAccruedType0, uint256 rewardAccruedType1);
     error SCYQiTokenBorrowRateTooHigh(uint256 borrowRate, uint256 borrowRateMax);
 
     error SCYCurveInvalidPid();
