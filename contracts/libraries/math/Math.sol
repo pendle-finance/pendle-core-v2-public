@@ -157,7 +157,7 @@ library Math {
         uint256 b,
         uint256 eps
     ) internal pure returns (bool) {
-        return (isAGreaterApproxB(a, b, eps) || isASmallerApproxB(a, b, eps));
+        return mulDown(b, ONE - eps) <= a && a <= mulDown(b, ONE + eps);
     }
 
     function isAGreaterApproxB(
