@@ -308,8 +308,6 @@ library MarketApproxPtInLib {
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
         res.eps = _approx.eps;
-
-        require(res.guessMin <= res.guessMax && res.eps <= Math.ONE, "invalid approx params");
     }
 
     function calcMaxPtIn(int256 totalAsset) internal pure returns (uint256) {
@@ -338,8 +336,8 @@ library MarketApproxPtInLib {
         returns (uint256)
     {
         if (iter == 0 && p.guessOffchain != 0) return p.guessOffchain;
-        else if (p.guessMin > p.guessMax) return p.guessMax;
-        else return (p.guessMin + p.guessMax) / 2;
+        if (p.guessMin <= p.guessMax) return (p.guessMin + p.guessMax) / 2;
+        revert("guess range error");
     }
 
     function calcSlope(
@@ -635,8 +633,6 @@ library MarketApproxPtOutLib {
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
         res.eps = _approx.eps;
-
-        require(res.guessMin <= res.guessMax && res.eps <= Math.ONE, "invalid approx params");
     }
 
     function calcMaxPtOut(MarketPreCompute memory comp, int256 totalPt)
@@ -654,7 +650,7 @@ library MarketApproxPtOutLib {
 
     function nextGuess(ApproxParamsPtOut memory p, uint256 iter) private pure returns (uint256) {
         if (iter == 0 && p.guessOffchain != 0) return p.guessOffchain;
-        else if (p.guessMin > p.guessMax) return p.guessMax;
-        else return (p.guessMin + p.guessMax) / 2;
+        if (p.guessMin <= p.guessMax) return (p.guessMin + p.guessMax) / 2;
+        revert("guess range error");
     }
 }
