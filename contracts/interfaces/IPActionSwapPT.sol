@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../libraries/math/MarketApproxLib.sol";
-import "../libraries/kyberswap/KyberSwapHelper.sol";
+import "../router/base/MarketApproxLib.sol";
+import "../router/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionSwapPT {
     event SwapPtAndScy(

@@ -4,9 +4,11 @@ pragma solidity 0.8.17;
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-import "../PendleERC20Permit.sol";
-import "../../libraries/helpers/MiniHelpers.sol";
-import "../../libraries/Errors.sol";
+import "../../core-libraries/MiniHelpers.sol";
+import "../../core-libraries/Errors.sol";
+
+import "../erc20/PendleERC20Permit.sol";
+
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {

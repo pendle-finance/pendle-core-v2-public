@@ -4,13 +4,13 @@ pragma solidity 0.8.17;
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPInterestManagerYT.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../libraries/math/Math.sol";
-import "../../interfaces/IPYieldContractFactory.sol";
-import "../../libraries/SCY/SCYUtils.sol";
-import "../../libraries/helpers/TokenHelper.sol";
+import "../../core-libraries/math/Math.sol";
+import "../../core-libraries/TokenHelper.sol";
+import "../SuperComposableYield/SCYUtils.sol";
 
 /*
 With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should

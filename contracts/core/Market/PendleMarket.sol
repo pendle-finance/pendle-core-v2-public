@@ -1,21 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../PendleERC20Permit.sol";
-import "../../interfaces/IPPrincipalToken.sol";
-import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 
-import "../../libraries/OracleLib.sol";
-import "../../libraries/math/LogExpMath.sol";
-import "../../libraries/math/Math.sol";
-import "../../libraries/helpers/MiniHelpers.sol";
-import "../../libraries/Errors.sol";
-
-import "../LiquidityMining/PendleGauge.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../erc20/PendleERC20Permit.sol";
+import "./PendleGauge.sol";
+import "./OracleLib.sol";
 
 /**
 Invariance to maintain:

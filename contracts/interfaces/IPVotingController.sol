@@ -1,7 +1,7 @@
 pragma solidity 0.8.17;
 
-import "../libraries/VeBalanceLib.sol";
-import "../libraries/VeHistoryLib.sol";
+import "../LiquidityMining/libraries/VeBalanceLib.sol";
+import "../LiquidityMining/libraries/VeHistoryLib.sol";
 
 interface IPVotingController {
     event AddPool(uint64 indexed chainId, address indexed pool);

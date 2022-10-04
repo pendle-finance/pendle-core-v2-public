@@ -4,13 +4,14 @@ pragma solidity 0.8.17;
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../interfaces/IPVotingEscrowMainchain.sol";
-import "../periphery/BoringOwnableUpgradeable.sol";
+
 import "./MarketMathStatic.sol";
+
+import "../core-libraries/BoringOwnableUpgradeable.sol";
+import "../LiquidityMining/libraries/VeBalanceLib.sol";
+
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../periphery/BoringOwnableUpgradeable.sol";
-import "../libraries/math/WeekMath.sol";
-import "../libraries/Errors.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
 contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {

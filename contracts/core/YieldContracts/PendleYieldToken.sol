@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
-import "../../libraries/math/Math.sol";
-import "../../libraries/helpers/ArrayLib.sol";
+import "../../core-libraries/math/Math.sol";
+import "../../core-libraries/ArrayLib.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../../libraries/SCY/SCYUtils.sol";
-import "../../libraries/Errors.sol";
-import "../../libraries/helpers/MiniHelpers.sol";
-import "../../libraries/RewardManagerAbstract.sol";
-import "../PendleERC20Permit.sol";
+import "../SuperComposableYield/SCYUtils.sol";
+import "../../core-libraries/Errors.sol";
+import "../../core-libraries/MiniHelpers.sol";
+
+import "../RewardManager/RewardManagerAbstract.sol";
+import "../erc20/PendleERC20Permit.sol";
 import "./InterestManagerYT.sol";
 
 /**

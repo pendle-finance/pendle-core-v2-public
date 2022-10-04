@@ -6,12 +6,12 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
-import "../../libraries/helpers/BaseSplitCodeFactory.sol";
-import "../../libraries/Errors.sol";
-import "../../periphery/BoringOwnableUpgradeable.sol";
+import "../../core-libraries/BaseSplitCodeFactory.sol";
+import "../../core-libraries/Errors.sol";
+import "../../core-libraries/BoringOwnableUpgradeable.sol";
 
 import "./PendleMarket.sol";
-import "../LiquidityMining/PendleGauge.sol";
+import "./PendleGauge.sol";
 
 contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;

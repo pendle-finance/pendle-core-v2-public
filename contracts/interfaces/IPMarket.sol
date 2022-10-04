@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
 import "./ISuperComposableYield.sol";
-import "../libraries/math/MarketMathCore.sol";
 import "./IPGauge.sol";
+import "../core/market/MarketMathCore.sol";
 
 interface IPMarket is IERC20Metadata, IPGauge {
     event Mint(

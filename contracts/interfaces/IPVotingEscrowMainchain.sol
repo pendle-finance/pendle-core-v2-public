@@ -3,8 +3,8 @@
 pragma solidity 0.8.17;
 
 import "./IPVeToken.sol";
-import "../libraries/VeBalanceLib.sol";
-import "../libraries/VeHistoryLib.sol";
+import "../LiquidityMining/libraries/VeBalanceLib.sol";
+import "../LiquidityMining/libraries/VeHistoryLib.sol";
 
 interface IPVotingEscrowMainchain is IPVeToken {
     event NewLockPosition(address indexed user, uint128 amount, uint128 expiry);

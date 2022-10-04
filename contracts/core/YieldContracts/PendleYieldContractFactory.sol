@@ -28,12 +28,11 @@ import "../../interfaces/IPYieldContractFactory.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "../../libraries/helpers/ExpiryUtilsLib.sol";
-import "../../libraries/helpers/BaseSplitCodeFactory.sol";
-import "../../libraries/helpers/MiniHelpers.sol";
-import "../../libraries/Errors.sol";
-
-import "../../periphery/BoringOwnableUpgradeable.sol";
+import "../../core-libraries/ExpiryUtilsLib.sol";
+import "../../core-libraries/BaseSplitCodeFactory.sol";
+import "../../core-libraries/MiniHelpers.sol";
+import "../../core-libraries/Errors.sol";
+import "../../core-libraries/BoringOwnableUpgradeable.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
