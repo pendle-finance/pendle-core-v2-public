@@ -9,7 +9,11 @@ import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
-contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg {
+contract VotingEscrowPendleSidechain is
+    VotingEscrowTokenBase,
+    PendleMsgReceiverAppUpg,
+    BoringOwnableUpgradeable
+{
     mapping(address => address) internal delegatorOf;
 
     event SetNewDelegator(address delegator, address receiver);

@@ -10,7 +10,7 @@ import "../../core-libraries/Errors.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp, BoringOwnableUpgradeable {
+abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp {
     address public immutable pendleMsgReceiveEndpoint;
 
     uint256[100] private __gap;
