@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "./base/ActionBaseMintRedeem.sol";
 import "../interfaces/IPActionAddRemoveLiq.sol";
 import "../interfaces/IPMarket.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/Errors.sol";
 
 contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using Math for uint256;

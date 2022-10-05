@@ -5,7 +5,7 @@ import "./base/ActionBaseMintRedeem.sol";
 import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYT.sol";
 import "../interfaces/IPMarket.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/Errors.sol";
 
 contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using Math for uint256;

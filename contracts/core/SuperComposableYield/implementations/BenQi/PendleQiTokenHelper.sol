@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../../../../interfaces/IQiToken.sol";
-import "../../../../core-libraries/Errors.sol";
+import "../../../libraries/Errors.sol";
 
 contract PendleQiTokenHelper {
     IQiToken private immutable qiToken;

@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../interfaces/IPMarketFactory.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/Errors.sol";
 
 import "./base/MarketApproxLib.sol";
 import "./base/ActionBaseMintRedeem.sol";

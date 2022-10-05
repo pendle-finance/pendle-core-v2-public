@@ -2,10 +2,10 @@
 pragma solidity 0.8.17;
 
 import "../kyberswap/KyberSwapHelper.sol";
-import "../../core-libraries/TokenHelper.sol";
+import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../core-libraries/Errors.sol";
+import "../../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {

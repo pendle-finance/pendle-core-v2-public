@@ -5,7 +5,7 @@ import "./PendleFeeDistributor.sol";
 import "../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
 import "../../interfaces/IPFeeDistributorFactory.sol";
-import "../../core-libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
 import "../libraries/VeHistoryLib.sol";
 import "../libraries/WeekMath.sol";
 

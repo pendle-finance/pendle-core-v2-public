@@ -6,9 +6,9 @@ import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
 
-import "../../core-libraries/BaseSplitCodeFactory.sol";
-import "../../core-libraries/Errors.sol";
-import "../../core-libraries/BoringOwnableUpgradeable.sol";
+import "../libraries/BaseSplitCodeFactory.sol";
+import "../libraries/Errors.sol";
+import "../libraries/BoringOwnableUpgradeable.sol";
 
 import "./PendleMarket.sol";
 import "./PendleGauge.sol";

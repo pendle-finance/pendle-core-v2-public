@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../core-libraries/math/Math.sol";
-import "../../core-libraries/Errors.sol";
-import "../../core-libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/Errors.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
 import "../libraries/WeekMath.sol";
 

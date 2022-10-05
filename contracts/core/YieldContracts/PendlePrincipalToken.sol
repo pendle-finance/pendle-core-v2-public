@@ -4,8 +4,8 @@ pragma solidity 0.8.17;
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-import "../../core-libraries/MiniHelpers.sol";
-import "../../core-libraries/Errors.sol";
+import "../libraries/MiniHelpers.sol";
+import "../libraries/Errors.sol";
 
 import "../erc20/PendleERC20Permit.sol";
 

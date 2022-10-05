@@ -4,8 +4,8 @@ pragma solidity 0.8.17;
 import "../../interfaces/ICelerMessageReceiverApp.sol";
 import "../../interfaces/IPMsgReceiverApp.sol";
 import "../../interfaces/ICelerMessageBus.sol";
-import "../../core-libraries/BoringOwnableUpgradeable.sol";
-import "../../core-libraries/Errors.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/Errors.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract PendleMsgReceiveEndpointUpg is

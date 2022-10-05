@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 import "../../interfaces/IRewardManager.sol";
 
-import "../../core-libraries/ArrayLib.sol";
-import "../../core-libraries/TokenHelper.sol";
-import "../../core-libraries/math/Math.sol";
+import "../libraries/ArrayLib.sol";
+import "../libraries/TokenHelper.sol";
+import "../libraries/math/Math.sol";
 
 import "./RewardManagerAbstract.sol";
 

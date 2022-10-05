@@ -2,8 +2,8 @@
 pragma solidity 0.8.17;
 
 import "../../interfaces/IPMsgReceiverApp.sol";
-import "../../core-libraries/BoringOwnableUpgradeable.sol";
-import "../../core-libraries/Errors.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 /// This contract is upgradable because

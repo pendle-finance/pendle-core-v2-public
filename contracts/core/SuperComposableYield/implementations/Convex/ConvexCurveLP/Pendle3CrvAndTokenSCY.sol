@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "./PendleConvexCurveLP2PoolSCY.sol";
 import "../Pendle3CrvHelper.sol";
-import "../../../../../core-libraries/ArrayLib.sol";
+import "../../../../libraries/ArrayLib.sol";
 
 contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
     using ArrayLib for address[];

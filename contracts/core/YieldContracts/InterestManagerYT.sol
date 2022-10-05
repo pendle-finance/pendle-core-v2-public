@@ -8,8 +8,8 @@ import "../../interfaces/IPYieldContractFactory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../core-libraries/math/Math.sol";
-import "../../core-libraries/TokenHelper.sol";
+import "../libraries/math/Math.sol";
+import "../libraries/TokenHelper.sol";
 import "../SuperComposableYield/SCYUtils.sol";
 
 /*

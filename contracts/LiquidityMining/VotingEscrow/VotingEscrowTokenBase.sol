@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "../../interfaces/IPVeToken.sol";
 
-import "../../core-libraries/MiniHelpers.sol";
+import "../../core/libraries/MiniHelpers.sol";
 
 import "../libraries/VeBalanceLib.sol";
 import "../libraries/WeekMath.sol";

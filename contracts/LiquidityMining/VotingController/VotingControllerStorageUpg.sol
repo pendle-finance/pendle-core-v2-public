@@ -8,8 +8,8 @@ import "../libraries/VeBalanceLib.sol";
 import "../libraries/WeekMath.sol";
 import "../libraries/VeHistoryLib.sol";
 
-import "../../core-libraries/MiniHelpers.sol";
-import "../../core-libraries/Errors.sol";
+import "../../core/libraries/MiniHelpers.sol";
+import "../../core/libraries/Errors.sol";
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 

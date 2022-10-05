@@ -7,7 +7,7 @@ import "../interfaces/IPVotingEscrowMainchain.sol";
 
 import "./MarketMathStatic.sol";
 
-import "../core-libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../LiquidityMining/libraries/VeBalanceLib.sol";
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";

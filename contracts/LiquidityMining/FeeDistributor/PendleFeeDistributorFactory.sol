@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "./PendleFeeDistributor.sol";
 import "./EpochResultManager.sol";
 
-import "../../core-libraries/BaseSplitCodeFactory.sol";
+import "../../core/libraries/BaseSplitCodeFactory.sol";
 
 import "../../interfaces/IBoringOwnableUpgradeable.sol";
 import "../../interfaces/IPFeeDistributorFactory.sol";

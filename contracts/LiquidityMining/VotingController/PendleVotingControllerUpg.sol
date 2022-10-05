@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "./VotingControllerStorageUpg.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 import "../libraries/VeBalanceLib.sol";
-import "../../core-libraries/math/Math.sol";
+import "../../core/libraries/math/Math.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";

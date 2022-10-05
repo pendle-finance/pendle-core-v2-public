@@ -4,7 +4,7 @@ import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
 import "./SCYUtils.sol";
-import "../../core-libraries/math/Math.sol";
+import "../libraries/math/Math.sol";
 
 type PYIndex is uint256;
 

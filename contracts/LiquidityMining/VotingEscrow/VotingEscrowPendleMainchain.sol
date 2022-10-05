@@ -7,8 +7,8 @@ import "../../interfaces/IPVotingEscrowMainchain.sol";
 
 import "../libraries/VeHistoryLib.sol";
 
-import "../../core-libraries/MiniHelpers.sol";
-import "../../core-libraries/Errors.sol";
+import "../../core/libraries/MiniHelpers.sol";
+import "../../core/libraries/Errors.sol";
 
 import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";

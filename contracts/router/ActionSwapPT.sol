@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "./base/ActionBaseMintRedeem.sol";
 import "../interfaces/IPActionSwapPT.sol";
 import "../interfaces/IPMarket.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/Errors.sol";
 
 contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;

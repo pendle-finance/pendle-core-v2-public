@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "../../interfaces/ISuperComposableYield.sol";
 
-import "../../core-libraries/math/Math.sol";
+import "../libraries/math/Math.sol";
 import "./SCYBase.sol";
 
 /// NOTE: yieldToken MUST NEVER BE a rewardToken, else the rewardManager will behave erroneously

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPActionMisc.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/Errors.sol";
 
 contract ActionMisc is IPActionMisc {
     using Math for uint256;

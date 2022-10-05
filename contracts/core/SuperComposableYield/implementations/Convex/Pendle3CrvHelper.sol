@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../../../../interfaces/Curve/ICrvPool.sol";
-import "../../../../core-libraries/math/Math.sol";
+import "../../../libraries/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 library Pendle3CrvHelper {

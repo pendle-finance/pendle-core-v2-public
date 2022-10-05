@@ -8,9 +8,9 @@ import "../../interfaces/ISuperComposableYield.sol";
 import "../erc20/PendleERC20Permit.sol";
 
 import "../RewardManager/RewardManager.sol";
-import "../../core-libraries/math/Math.sol";
-import "../../core-libraries/TokenHelper.sol";
-import "../../core-libraries/Errors.sol";
+import "../libraries/math/Math.sol";
+import "../libraries/TokenHelper.sol";
+import "../libraries/Errors.sol";
 import "./SCYUtils.sol";
 
 abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelper {

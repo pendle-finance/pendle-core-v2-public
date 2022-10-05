@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
-import "../core-libraries/BoringOwnableUpgradeable.sol";
-import "../core-libraries/Errors.sol";
+import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/Errors.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
 /// calls to the ERC1967 proxy will be resolved at this contract, and proxied again to the

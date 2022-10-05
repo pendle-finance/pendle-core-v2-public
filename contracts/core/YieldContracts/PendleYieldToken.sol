@@ -7,12 +7,12 @@ import "../../interfaces/ISuperComposableYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
-import "../../core-libraries/math/Math.sol";
-import "../../core-libraries/ArrayLib.sol";
+import "../libraries/math/Math.sol";
+import "../libraries/ArrayLib.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../SuperComposableYield/SCYUtils.sol";
-import "../../core-libraries/Errors.sol";
-import "../../core-libraries/MiniHelpers.sol";
+import "../libraries/Errors.sol";
+import "../libraries/MiniHelpers.sol";
 
 import "../RewardManager/RewardManagerAbstract.sol";
 import "../erc20/PendleERC20Permit.sol";
