@@ -6,7 +6,7 @@ import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
 import "./ISuperComposableYield.sol";
 import "./IPGauge.sol";
-import "../core/market/MarketMathCore.sol";
+import "../core/Market/MarketMathCore.sol";
 
 interface IPMarket is IERC20Metadata, IPGauge {
     event Mint(

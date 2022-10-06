@@ -6,7 +6,7 @@ pragma solidity 0.8.17;
 library Errors {
     // APPROX
     error ApproxFail();
-    error ApproxGuessRangeInvalid(uint256 guessMin, uint256 guessMax);
+    error ApproxParamsInvalid(uint256 guessMin, uint256 guessMax, uint256 eps);
 
     // MARKET + MARKET MATH CORE
     error MarketExpired();

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../core/market/MarketMathCore.sol";
+import "../../core/libraries/math/Math.sol";
+import "../../core/Market/MarketMathCore.sol";
 
 struct ApproxParams {
     uint256 guessMin;
@@ -302,6 +303,9 @@ library MarketApproxPtInLib {
         pure
         returns (ApproxParamsPtIn memory res)
     {
+        if (_approx.guessMin > _approx.guessMax || _approx.eps > Math.ONE)
+            revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
+
         res.guessMin = _approx.guessMin;
         res.guessMax = Math.min(_approx.guessMax, calcMaxPtIn(totalAsset));
         res.guessOffchain = _approx.guessOffchain;
@@ -329,6 +333,10 @@ library MarketApproxPtInLib {
         return (true, guess);
     }
 
+    /**
+     * @dev it is safe to assume that p.guessMin <= p.guessMax from the initialization of p
+     * So once guessMin becomes larger, it should always be the case of ApproxFail
+     */
     function _nextGuessPrivate(ApproxParamsPtIn memory p, uint256 iter)
         private
         pure
@@ -336,7 +344,7 @@ library MarketApproxPtInLib {
     {
         if (iter == 0 && p.guessOffchain != 0) return p.guessOffchain;
         if (p.guessMin <= p.guessMax) return (p.guessMin + p.guessMax) / 2;
-        revert Errors.ApproxGuessRangeInvalid(p.guessMin, p.guessMax);
+        revert Errors.ApproxFail();
     }
 
     function calcSlope(
@@ -628,6 +636,9 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp,
         int256 totalPt
     ) internal pure returns (ApproxParamsPtOut memory res) {
+        if (_approx.guessMin > _approx.guessMax || _approx.eps > Math.ONE)
+            revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
+
         res.guessMin = _approx.guessMin;
         res.guessMax = Math.min(_approx.guessMax, calcMaxPtOut(comp, totalPt));
         res.guessOffchain = _approx.guessOffchain;
@@ -648,9 +659,13 @@ library MarketApproxPtOutLib {
         return (maxPtOut.Uint() * 999) / 1000;
     }
 
+    /**
+     * @dev it is safe to assume that p.guessMin <= p.guessMax from the initialization of p
+     * So once guessMin becomes larger, it should always be the case of ApproxFail
+     */
     function nextGuess(ApproxParamsPtOut memory p, uint256 iter) private pure returns (uint256) {
         if (iter == 0 && p.guessOffchain != 0) return p.guessOffchain;
         if (p.guessMin <= p.guessMax) return (p.guessMin + p.guessMax) / 2;
-        revert Errors.ApproxGuessRangeInvalid(p.guessMin, p.guessMax);
+        revert Errors.ApproxFail();
     }
 }
