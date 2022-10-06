@@ -14,6 +14,7 @@ import "../../interfaces/IPMarket.sol";
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /**
  * @dev Gauge controller provides no write function to any party other than voting controller
@@ -28,7 +29,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// - its constructor only sets immutable variables
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
-abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeable {
+abstract contract PendleGaugeControllerBaseUpg is
+    IPGaugeController,
+    BoringOwnableUpgradeable,
+    UUPSUpgradeable
+{
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -148,4 +153,6 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         rwd.lastUpdated = newLastUpdated;
         return rwd;
     }
+
+    function _authorizeUpgrade(address) internal virtual override onlyOwner {}
 }
