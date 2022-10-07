@@ -74,7 +74,7 @@ library MarketApproxPtInLib {
 
         Args1 memory a = Args1(_market, _index, _minScyOut, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
+        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, 0, calcMaxPtIn(comp.totalAsset));
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
@@ -121,10 +121,13 @@ library MarketApproxPtInLib {
     {
         Args2 memory a = Args2(_market, _index, _exactScyIn, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
 
         // at minimum we will flashswap exactScyIn since we have enough SCY to payback the PT loan
-        if (p.guessMin == 0) p.guessMin = a.index.scyToAsset(a.exactScyIn);
+        ApproxParamsPtIn memory p = newApproxParamsPtIn(
+            _approx,
+            a.index.scyToAsset(a.exactScyIn),
+            calcMaxPtIn(comp.totalAsset)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             // ytOutGuess = ptInGuess
@@ -186,7 +189,11 @@ library MarketApproxPtInLib {
         require(a.market.totalLp != 0, "no existing lp");
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
+        ApproxParamsPtIn memory p = newApproxParamsPtIn(
+            _approx,
+            0,
+            Math.min(a.totalPtIn, calcMaxPtIn(comp.totalAsset))
+        );
 
         p.guessMax = Math.min(p.guessMax, a.totalPtIn);
 
@@ -256,9 +263,11 @@ library MarketApproxPtInLib {
         Args7 memory a = Args7(_market, _index, _exactPtIn, _blockTime);
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, comp.totalAsset);
-
-        p.guessMin = Math.max(p.guessMin, a.exactPtIn);
+        ApproxParamsPtIn memory p = newApproxParamsPtIn(
+            _approx,
+            a.exactPtIn,
+            calcMaxPtIn(comp.totalAsset)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
@@ -298,16 +307,17 @@ library MarketApproxPtInLib {
         netScyFee = _netScyFee.Uint();
     }
 
-    function newApproxParamsPtIn(ApproxParams memory _approx, int256 totalAsset)
-        internal
-        pure
-        returns (ApproxParamsPtIn memory res)
-    {
-        if (_approx.guessMin > _approx.guessMax || _approx.eps > Math.ONE)
+    function newApproxParamsPtIn(
+        ApproxParams memory _approx,
+        uint256 minGuessMin,
+        uint256 maxGuessMax
+    ) internal pure returns (ApproxParamsPtIn memory res) {
+        res.guessMin = Math.max(_approx.guessMin, minGuessMin);
+        res.guessMax = Math.min(_approx.guessMax, maxGuessMax);
+
+        if (res.guessMin > res.guessMax || _approx.eps > Math.ONE)
             revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
 
-        res.guessMin = _approx.guessMin;
-        res.guessMax = Math.min(_approx.guessMax, calcMaxPtIn(totalAsset));
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
         res.eps = _approx.eps;
@@ -412,7 +422,11 @@ library MarketApproxPtOutLib {
 
         Args4 memory a = Args4(_market, _index, _exactScyIn, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(
+            _approx,
+            0,
+            calcMaxPtOut(comp, a.market.totalPt)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
@@ -463,7 +477,11 @@ library MarketApproxPtOutLib {
 
         Args5 memory a = Args5(_market, _index, _minScyOut, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(
+            _approx,
+            0,
+            calcMaxPtOut(comp, a.market.totalPt)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
@@ -521,7 +539,11 @@ library MarketApproxPtOutLib {
         require(a.market.totalLp != 0, "no existing lp");
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(
+            _approx,
+            0,
+            calcMaxPtOut(comp, a.market.totalPt)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
@@ -596,9 +618,11 @@ library MarketApproxPtOutLib {
             _index.assetToScy(_exactYtIn)
         );
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxParamsPtOut memory p = newApproxParamsPtOut(_approx, comp, a.market.totalPt);
-
-        p.guessMin = Math.max(p.guessMin, a.exactYtIn);
+        ApproxParamsPtOut memory p = newApproxParamsPtOut(
+            _approx,
+            a.exactYtIn,
+            calcMaxPtOut(comp, a.market.totalPt)
+        );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
@@ -633,14 +657,15 @@ library MarketApproxPtOutLib {
 
     function newApproxParamsPtOut(
         ApproxParams memory _approx,
-        MarketPreCompute memory comp,
-        int256 totalPt
+        uint256 minGuessMin,
+        uint256 maxGuessMax
     ) internal pure returns (ApproxParamsPtOut memory res) {
-        if (_approx.guessMin > _approx.guessMax || _approx.eps > Math.ONE)
+        res.guessMin = Math.max(_approx.guessMin, minGuessMin);
+        res.guessMax = Math.min(_approx.guessMax, maxGuessMax);
+
+        if (res.guessMin > res.guessMax || _approx.eps > Math.ONE)
             revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
 
-        res.guessMin = _approx.guessMin;
-        res.guessMax = Math.min(_approx.guessMax, calcMaxPtOut(comp, totalPt));
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
         res.eps = _approx.eps;
