@@ -10,6 +10,8 @@ interface IPVotingController {
 
     event Vote(address indexed user, address indexed pool, uint64 weight, VeBalance vote);
 
+    event PoolVoteChange(address indexed pool, VeBalance vote);
+
     event SetPendlePerSec(uint256 newPendlePerSec);
 
     event BroadcastResults(
