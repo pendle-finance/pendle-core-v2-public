@@ -81,7 +81,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
     constructor(address _vePendle) {
         vePendle = IPVeToken(_vePendle);
-        deployedWTime = WeekMath.getCurrentWeekStart();
     }
 
     /*///////////////////////////////////////////////////////////////
