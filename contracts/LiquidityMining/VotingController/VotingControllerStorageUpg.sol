@@ -283,7 +283,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         }
 
         userPoolHistory[user][pool].push(newVote);
-        emit PoolVoteChange(pool, newVote);
+        emit PoolVoteChange(pool, pData.totalVote);
     }
 
     function _setAllPastEpochsAsFinalized() internal {
