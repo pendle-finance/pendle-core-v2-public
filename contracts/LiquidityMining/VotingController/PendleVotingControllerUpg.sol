@@ -58,6 +58,7 @@ contract PendleVotingControllerUpg is
 
     function initialize() external initializer {
         __BoringOwnable_init();
+        deployedWTime = WeekMath.getCurrentWeekStart();
     }
 
     /*///////////////////////////////////////////////////////////////

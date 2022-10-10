@@ -54,7 +54,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
     IPVeToken public immutable vePendle;
 
-    uint128 public immutable deployedWTime;
+    uint128 public deployedWTime;
 
     uint128 public pendlePerSec;
 
