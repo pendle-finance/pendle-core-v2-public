@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 interface ICrvPool {
+    function coins(uint256 i) external view returns (address);
+
     function get_virtual_price() external view returns (uint256);
 
     function get_dy(

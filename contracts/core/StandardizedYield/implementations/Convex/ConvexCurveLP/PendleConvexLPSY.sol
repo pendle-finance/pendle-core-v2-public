@@ -6,52 +6,43 @@ import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/Curve/ICrvPool.sol";
 
-abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
+abstract contract PendleConvexLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
 
-    uint256 public immutable pid;
-    address public immutable booster;
-    address public immutable baseRewards;
-    address public immutable crvPool;
+    uint256 public immutable cvxPid;
+    address public immutable cvxRewardManager;
 
-    address public immutable CRV;
-    address public immutable CVX;
-    address public immutable LP;
+    address public immutable crvPool;
+    address public immutable crvLp;
+
+    address public constant BOOSTER = 0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address public constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+    address public constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        uint256 _pid,
-        address _convexBooster,
-        address _crvLpToken,
-        address _cvx,
-        address _baseCrvPool
-    ) SYBaseWithRewards(_name, _symbol, _crvLpToken) {
-        pid = _pid;
-        CVX = _cvx;
-        crvPool = _baseCrvPool;
+        uint256 _cvxPid,
+        address _crvLp,
+        address _crvPool
+    ) SYBaseWithRewards(_name, _symbol, _crvLp) {
+        cvxPid = _cvxPid;
+        crvPool = _crvPool;
 
-        booster = _convexBooster;
+        (crvLp, cvxRewardManager) = _getPoolInfo(cvxPid);
+        if (crvLp != _crvLp) revert Errors.SYCurveInvalidPid();
 
-        (LP, baseRewards, CRV) = _getPoolInfo(pid);
-        if (LP != _crvLpToken) revert Errors.SYCurveInvalidPid();
-
-        _safeApprove(LP, booster, type(uint256).max);
+        _safeApprove(crvLp, BOOSTER, type(uint256).max);
     }
 
-    function _getPoolInfo(uint256 _pid)
+    function _getPoolInfo(uint256 _cvxPid)
         internal
         view
-        returns (
-            address lptoken,
-            address crvRewards,
-            address crv
-        )
+        returns (address _crvLp, address _cvxRewardManager)
     {
-        if (_pid > IBooster(booster).poolLength()) revert Errors.SYCurveInvalidPid();
+        if (_cvxPid > IBooster(BOOSTER).poolLength()) revert Errors.SYCurveInvalidPid();
 
-        (lptoken, , , crvRewards, , ) = IBooster(booster).poolInfo(_pid);
-        crv = IBooster(booster).crv();
+        (_crvLp, , , _cvxRewardManager, , ) = IBooster(BOOSTER).poolInfo(_cvxPid);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -68,17 +59,13 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
         override
         returns (uint256 amountSharesOut)
     {
-        if (tokenIn == LP) {
-            IBooster(booster).deposit(pid, amount, true);
+        if (tokenIn == crvLp) {
             amountSharesOut = amount;
         } else {
-            uint256 prevLpBalance = _selfBalance(LP);
-            _depositToCurve(tokenIn, amount);
-            amountSharesOut = _selfBalance(LP) - prevLpBalance;
-
-            // Deposit LP Token received into Convex Booster
-            IBooster(booster).deposit(pid, amountSharesOut, true);
+            amountSharesOut = _depositToCurve(tokenIn, amount);
         }
+
+        IBooster(BOOSTER).deposit(cvxPid, amountSharesOut, true);
     }
 
     /**
@@ -90,21 +77,14 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
-        IRewards(baseRewards).withdrawAndUnwrap(amountSharesToRedeem, false);
+        IRewards(cvxRewardManager).withdrawAndUnwrap(amountSharesToRedeem, false);
 
-        if (_isBaseToken(tokenOut)) {
-            uint256 prevBal = _selfBalance(tokenOut);
-            ICrvPool(crvPool).remove_liquidity_one_coin(
-                amountSharesToRedeem,
-                Math.Int128(_getBaseTokenIndex(tokenOut)),
-                0
-            );
-            amountTokenOut = _selfBalance(tokenOut) - prevBal;
-        } else {
-            // 'tokenOut' is LP
+        if (tokenOut == crvLp) {
             amountTokenOut = amountSharesToRedeem;
+        } else {
+            amountTokenOut = _redeemFromCurve(tokenOut, amountSharesToRedeem);
         }
-        if (receiver != address(this)) _transferOut(tokenOut, receiver, amountTokenOut);
+        _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -135,7 +115,7 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
 
     function _redeemExternalReward() internal virtual override {
         // Redeem all extra rewards from the curve pool
-        IRewards(baseRewards).getReward();
+        IRewards(cvxRewardManager).getReward();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -149,10 +129,9 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
         override
         returns (uint256 amountSharesOut)
     {
-        if (tokenIn == LP) {
+        if (tokenIn == crvLp) {
             amountSharesOut = amountTokenToDeposit;
         } else {
-            // Calculate expected amount of LpToken to receive
             amountSharesOut = _previewDepositToCurve(tokenIn, amountTokenToDeposit);
         }
     }
@@ -166,14 +145,10 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
     {
         uint256 amountLpTokenToReceive = (amountSharesToRedeem * exchangeRate()) / 1e18;
 
-        if (tokenOut == LP) {
+        if (tokenOut == crvLp) {
             amountTokenOut = amountLpTokenToReceive;
         } else {
-            // If 'tokenOut' is a CrvBaseToken, withdraw liquidity from curvePool to return the base token back to user.
-            amountTokenOut = ICrvPool(crvPool).calc_withdraw_one_coin(
-                amountLpTokenToReceive,
-                Math.Int128(_getBaseTokenIndex(tokenOut))
-            );
+            amountTokenOut = _previewRedeemFromCurve(tokenOut, amountLpTokenToReceive);
         }
     }
 
@@ -185,21 +160,27 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
 
     function isValidTokenOut(address token) public view virtual override returns (bool);
 
-    function _depositToCurve(address token, uint256 amount) internal virtual;
+    function _depositToCurve(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        virtual
+        returns (uint256);
 
-    function _previewDepositToCurve(address token, uint256 amount)
+    function _redeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
+        internal
+        virtual
+        returns (uint256);
+
+    function _previewDepositToCurve(address token, uint256 amountTokenToDeposit)
         internal
         view
         virtual
         returns (uint256 amountLpOut);
 
-    function _getBaseTokenIndex(address crvBaseToken)
+    function _previewRedeemFromCurve(address token, uint256 amountLpToRedeem)
         internal
         view
         virtual
-        returns (uint256 index);
-
-    function _isBaseToken(address token) internal view virtual returns (bool res);
+        returns (uint256 amountTokenOut);
 
     function assetInfo()
         external
@@ -210,6 +191,6 @@ abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
             uint8 assetDecimals
         )
     {
-        return (AssetType.LIQUIDITY, LP, IERC20Metadata(LP).decimals());
+        return (AssetType.LIQUIDITY, crvLp, IERC20Metadata(crvLp).decimals());
     }
 }
