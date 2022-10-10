@@ -12,7 +12,7 @@ import "../erc20/PendleERC20Permit.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {
-    address public immutable SCY;
+    address public immutable SY;
     address public immutable factory;
     uint256 public immutable expiry;
     address public YT;
@@ -28,13 +28,13 @@ contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalTo
     }
 
     constructor(
-        address _SCY,
+        address _SY,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleERC20Permit(_name, _symbol, __decimals) {
-        SCY = _SCY;
+        SY = _SY;
         expiry = _expiry;
         factory = msg.sender;
     }

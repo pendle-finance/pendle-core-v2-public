@@ -46,45 +46,45 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
 
     function getRouterImplementation(bytes4 sig) public view returns (address) {
         if (
-            sig == IPActionMintRedeem.mintScyFromToken.selector ||
-            sig == IPActionMintRedeem.redeemScyToToken.selector ||
+            sig == IPActionMintRedeem.mintSyFromToken.selector ||
+            sig == IPActionMintRedeem.redeemSyToToken.selector ||
             sig == IPActionMintRedeem.mintPyFromToken.selector ||
             sig == IPActionMintRedeem.redeemPyToToken.selector ||
-            sig == IPActionMintRedeem.mintPyFromScy.selector ||
-            sig == IPActionMintRedeem.redeemPyToScy.selector ||
+            sig == IPActionMintRedeem.mintPyFromSy.selector ||
+            sig == IPActionMintRedeem.redeemPyToSy.selector ||
             sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector ||
             sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector
         ) {
             return ACTION_MINT_REDEEM;
         } else if (
-            sig == IPActionAddRemoveLiq.addLiquidityDualScyAndPt.selector ||
+            sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector ||
             sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector ||
             sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector ||
-            sig == IPActionAddRemoveLiq.addLiquiditySingleScy.selector ||
+            sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector ||
             sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquidityDualScyAndPt.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector ||
             sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector ||
             sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquiditySingleScy.selector ||
+            sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector ||
             sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector
         ) {
             return ACTION_ADD_REMOVE_LIQ;
         } else if (
-            sig == IPActionSwapPT.swapExactPtForScy.selector ||
-            sig == IPActionSwapPT.swapPtForExactScy.selector ||
-            sig == IPActionSwapPT.swapScyForExactPt.selector ||
-            sig == IPActionSwapPT.swapExactScyForPt.selector ||
+            sig == IPActionSwapPT.swapExactPtForSy.selector ||
+            sig == IPActionSwapPT.swapPtForExactSy.selector ||
+            sig == IPActionSwapPT.swapSyForExactPt.selector ||
+            sig == IPActionSwapPT.swapExactSyForPt.selector ||
             sig == IPActionSwapPT.swapExactTokenForPt.selector ||
             sig == IPActionSwapPT.swapExactPtForToken.selector
         ) {
             return ACTION_SWAP_PT;
         } else if (
-            sig == IPActionSwapYT.swapExactYtForScy.selector ||
-            sig == IPActionSwapYT.swapScyForExactYt.selector ||
-            sig == IPActionSwapYT.swapExactScyForYt.selector ||
+            sig == IPActionSwapYT.swapExactYtForSy.selector ||
+            sig == IPActionSwapYT.swapSyForExactYt.selector ||
+            sig == IPActionSwapYT.swapExactSyForYt.selector ||
             sig == IPActionSwapYT.swapExactTokenForYt.selector ||
             sig == IPActionSwapYT.swapExactYtForToken.selector ||
-            sig == IPActionSwapYT.swapYtForExactScy.selector
+            sig == IPActionSwapYT.swapYtForExactSy.selector
         ) {
             return ACTION_SWAP_YT;
         } else if (

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
-import "./SCYUtils.sol";
+import "./SYUtils.sol";
 import "../libraries/math/Math.sol";
 
 type PYIndex is uint256;
@@ -16,64 +16,64 @@ library PYIndexLib {
         return PYIndex.wrap(YT.pyIndexCurrent());
     }
 
-    function scyToAsset(PYIndex index, uint256 scyAmount)
+    function syToAsset(PYIndex index, uint256 syAmount)
         internal
         pure
         returns (uint256)
     {
-        return SCYUtils.scyToAsset(PYIndex.unwrap(index), scyAmount);
+        return SYUtils.syToAsset(PYIndex.unwrap(index), syAmount);
     }
 
-    function assetToScy(PYIndex index, uint256 assetAmount)
+    function assetToSy(PYIndex index, uint256 assetAmount)
         internal
         pure
         returns (uint256)
     {
-        return SCYUtils.assetToScy(PYIndex.unwrap(index), assetAmount);
+        return SYUtils.assetToSy(PYIndex.unwrap(index), assetAmount);
     }
 
-    function assetToScyUp(PYIndex index, uint256 assetAmount)
+    function assetToSyUp(PYIndex index, uint256 assetAmount)
         internal
         pure
         returns (uint256)
     {
-        return SCYUtils.assetToScyUp(PYIndex.unwrap(index), assetAmount);
+        return SYUtils.assetToSyUp(PYIndex.unwrap(index), assetAmount);
     }
 
-    function scyToAssetUp(PYIndex index, uint256 scyAmount)
+    function syToAssetUp(PYIndex index, uint256 syAmount)
         internal
         pure
         returns (uint256)
     {
         uint256 _index = PYIndex.unwrap(index);
-        return SCYUtils.scyToAssetUp(_index, scyAmount);
+        return SYUtils.syToAssetUp(_index, syAmount);
     }
 
-    function scyToAsset(PYIndex index, int256 scyAmount)
+    function syToAsset(PYIndex index, int256 syAmount)
         internal
         pure
         returns (int256)
     {
-        int256 sign = scyAmount < 0 ? int256(-1) : int256(1);
-        return sign * (SCYUtils.scyToAsset(PYIndex.unwrap(index), scyAmount.abs())).Int();
+        int256 sign = syAmount < 0 ? int256(-1) : int256(1);
+        return sign * (SYUtils.syToAsset(PYIndex.unwrap(index), syAmount.abs())).Int();
     }
 
-    function assetToScy(PYIndex index, int256 assetAmount)
-        internal
-        pure
-        returns (int256)
-    {
-        int256 sign = assetAmount < 0 ? int256(-1) : int256(1);
-        return sign * (SCYUtils.assetToScy(PYIndex.unwrap(index), assetAmount.abs())).Int();
-    }
-
-    function assetToScyUp(PYIndex index, int256 assetAmount)
+    function assetToSy(PYIndex index, int256 assetAmount)
         internal
         pure
         returns (int256)
     {
         int256 sign = assetAmount < 0 ? int256(-1) : int256(1);
-        return sign * (SCYUtils.assetToScyUp(PYIndex.unwrap(index), assetAmount.abs())).Int();
+        return sign * (SYUtils.assetToSy(PYIndex.unwrap(index), assetAmount.abs())).Int();
+    }
+
+    function assetToSyUp(PYIndex index, int256 assetAmount)
+        internal
+        pure
+        returns (int256)
+    {
+        int256 sign = assetAmount < 0 ? int256(-1) : int256(1);
+        return sign * (SYUtils.assetToSyUp(PYIndex.unwrap(index), assetAmount.abs())).Int();
     }
 
 }

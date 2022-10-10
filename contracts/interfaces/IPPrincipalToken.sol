@@ -9,7 +9,7 @@ interface IPPrincipalToken is IERC20Metadata {
 
     function initialize(address _YT) external;
 
-    function SCY() external view returns (address);
+    function SY() external view returns (address);
 
     function YT() external view returns (address);
 

@@ -35,7 +35,7 @@ contract PendleQiTokenHelper {
         );
 
         if (borrowRateMantissa > borrowRateMaxMantissa)
-            revert Errors.SCYQiTokenBorrowRateTooHigh(borrowRateMantissa, borrowRateMaxMantissa);
+            revert Errors.SYQiTokenBorrowRateTooHigh(borrowRateMantissa, borrowRateMaxMantissa);
 
         uint256 timestampDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 

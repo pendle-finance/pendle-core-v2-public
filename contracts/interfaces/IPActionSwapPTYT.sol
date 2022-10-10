@@ -19,7 +19,7 @@ interface IPActionSwapPTYT {
         uint256 exactPtIn,
         uint256 minYtOut,
         ApproxParams calldata guessTotalPtToSwap
-    ) external returns (uint256 netYtOut, uint256 netScyFee);
+    ) external returns (uint256 netYtOut, uint256 netSyFee);
 
     function swapExactYtForPt(
         address receiver,
@@ -27,5 +27,5 @@ interface IPActionSwapPTYT {
         uint256 exactYtIn,
         uint256 minPtOut,
         ApproxParams calldata guessTotalPtSwapped
-    ) external returns (uint256 netPtOut, uint256 netScyFee);
+    ) external returns (uint256 netPtOut, uint256 netSyFee);
 }

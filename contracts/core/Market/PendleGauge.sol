@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../../interfaces/IPGauge.sol";
 import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPGaugeController.sol";
-import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IStandardizedYield.sol";
 
 import "../RewardManager/RewardManager.sol";
 
@@ -17,7 +17,7 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
 
-    address private immutable SCY;
+    address private immutable SY;
 
     uint256 internal constant TOKENLESS_PRODUCTION = 40;
 
@@ -29,11 +29,11 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     mapping(address => uint256) public activeBalance;
 
     constructor(
-        address _SCY,
+        address _SY,
         address _vePendle,
         address _gaugeController
     ) {
-        SCY = _SCY;
+        SY = _SY;
         vePENDLE = IPVeToken(_vePendle);
         gaugeController = _gaugeController;
         PENDLE = IPGaugeController(gaugeController).pendle();
@@ -94,7 +94,7 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     }
 
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).claimRewards(address(this));
+        IStandardizedYield(SY).claimRewards(address(this));
         IPGaugeController(gaugeController).redeemMarketReward();
     }
 
@@ -111,9 +111,9 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     }
 
     function _getRewardTokens() internal view virtual override returns (address[] memory) {
-        address[] memory SCYRewards = ISuperComposableYield(SCY).getRewardTokens();
-        if (SCYRewards.contains(PENDLE)) return SCYRewards;
-        return SCYRewards.append(PENDLE);
+        address[] memory SYRewards = IStandardizedYield(SY).getRewardTokens();
+        if (SYRewards.contains(PENDLE)) return SYRewards;
+        return SYRewards.append(PENDLE);
     }
 
     function _beforeTokenTransfer(

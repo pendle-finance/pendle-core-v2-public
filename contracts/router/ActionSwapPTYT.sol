@@ -13,7 +13,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
     using Math for int256;
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
-    using SafeERC20 for ISuperComposableYield;
+    using SafeERC20 for IStandardizedYield;
     using SafeERC20 for IPYieldToken;
     using SafeERC20 for IPPrincipalToken;
 
@@ -29,14 +29,14 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
         uint256 exactPtIn,
         uint256 minYtOut,
         ApproxParams calldata guessTotalPtToSwap
-    ) external returns (uint256 netYtOut, uint256 netScyFee) {
+    ) external returns (uint256 netYtOut, uint256 netSyFee) {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         MarketState memory state = IPMarket(market).readState();
 
         PT.safeTransferFrom(msg.sender, market, exactPtIn);
 
         uint256 totalPtToSwap;
-        (netYtOut, totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
+        (netYtOut, totalPtToSwap, netSyFee) = state.approxSwapExactPtForYt(
             YT.newIndex(),
             exactPtIn,
             block.timestamp,
@@ -45,7 +45,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
 
         if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
 
-        IPMarket(market).swapExactPtForScy(
+        IPMarket(market).swapExactPtForSy(
             address(YT),
             totalPtToSwap,
             _encodeSwapExactPtForYt(receiver, exactPtIn, minYtOut)
@@ -60,14 +60,14 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
         uint256 exactYtIn,
         uint256 minPtOut,
         ApproxParams calldata guessTotalPtSwapped
-    ) external returns (uint256 netPtOut, uint256 netScyFee) {
+    ) external returns (uint256 netPtOut, uint256 netSyFee) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
         MarketState memory state = IPMarket(market).readState();
 
         YT.safeTransferFrom(msg.sender, address(YT), exactYtIn);
 
         uint256 totalPtSwapped;
-        (netPtOut, totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
+        (netPtOut, totalPtSwapped, netSyFee) = state.approxSwapExactYtForPt(
             YT.newIndex(),
             exactYtIn,
             block.timestamp,
@@ -76,7 +76,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper {
 
         if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
-        IPMarket(market).swapScyForExactPt(
+        IPMarket(market).swapSyForExactPt(
             address(this),
             totalPtSwapped,
             _encodeSwapExactYtForPt(receiver, exactYtIn, minPtOut)

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "../kyberswap/KyberSwapHelper.sol";
 import "../../core/libraries/TokenHelper.sol";
-import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../core/libraries/Errors.sol";
 
@@ -17,63 +17,63 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     constructor(address _kyberSwapRouter) KyberSwapHelper(_kyberSwapRouter) {}
 
     /**
-     * @notice swap token to baseToken through Uniswap's forks & use it to mint SCY
+     * @notice swap token to baseToken through Uniswap's forks & use it to mint SY
      */
-    function _mintScyFromToken(
+    function _mintSyFromToken(
         address receiver,
-        address SCY,
-        uint256 minScyOut,
+        address SY,
+        uint256 minSyOut,
         TokenInput calldata input
-    ) internal returns (uint256 netScyOut) {
+    ) internal returns (uint256 netSyOut) {
         _transferIn(input.tokenIn, msg.sender, input.netTokenIn);
-        if (input.tokenIn != input.tokenMintScy) {
+        if (input.tokenIn != input.tokenMintSy) {
             _kyberswap(input.tokenIn, input.netTokenIn, input.kybercall);
         }
 
-        _safeApproveInf(input.tokenMintScy, SCY);
+        _safeApproveInf(input.tokenMintSy, SY);
 
-        uint256 tokenMintScyBal = _selfBalance(input.tokenMintScy);
-        uint256 nativeAmountToAttach = input.tokenMintScy == NATIVE ? tokenMintScyBal : 0;
+        uint256 tokenMintSyBal = _selfBalance(input.tokenMintSy);
+        uint256 nativeAmountToAttach = input.tokenMintSy == NATIVE ? tokenMintSyBal : 0;
 
-        netScyOut = ISuperComposableYield(SCY).deposit{ value: nativeAmountToAttach }(
+        netSyOut = IStandardizedYield(SY).deposit{ value: nativeAmountToAttach }(
             receiver,
-            input.tokenMintScy,
-            tokenMintScyBal,
-            minScyOut
+            input.tokenMintSy,
+            tokenMintSyBal,
+            minSyOut
         );
     }
 
     /**
-     * @notice redeem SCY to baseToken -> swap baseToken to token through Uniswap's forks
+     * @notice redeem SY to baseToken -> swap baseToken to token through Uniswap's forks
      */
-    function _redeemScyToToken(
+    function _redeemSyToToken(
         address receiver,
-        address SCY,
-        uint256 netScyIn,
+        address SY,
+        uint256 netSyIn,
         TokenOutput calldata output,
         bool doPull
     ) internal returns (uint256 netTokenOut) {
         if (doPull) {
-            IERC20(SCY).safeTransferFrom(msg.sender, SCY, netScyIn);
+            IERC20(SY).safeTransferFrom(msg.sender, SY, netSyIn);
         }
 
-        if (output.tokenRedeemScy == output.tokenOut) {
-            netTokenOut = ISuperComposableYield(SCY).redeem(
+        if (output.tokenRedeemSy == output.tokenOut) {
+            netTokenOut = IStandardizedYield(SY).redeem(
                 receiver,
-                netScyIn,
-                output.tokenRedeemScy,
+                netSyIn,
+                output.tokenRedeemSy,
                 output.minTokenOut,
                 true
             );
         } else {
-            uint256 netTokenRedeemed = ISuperComposableYield(SCY).redeem(
+            uint256 netTokenRedeemed = IStandardizedYield(SY).redeem(
                 address(this),
-                netScyIn,
-                output.tokenRedeemScy,
+                netSyIn,
+                output.tokenRedeemSy,
                 1,
                 true
             );
-            _kyberswap(output.tokenRedeemScy, netTokenRedeemed, output.kybercall);
+            _kyberswap(output.tokenRedeemSy, netTokenRedeemed, output.kybercall);
 
             netTokenOut = _selfBalance(output.tokenOut);
 
@@ -85,7 +85,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     }
 
     /**
-     * @notice swap token to baseToken through Uniswap's forks -> convert to SCY -> convert to PT + YT
+     * @notice swap token to baseToken through Uniswap's forks -> convert to SY -> convert to PT + YT
      */
     function _mintPyFromToken(
         address receiver,
@@ -93,16 +93,16 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 minPyOut,
         TokenInput calldata input
     ) internal returns (uint256 netPyOut) {
-        address SCY = IPYieldToken(YT).SCY();
+        address SY = IPYieldToken(YT).SY();
 
-        _mintScyFromToken(YT, SCY, 1, input);
+        _mintSyFromToken(YT, SY, 1, input);
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         if (netPyOut < minPyOut) revert Errors.RouterInsufficientPYOut(netPyOut, minPyOut);
     }
 
     /**
-     * @notice redeem PT + YT to SCY -> redeem SCY to baseToken -> swap baseToken to token through Uniswap's forks.
+     * @notice redeem PT + YT to SY -> redeem SY to baseToken -> swap baseToken to token through Uniswap's forks.
         If the YT hasn't expired, both PT & YT will be needed to redeem. Else, only PT is needed
      */
     function _redeemPyToToken(
@@ -113,7 +113,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         bool doPull
     ) internal returns (uint256 netTokenOut) {
         address PT = IPYieldToken(YT).PT();
-        address SCY = IPYieldToken(YT).SCY();
+        address SY = IPYieldToken(YT).SY();
 
         if (doPull) {
             bool needToBurnYt = (!IPYieldToken(YT).isExpired());
@@ -121,35 +121,35 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }
 
-        uint256 amountScyOut = IPYieldToken(YT).redeemPY(SCY); // ignore return
+        uint256 amountSyOut = IPYieldToken(YT).redeemPY(SY); // ignore return
 
-        netTokenOut = _redeemScyToToken(receiver, SCY, amountScyOut, output, false);
+        netTokenOut = _redeemSyToToken(receiver, SY, amountSyOut, output, false);
     }
 
-    function _mintPyFromScy(
+    function _mintPyFromSy(
         address receiver,
         address YT,
-        uint256 netScyIn,
+        uint256 netSyIn,
         uint256 minPyOut,
         bool doPull
     ) internal returns (uint256 netPyOut) {
-        address SCY = IPYieldToken(YT).SCY();
+        address SY = IPYieldToken(YT).SY();
 
         if (doPull) {
-            IERC20(SCY).safeTransferFrom(msg.sender, YT, netScyIn);
+            IERC20(SY).safeTransferFrom(msg.sender, YT, netSyIn);
         }
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
         if (netPyOut < minPyOut) revert Errors.RouterInsufficientPYOut(netPyOut, minPyOut);
     }
 
-    function _redeemPyToScy(
+    function _redeemPyToSy(
         address receiver,
         address YT,
         uint256 netPyIn,
-        uint256 minScyOut,
+        uint256 minSyOut,
         bool doPull
-    ) internal returns (uint256 netScyOut) {
+    ) internal returns (uint256 netSyOut) {
         address PT = IPYieldToken(YT).PT();
 
         if (doPull) {
@@ -158,7 +158,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
         }
 
-        netScyOut = IPYieldToken(YT).redeemPY(receiver);
-        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
+        netSyOut = IPYieldToken(YT).redeemPY(receiver);
+        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
     }
 }

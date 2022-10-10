@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "./RewardManagerAbstract.sol";
 
-/// NOTE: This RewardManager is used with PendleMarket & SCY. For YT, it will use RewardManagerAbstract
+/// NOTE: This RewardManager is used with PendleMarket & SY. For YT, it will use RewardManagerAbstract
 /// NOTE: RewardManager must not have duplicated rewardTokens
 abstract contract RewardManager is RewardManagerAbstract {
     using Math for uint256;

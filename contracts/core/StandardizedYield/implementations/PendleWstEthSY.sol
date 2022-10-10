@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../SCYBase.sol";
+import "../SYBase.sol";
 import "../../../interfaces/IWstETH.sol";
 import "../../../interfaces/IWETH.sol";
 import "../../../interfaces/IStETH.sol";
 
-contract PendleWstEthSCY is SCYBase {
+contract PendleWstEthSY is SYBase {
     address public immutable wETH;
     address public immutable stETH;
     address public immutable wstETH;
@@ -16,7 +16,7 @@ contract PendleWstEthSCY is SCYBase {
         string memory _symbol,
         address _wETH,
         address _wstETH
-    ) SCYBase(_name, _symbol, _wstETH) {
+    ) SYBase(_name, _symbol, _wstETH) {
         wETH = _wETH;
         wstETH = _wstETH;
         stETH = IWstETH(wstETH).stETH();
@@ -28,7 +28,7 @@ contract PendleWstEthSCY is SCYBase {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {SCYBase-_deposit}
+     * @dev See {SYBase-_deposit}
      *
      * The underlying yield token is wstETH. If the base token deposited is stETH, the function wraps
      * it into wstETH first. Then the corresponding amount of shares is returned.
@@ -56,7 +56,7 @@ contract PendleWstEthSCY is SCYBase {
     }
 
     /**
-     * @dev See {SCYBase-_redeem}
+     * @dev See {SYBase-_redeem}
      *
      * The shares are redeemed into the same amount of wstETH. If `tokenOut` is stETH, the function also
      * unwraps said amount of wstETH into stETH for redemption.

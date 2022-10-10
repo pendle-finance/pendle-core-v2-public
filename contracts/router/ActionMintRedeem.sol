@@ -17,33 +17,26 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     {}
 
     /// @dev refer to the internal function
-    function mintScyFromToken(
+    function mintSyFromToken(
         address receiver,
-        address SCY,
-        uint256 minScyOut,
+        address SY,
+        uint256 minSyOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netScyOut) {
-        netScyOut = _mintScyFromToken(receiver, SCY, minScyOut, input);
+    ) external payable returns (uint256 netSyOut) {
+        netSyOut = _mintSyFromToken(receiver, SY, minSyOut, input);
 
-        emit MintScyFromToken(
-            msg.sender,
-            receiver,
-            SCY,
-            input.tokenIn,
-            input.netTokenIn,
-            netScyOut
-        );
+        emit MintSyFromToken(msg.sender, receiver, SY, input.tokenIn, input.netTokenIn, netSyOut);
     }
 
     /// @dev refer to the internal function
-    function redeemScyToToken(
+    function redeemSyToToken(
         address receiver,
-        address SCY,
-        uint256 netScyIn,
+        address SY,
+        uint256 netSyIn,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut) {
-        netTokenOut = _redeemScyToToken(receiver, SCY, netScyIn, output, true);
-        emit RedeemScyToToken(msg.sender, receiver, SCY, netScyIn, output.tokenOut, netTokenOut);
+        netTokenOut = _redeemSyToToken(receiver, SY, netSyIn, output, true);
+        emit RedeemSyToToken(msg.sender, receiver, SY, netSyIn, output.tokenOut, netTokenOut);
     }
 
     /// @dev refer to the internal function
@@ -68,43 +61,43 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit RedeemPyToToken(msg.sender, receiver, YT, netPyIn, output.tokenOut, netTokenOut);
     }
 
-    function mintPyFromScy(
+    function mintPyFromSy(
         address receiver,
         address YT,
-        uint256 netScyIn,
+        uint256 netSyIn,
         uint256 minPyOut
     ) external returns (uint256 netPyOut) {
-        netPyOut = _mintPyFromScy(receiver, YT, netScyIn, minPyOut, true);
-        emit MintPyFromScy(msg.sender, receiver, YT, netScyIn, netPyOut);
+        netPyOut = _mintPyFromSy(receiver, YT, netSyIn, minPyOut, true);
+        emit MintPyFromSy(msg.sender, receiver, YT, netSyIn, netPyOut);
     }
 
-    function redeemPyToScy(
+    function redeemPyToSy(
         address receiver,
         address YT,
         uint256 netPyIn,
-        uint256 minScyOut
-    ) external returns (uint256 netScyOut) {
-        netScyOut = _redeemPyToScy(receiver, YT, netPyIn, minScyOut, true);
-        emit RedeemPyToScy(msg.sender, receiver, YT, netPyIn, netScyOut);
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut) {
+        netSyOut = _redeemPyToSy(receiver, YT, netPyIn, minSyOut, true);
+        emit RedeemPyToSy(msg.sender, receiver, YT, netPyIn, netSyOut);
     }
 
     function redeemDueInterestAndRewards(
         address user,
-        address[] calldata scys,
+        address[] calldata sys,
         address[] calldata yts,
         address[] calldata markets
     )
         external
         returns (
-            uint256[][] memory scyRewards,
+            uint256[][] memory syRewards,
             uint256[] memory ytInterests,
             uint256[][] memory ytRewards,
             uint256[][] memory marketRewards
         )
     {
-        scyRewards = new uint256[][](scys.length);
-        for (uint256 i = 0; i < scys.length; ++i) {
-            scyRewards[i] = ISuperComposableYield(scys[i]).claimRewards(user);
+        syRewards = new uint256[][](sys.length);
+        for (uint256 i = 0; i < sys.length; ++i) {
+            syRewards[i] = IStandardizedYield(sys[i]).claimRewards(user);
         }
 
         ytInterests = new uint256[](yts.length);
@@ -123,10 +116,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         }
         emit RedeemDueInterestAndRewards(
             user,
-            scys,
+            sys,
             yts,
             markets,
-            scyRewards,
+            syRewards,
             ytInterests,
             ytRewards,
             marketRewards
@@ -139,7 +132,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     }
 
     function redeemDueInterestAndRewardsThenSwapAll(
-        address[] calldata scys,
+        address[] calldata sys,
         RouterYtRedeemStruct calldata dataYT,
         address[] calldata markets,
         RouterSwapAllStruct calldata dataSwap
@@ -147,18 +140,18 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         if (dataSwap.tokens.length != dataSwap.kybercalls.length)
             revert Errors.ArrayLengthMismatch();
 
-        if (dataYT.tokenRedeemScys.length != dataYT.scyAddrs.length)
+        if (dataYT.tokenRedeemSys.length != dataYT.syAddrs.length)
             revert Errors.ArrayLengthMismatch();
 
         RouterTokenAmounts memory tokensOut = _newRouterTokenAmounts(dataSwap.tokens);
-        RouterTokenAmounts memory scysOut = _newRouterTokenAmounts(dataYT.scyAddrs);
+        RouterTokenAmounts memory sysOut = _newRouterTokenAmounts(dataYT.syAddrs);
 
-        // redeem SCY
-        for (uint256 i = 0; i < scys.length; ++i) {
-            ISuperComposableYield SCY = ISuperComposableYield(scys[i]);
+        // redeem SY
+        for (uint256 i = 0; i < sys.length; ++i) {
+            IStandardizedYield SY = IStandardizedYield(sys[i]);
 
-            address[] memory rewardTokens = SCY.getRewardTokens();
-            uint256[] memory rewardAmounts = SCY.claimRewards(msg.sender);
+            address[] memory rewardTokens = SY.getRewardTokens();
+            uint256[] memory rewardAmounts = SY.claimRewards(msg.sender);
             _addTokenAmounts(tokensOut, rewardTokens, rewardAmounts);
         }
 
@@ -169,10 +162,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             (uint256 interestAmount, uint256[] memory rewardAmounts) = YT
                 .redeemDueInterestAndRewards(msg.sender, true, true);
 
-            address scyAddr = YT.SCY();
+            address syAddr = YT.SY();
             address[] memory rewardTokens = YT.getRewardTokens();
 
-            _addTokenAmount(scysOut, scyAddr, interestAmount);
+            _addTokenAmount(sysOut, syAddr, interestAmount);
             _addTokenAmounts(tokensOut, rewardTokens, rewardAmounts);
         }
 
@@ -187,7 +180,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
         // guaranteed no ETH, all rewards are ERC20
         _transferFrom(tokensOut.tokens, msg.sender, address(this), tokensOut.amounts);
-        _redeemAllScys(scysOut, dataYT.tokenRedeemScys, tokensOut);
+        _redeemAllSys(sysOut, dataYT.tokenRedeemSys, tokensOut);
 
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
@@ -199,7 +192,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
         emit RedeemDueInterestAndRewardsThenSwapAll(
             msg.sender,
-            scys,
+            sys,
             dataYT.yts,
             markets,
             dataSwap.outputToken,
@@ -215,25 +208,25 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         return RouterTokenAmounts(tokens, new uint256[](tokens.length));
     }
 
-    /// @dev pull SCYs from users & redeem them, then add to tokensOut
-    function _redeemAllScys(
-        RouterTokenAmounts memory scys,
-        address[] calldata tokenRedeemScys,
+    /// @dev pull SYs from users & redeem them, then add to tokensOut
+    function _redeemAllSys(
+        RouterTokenAmounts memory sys,
+        address[] calldata tokenRedeemSys,
         RouterTokenAmounts memory tokensOut
     ) internal {
-        for (uint256 i = 0; i < scys.tokens.length; ++i) {
-            if (scys.amounts[i] == 0) continue;
+        for (uint256 i = 0; i < sys.tokens.length; ++i) {
+            if (sys.amounts[i] == 0) continue;
 
-            _transferFrom(scys.tokens[i], msg.sender, scys.tokens[i], scys.amounts[i]);
-            uint256 amountOut = ISuperComposableYield(scys.tokens[i]).redeem(
+            _transferFrom(sys.tokens[i], msg.sender, sys.tokens[i], sys.amounts[i]);
+            uint256 amountOut = IStandardizedYield(sys.tokens[i]).redeem(
                 address(this),
-                scys.amounts[i],
-                tokenRedeemScys[i],
+                sys.amounts[i],
+                tokenRedeemSys[i],
                 1,
                 true
             );
 
-            _addTokenAmount(tokensOut, tokenRedeemScys[i], amountOut);
+            _addTokenAmount(tokensOut, tokenRedeemSys[i], amountOut);
         }
     }
 

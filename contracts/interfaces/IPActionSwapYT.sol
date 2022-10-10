@@ -5,12 +5,12 @@ import "../router/base/MarketApproxLib.sol";
 import "../router/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionSwapYT {
-    event SwapYtAndScy(
+    event SwapYtAndSy(
         address indexed caller,
         address indexed market,
         address indexed receiver,
         int256 netYtToAccount,
-        int256 netScyToAccount
+        int256 netSyToAccount
     );
 
     event SwapYtAndToken(
@@ -22,35 +22,35 @@ interface IPActionSwapYT {
         int256 netTokenToAccount
     );
 
-    function swapExactScyForYt(
+    function swapExactSyForYt(
         address receiver,
         address market,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         uint256 minYtOut,
         ApproxParams memory guessYtOut
-    ) external returns (uint256 netYtOut, uint256 netScyFee);
+    ) external returns (uint256 netYtOut, uint256 netSyFee);
 
-    function swapExactYtForScy(
+    function swapExactYtForSy(
         address receiver,
         address market,
         uint256 exactYtIn,
-        uint256 minScyOut
-    ) external returns (uint256 netScyOut, uint256 netScyFee);
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
 
-    function swapScyForExactYt(
+    function swapSyForExactYt(
         address receiver,
         address market,
         uint256 exactYtOut,
-        uint256 maxScyIn
-    ) external returns (uint256 netScyIn, uint256 netScyFee);
+        uint256 maxSyIn
+    ) external returns (uint256 netSyIn, uint256 netSyFee);
 
-    function swapYtForExactScy(
+    function swapYtForExactSy(
         address receiver,
         address market,
-        uint256 exactScyOut,
+        uint256 exactSyOut,
         uint256 maxYtIn,
         ApproxParams memory guessYtIn
-    ) external returns (uint256 netYtIn, uint256 netScyFee);
+    ) external returns (uint256 netYtIn, uint256 netSyFee);
 
     function swapExactTokenForYt(
         address receiver,
@@ -58,12 +58,12 @@ interface IPActionSwapYT {
         uint256 minYtOut,
         ApproxParams memory guessYtOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netYtOut, uint256 netScyFee);
+    ) external payable returns (uint256 netYtOut, uint256 netSyFee);
 
     function swapExactYtForToken(
         address receiver,
         address market,
         uint256 netYtIn,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netScyFee);
+    ) external returns (uint256 netTokenOut, uint256 netSyFee);
 }

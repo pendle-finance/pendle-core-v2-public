@@ -57,7 +57,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     address public treasury;
     uint96 public expiryDivisor;
 
-    // SCY => expiry => address
+    // SY => expiry => address
     mapping(address => mapping(uint256 => address)) public getPT;
     mapping(address => mapping(uint256 => address)) public getYT;
     mapping(address => bool) public isPT;
@@ -89,21 +89,21 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     /**
-     * @notice Create a pair of (PT, YT) from any SCY and valid expiry. Anyone can create a yield contract
+     * @notice Create a pair of (PT, YT) from any SY and valid expiry. Anyone can create a yield contract
      * @dev It's intentional to make expiry an uint32 to guard against fat fingers. uint32.max is year 2106
      */
-    function createYieldContract(address SCY, uint32 expiry)
+    function createYieldContract(address SY, uint32 expiry)
         external
         returns (address PT, address YT)
     {
         if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0)
             revert Errors.YCFactoryInvalidExpiry();
 
-        if (getPT[SCY][expiry] != address(0)) revert Errors.YCFactoryYieldContractExisted();
+        if (getPT[SY][expiry] != address(0)) revert Errors.YCFactoryYieldContractExisted();
 
-        ISuperComposableYield _SCY = ISuperComposableYield(SCY);
+        IStandardizedYield _SY = IStandardizedYield(SY);
 
-        (, , uint8 assetDecimals) = _SCY.assetInfo();
+        (, , uint8 assetDecimals) = _SY.assetInfo();
 
         PT = Create2.deploy(
             0,
@@ -111,9 +111,9 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
             abi.encodePacked(
                 type(PendlePrincipalToken).creationCode,
                 abi.encode(
-                    SCY,
-                    PT_PREFIX.concat(_SCY.name(), expiry, " "),
-                    PT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
+                    SY,
+                    PT_PREFIX.concat(_SY.name(), expiry, " "),
+                    PT_PREFIX.concat(_SY.symbol(), expiry, "-"),
                     assetDecimals,
                     expiry
                 )
@@ -124,10 +124,10 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
             0,
             bytes32(block.chainid),
             abi.encode(
-                SCY,
+                SY,
                 PT,
-                YT_PREFIX.concat(_SCY.name(), expiry, " "),
-                YT_PREFIX.concat(_SCY.symbol(), expiry, "-"),
+                YT_PREFIX.concat(_SY.name(), expiry, " "),
+                YT_PREFIX.concat(_SY.symbol(), expiry, "-"),
                 assetDecimals,
                 expiry
             ),
@@ -139,12 +139,12 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
 
         IPPrincipalToken(PT).initialize(YT);
 
-        getPT[SCY][expiry] = PT;
-        getYT[SCY][expiry] = YT;
+        getPT[SY][expiry] = PT;
+        getYT[SY][expiry] = YT;
         isPT[PT] = true;
         isYT[YT] = true;
 
-        emit CreateYieldContract(SCY, PT, YT, expiry);
+        emit CreateYieldContract(SY, PT, YT, expiry);
     }
 
     function setExpiryDivisor(uint96 newExpiryDivisor) public onlyOwner {

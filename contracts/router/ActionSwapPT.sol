@@ -20,43 +20,39 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
     {}
 
-    function swapExactPtForScy(
+    function swapExactPtForSy(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minScyOut
-    ) external returns (uint256 netScyOut, uint256 netScyFee) {
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee) {
         (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
         IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
 
-        (netScyOut, netScyFee) = IPMarket(market).swapExactPtForScy(
-            receiver,
-            exactPtIn,
-            EMPTY_BYTES
-        );
+        (netSyOut, netSyFee) = IPMarket(market).swapExactPtForSy(receiver, exactPtIn, EMPTY_BYTES);
 
-        if (netScyOut < minScyOut) revert Errors.RouterInsufficientScyOut(netScyOut, minScyOut);
+        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
 
-        emit SwapPtAndScy(msg.sender, market, receiver, exactPtIn.neg(), netScyOut.Int());
+        emit SwapPtAndSy(msg.sender, market, receiver, exactPtIn.neg(), netSyOut.Int());
     }
 
     /**
-     * @notice Note that the amount of SCY out will be a bit more than `exactScyOut`, since an approximation is used. It's
-        guaranteed that the `netScyOut` is at least `exactScyOut`
+     * @notice Note that the amount of SY out will be a bit more than `exactSyOut`, since an approximation is used. It's
+        guaranteed that the `netSyOut` is at least `exactSyOut`
      */
-    function swapPtForExactScy(
+    function swapPtForExactSy(
         address receiver,
         address market,
-        uint256 exactScyOut,
+        uint256 exactSyOut,
         uint256 maxPtIn,
         ApproxParams calldata guessPtIn
-    ) external returns (uint256 netPtIn, uint256 netScyFee) {
+    ) external returns (uint256 netPtIn, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState();
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netPtIn, , ) = state.approxSwapPtForExactScy(
+        (netPtIn, , ) = state.approxSwapPtForExactSy(
             YT.newIndex(),
-            exactScyOut,
+            exactSyOut,
             block.timestamp,
             guessPtIn
         );
@@ -65,67 +61,63 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
 
-        uint256 netScyOut;
-        (netScyOut, netScyFee) = IPMarket(market).swapExactPtForScy(
-            receiver,
-            netPtIn,
-            EMPTY_BYTES
-        );
+        uint256 netSyOut;
+        (netSyOut, netSyFee) = IPMarket(market).swapExactPtForSy(receiver, netPtIn, EMPTY_BYTES);
 
         // fail-safe
-        if (netScyOut < exactScyOut) assert(false);
+        if (netSyOut < exactSyOut) assert(false);
 
-        emit SwapPtAndScy(msg.sender, market, receiver, netPtIn.neg(), exactScyOut.Int());
+        emit SwapPtAndSy(msg.sender, market, receiver, netPtIn.neg(), exactSyOut.Int());
     }
 
-    function swapScyForExactPt(
+    function swapSyForExactPt(
         address receiver,
         address market,
         uint256 exactPtOut,
-        uint256 maxScyIn
-    ) external returns (uint256 netScyIn, uint256 netScyFee) {
+        uint256 maxSyIn
+    ) external returns (uint256 netSyIn, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState();
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netScyIn, ) = state.swapScyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
+        (netSyIn, ) = state.swapSyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
 
-        if (netScyIn > maxScyIn) revert Errors.RouterExceededLimitScyIn(netScyIn, maxScyIn);
+        if (netSyIn > maxSyIn) revert Errors.RouterExceededLimitSyIn(netSyIn, maxSyIn);
 
-        IERC20(SCY).safeTransferFrom(msg.sender, market, netScyIn);
+        IERC20(SY).safeTransferFrom(msg.sender, market, netSyIn);
 
-        (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, exactPtOut, EMPTY_BYTES); // ignore return
+        (, netSyFee) = IPMarket(market).swapSyForExactPt(receiver, exactPtOut, EMPTY_BYTES); // ignore return
 
-        // no fail-safe since exactly netScyIn will go into the market
-        emit SwapPtAndScy(msg.sender, market, receiver, exactPtOut.Int(), netScyIn.neg());
+        // no fail-safe since exactly netSyIn will go into the market
+        emit SwapPtAndSy(msg.sender, market, receiver, exactPtOut.Int(), netSyIn.neg());
     }
 
-    function swapExactScyForPt(
+    function swapExactSyForPt(
         address receiver,
         address market,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) external returns (uint256 netPtOut, uint256 netScyFee) {
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+    ) external returns (uint256 netPtOut, uint256 netSyFee) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        IERC20(SCY).safeTransferFrom(msg.sender, market, exactScyIn);
+        IERC20(SY).safeTransferFrom(msg.sender, market, exactSyIn);
 
-        (netPtOut, netScyFee) = _swapExactScyForPt(
+        (netPtOut, netSyFee) = _swapExactSyForPt(
             receiver,
             market,
             YT,
-            exactScyIn,
+            exactSyIn,
             minPtOut,
             guessPtOut
         );
 
-        emit SwapPtAndScy(msg.sender, market, receiver, netPtOut.Int(), exactScyIn.neg());
+        emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
     }
 
     /**
-     * @notice swap from any ERC20 tokens, through Uniswap's forks, to get baseTokens to make SCY, then swap
-        from SCY to PT
-     * @dev simply a combination of _mintScyFromToken & _swapExactScyForPt
+     * @notice swap from any ERC20 tokens, through Uniswap's forks, to get baseTokens to make SY, then swap
+        from SY to PT
+     * @dev simply a combination of _mintSyFromToken & _swapExactSyForPt
      */
     function swapExactTokenForPt(
         address receiver,
@@ -133,18 +125,18 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netPtOut, uint256 netScyFee) {
-        (ISuperComposableYield SCY, , IPYieldToken YT) = IPMarket(market).readTokens();
+    ) external payable returns (uint256 netPtOut, uint256 netSyFee) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        // all output SCY is transferred directly to the market
-        uint256 netScyUseToBuyPt = _mintScyFromToken(address(market), address(SCY), 1, input);
+        // all output SY is transferred directly to the market
+        uint256 netSyUseToBuyPt = _mintSyFromToken(address(market), address(SY), 1, input);
 
-        // SCY is already in the market, hence doPull = false
-        (netPtOut, netScyFee) = _swapExactScyForPt(
+        // SY is already in the market, hence doPull = false
+        (netPtOut, netSyFee) = _swapExactSyForPt(
             receiver,
             market,
             YT,
-            netScyUseToBuyPt,
+            netSyUseToBuyPt,
             minPtOut,
             guessPtOut
         );
@@ -160,29 +152,29 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice swap from PT to SCY, then redeem SCY to baseToken & swap through Uniswap's forks to get tokenOut
-     * @dev simply a combination of _swapExactPtForScy & _redeemScyToToken
+     * @notice swap from PT to SY, then redeem SY to baseToken & swap through Uniswap's forks to get tokenOut
+     * @dev simply a combination of _swapExactPtForSy & _redeemSyToToken
      */
     function swapExactPtForToken(
         address receiver,
         address market,
         uint256 exactPtIn,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netScyFee) {
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+    ) external returns (uint256 netTokenOut, uint256 netSyFee) {
+        (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         IERC20(address(PT)).safeTransferFrom(msg.sender, market, exactPtIn);
 
-        // all output SCY is directly transferred to the SCY contract
-        uint256 netScyReceived;
-        (netScyReceived, netScyFee) = IPMarket(market).swapExactPtForScy(
-            address(SCY),
+        // all output SY is directly transferred to the SY contract
+        uint256 netSyReceived;
+        (netSyReceived, netSyFee) = IPMarket(market).swapExactPtForSy(
+            address(SY),
             exactPtIn,
             EMPTY_BYTES
         );
 
-        // since all SCY is already at the SCY contract, doPull = false
-        netTokenOut = _redeemScyToToken(receiver, address(SCY), netScyReceived, output, false);
+        // since all SY is already at the SY contract, doPull = false
+        netTokenOut = _redeemSyToToken(receiver, address(SY), netSyReceived, output, false);
 
         emit SwapPtAndToken(
             msg.sender,
@@ -194,26 +186,26 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         );
     }
 
-    function _swapExactScyForPt(
+    function _swapExactSyForPt(
         address receiver,
         address market,
         IPYieldToken YT,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) internal returns (uint256 netPtOut, uint256 netScyFee) {
+    ) internal returns (uint256 netPtOut, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState();
 
-        (netPtOut, ) = state.approxSwapExactScyForPt(
+        (netPtOut, ) = state.approxSwapExactSyForPt(
             YT.newIndex(),
-            exactScyIn,
+            exactSyIn,
             block.timestamp,
             guessPtOut
         );
 
         if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
-        (, netScyFee) = IPMarket(market).swapScyForExactPt(receiver, netPtOut, EMPTY_BYTES);
+        (, netSyFee) = IPMarket(market).swapSyForExactPt(receiver, netPtOut, EMPTY_BYTES);
         // no fail-safe since exactly netPtOut >= minPtOut will be out
     }
 }

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./PendleConvexCurveLP2PoolSCY.sol";
+import "./PendleConvexCurveLP2PoolSY.sol";
 import "../Pendle3CrvHelper.sol";
 import "../../../../libraries/ArrayLib.sol";
 
-contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
+contract Pendle3CrvAndTokenSY is PendleConvexCurveLP2PoolSY {
     using ArrayLib for address[];
 
     constructor(
@@ -18,7 +18,7 @@ contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
         address _baseCrvPool,
         address[] memory _basePoolTokens
     )
-        PendleConvexCurveLP2PoolSCY(
+        PendleConvexCurveLP2PoolSY(
             _name,
             _symbol,
             _pid,
@@ -30,7 +30,7 @@ contract Pendle3CrvAndTokenSCY is PendleConvexCurveLP2PoolSCY {
         )
     {
         if (!_basePoolTokens.contains(Pendle3CrvHelper.TOKEN))
-            revert Errors.SCYCurve3crvPoolNotFound();
+            revert Errors.SYCurve3crvPoolNotFound();
 
         _safeApproveInf(Pendle3CrvHelper.DAI, Pendle3CrvHelper.POOL);
         _safeApproveInf(Pendle3CrvHelper.USDC, Pendle3CrvHelper.POOL);

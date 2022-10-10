@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./PendleConvexCurveLPSCY.sol";
+import "./PendleConvexCurveLPSY.sol";
 
-contract PendleConvexCurveLP2PoolSCY is PendleConvexCurveLPSCY {
+contract PendleConvexCurveLP2PoolSY is PendleConvexCurveLPSY {
     address public immutable token1;
     address public immutable token2;
 
@@ -17,7 +17,7 @@ contract PendleConvexCurveLP2PoolSCY is PendleConvexCurveLPSCY {
         address _baseCrvPool,
         address[] memory _basePoolTokens
     )
-        PendleConvexCurveLPSCY(
+        PendleConvexCurveLPSY(
             _name,
             _symbol,
             _pid,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../SCYBaseWithRewards.sol";
+import "../../SYBaseWithRewards.sol";
 import "../../../../interfaces/IQiErc20.sol";
 import "../../../../interfaces/IQiAvax.sol";
 import "../../../../interfaces/IBenQiComptroller.sol";
@@ -9,7 +9,7 @@ import "../../../../interfaces/IWETH.sol";
 
 import "./PendleQiTokenHelper.sol";
 
-contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
+contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
     address public immutable underlying;
     address public immutable QI;
     address public immutable WAVAX;
@@ -24,7 +24,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         address _WAVAX,
         uint256 _initialExchangeRateMantissa
     )
-        SCYBaseWithRewards(_name, _symbol, _qiToken)
+        SYBaseWithRewards(_name, _symbol, _qiToken)
         PendleQiTokenHelper(_qiToken, _initialExchangeRateMantissa)
     {
         qiToken = _qiToken;
@@ -45,7 +45,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {SCYBase-_deposit}
+     * @dev See {SYBase-_deposit}
      *
      * The underlying yield token is qiToken. If the base token deposited is underlying asset, the function
      * first convert those deposited into qiToken. Then the corresponding amount of shares is returned.
@@ -67,7 +67,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
                 IQiAvax(qiToken).mint{ value: amount }();
             } else {
                 uint256 errCode = IQiErc20(qiToken).mint(amount);
-                if (errCode != 0) revert Errors.SCYQiTokenMintFailed(errCode);
+                if (errCode != 0) revert Errors.SYQiTokenMintFailed(errCode);
             }
 
             amountSharesOut = _selfBalance(qiToken) - preBalanceQiToken;
@@ -75,7 +75,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
     }
 
     /**
-     * @dev See {SCYBase-_redeem}
+     * @dev See {SYBase-_redeem}
      *
      * The shares are redeemed into the same amount of qiTokens. If `tokenOut` is the underlying asset,
      * the function also redeems said asset from the corresponding amount of qiToken.
@@ -92,10 +92,10 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
 
             if (underlying == NATIVE) {
                 uint256 errCode = IQiAvax(qiToken).redeem(amountSharesToRedeem);
-                if (errCode != 0) revert Errors.SCYQiTokenRedeemFailed(errCode);
+                if (errCode != 0) revert Errors.SYQiTokenRedeemFailed(errCode);
             } else {
                 uint256 errCode = IQiErc20(qiToken).redeem(amountSharesToRedeem);
-                if (errCode != 0) revert Errors.SCYQiTokenRedeemFailed(errCode);
+                if (errCode != 0) revert Errors.SYQiTokenRedeemFailed(errCode);
             }
 
             // underlying is potentially also rewardToken, hence we need to manually track the balance here
@@ -121,7 +121,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-getRewardTokens}
+     * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory res) {
         res = new address[](2);
@@ -148,7 +148,7 @@ contract PendleQiTokenSCY is SCYBaseWithRewards, PendleQiTokenHelper {
         );
 
         if (rewardAccruedType0 > 0 || rewardAccruedType1 > 0)
-            revert Errors.SCYQiTokenRedeemRewardsFailed(rewardAccruedType0, rewardAccruedType1);
+            revert Errors.SYQiTokenRedeemRewardsFailed(rewardAccruedType0, rewardAccruedType1);
 
         if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance }();
     }

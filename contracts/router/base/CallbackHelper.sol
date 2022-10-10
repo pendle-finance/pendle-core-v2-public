@@ -3,26 +3,26 @@ pragma solidity 0.8.17;
 
 abstract contract CallbackHelper {
     enum ActionType {
-        SwapScyForExactYt,
-        SwapExactScyForYt,
-        SwapYtForScy,
+        SwapSyForExactYt,
+        SwapExactSyForYt,
+        SwapYtForSy,
         SwapExactYtForPt,
         SwapExactPtForYt
     }
 
     /// ------------------------------------------------------------
-    /// SwapExactScyForYt
+    /// SwapExactSyForYt
     /// ------------------------------------------------------------
 
-    function _encodeSwapExactScyForYt(address receiver, uint256 minYtOut)
+    function _encodeSwapExactSyForYt(address receiver, uint256 minYtOut)
         internal
         pure
         returns (bytes memory)
     {
-        return abi.encode(ActionType.SwapExactScyForYt, receiver, minYtOut);
+        return abi.encode(ActionType.SwapExactSyForYt, receiver, minYtOut);
     }
 
-    function _decodeSwapExactScyForYt(bytes memory data)
+    function _decodeSwapExactSyForYt(bytes memory data)
         internal
         pure
         returns (address receiver, uint256 minYtOut)
@@ -31,47 +31,47 @@ abstract contract CallbackHelper {
     }
 
     /// ------------------------------------------------------------
-    /// SwapScyForExactYt
+    /// SwapSyForExactYt
     /// ------------------------------------------------------------
 
-    function _encodeSwapScyForExactYt(
+    function _encodeSwapSyForExactYt(
         address payer,
         address receiver,
-        uint256 maxScyIn
+        uint256 maxSyIn
     ) internal pure returns (bytes memory) {
-        return abi.encode(ActionType.SwapScyForExactYt, payer, receiver, maxScyIn);
+        return abi.encode(ActionType.SwapSyForExactYt, payer, receiver, maxSyIn);
     }
 
-    function _decodeSwapScyForExactYt(bytes memory data)
+    function _decodeSwapSyForExactYt(bytes memory data)
         internal
         pure
         returns (
             address payer,
             address receiver,
-            uint256 maxScyIn
+            uint256 maxSyIn
         )
     {
-        (, payer, receiver, maxScyIn) = abi.decode(data, (ActionType, address, address, uint256));
+        (, payer, receiver, maxSyIn) = abi.decode(data, (ActionType, address, address, uint256));
     }
 
     /// ------------------------------------------------------------
-    /// SwapYtForScy (common encode & decode)
+    /// SwapYtForSy (common encode & decode)
     /// ------------------------------------------------------------
 
-    function _encodeSwapYtForScy(address receiver, uint256 minScyOut)
+    function _encodeSwapYtForSy(address receiver, uint256 minSyOut)
         internal
         pure
         returns (bytes memory)
     {
-        return abi.encode(ActionType.SwapYtForScy, receiver, minScyOut);
+        return abi.encode(ActionType.SwapYtForSy, receiver, minSyOut);
     }
 
-    function _decodeSwapYtForScy(bytes memory data)
+    function _decodeSwapYtForSy(bytes memory data)
         internal
         pure
-        returns (address receiver, uint256 minScyOut)
+        returns (address receiver, uint256 minSyOut)
     {
-        (, receiver, minScyOut) = abi.decode(data, (ActionType, address, uint256));
+        (, receiver, minSyOut) = abi.decode(data, (ActionType, address, uint256));
     }
 
     function _encodeSwapExactYtForPt(

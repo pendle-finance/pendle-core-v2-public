@@ -14,22 +14,22 @@ library MarketMathStatic {
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
-    function addLiquidityDualScyAndPtStatic(
+    function addLiquidityDualSyAndPtStatic(
         address market,
-        uint256 netScyDesired,
+        uint256 netSyDesired,
         uint256 netPtDesired
     )
         external
         view
         returns (
             uint256 netLpOut,
-            uint256 netScyUsed,
+            uint256 netSyUsed,
             uint256 netPtUsed
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, netScyUsed, netPtUsed) = state.addLiquidity(
-            netScyDesired,
+        (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
+            netSyDesired,
             netPtDesired,
             block.timestamp
         );
@@ -49,19 +49,19 @@ library MarketMathStatic {
             uint256 netPtUsed
         )
     {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
-        uint256 scyDesired = SCY.previewDeposit(tokenIn, netTokenDesired);
-        uint256 scyUsed;
+        uint256 syDesired = SY.previewDeposit(tokenIn, netTokenDesired);
+        uint256 syUsed;
 
         MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, scyUsed, netPtUsed) = state.addLiquidity(
-            scyDesired,
+        (, netLpOut, syUsed, netPtUsed) = state.addLiquidity(
+            syDesired,
             netPtDesired,
             block.timestamp
         );
 
-        netTokenUsed = (netTokenDesired * scyUsed).rawDivUp(scyDesired);
+        netTokenUsed = (netTokenDesired * syUsed).rawDivUp(syDesired);
     }
 
     /// @dev netPtToSwap is the parameter to approx
@@ -74,7 +74,7 @@ library MarketMathStatic {
         returns (
             uint256 netLpOut,
             uint256 netPtToSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -89,14 +89,14 @@ library MarketMathStatic {
 
         state = IPMarket(market).readState(); // re-read
 
-        uint256 netScyReceived;
-        (netScyReceived, netScyFee) = state.swapExactPtForScy(
+        uint256 netSyReceived;
+        (netSyReceived, netSyFee) = state.swapExactPtForSy(
             pyIndex(market),
             netPtToSwap,
             block.timestamp
         );
         (, netLpOut, , ) = state.addLiquidity(
-            netScyReceived,
+            netSyReceived,
             netPtIn - netPtToSwap,
             block.timestamp
         );
@@ -105,41 +105,37 @@ library MarketMathStatic {
     }
 
     /// @dev netPtFromSwap is the parameter to approx
-    function addLiquiditySingleScyStatic(
+    function addLiquiditySingleSyStatic(
         address market,
-        uint256 netScyIn,
+        uint256 netSyIn,
         ApproxParams memory approxParams
     )
         public
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (netPtFromSwap, , ) = state.approxSwapScyToAddLiquidity(
+        (netPtFromSwap, , ) = state.approxSwapSyToAddLiquidity(
             pyIndex(market),
-            netScyIn,
+            netSyIn,
             block.timestamp,
             approxParams
         );
 
         state = IPMarket(market).readState(); // re-read
 
-        uint256 netScySwap;
-        (netScySwap, netScyFee) = state.swapScyForExactPt(
+        uint256 netSySwap;
+        (netSySwap, netSyFee) = state.swapSyForExactPt(
             pyIndex(market),
             netPtFromSwap,
             block.timestamp
         );
-        (, netLpOut, , ) = state.addLiquidity(
-            netScyIn - netScySwap,
-            netPtFromSwap,
-            block.timestamp
-        );
+        (, netLpOut, , ) = state.addLiquidity(netSyIn - netSySwap, netPtFromSwap, block.timestamp);
 
         priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
@@ -155,27 +151,27 @@ library MarketMathStatic {
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
         return
-            addLiquiditySingleScyStatic(
+            addLiquiditySingleSyStatic(
                 market,
-                SCY.previewDeposit(baseToken, netBaseTokenIn),
+                SY.previewDeposit(baseToken, netBaseTokenIn),
                 approxParams
             );
     }
 
-    function removeLiquidityDualScyAndPtStatic(address market, uint256 netLpToRemove)
+    function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
-        returns (uint256 netScyOut, uint256 netPtOut)
+        returns (uint256 netSyOut, uint256 netPtOut)
     {
         MarketState memory state = IPMarket(market).readState();
-        (netScyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
+        (netSyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
     }
 
     function removeLiquidityDualTokenAndPtStatic(
@@ -183,13 +179,13 @@ library MarketMathStatic {
         uint256 metLpToRemove,
         address tokenOut
     ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
-        uint256 netScyOut;
+        uint256 netSyOut;
         MarketState memory state = IPMarket(market).readState();
-        (netScyOut, netPtOut) = state.removeLiquidity(metLpToRemove);
+        (netSyOut, netPtOut) = state.removeLiquidity(metLpToRemove);
 
-        netTokenOut = SCY.previewRedeem(tokenOut, netScyOut);
+        netTokenOut = SY.previewRedeem(tokenOut, netSyOut);
     }
 
     /// @dev netPtFromSwap is the parameter to approx
@@ -202,16 +198,16 @@ library MarketMathStatic {
         returns (
             uint256 netPtOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
-        (netPtFromSwap, netScyFee) = state.approxSwapExactScyForPt(
+        (uint256 syFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
+        (netPtFromSwap, netSyFee) = state.approxSwapExactSyForPt(
             pyIndex(market),
-            scyFromBurn,
+            syFromBurn,
             block.timestamp,
             approxParams
         );
@@ -220,29 +216,29 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
 
-    function removeLiquiditySingleScyStatic(address market, uint256 netLpToRemove)
+    function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (uint256 scyFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
+        (uint256 syFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
 
         if (IPMarket(market).isExpired()) {
-            netScyOut = scyFromBurn + pyIndex(market).assetToScy(ptFromBurn);
+            netSyOut = syFromBurn + pyIndex(market).assetToSy(ptFromBurn);
         } else {
-            uint256 scyFromSwap;
-            (scyFromSwap, netScyFee) = state.swapExactPtForScy(
+            uint256 syFromSwap;
+            (syFromSwap, netSyFee) = state.swapExactPtForSy(
                 pyIndex(market),
                 ptFromBurn,
                 block.timestamp
             );
 
-            netScyOut = scyFromBurn + scyFromSwap;
+            netSyOut = syFromBurn + syFromSwap;
             priceImpact = calcPriceImpact(market, ptFromBurn.neg());
         }
     }
@@ -255,71 +251,60 @@ library MarketMathStatic {
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        uint256 netScyOut;
-        (netScyOut, netScyFee, priceImpact) = removeLiquiditySingleScyStatic(
-            market,
-            netLpToRemove
-        );
+        uint256 netSyOut;
+        (netSyOut, netSyFee, priceImpact) = removeLiquiditySingleSyStatic(market, netLpToRemove);
 
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
     }
 
-    function swapExactPtForScyStatic(address market, uint256 exactPtIn)
+    function swapExactPtForSyStatic(address market, uint256 exactPtIn)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (netScyOut, netScyFee) = state.swapExactPtForScy(
-            pyIndex(market),
-            exactPtIn,
-            block.timestamp
-        );
+        (netSyOut, netSyFee) = state.swapExactPtForSy(pyIndex(market), exactPtIn, block.timestamp);
         priceImpact = calcPriceImpact(market, exactPtIn.neg());
     }
 
-    function swapScyForExactPtStatic(address market, uint256 exactPtOut)
+    function swapSyForExactPtStatic(address market, uint256 exactPtOut)
         external
         returns (
-            uint256 netScyIn,
-            uint256 netScyFee,
+            uint256 netSyIn,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (netScyIn, netScyFee) = state.swapScyForExactPt(
-            pyIndex(market),
-            exactPtOut,
-            block.timestamp
-        );
+        (netSyIn, netSyFee) = state.swapSyForExactPt(pyIndex(market), exactPtOut, block.timestamp);
         priceImpact = calcPriceImpact(market, exactPtOut.Int());
     }
 
     /// @dev netPtOut is the parameter to approx
-    function swapExactScyForPtStatic(
+    function swapExactSyForPtStatic(
         address market,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         ApproxParams memory approxParams
     )
         public
         returns (
             uint256 netPtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
-        (netPtOut, netScyFee) = state.approxSwapExactScyForPt(
+        (netPtOut, netSyFee) = state.approxSwapExactSyForPt(
             pyIndex(market),
-            exactScyIn,
+            exactSyIn,
             block.timestamp,
             approxParams
         );
@@ -327,23 +312,23 @@ library MarketMathStatic {
     }
 
     /// @dev netPtIn is the parameter to approx
-    function swapPtForExactScyStatic(
+    function swapPtForExactSyStatic(
         address market,
-        uint256 exactScyOut,
+        uint256 exactSyOut,
         ApproxParams memory approxParams
     )
         public
         returns (
             uint256 netPtIn,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
 
-        (netPtIn, , netScyFee) = state.approxSwapPtForExactScy(
+        (netPtIn, , netSyFee) = state.approxSwapPtForExactSy(
             pyIndex(market),
-            exactScyOut,
+            exactSyOut,
             block.timestamp,
             approxParams
         );
@@ -360,16 +345,16 @@ library MarketMathStatic {
         external
         returns (
             uint256 netPtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
         return
-            swapExactScyForPtStatic(
+            swapExactSyForPtStatic(
                 market,
-                SCY.previewDeposit(baseToken, amountBaseToken),
+                SY.previewDeposit(baseToken, amountBaseToken),
                 approxParams
             );
     }
@@ -382,22 +367,22 @@ library MarketMathStatic {
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        uint256 netScyOut;
-        (netScyOut, netScyFee, priceImpact) = swapExactPtForScyStatic(market, exactPtIn);
+        uint256 netSyOut;
+        (netSyOut, netSyFee, priceImpact) = swapExactPtForSyStatic(market, exactPtIn);
 
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
     }
 
-    function swapScyForExactYtStatic(address market, uint256 exactYtOut)
+    function swapSyForExactYtStatic(address market, uint256 exactYtOut)
         external
         returns (
-            uint256 netScyIn,
-            uint256 netScyFee,
+            uint256 netSyIn,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -405,38 +390,38 @@ library MarketMathStatic {
 
         PYIndex index = pyIndex(market);
 
-        uint256 scyReceived;
-        (scyReceived, netScyFee) = state.swapExactPtForScy(
+        uint256 syReceived;
+        (syReceived, netSyFee) = state.swapExactPtForSy(
             pyIndex(market),
             exactYtOut,
             block.timestamp
         );
 
-        uint256 totalScyNeed = index.assetToScyUp(exactYtOut);
-        netScyIn = totalScyNeed.subMax0(scyReceived);
+        uint256 totalSyNeed = index.assetToSyUp(exactYtOut);
+        netSyIn = totalSyNeed.subMax0(syReceived);
 
         priceImpact = calcPriceImpact(market, exactYtOut.neg());
     }
 
     /// @dev netYtOut is the parameter to approx
-    function swapExactScyForYtStatic(
+    function swapExactSyForYtStatic(
         address market,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         ApproxParams memory approxParams
     )
         public
         returns (
             uint256 netYtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netYtOut, netScyFee) = state.approxSwapExactScyForYt(
+        (netYtOut, netSyFee) = state.approxSwapExactSyForYt(
             index,
-            exactScyIn,
+            exactSyIn,
             block.timestamp,
             approxParams
         );
@@ -444,11 +429,11 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netYtOut.neg());
     }
 
-    function swapExactYtForScyStatic(address market, uint256 exactYtIn)
+    function swapExactYtForSyStatic(address market, uint256 exactYtIn)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -456,26 +441,26 @@ library MarketMathStatic {
 
         PYIndex index = pyIndex(market);
 
-        uint256 scyOwed;
-        (scyOwed, netScyFee) = state.swapScyForExactPt(index, exactYtIn, block.timestamp);
+        uint256 syOwed;
+        (syOwed, netSyFee) = state.swapSyForExactPt(index, exactYtIn, block.timestamp);
 
-        uint256 amountPYToRepayScyOwed = index.scyToAssetUp(scyOwed);
-        uint256 amountPYToRedeemScyOut = exactYtIn - amountPYToRepayScyOwed;
+        uint256 amountPYToRepaySyOwed = index.syToAssetUp(syOwed);
+        uint256 amountPYToRedeemSyOut = exactYtIn - amountPYToRepaySyOwed;
 
-        netScyOut = index.assetToScy(amountPYToRedeemScyOut);
+        netSyOut = index.assetToSy(amountPYToRedeemSyOut);
         priceImpact = calcPriceImpact(market, exactYtIn.Int());
     }
 
     /// @dev netYtIn is the parameter to approx
-    function swapYtForExactScyStatic(
+    function swapYtForExactSyStatic(
         address market,
-        uint256 exactScyOut,
+        uint256 exactSyOut,
         ApproxParams memory approxParams
     )
         external
         returns (
             uint256 netYtIn,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -483,9 +468,9 @@ library MarketMathStatic {
 
         PYIndex index = pyIndex(market);
 
-        (netYtIn, , netScyFee) = state.approxSwapYtForExactScy(
+        (netYtIn, , netSyFee) = state.approxSwapYtForExactSy(
             index,
-            exactScyOut,
+            exactSyOut,
             block.timestamp,
             approxParams
         );
@@ -500,15 +485,15 @@ library MarketMathStatic {
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        uint256 netScyOut;
-        (netScyOut, netScyFee, priceImpact) = swapExactYtForScyStatic(market, exactYtIn);
+        uint256 netSyOut;
+        (netSyOut, netSyFee, priceImpact) = swapExactYtForSyStatic(market, exactYtIn);
 
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SCY.previewRedeem(baseToken, netScyOut);
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
     }
 
     /// @dev netYtOut is the parameter to approx
@@ -521,16 +506,16 @@ library MarketMathStatic {
         external
         returns (
             uint256 netYtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
         return
-            swapExactScyForYtStatic(
+            swapExactSyForYtStatic(
                 market,
-                SCY.previewDeposit(baseToken, amountBaseToken),
+                SY.previewDeposit(baseToken, amountBaseToken),
                 approxParams
             );
     }
@@ -545,14 +530,14 @@ library MarketMathStatic {
         returns (
             uint256 netYtOut,
             uint256 totalPtToSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netYtOut, totalPtToSwap, netScyFee) = state.approxSwapExactPtForYt(
+        (netYtOut, totalPtToSwap, netSyFee) = state.approxSwapExactPtForYt(
             index,
             exactPtIn,
             block.timestamp,
@@ -571,14 +556,14 @@ library MarketMathStatic {
         returns (
             uint256 netPtOut,
             uint256 totalPtSwapped,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         MarketState memory state = IPMarket(market).readState();
         PYIndex index = pyIndex(market);
 
-        (netPtOut, totalPtSwapped, netScyFee) = state.approxSwapExactYtForPt(
+        (netPtOut, totalPtSwapped, netSyFee) = state.approxSwapExactYtForPt(
             index,
             exactYtIn,
             block.timestamp,

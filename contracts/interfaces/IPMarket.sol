@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
-import "./ISuperComposableYield.sol";
+import "./IStandardizedYield.sol";
 import "./IPGauge.sol";
 import "../core/Market/MarketMathCore.sol";
 
@@ -12,24 +12,19 @@ interface IPMarket is IERC20Metadata, IPGauge {
     event Mint(
         address indexed receiver,
         uint256 netLpMinted,
-        uint256 netScyUsed,
+        uint256 netSyUsed,
         uint256 netPtUsed
     );
 
     event Burn(
-        address indexed receiverScy,
+        address indexed receiverSy,
         address indexed receiverPt,
         uint256 netLpBurned,
-        uint256 netScyOut,
+        uint256 netSyOut,
         uint256 netPtOut
     );
 
-    event Swap(
-        address indexed receiver,
-        int256 netPtOut,
-        int256 netScyOut,
-        uint256 netScyToReserve
-    );
+    event Swap(address indexed receiver, int256 netPtOut, int256 netSyOut, uint256 netSyToReserve);
 
     event UpdateImpliedRate(uint256 indexed timestamp, uint256 lnLastImpliedRate);
 
@@ -40,33 +35,33 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     function mint(
         address receiver,
-        uint256 netScyDesired,
+        uint256 netSyDesired,
         uint256 netPtDesired
     )
         external
         returns (
             uint256 netLpOut,
-            uint256 netScyUsed,
+            uint256 netSyUsed,
             uint256 netPtUsed
         );
 
     function burn(
-        address receiverScy,
+        address receiverSy,
         address receiverPt,
         uint256 netLpToBurn
-    ) external returns (uint256 netScyOut, uint256 netPtOut);
+    ) external returns (uint256 netSyOut, uint256 netPtOut);
 
-    function swapExactPtForScy(
+    function swapExactPtForSy(
         address receiver,
         uint256 exactPtIn,
         bytes calldata data
-    ) external returns (uint256 netScyOut, uint256 netScyToReserve);
+    ) external returns (uint256 netSyOut, uint256 netSyToReserve);
 
-    function swapScyForExactPt(
+    function swapSyForExactPt(
         address receiver,
         uint256 exactPtOut,
         bytes calldata data
-    ) external returns (uint256 netScyIn, uint256 netScyToReserve);
+    ) external returns (uint256 netSyIn, uint256 netSyToReserve);
 
     function redeemRewards(address user) external returns (uint256[] memory);
 
@@ -83,7 +78,7 @@ interface IPMarket is IERC20Metadata, IPGauge {
         external
         view
         returns (
-            ISuperComposableYield _SCY,
+            IStandardizedYield _SY,
             IPPrincipalToken _PT,
             IPYieldToken _YT
         );

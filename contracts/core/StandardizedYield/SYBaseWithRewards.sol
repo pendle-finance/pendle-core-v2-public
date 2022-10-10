@@ -2,13 +2,13 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IStandardizedYield.sol";
 
 import "../libraries/math/Math.sol";
-import "./SCYBase.sol";
+import "./SYBase.sol";
 
 /// NOTE: yieldToken MUST NEVER BE a rewardToken, else the rewardManager will behave erroneously
-abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
+abstract contract SYBaseWithRewards is SYBase, RewardManager {
     using Math for uint256;
     using ArrayLib for address[];
 
@@ -17,7 +17,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
         string memory _symbol,
         address _yieldToken
     )
-        SCYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
+        SYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
     {}
 
     /*///////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-claimRewards}
+     * @dev See {IStandardizedYield-claimRewards}
      */
     function claimRewards(address user)
         external
@@ -41,7 +41,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     }
 
     /**
-     * @dev See {ISuperComposableYield-getRewardTokens}
+     * @dev See {IStandardizedYield-getRewardTokens}
      */
     function getRewardTokens()
         external
@@ -54,7 +54,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
     }
 
     /**
-     * @dev See {ISuperComposableYield-accruedRewards}
+     * @dev See {IStandardizedYield-accruedRewards}
      */
     function accruedRewards(address user)
         external
@@ -102,7 +102,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
 
     /**
      * @notice returns the total number of reward shares
-     * @dev this is simply the total supply of shares, as rewards shares are equivalent to SCY shares
+     * @dev this is simply the total supply of shares, as rewards shares are equivalent to SY shares
      */
     function _rewardSharesTotal() internal view virtual override returns (uint256) {
         return totalSupply();
@@ -110,7 +110,7 @@ abstract contract SCYBaseWithRewards is SCYBase, RewardManager {
 
     /**
      * @notice returns the reward shares of (`user`)
-     * @dev this is simply the SCY balance of (`user`), as rewards shares are equivalent to SCY shares
+     * @dev this is simply the SY balance of (`user`), as rewards shares are equivalent to SY shares
      */
     function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
         return balanceOf(user);

@@ -10,13 +10,13 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../libraries/math/Math.sol";
 import "../libraries/TokenHelper.sol";
-import "../SuperComposableYield/SCYUtils.sol";
+import "../StandardizedYield/SYUtils.sol";
 
 /*
-With YT yielding more SCYs overtime, which is allowed to be redeemed by users, the reward distribution should
-be based on the amount of SCYs that their YT currently represent, plus with their dueInterest.
+With YT yielding more SYs overtime, which is allowed to be redeemed by users, the reward distribution should
+be based on the amount of SYs that their YT currently represent, plus with their dueInterest.
 
-It has been proven and tested that totalScyRedeemable will not change over time, unless users redeem their interest or redeemPY.
+It has been proven and tested that totalSyRedeemable will not change over time, unless users redeem their interest or redeemPY.
 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
@@ -44,7 +44,7 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
 
     function _doTransferOutInterest(
         address user,
-        address SCY,
+        address SY,
         address factory
     ) internal returns (uint256 interestAmount) {
         address treasury = IPYieldContractFactory(factory).treasury();
@@ -56,8 +56,8 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
         uint256 feeAmount = interestPreFee.mulDown(feeRate);
         interestAmount = interestPreFee - feeAmount;
 
-        _transferOut(SCY, treasury, feeAmount);
-        _transferOut(SCY, user, interestAmount);
+        _transferOut(SY, treasury, feeAmount);
+        _transferOut(SY, user, interestAmount);
     }
 
     // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)

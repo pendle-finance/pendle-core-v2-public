@@ -15,7 +15,7 @@ library Errors {
     error MarketZeroLnImpliedRate();
     error MarketInsufficientPtForTrade(int256 currentAmount, int256 requiredAmount);
     error MarketInsufficientPtReceived(uint256 actualBalance, uint256 requiredBalance);
-    error MarketInsufficientScyReceived(uint256 actualBalance, uint256 requiredBalance);
+    error MarketInsufficientSyReceived(uint256 actualBalance, uint256 requiredBalance);
     error MarketZeroTotalPtOrTotalAsset(int256 totalPt, int256 totalAsset);
     error MarketExchangeRateBelowOne(int256 exchangeRate);
     error MarketProportionMustNotEqualOne();
@@ -36,15 +36,15 @@ library Errors {
 
     // ROUTER
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);
-    error RouterInsufficientScyOut(uint256 actualScyOut, uint256 requiredScyOut);
+    error RouterInsufficientSyOut(uint256 actualSyOut, uint256 requiredSyOut);
     error RouterInsufficientPtOut(uint256 actualPtOut, uint256 requiredPtOut);
     error RouterInsufficientYtOut(uint256 actualYtOut, uint256 requiredYtOut);
     error RouterInsufficientPYOut(uint256 actualPYOut, uint256 requiredPYOut);
     error RouterInsufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
-    error RouterExceededLimitScyIn(uint256 actualScyIn, uint256 limitScyIn);
+    error RouterExceededLimitSyIn(uint256 actualSyIn, uint256 limitSyIn);
     error RouterExceededLimitPtIn(uint256 actualPtIn, uint256 limitPtIn);
     error RouterExceededLimitYtIn(uint256 actualYtIn, uint256 limitYtIn);
-    error RouterInsufficientScyRepay(uint256 actualScyRepay, uint256 requiredScyRepay);
+    error RouterInsufficientSyRepay(uint256 actualSyRepay, uint256 requiredSyRepay);
     error RouterInsufficientPtRepay(uint256 actualPtRepay, uint256 requiredPtRepay);
 
     error RouterTimeRangeZero();
@@ -54,31 +54,31 @@ library Errors {
     // YIELD CONTRACT
     error YCExpired();
     error YCNotExpired();
-    error YieldContractInsufficientScy(uint256 actualScy, uint256 requiredScy);
+    error YieldContractInsufficientSy(uint256 actualSy, uint256 requiredSy);
     error YCNothingToRedeem();
     error YCPostExpiryDataNotSet();
-    error YCNoFloatingScy();
+    error YCNoFloatingSy();
 
     // YieldFactory
     error YCFactoryInvalidExpiry();
     error YCFactoryYieldContractExisted();
 
-    // SCY
-    error SCYInvalidTokenIn(address token);
-    error SCYInvalidTokenOut(address token);
-    error SCYZeroDeposit();
-    error SCYZeroRedeem();
-    error SCYInsufficientSharesOut(uint256 actualSharesOut, uint256 requiredSharesOut);
-    error SCYInsufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
+    // SY
+    error SYInvalidTokenIn(address token);
+    error SYInvalidTokenOut(address token);
+    error SYZeroDeposit();
+    error SYZeroRedeem();
+    error SYInsufficientSharesOut(uint256 actualSharesOut, uint256 requiredSharesOut);
+    error SYInsufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
 
-    // SCY-specific
-    error SCYQiTokenMintFailed(uint256 errCode);
-    error SCYQiTokenRedeemFailed(uint256 errCode);
-    error SCYQiTokenRedeemRewardsFailed(uint256 rewardAccruedType0, uint256 rewardAccruedType1);
-    error SCYQiTokenBorrowRateTooHigh(uint256 borrowRate, uint256 borrowRateMax);
+    // SY-specific
+    error SYQiTokenMintFailed(uint256 errCode);
+    error SYQiTokenRedeemFailed(uint256 errCode);
+    error SYQiTokenRedeemRewardsFailed(uint256 rewardAccruedType0, uint256 rewardAccruedType1);
+    error SYQiTokenBorrowRateTooHigh(uint256 borrowRate, uint256 borrowRateMax);
 
-    error SCYCurveInvalidPid();
-    error SCYCurve3crvPoolNotFound();
+    error SYCurveInvalidPid();
+    error SYCurve3crvPoolNotFound();
 
     // Liquidity Mining
     error VCInactivePool(address pool);

@@ -28,7 +28,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     }
 
     struct AssetAmount {
-        ISuperComposableYield.AssetType assetType;
+        IStandardizedYield.AssetType assetType;
         address assetAddress;
         uint256 amount;
     }
@@ -51,7 +51,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market;
         uint256 lpBalance;
         TokenAmount ptBalance;
-        TokenAmount scyBalance;
+        TokenAmount syBalance;
         AssetAmount assetBalance;
     }
 
@@ -139,17 +139,17 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             address pt,
-            address scy,
+            address sy,
             MarketState memory state,
             int256 impliedYield,
             uint256 exchangeRate
         )
     {
         IPMarket _market = IPMarket(market);
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         pt = address(PT);
-        scy = address(SCY);
+        sy = address(SY);
         state = _market.readState();
         impliedYield = getPtImpliedYield(market);
         exchangeRate = MarketMathStatic.getExchangeRate(market);
@@ -179,19 +179,19 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         }
     }
 
-    function getUserSCYInfo(address scy, address user)
+    function getUserSYInfo(address sy, address user)
         external
         view
         returns (uint256 balance, TokenAmount[] memory rewards)
     {
-        ISuperComposableYield SCY = ISuperComposableYield(scy);
-        balance = SCY.balanceOf(scy);
-        address[] memory rewardTokens = SCY.getRewardTokens();
+        IStandardizedYield SY = IStandardizedYield(sy);
+        balance = SY.balanceOf(sy);
+        address[] memory rewardTokens = SY.getRewardTokens();
         rewards = new TokenAmount[](rewardTokens.length);
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address rewardToken = rewardTokens[i];
             rewards[i].token = rewardToken;
-            (, rewards[i].amount) = IRewardManager(scy).userReward(rewardToken, user);
+            (, rewards[i].amount) = IRewardManager(sy).userReward(rewardToken, user);
         }
     }
 
@@ -204,7 +204,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         IPYieldToken YT = IPYieldToken(userPYInfo.yt);
         userPYInfo.ytBalance = YT.balanceOf(user);
         userPYInfo.ptBalance = IPPrincipalToken(userPYInfo.pt).balanceOf(user);
-        userPYInfo.unclaimedInterest.token = YT.SCY();
+        userPYInfo.unclaimedInterest.token = YT.SY();
         (, userPYInfo.unclaimedInterest.amount) = YT.userInterest(user);
         address[] memory rewardTokens = YT.getRewardTokens();
         TokenAmount[] memory unclaimedRewards = new TokenAmount[](rewardTokens.length);
@@ -235,8 +235,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         userMarketInfo.market = market;
         userMarketInfo.lpBalance = userLp;
 
-        (ISuperComposableYield SCY, IPPrincipalToken PT, ) = _market.readTokens();
-        (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SCY
+        (IStandardizedYield SY, IPPrincipalToken PT, ) = _market.readTokens();
+        (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SY
             .assetInfo();
 
         MarketState memory state = _market.readState();
@@ -247,11 +247,11 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         }
 
         uint256 userPt = (userLp * uint256(state.totalPt)) / totalLp;
-        uint256 userScy = (userLp * uint256(state.totalScy)) / totalLp;
+        uint256 userSy = (userLp * uint256(state.totalSy)) / totalLp;
 
         userMarketInfo.ptBalance = TokenAmount(address(PT), userPt);
-        userMarketInfo.scyBalance = TokenAmount(address(SCY), userScy);
-        userMarketInfo.assetBalance.amount = (userScy * SCY.exchangeRate()) / Math.ONE;
+        userMarketInfo.syBalance = TokenAmount(address(SY), userSy);
+        userMarketInfo.assetBalance.amount = (userSy * SY.exchangeRate()) / Math.ONE;
     }
 
     function hasPYPosition(UserPYInfo calldata userPYInfo) public pure returns (bool hasPosition) {
@@ -263,21 +263,20 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
     // ============= MARKET ACTIONS =============
 
-    function addLiquidityDualScyAndPtStatic(
+    function addLiquidityDualSyAndPtStatic(
         address market,
-        uint256 netScyDesired,
+        uint256 netSyDesired,
         uint256 netPtDesired
     )
         external
         view
         returns (
             uint256 netLpOut,
-            uint256 netScyUsed,
+            uint256 netSyUsed,
             uint256 netPtUsed
         )
     {
-        return
-            MarketMathStatic.addLiquidityDualScyAndPtStatic(market, netScyDesired, netPtDesired);
+        return MarketMathStatic.addLiquidityDualSyAndPtStatic(market, netSyDesired, netPtDesired);
     }
 
     function addLiquidityDualTokenAndPtStatic(
@@ -308,7 +307,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netLpOut,
             uint256 netPtToSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -316,21 +315,17 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn, getDefaultApproxParams());
     }
 
-    function addLiquiditySingleScyStatic(address market, uint256 netScyIn)
+    function addLiquiditySingleSyStatic(address market, uint256 netSyIn)
         public
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return
-            MarketMathStatic.addLiquiditySingleScyStatic(
-                market,
-                netScyIn,
-                getDefaultApproxParams()
-            );
+            MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn, getDefaultApproxParams());
     }
 
     function addLiquiditySingleBaseTokenStatic(
@@ -342,7 +337,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -355,12 +350,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
-    function removeLiquidityDualScyAndPtStatic(address market, uint256 netLpToRemove)
+    function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
-        returns (uint256 netScyOut, uint256 netPtOut)
+        returns (uint256 netSyOut, uint256 netPtOut)
     {
-        return MarketMathStatic.removeLiquidityDualScyAndPtStatic(market, netLpToRemove);
+        return MarketMathStatic.removeLiquidityDualSyAndPtStatic(market, netLpToRemove);
     }
 
     function removeLiquidityDualTokenAndPtStatic(
@@ -377,7 +372,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netPtOut,
             uint256 netPtFromSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -389,15 +384,15 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
-    function removeLiquiditySingleScyStatic(address market, uint256 netLpToRemove)
+    function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.removeLiquiditySingleScyStatic(market, netLpToRemove);
+        return MarketMathStatic.removeLiquiditySingleSyStatic(market, netLpToRemove);
     }
 
     function removeLiquiditySingleBaseTokenStatic(
@@ -408,7 +403,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -420,54 +415,50 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             );
     }
 
-    function swapExactPtForScyStatic(address market, uint256 exactPtIn)
+    function swapExactPtForSyStatic(address market, uint256 exactPtIn)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapExactPtForScyStatic(market, exactPtIn);
+        return MarketMathStatic.swapExactPtForSyStatic(market, exactPtIn);
     }
 
-    function swapScyForExactPtStatic(address market, uint256 exactPtOut)
+    function swapSyForExactPtStatic(address market, uint256 exactPtOut)
         external
         returns (
-            uint256 netScyIn,
-            uint256 netScyFee,
+            uint256 netSyIn,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapScyForExactPtStatic(market, exactPtOut);
+        return MarketMathStatic.swapSyForExactPtStatic(market, exactPtOut);
     }
 
-    function swapExactScyForPtStatic(address market, uint256 exactScyIn)
+    function swapExactSyForPtStatic(address market, uint256 exactSyIn)
         public
         returns (
             uint256 netPtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return
-            MarketMathStatic.swapExactScyForPtStatic(market, exactScyIn, getDefaultApproxParams());
+            MarketMathStatic.swapExactSyForPtStatic(market, exactSyIn, getDefaultApproxParams());
     }
 
-    function swapPtForExactScyStatic(address market, uint256 exactScyOut)
+    function swapPtForExactSyStatic(address market, uint256 exactSyOut)
         public
         returns (
             uint256 netPtIn,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return
-            MarketMathStatic.swapPtForExactScyStatic(
-                market,
-                exactScyOut,
-                getDefaultApproxParams()
-            );
+            MarketMathStatic.swapPtForExactSyStatic(market, exactSyOut, getDefaultApproxParams());
     }
 
     function swapExactBaseTokenForPtStatic(
@@ -478,7 +469,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             uint256 netPtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -499,61 +490,57 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return MarketMathStatic.swapExactPtForBaseTokenStatic(market, exactPtIn, baseToken);
     }
 
-    function swapScyForExactYtStatic(address market, uint256 exactYtOut)
+    function swapSyForExactYtStatic(address market, uint256 exactYtOut)
         external
         returns (
-            uint256 netScyIn,
-            uint256 netScyFee,
+            uint256 netSyIn,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapScyForExactYtStatic(market, exactYtOut);
+        return MarketMathStatic.swapSyForExactYtStatic(market, exactYtOut);
     }
 
-    function swapExactScyForYtStatic(address market, uint256 exactScyIn)
+    function swapExactSyForYtStatic(address market, uint256 exactSyIn)
         public
         returns (
             uint256 netYtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return
-            MarketMathStatic.swapExactScyForYtStatic(market, exactScyIn, getDefaultApproxParams());
+            MarketMathStatic.swapExactSyForYtStatic(market, exactSyIn, getDefaultApproxParams());
     }
 
-    function swapExactYtForScyStatic(address market, uint256 exactYtIn)
+    function swapExactYtForSyStatic(address market, uint256 exactYtIn)
         public
         returns (
-            uint256 netScyOut,
-            uint256 netScyFee,
+            uint256 netSyOut,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
-        return MarketMathStatic.swapExactYtForScyStatic(market, exactYtIn);
+        return MarketMathStatic.swapExactYtForSyStatic(market, exactYtIn);
     }
 
-    function swapYtForExactScyStatic(address market, uint256 exactScyOut)
+    function swapYtForExactSyStatic(address market, uint256 exactSyOut)
         external
         returns (
             uint256 netYtIn,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
         return
-            MarketMathStatic.swapYtForExactScyStatic(
-                market,
-                exactScyOut,
-                getDefaultApproxParams()
-            );
+            MarketMathStatic.swapYtForExactSyStatic(market, exactSyOut, getDefaultApproxParams());
     }
 
     function swapExactYtForBaseTokenStatic(
@@ -564,7 +551,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             uint256 netBaseTokenOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -579,7 +566,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         external
         returns (
             uint256 netYtOut,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -597,7 +584,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netYtOut,
             uint256 totalPtToSwap,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -609,7 +596,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netPtOut,
             uint256 totalPtSwapped,
-            uint256 netScyFee,
+            uint256 netSyFee,
             uint256 priceImpact
         )
     {
@@ -654,16 +641,16 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
     // ============= OTHER HELPERS =============
 
-    function mintPYFromScyStatic(address YT, uint256 amountScyToMint)
+    function mintPYFromSyStatic(address YT, uint256 amountSyToMint)
         public
         returns (uint256 amountPY)
     {
         IPYieldToken _YT = IPYieldToken(YT);
         if (_YT.isExpired()) revert Errors.YCExpired();
-        return amountScyToMint.mulDown(_YT.pyIndexCurrent());
+        return amountSyToMint.mulDown(_YT.pyIndexCurrent());
     }
 
-    function redeemPYToScyStatic(address YT, uint256 amountPYToRedeem)
+    function redeemPYToSyStatic(address YT, uint256 amountPYToRedeem)
         public
         returns (uint256 amountPY)
     {
@@ -676,8 +663,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address baseToken,
         uint256 amountBaseToken
     ) external returns (uint256 amountPY) {
-        ISuperComposableYield SCY = ISuperComposableYield(IPYieldToken(YT).SCY());
-        return mintPYFromScyStatic(YT, SCY.previewDeposit(baseToken, amountBaseToken));
+        IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
+        return mintPYFromSyStatic(YT, SY.previewDeposit(baseToken, amountBaseToken));
     }
 
     function redeemPYToBaseStatic(
@@ -685,8 +672,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         uint256 amountPYToRedeem,
         address baseToken
     ) external returns (uint256 amountBaseToken) {
-        ISuperComposableYield SCY = ISuperComposableYield(IPYieldToken(YT).SCY());
-        return SCY.previewRedeem(baseToken, redeemPYToScyStatic(YT, amountPYToRedeem));
+        IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
+        return SY.previewRedeem(baseToken, redeemPYToSyStatic(YT, amountPYToRedeem));
     }
 
     function getPtImpliedYield(address market) public view returns (int256) {
@@ -722,12 +709,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (address[] memory tokensIn, address[] memory tokensOut)
     {
         if (pyToken != address(0)) {
-            // SCY interface is shared between pt & yt
-            ISuperComposableYield SCY = ISuperComposableYield(IPPrincipalToken(pyToken).SCY());
-            return (SCY.getTokensIn(), SCY.getTokensOut());
+            // SY interface is shared between pt & yt
+            IStandardizedYield SY = IStandardizedYield(IPPrincipalToken(pyToken).SY());
+            return (SY.getTokensIn(), SY.getTokensOut());
         } else {
-            (ISuperComposableYield SCY, , ) = IPMarket(market).readTokens();
-            return (SCY.getTokensIn(), SCY.getTokensOut());
+            (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+            return (SY.getTokensIn(), SY.getTokensOut());
         }
     }
 }

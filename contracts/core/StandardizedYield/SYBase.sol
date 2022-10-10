@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IStandardizedYield.sol";
 
 import "../erc20/PendleERC20Permit.sol";
 
@@ -11,9 +11,9 @@ import "../RewardManager/RewardManager.sol";
 import "../libraries/math/Math.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/Errors.sol";
-import "./SCYUtils.sol";
+import "./SYUtils.sol";
 
-abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelper {
+abstract contract SYBase is IStandardizedYield, PendleERC20Permit, TokenHelper {
     using Math for uint256;
 
     address public immutable yieldToken;
@@ -34,7 +34,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-deposit}
+     * @dev See {IStandardizedYield-deposit}
      */
     function deposit(
         address receiver,
@@ -42,21 +42,21 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         uint256 amountTokenToDeposit,
         uint256 minSharesOut
     ) external payable nonReentrant returns (uint256 amountSharesOut) {
-        if (!isValidTokenIn(tokenIn)) revert Errors.SCYInvalidTokenIn(tokenIn);
-        if (amountTokenToDeposit == 0) revert Errors.SCYZeroDeposit();
+        if (!isValidTokenIn(tokenIn)) revert Errors.SYInvalidTokenIn(tokenIn);
+        if (amountTokenToDeposit == 0) revert Errors.SYZeroDeposit();
 
         _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
 
         amountSharesOut = _deposit(tokenIn, amountTokenToDeposit);
         if (amountSharesOut < minSharesOut)
-            revert Errors.SCYInsufficientSharesOut(amountSharesOut, minSharesOut);
+            revert Errors.SYInsufficientSharesOut(amountSharesOut, minSharesOut);
 
         _mint(receiver, amountSharesOut);
         emit Deposit(msg.sender, receiver, tokenIn, amountTokenToDeposit, amountSharesOut);
     }
 
     /**
-     * @dev See {ISuperComposableYield-redeem}
+     * @dev See {IStandardizedYield-redeem}
      */
     function redeem(
         address receiver,
@@ -65,8 +65,8 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         uint256 minTokenOut,
         bool burnFromInternalBalance
     ) external nonReentrant returns (uint256 amountTokenOut) {
-        if (!isValidTokenOut(tokenOut)) revert Errors.SCYInvalidTokenOut(tokenOut);
-        if (amountSharesToRedeem == 0) revert Errors.SCYZeroRedeem();
+        if (!isValidTokenOut(tokenOut)) revert Errors.SYInvalidTokenOut(tokenOut);
+        if (amountSharesToRedeem == 0) revert Errors.SYZeroRedeem();
 
         if (burnFromInternalBalance) {
             _burn(address(this), amountSharesToRedeem);
@@ -76,7 +76,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
 
         amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
         if (amountTokenOut < minTokenOut)
-            revert Errors.SCYInsufficientTokenOut(amountTokenOut, minTokenOut);
+            revert Errors.SYInsufficientTokenOut(amountTokenOut, minTokenOut);
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
 
@@ -108,7 +108,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-exchangeRate}
+     * @dev See {IStandardizedYield-exchangeRate}
      */
     function exchangeRate() external view virtual override returns (uint256 res);
 
@@ -117,7 +117,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev See {ISuperComposableYield-claimRewards}
+     * @dev See {IStandardizedYield-claimRewards}
      */
     function claimRewards(
         address /*user*/
@@ -126,7 +126,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
     }
 
     /**
-     * @dev See {ISuperComposableYield-getRewardTokens}
+     * @dev See {IStandardizedYield-getRewardTokens}
      */
     function getRewardTokens()
         external
@@ -139,7 +139,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
     }
 
     /**
-     * @dev See {ISuperComposableYield-accruedRewards}
+     * @dev See {IStandardizedYield-accruedRewards}
      */
     function accruedRewards(
         address /*user*/
@@ -171,7 +171,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         virtual
         returns (uint256 amountSharesOut)
     {
-        if (!isValidTokenIn(tokenIn)) revert Errors.SCYInvalidTokenIn(tokenIn);
+        if (!isValidTokenIn(tokenIn)) revert Errors.SYInvalidTokenIn(tokenIn);
         return _previewDeposit(tokenIn, amountTokenToDeposit);
     }
 
@@ -181,7 +181,7 @@ abstract contract SCYBase is ISuperComposableYield, PendleERC20Permit, TokenHelp
         virtual
         returns (uint256 amountTokenOut)
     {
-        if (!isValidTokenOut(tokenOut)) revert Errors.SCYInvalidTokenOut(tokenOut);
+        if (!isValidTokenOut(tokenOut)) revert Errors.SYInvalidTokenOut(tokenOut);
         return _previewRedeem(tokenOut, amountSharesToRedeem);
     }
 

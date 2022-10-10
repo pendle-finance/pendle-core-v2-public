@@ -3,14 +3,14 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../interfaces/ISuperComposableYield.sol";
+import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
 import "../libraries/math/Math.sol";
 import "../libraries/ArrayLib.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../SuperComposableYield/SCYUtils.sol";
+import "../StandardizedYield/SYUtils.sol";
 import "../libraries/Errors.sol";
 import "../libraries/MiniHelpers.sol";
 
@@ -35,17 +35,17 @@ contract PendleYieldToken is
 
     struct PostExpiryData {
         uint128 firstPYIndex;
-        uint128 totalScyInterestForTreasury;
+        uint128 totalSyInterestForTreasury;
         mapping(address => uint256) firstRewardIndex;
         mapping(address => uint256) userRewardOwed;
     }
 
-    address public immutable SCY;
+    address public immutable SY;
     address public immutable PT;
     address public immutable factory;
     uint256 public immutable expiry;
 
-    uint128 public scyReserve;
+    uint128 public syReserve;
     uint128 internal _pyIndexStored;
 
     PostExpiryData public postExpiry;
@@ -53,7 +53,7 @@ contract PendleYieldToken is
     modifier updateData() {
         if (isExpired()) _setPostExpiryData();
         _;
-        _updateScyReserve();
+        _updateSyReserve();
     }
 
     modifier notExpired() {
@@ -62,20 +62,20 @@ contract PendleYieldToken is
     }
 
     constructor(
-        address _SCY,
+        address _SY,
         address _PT,
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
     ) PendleERC20Permit(_name, _symbol, __decimals) {
-        SCY = _SCY;
+        SY = _SY;
         PT = _PT;
         expiry = _expiry;
         factory = msg.sender;
     }
 
-    /// @notice Tokenize SCY into PT + YT of equal qty. Every unit of underlying of SCY will create 1 PT + 1 YT
+    /// @notice Tokenize SY into PT + YT of equal qty. Every unit of underlying of SY will create 1 PT + 1 YT
     function mintPY(address receiverPT, address receiverYT)
         external
         nonReentrant
@@ -85,52 +85,52 @@ contract PendleYieldToken is
     {
         address[] memory receiverPTs = new address[](1);
         address[] memory receiverYTs = new address[](1);
-        uint256[] memory amountScyToMints = new uint256[](1);
+        uint256[] memory amountSyToMints = new uint256[](1);
 
-        (receiverPTs[0], receiverYTs[0], amountScyToMints[0]) = (
+        (receiverPTs[0], receiverYTs[0], amountSyToMints[0]) = (
             receiverPT,
             receiverYT,
-            _getFloatingScyAmount()
+            _getFloatingSyAmount()
         );
 
-        uint256[] memory amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountScyToMints);
+        uint256[] memory amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountSyToMints);
         amountPYOut = amountPYOuts[0];
     }
 
-    /// @notice Tokenize SCY into PT + YT of equal qty. Every unit of underlying of SCY will create 1 PT + 1 YT
+    /// @notice Tokenize SY into PT + YT of equal qty. Every unit of underlying of SY will create 1 PT + 1 YT
     function mintPYMulti(
         address[] calldata receiverPTs,
         address[] calldata receiverYTs,
-        uint256[] calldata amountScyToMints
+        uint256[] calldata amountSyToMints
     ) external nonReentrant notExpired updateData returns (uint256[] memory amountPYOuts) {
         uint256 length = receiverPTs.length;
 
-        if (receiverYTs.length != length && amountScyToMints.length == length)
+        if (receiverYTs.length != length && amountSyToMints.length == length)
             revert Errors.ArrayLengthMismatch();
         if (length == 0) revert Errors.ArrayEmpty();
 
-        uint256 totalScyToMint = amountScyToMints.sum();
-        if (totalScyToMint > _getFloatingScyAmount())
-            revert Errors.YieldContractInsufficientScy(totalScyToMint, _getFloatingScyAmount());
+        uint256 totalSyToMint = amountSyToMints.sum();
+        if (totalSyToMint > _getFloatingSyAmount())
+            revert Errors.YieldContractInsufficientSy(totalSyToMint, _getFloatingSyAmount());
 
-        amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountScyToMints);
+        amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountSyToMints);
     }
 
-    /// @dev this function converts PY tokens into scy, but interests & rewards are not redeemed at the same time
+    /// @dev this function converts PY tokens into sy, but interests & rewards are not redeemed at the same time
     function redeemPY(address receiver)
         external
         nonReentrant
         updateData
-        returns (uint256 amountScyOut)
+        returns (uint256 amountSyOut)
     {
         address[] memory receivers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         (receivers[0], amounts[0]) = (receiver, _getAmountPYToRedeem());
 
-        uint256[] memory amountScyOuts;
-        amountScyOuts = _redeemPY(receivers, amounts);
+        uint256[] memory amountSyOuts;
+        amountSyOuts = _redeemPY(receivers, amounts);
 
-        amountScyOut = amountScyOuts[0];
+        amountSyOut = amountSyOuts[0];
     }
 
     /// @dev this function limit how much each receiver will receive. For example, if the totalOut is 100,
@@ -140,16 +140,16 @@ contract PendleYieldToken is
         external
         nonReentrant
         updateData
-        returns (uint256[] memory amountScyOuts)
+        returns (uint256[] memory amountSyOuts)
     {
         if (receivers.length != amountPYToRedeems.length) revert Errors.ArrayLengthMismatch();
         if (receivers.length == 0) revert Errors.ArrayEmpty();
-        amountScyOuts = _redeemPY(receivers, amountPYToRedeems);
+        amountSyOuts = _redeemPY(receivers, amountPYToRedeems);
     }
 
     /**
-    * @dev With YT yielding interest in the form of SCY, which is redeemable by users, the reward
-    distribution should be based on the amount of SCYs that their YT currently represent, plus their
+    * @dev With YT yielding interest in the form of SY, which is redeemable by users, the reward
+    distribution should be based on the amount of SYs that their YT currently represent, plus their
     dueInterest. It has been proven and tested that _rewardSharesUser will not change over time,
     unless users redeem their dueInterest or redeemPY. Due to this, it is required to update users'
     accruedReward STRICTLY BEFORE transferring out their interest.
@@ -175,7 +175,7 @@ contract PendleYieldToken is
 
         if (redeemInterest) {
             _distributeInterest(user);
-            interestOut = _doTransferOutInterest(user, SCY, factory);
+            interestOut = _doTransferOutInterest(user, SY, factory);
             emit RedeemInterest(user, interestOut);
         } else {
             interestOut = 0;
@@ -203,13 +203,13 @@ contract PendleYieldToken is
 
         _transferOut(tokens, treasury, rewardsOut);
 
-        interestOut = postExpiry.totalScyInterestForTreasury;
-        postExpiry.totalScyInterestForTreasury = 0;
-        _transferOut(SCY, treasury, interestOut);
+        interestOut = postExpiry.totalSyInterestForTreasury;
+        postExpiry.totalSyInterestForTreasury = 0;
+        _transferOut(SY, treasury, interestOut);
     }
 
     function rewardIndexesCurrent() external override nonReentrant returns (uint256[] memory) {
-        return ISuperComposableYield(SCY).rewardIndexesCurrent();
+        return IStandardizedYield(SY).rewardIndexesCurrent();
     }
 
     /// @dev maximize the current rate with the previous rate to guarantee non-decreasing rate
@@ -228,7 +228,7 @@ contract PendleYieldToken is
         view
         returns (
             uint256 firstPYIndex,
-            uint256 totalScyInterestForTreasury,
+            uint256 totalSyInterestForTreasury,
             uint256[] memory firstRewardIndexes,
             uint256[] memory userRewardOwed
         )
@@ -236,7 +236,7 @@ contract PendleYieldToken is
         if (postExpiry.firstPYIndex == 0) revert Errors.YCPostExpiryDataNotSet();
 
         firstPYIndex = postExpiry.firstPYIndex;
-        totalScyInterestForTreasury = postExpiry.totalScyInterestForTreasury;
+        totalSyInterestForTreasury = postExpiry.totalSyInterestForTreasury;
 
         address[] memory tokens = getRewardTokens();
         firstRewardIndexes = new uint256[](tokens.length);
@@ -251,14 +251,14 @@ contract PendleYieldToken is
     function _mintPY(
         address[] memory receiverPTs,
         address[] memory receiverYTs,
-        uint256[] memory amountScyToMints
+        uint256[] memory amountSyToMints
     ) internal returns (uint256[] memory amountPYOuts) {
-        amountPYOuts = new uint256[](amountScyToMints.length);
+        amountPYOuts = new uint256[](amountSyToMints.length);
 
         uint256 index = _pyIndexCurrent();
 
-        for (uint256 i = 0; i < amountScyToMints.length; i++) {
-            amountPYOuts[i] = _calcPYToMint(amountScyToMints[i], index);
+        for (uint256 i = 0; i < amountSyToMints.length; i++) {
+            amountPYOuts[i] = _calcPYToMint(amountSyToMints[i], index);
 
             _mint(receiverYTs[i], amountPYOuts[i]);
             IPPrincipalToken(PT).mintByYT(receiverPTs[i], amountPYOuts[i]);
@@ -267,7 +267,7 @@ contract PendleYieldToken is
                 msg.sender,
                 receiverPTs[i],
                 receiverYTs[i],
-                amountScyToMints[i],
+                amountSyToMints[i],
                 amountPYOuts[i]
             );
         }
@@ -283,50 +283,50 @@ contract PendleYieldToken is
 
     function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
         internal
-        returns (uint256[] memory amountScyOuts)
+        returns (uint256[] memory amountSyOuts)
     {
         uint256 totalAmountPYToRedeem = amountPYToRedeems.sum();
         IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
         uint256 index = _pyIndexCurrent();
-        uint256 totalScyInterestPostExpiry;
-        amountScyOuts = new uint256[](receivers.length);
+        uint256 totalSyInterestPostExpiry;
+        amountSyOuts = new uint256[](receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
-            uint256 scyInterestPostExpiry;
-            (amountScyOuts[i], scyInterestPostExpiry) = _calcScyRedeemableFromPY(
+            uint256 syInterestPostExpiry;
+            (amountSyOuts[i], syInterestPostExpiry) = _calcSyRedeemableFromPY(
                 amountPYToRedeems[i],
                 index
             );
-            _transferOut(SCY, receivers[i], amountScyOuts[i]);
-            totalScyInterestPostExpiry += scyInterestPostExpiry;
+            _transferOut(SY, receivers[i], amountSyOuts[i]);
+            totalSyInterestPostExpiry += syInterestPostExpiry;
 
-            emit Burn(msg.sender, receivers[i], amountPYToRedeems[i], amountScyOuts[i]);
+            emit Burn(msg.sender, receivers[i], amountPYToRedeems[i], amountSyOuts[i]);
         }
-        if (totalScyInterestPostExpiry != 0) {
-            postExpiry.totalScyInterestForTreasury += totalScyInterestPostExpiry.Uint128();
+        if (totalSyInterestPostExpiry != 0) {
+            postExpiry.totalSyInterestForTreasury += totalSyInterestPostExpiry.Uint128();
         }
     }
 
-    function _calcPYToMint(uint256 amountScy, uint256 indexCurrent)
+    function _calcPYToMint(uint256 amountSy, uint256 indexCurrent)
         internal
         pure
         returns (uint256 amountPY)
     {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
-        return SCYUtils.scyToAsset(indexCurrent, amountScy);
+        return SYUtils.syToAsset(indexCurrent, amountSy);
     }
 
-    function _calcScyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
+    function _calcSyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
         internal
         view
-        returns (uint256 scyToUser, uint256 scyInterestPostExpiry)
+        returns (uint256 syToUser, uint256 syInterestPostExpiry)
     {
-        scyToUser = SCYUtils.assetToScy(indexCurrent, amountPY);
+        syToUser = SYUtils.assetToSy(indexCurrent, amountPY);
         if (isExpired()) {
-            uint256 totalScyRedeemable = SCYUtils.assetToScy(postExpiry.firstPYIndex, amountPY);
-            scyInterestPostExpiry = totalScyRedeemable - scyToUser;
+            uint256 totalSyRedeemable = SYUtils.assetToSy(postExpiry.firstPYIndex, amountPY);
+            syInterestPostExpiry = totalSyRedeemable - syToUser;
         }
     }
 
@@ -335,13 +335,13 @@ contract PendleYieldToken is
         else return _selfBalance(PT);
     }
 
-    function _updateScyReserve() internal virtual {
-        scyReserve = _selfBalance(SCY).Uint128();
+    function _updateSyReserve() internal virtual {
+        syReserve = _selfBalance(SY).Uint128();
     }
 
-    function _getFloatingScyAmount() internal view returns (uint256 amount) {
-        amount = _selfBalance(SCY) - scyReserve;
-        if (amount == 0) revert Errors.YCNoFloatingScy();
+    function _getFloatingSyAmount() internal view returns (uint256 amount) {
+        amount = _selfBalance(SY) - syReserve;
+        if (amount == 0) revert Errors.YCNoFloatingSy();
     }
 
     function _setPostExpiryData() internal {
@@ -351,8 +351,8 @@ contract PendleYieldToken is
         _redeemExternalReward(); // do a final redeem. All the future reward income will belong to the treasury
 
         local.firstPYIndex = _pyIndexCurrent().Uint128();
-        address[] memory rewardTokens = ISuperComposableYield(SCY).getRewardTokens();
-        uint256[] memory rewardIndexes = ISuperComposableYield(SCY).rewardIndexesCurrent();
+        address[] memory rewardTokens = IStandardizedYield(SY).getRewardTokens();
+        uint256[] memory rewardIndexes = IStandardizedYield(SY).rewardIndexesCurrent();
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             local.firstRewardIndex[rewardTokens[i]] = rewardIndexes[i];
             local.userRewardOwed[rewardTokens[i]] = _selfBalance(rewardTokens[i]);
@@ -369,7 +369,7 @@ contract PendleYieldToken is
     }
 
     function _pyIndexCurrent() internal returns (uint256 currentIndex) {
-        currentIndex = Math.max(ISuperComposableYield(SCY).exchangeRate(), _pyIndexStored);
+        currentIndex = Math.max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored);
         _pyIndexStored = currentIndex.Uint128();
         emit NewInterestIndex(currentIndex);
     }
@@ -383,7 +383,7 @@ contract PendleYieldToken is
     //////////////////////////////////////////////////////////////*/
 
     function getRewardTokens() public view returns (address[] memory) {
-        return ISuperComposableYield(SCY).getRewardTokens();
+        return IStandardizedYield(SY).getRewardTokens();
     }
 
     function _doTransferOutRewards(address user, address receiver)
@@ -436,14 +436,14 @@ contract PendleYieldToken is
     }
 
     function _redeemExternalReward() internal virtual override {
-        ISuperComposableYield(SCY).claimRewards(address(this));
+        IStandardizedYield(SY).claimRewards(address(this));
     }
 
-    /// @dev effectively returning the amount of SCY generating rewards for this user
+    /// @dev effectively returning the amount of SY generating rewards for this user
     function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
         uint256 index = userInterest[user].index;
         if (index == 0) return 0;
-        return SCYUtils.assetToScy(index, balanceOf(user)) + userInterest[user].accrued;
+        return SYUtils.assetToSy(index, balanceOf(user)) + userInterest[user].accrued;
     }
 
     function _updateRewardIndex()
@@ -457,7 +457,7 @@ contract PendleYieldToken is
             for (uint256 i = 0; i < tokens.length; i++)
                 indexes[i] = postExpiry.firstRewardIndex[tokens[i]];
         } else {
-            indexes = ISuperComposableYield(SCY).rewardIndexesCurrent();
+            indexes = IStandardizedYield(SY).rewardIndexesCurrent();
         }
     }
 

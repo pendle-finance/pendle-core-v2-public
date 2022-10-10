@@ -5,12 +5,12 @@ import "../router/base/MarketApproxLib.sol";
 import "../router/kyberswap/KyberSwapHelper.sol";
 
 interface IPActionSwapPT {
-    event SwapPtAndScy(
+    event SwapPtAndSy(
         address indexed caller,
         address indexed market,
         address indexed receiver,
         int256 netPtToAccount,
-        int256 netScyToAccount
+        int256 netSyToAccount
     );
 
     event SwapPtAndToken(
@@ -22,35 +22,35 @@ interface IPActionSwapPT {
         int256 netTokenToAccount
     );
 
-    function swapExactPtForScy(
+    function swapExactPtForSy(
         address receiver,
         address market,
         uint256 exactPtIn,
-        uint256 minScyOut
-    ) external returns (uint256 netScyOut, uint256 netScyFee);
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
 
-    function swapPtForExactScy(
+    function swapPtForExactSy(
         address receiver,
         address market,
-        uint256 exactScyOut,
+        uint256 exactSyOut,
         uint256 maxPtIn,
         ApproxParams calldata guessPtIn
-    ) external returns (uint256 netPtIn, uint256 netScyFee);
+    ) external returns (uint256 netPtIn, uint256 netSyFee);
 
-    function swapScyForExactPt(
+    function swapSyForExactPt(
         address receiver,
         address market,
         uint256 exactPtOut,
-        uint256 maxScyIn
-    ) external returns (uint256 netScyIn, uint256 netScyFee);
+        uint256 maxSyIn
+    ) external returns (uint256 netSyIn, uint256 netSyFee);
 
-    function swapExactScyForPt(
+    function swapExactSyForPt(
         address receiver,
         address market,
-        uint256 exactScyIn,
+        uint256 exactSyIn,
         uint256 minPtOut,
         ApproxParams calldata guessPtOut
-    ) external returns (uint256 netPtOut, uint256 netScyFee);
+    ) external returns (uint256 netPtOut, uint256 netSyFee);
 
     function swapExactTokenForPt(
         address receiver,
@@ -58,12 +58,12 @@ interface IPActionSwapPT {
         uint256 minPtOut,
         ApproxParams calldata guessPtOut,
         TokenInput calldata input
-    ) external payable returns (uint256 netPtOut, uint256 netScyFee);
+    ) external payable returns (uint256 netPtOut, uint256 netSyFee);
 
     function swapExactPtForToken(
         address receiver,
         address market,
         uint256 exactPtIn,
         TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netScyFee);
+    ) external returns (uint256 netTokenOut, uint256 netSyFee);
 }

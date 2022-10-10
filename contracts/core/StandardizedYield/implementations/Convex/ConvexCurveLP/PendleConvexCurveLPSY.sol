@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../../SCYBaseWithRewards.sol";
+import "../../../SYBaseWithRewards.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/Curve/ICrvPool.sol";
 
-abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
+abstract contract PendleConvexCurveLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
 
     uint256 public immutable pid;
@@ -26,7 +26,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
         address _crvLpToken,
         address _cvx,
         address _baseCrvPool
-    ) SCYBaseWithRewards(_name, _symbol, _crvLpToken) {
+    ) SYBaseWithRewards(_name, _symbol, _crvLpToken) {
         pid = _pid;
         CVX = _cvx;
         crvPool = _baseCrvPool;
@@ -34,7 +34,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
         booster = _convexBooster;
 
         (LP, baseRewards, CRV) = _getPoolInfo(pid);
-        if (LP != _crvLpToken) revert Errors.SCYCurveInvalidPid();
+        if (LP != _crvLpToken) revert Errors.SYCurveInvalidPid();
 
         _safeApprove(LP, booster, type(uint256).max);
     }
@@ -48,7 +48,7 @@ abstract contract PendleConvexCurveLPSCY is SCYBaseWithRewards {
             address crv
         )
     {
-        if (_pid > IBooster(booster).poolLength()) revert Errors.SCYCurveInvalidPid();
+        if (_pid > IBooster(booster).poolLength()) revert Errors.SYCurveInvalidPid();
 
         (lptoken, , , crvRewards, , ) = IBooster(booster).poolInfo(_pid);
         crv = IBooster(booster).crv();

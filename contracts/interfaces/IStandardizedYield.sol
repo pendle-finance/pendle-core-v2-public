@@ -24,14 +24,14 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-interface ISuperComposableYield is IERC20Metadata {
+interface IStandardizedYield is IERC20Metadata {
     /// @dev Emitted when any base tokens is deposited to mint shares
     event Deposit(
         address indexed caller,
         address indexed receiver,
         address indexed tokenIn,
         uint256 amountDeposited,
-        uint256 amountScyOut
+        uint256 amountSyOut
     );
 
     /// @dev Emitted when any shares are redeemed for base tokens
@@ -39,7 +39,7 @@ interface ISuperComposableYield is IERC20Metadata {
         address indexed caller,
         address indexed receiver,
         address indexed tokenOut,
-        uint256 amountScyToRedeem,
+        uint256 amountSyToRedeem,
         uint256 amountTokenOut
     );
 
@@ -92,10 +92,10 @@ interface ISuperComposableYield is IERC20Metadata {
     ) external returns (uint256 amountTokenOut);
 
     /**
-     * @notice exchangeRate * scyBalance / 1e18 must return the asset balance of the account
-     * @notice vice-versa, if a user uses some amount of tokens equivalent to X asset, the amount of scy
+     * @notice exchangeRate * syBalance / 1e18 must return the asset balance of the account
+     * @notice vice-versa, if a user uses some amount of tokens equivalent to X asset, the amount of sy
      he can mint must be X * exchangeRate / 1e18
-     * @dev SCYUtils's assetToScy & scyToAsset should be used instead of raw multiplication
+     * @dev SYUtils's assetToSy & syToAsset should be used instead of raw multiplication
      & division
      */
     function exchangeRate() external view returns (uint256 res);

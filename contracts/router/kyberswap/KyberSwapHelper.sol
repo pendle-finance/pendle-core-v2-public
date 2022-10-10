@@ -30,14 +30,14 @@ import "./AggregationRouterHelper.sol";
 struct TokenInput {
     address tokenIn;
     uint256 netTokenIn;
-    address tokenMintScy;
+    address tokenMintSy;
     bytes kybercall;
 }
 
 struct TokenOutput {
     address tokenOut;
     uint256 minTokenOut;
-    address tokenRedeemScy;
+    address tokenRedeemSy;
     bytes kybercall;
 }
 
