@@ -51,6 +51,13 @@ library MarketApproxPtInLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swap in
+        - Try swapping & get netSyOut
+        - Stop when netSyOut greater & approx minSyOut
+        - guess & approx is for netPtIn
+     */
     function approxSwapPtForExactSy(
         MarketState memory _market,
         PYIndex _index,
@@ -66,12 +73,6 @@ library MarketApproxPtInLib {
             uint256 /*netSyFee*/
         )
     {
-        /*
-        the algorithm is essentially to:
-        1. binary search netPtIn
-        2. if netSyOut is greater & approx minSyOut => answer found
-        */
-
         Args1 memory a = Args1(_market, _index, _minSyOut, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtIn memory p = newApproxParamsPtIn(_approx, 0, calcMaxPtIn(comp.totalAsset));
@@ -105,6 +106,15 @@ library MarketApproxPtInLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swap in
+        - Flashswap the corresponding amount of SY out
+        - Pair those amount with exactSyIn SY to tokenize into PT & YT
+        - PT to repay the flashswap, YT transferred to user
+        - Stop when PT to repay the flashswap greater approx the amount of PT owed
+        - guess & approx is for netYtOut (also netPtIn)
+     */
     function approxSwapExactSyForYt(
         MarketState memory _market,
         PYIndex _index,
@@ -130,7 +140,6 @@ library MarketApproxPtInLib {
         );
 
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
-            // ytOutGuess = ptInGuess
             (bool isGoodSlope, uint256 guess) = nextGuess(p, comp, a.market.totalPt, iter);
             if (!isGoodSlope) {
                 p.guessMax = guess;
@@ -159,6 +168,14 @@ library MarketApproxPtInLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swap to SY
+        - Swap PT to SY
+        - Pair the remaining PT with the SY to add liquidity
+        - Stop when the ratio of PT / totalPt & SY / totalSy is approx
+        - guess & approx is for netPtSwap
+     */
     function approxSwapPtToAddLiquidity(
         MarketState memory _market,
         PYIndex _index,
@@ -174,17 +191,6 @@ library MarketApproxPtInLib {
             uint256 /*netSyFee*/
         )
     {
-        /*
-        The algorithm is essentially to:
-        1. Binary search netPtIn (therefore netSyOut)
-        2. Swap netPtIn for netSyOut
-        3. Use (totalPtIn - netPtIn) and netSyOut to mint LP
-        4. If (totalPtIn - netPtIn) / netSyOut ratio is close enough to the market's PT/SY ratio
-        => answer found
-
-        Note that market maintains PT/SY ratio, but here PT/asset is used instead
-        */
-
         Args6 memory a = Args6(_market, _index, _totalPtIn, _blockTime);
         require(a.market.totalLp != 0, "no existing lp");
 
@@ -215,9 +221,9 @@ library MarketApproxPtInLib {
                 uint256 newTotalSy = (a.market.totalSy.Uint() - netSyOut - netSyFee);
 
                 // it is desired that
-                // netAssetOut / newTotalSy = netPtRemaining / newTotalPt
+                // netSyOut / newTotalSy = netPtRemaining / newTotalPt
                 // which is equivalent to
-                // netAssetOut * newTotalPt = netPtRemaining * newTotalSy
+                // netSyOut * newTotalPt = netPtRemaining * newTotalSy
 
                 syNumerator = netSyOut * newTotalPt;
                 ptNumerator = netPtRemaining * newTotalSy;
@@ -228,10 +234,10 @@ library MarketApproxPtInLib {
             }
 
             if (syNumerator <= ptNumerator) {
-                // needs more asset --> swap more PT
+                // needs more SY --> swap more PT
                 p.guessMin = guess + 1;
             } else {
-                // needs less asset --> swap less PT
+                // needs less SY --> swap less PT
                 p.guessMax = guess - 1;
             }
         }
@@ -245,12 +251,21 @@ library MarketApproxPtInLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swap to SY
+        - Flashswap the corresponding amount of SY out
+        - Tokenize all the SY into PT + YT
+        - PT to repay the flashswap, YT transferred to user
+        - Stop when the amount of PT owed is smaller approx the amount of PT to repay the flashswap
+        - guess & approx is for totalPtToSwap
+     */
     function approxSwapExactPtForYt(
         MarketState memory _market,
         PYIndex _index,
         uint256 _exactPtIn,
         uint256 _blockTime,
-        ApproxParams memory _approx // approx for totalPtToSwap
+        ApproxParams memory _approx
     )
         internal
         pure
@@ -400,6 +415,13 @@ library MarketApproxPtOutLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swapExactOut
+        - Calculate the amount of SY needed
+        - Stop when the netSyIn is smaller approx exactSyIn
+        - guess & approx is for netSyIn
+     */
     function approxSwapExactSyForPt(
         MarketState memory _market,
         PYIndex _index,
@@ -414,12 +436,6 @@ library MarketApproxPtOutLib {
             uint256 /*netSyFee*/
         )
     {
-        /*
-        1. Binary search netPtOut
-        2. Calc netSyIn to swap to receive netPtOut
-        2. If netSyIn < exactSyIn && netSyIn ~ exactSyIn => answer found
-        */
-
         Args4 memory a = Args4(_market, _index, _exactSyIn, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtOut memory p = newApproxParamsPtOut(
@@ -452,6 +468,14 @@ library MarketApproxPtOutLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swapExactOut
+        - Flashswap that amount of PT & pair with YT to redeem SY
+        - Use the SY to repay the flashswap debt and the remaining is transferred to user
+        - Stop when the netSyOut is greater approx the minSyOut
+        - guess & approx is for netSyOut
+     */
     function approxSwapYtForExactSy(
         MarketState memory _market,
         PYIndex _index,
@@ -467,14 +491,6 @@ library MarketApproxPtOutLib {
             uint256 /*netSyFee*/
         )
     {
-        /*
-        1. Binary search netPtOut (therefore netSyIn)
-        2. Flashswap netPtOut (now we owe netSyIn)
-        3. Pair netPtOut with netYtIn Yt => get SY (netPtOut == netYtIn)
-        4. Pay back SY & the exceed amount of SY (netSyOut) is transferred out to user
-        5. If netSyOut > minSyOut && netSyOut ~ minSyOut => answer found
-        */
-
         Args5 memory a = Args5(_market, _index, _minSyOut, _blockTime);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxParamsPtOut memory p = newApproxParamsPtOut(
@@ -510,6 +526,14 @@ library MarketApproxPtOutLib {
         uint256 blockTime;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swapExactOut
+        - Swap that amount of PT out
+        - Pair the remaining PT with the SY to add liquidity
+        - Stop when the ratio of PT / totalPt & SY / totalSy is approx
+        - guess & approx is for netPtFromSwap
+     */
     function approxSwapSyToAddLiquidity(
         MarketState memory _market,
         PYIndex _index,
@@ -525,16 +549,6 @@ library MarketApproxPtOutLib {
             uint256 /*netSyFee*/
         )
     {
-        /*
-        1. Binary search netPtOut (therefore netSyIn)
-        2. Swap netSyIn for netPtOut
-        3. Use netPtOut and (totalSyIn - netSyIn) to mint LP
-        4. If netPtOut / (totalSyIn - netSyIn) ratio is close enough to the market's PT/SY ratio
-        => answer found
-
-        Note that market maintains PT/SY ratio, but here PT/asset is used instead
-        */
-
         Args6 memory a = Args6(_market, _index, _totalSyIn, _blockTime);
         require(a.market.totalLp != 0, "no existing lp");
 
@@ -564,9 +578,9 @@ library MarketApproxPtOutLib {
                 uint256 netTotalSy = comp.totalAsset.Uint() + netSyIn - netSyFee;
 
                 // it is desired that
-                // guess / newTotalPt = netSyRemaining / netTotalSy
+                // netPtFromSwap / newTotalPt = netSyRemaining / netTotalSy
                 // which is equivalent to
-                // guess * netTotalSy = netSyRemaining * newTotalPt
+                // netPtFromSwap * netTotalSy = netSyRemaining * newTotalPt
 
                 ptNumerator = guess * netTotalSy;
                 syNumerator = netSyRemaining * newTotalPt;
@@ -595,6 +609,15 @@ library MarketApproxPtOutLib {
         uint256 maxSyPayable;
     }
 
+    /**
+     * @dev algorithm:
+        - Bin search the amount of PT to swapExactOut
+        - Flashswap that amount of PT out
+        - Pair all the PT with the YT to redeem SY
+        - Use the SY to repay the flashswap debt
+        - Stop when the amount of SY owed is smaller approx the amount of SY to repay the flashswap
+        - guess & approx is for netPtFromSwap
+     */
     function approxSwapExactYtForPt(
         MarketState memory _market,
         PYIndex _index,
