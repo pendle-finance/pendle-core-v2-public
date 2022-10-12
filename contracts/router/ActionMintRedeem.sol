@@ -10,6 +10,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using Math for uint256;
     using Math for int256;
+    using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _kyberSwapRouter)
@@ -179,7 +180,13 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         }
 
         // guaranteed no ETH, all rewards are ERC20
-        _transferFrom(tokensOut.tokens, msg.sender, address(this), tokensOut.amounts);
+        for (uint256 i = 0; i < tokensOut.tokens.length; ++i) {
+            IERC20(tokensOut.tokens[i]).safeTransferFrom(
+                msg.sender,
+                address(this),
+                tokensOut.amounts[i]
+            );
+        }
         _redeemAllSys(sysOut, dataYT.tokenRedeemSys, tokensOut);
 
         // now swap all to outputToken
@@ -217,7 +224,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         for (uint256 i = 0; i < sys.tokens.length; ++i) {
             if (sys.amounts[i] == 0) continue;
 
-            _transferFrom(sys.tokens[i], msg.sender, sys.tokens[i], sys.amounts[i]);
+            IERC20(sys.tokens[i]).safeTransferFrom(msg.sender, sys.tokens[i], sys.amounts[i]);
             uint256 amountOut = IStandardizedYield(sys.tokens[i]).redeem(
                 address(this),
                 sys.amounts[i],
