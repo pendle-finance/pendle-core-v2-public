@@ -21,7 +21,7 @@ Voting accounting:
     will receive both of the reward pack
     - Each pack of money will has it own id as timestamp, a gauge controller does not
     receive a pack of money with the same id twice, this allow governance to rebroadcast
-    in case the last message was corrupted by Celer
+    in case the last message was corrupted by LayerZero
 
 Pros:
     - If governance does not forget broadcasting the reward on the early of the week,
@@ -196,7 +196,7 @@ contract PendleVotingControllerUpg is
     }
 
     /**
-     * @notice use the gov-privilege to force broadcast a message in case there are issues with Celer
+     * @notice use the gov-privilege to force broadcast a message in case there are issues with LayerZero
      * @dev it's intentional for this function to have minimal checks since we assume gov has done the
         due diligence
      * @dev gov should always call finalizeEpoch beforehand

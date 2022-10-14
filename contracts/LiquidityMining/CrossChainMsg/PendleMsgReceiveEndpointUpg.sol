@@ -44,7 +44,7 @@ contract PendleMsgReceiveEndpointUpg is
     );
 
     modifier onlyLzEndpoint() {
-        if (msg.sender != address(lzEndpoint)) revert Errors.OnlyCelerBus();
+        if (msg.sender != address(lzEndpoint)) revert Errors.OnlyLayerZeroEndpoint();
         _;
     }
 

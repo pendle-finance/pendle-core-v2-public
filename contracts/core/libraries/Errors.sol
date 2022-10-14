@@ -120,7 +120,7 @@ library Errors {
     error ArrayOutOfBounds();
     error ZeroAddress();
 
-    error OnlyCelerBus();
+    error OnlyLayerZeroEndpoint();
     error OnlyYT();
     error OnlyYCFactory();
     error OnlyWhitelisted();

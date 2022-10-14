@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 import "../../interfaces/IPMsgSendEndpoint.sol";
 import "../../interfaces/ILayerZeroEndpoint.sol";
-import "../../interfaces/ICelerMessageBus.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 import "../../core/libraries/Errors.sol";
 import "./libraries/LayerZeroHelper.sol";
