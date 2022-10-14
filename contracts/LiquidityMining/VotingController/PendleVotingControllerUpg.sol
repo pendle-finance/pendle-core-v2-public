@@ -233,7 +233,7 @@ contract PendleVotingControllerUpg is
         uint256[] memory totalPendleAmounts = new uint256[](length);
 
         return
-            pendleMsgSendEndpoint.calcFee(
+            _getSendMessageFee(
                 destinationContracts.get(chainId),
                 chainId,
                 abi.encode(uint128(0), pools, totalPendleAmounts)

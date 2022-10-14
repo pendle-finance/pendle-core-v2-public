@@ -14,6 +14,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
+    uint256 public approxDstExecutionGas;
+
     IPMsgSendEndpoint public immutable pendleMsgSendEndpoint;
 
     // destinationContracts mapping contains one address for each chainId only
@@ -35,11 +37,12 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     function _sendMessage(uint256 chainId, bytes memory message) internal {
         assert(destinationContracts.contains(chainId));
         address toAddr = destinationContracts.get(chainId);
-        uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message);
+        bytes memory adapterParams = _getAdapterParams();
+        uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message, adapterParams);
         // LM contracts won't hold ETH on its own so this is fine
         if (address(this).balance < fee)
             revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
-        pendleMsgSendEndpoint.sendMessage{ value: fee }(toAddr, chainId, message);
+        pendleMsgSendEndpoint.sendMessage{ value: fee }(toAddr, chainId, message, adapterParams);
     }
 
     function addDestinationContract(address _address, uint256 _chainId)
@@ -49,6 +52,10 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     {
         destinationContracts.set(_chainId, _address);
         _afterAddDestinationContract(_address, _chainId);
+    }
+
+    function setApproxDstExecutionGas(uint256 gas) external onlyOwner {
+        approxDstExecutionGas = gas;
     }
 
     function getAllDestinationContracts()
@@ -65,5 +72,20 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
+    function _getAdapterParams() internal view returns (bytes memory) {
+        uint256 gas = approxDstExecutionGas;
+        if (gas == 0) revert Errors.ApproxDstExecutionGasNotSet();
+        // (version, gas consumption)
+        return abi.encodePacked(uint16(1), gas);
+    }
+
     function _afterAddDestinationContract(address addr, uint256 chainId) internal virtual {}
+
+    function _getSendMessageFee(
+        address dstContract,
+        uint256 chainId,
+        bytes memory message
+    ) internal view returns (uint256) {
+        return pendleMsgSendEndpoint.calcFee(dstContract, chainId, message, _getAdapterParams());
+    }
 }

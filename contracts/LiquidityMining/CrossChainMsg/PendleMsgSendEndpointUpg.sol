@@ -2,11 +2,18 @@
 pragma solidity 0.8.17;
 
 import "../../interfaces/IPMsgSendEndpoint.sol";
+import "../../interfaces/ILayerZeroEndpoint.sol";
 import "../../interfaces/ICelerMessageBus.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 import "../../core/libraries/Errors.sol";
+import "./libraries/LayerZeroHelper.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
+/**
+ * @dev Initially, currently we will use layer zero's default send and receive version (which is most updated)
+ * So we can leave the configuration unset.
+ */
 
 contract PendleMsgSendEndpointUpg is
     IPMsgSendEndpoint,
@@ -16,7 +23,9 @@ contract PendleMsgSendEndpointUpg is
 {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    ICelerMessageBus public immutable celerMessageBus;
+    address payable public immutable refundAddress;
+    ILayerZeroEndpoint public immutable lzEndpoint;
+
     EnumerableMap.UintToAddressMap internal receiveEndpoints;
     mapping(address => bool) public isWhitelisted;
 
@@ -25,8 +34,9 @@ contract PendleMsgSendEndpointUpg is
         _;
     }
 
-    constructor(ICelerMessageBus _celerMessageBus) initializer {
-        celerMessageBus = _celerMessageBus;
+    constructor(address _refundAddress, ILayerZeroEndpoint _lzEndpoint) initializer {
+        refundAddress = payable(_refundAddress);
+        lzEndpoint = _lzEndpoint;
     }
 
     function initialize() external initializer {
@@ -35,21 +45,36 @@ contract PendleMsgSendEndpointUpg is
 
     function calcFee(
         address dstAddress,
-        uint256, /*dstChainId*/
-        bytes memory message
-    ) external view returns (uint256) {
-        return celerMessageBus.calcFee(abi.encode(dstAddress, message));
+        uint256 dstChainId,
+        bytes memory payload,
+        bytes memory adapterParams
+    ) external view returns (uint256 fee) {
+        (fee, ) = lzEndpoint.estimateFees(
+            LayerZeroHelper._getLayerZeroChainIds(dstChainId),
+            receiveEndpoints.get(dstChainId),
+            abi.encode(dstAddress, payload),
+            false,
+            adapterParams
+        );
     }
 
     function sendMessage(
         address dstAddress,
         uint256 dstChainId,
-        bytes calldata message
+        bytes calldata payload,
+        bytes calldata adapterParams
     ) external payable onlyWhitelisted {
-        celerMessageBus.sendMessage{ value: msg.value }(
+        bytes memory path = abi.encodePacked(
             receiveEndpoints.get(dstChainId),
-            dstChainId,
-            abi.encode(dstAddress, message)
+            address(this)
+        );
+        lzEndpoint.send{ value: msg.value }(
+            LayerZeroHelper._getLayerZeroChainIds(dstChainId),
+            path,
+            abi.encode(dstAddress, payload),
+            refundAddress,
+            address(0),
+            adapterParams
         );
     }
 
@@ -63,6 +88,10 @@ contract PendleMsgSendEndpointUpg is
 
     function setWhitelisted(address addr, bool status) external onlyOwner {
         isWhitelisted[addr] = status;
+    }
+
+    function setLzSendVersion(uint16 _newVersion) external onlyOwner {
+        ILayerZeroEndpoint(lzEndpoint).setSendVersion(_newVersion);
     }
 
     function getAllReceiveEndpoints()

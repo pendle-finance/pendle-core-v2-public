@@ -6,12 +6,14 @@ interface IPMsgSendEndpoint {
     function calcFee(
         address dstAddress,
         uint256 dstChainId,
-        bytes calldata message
+        bytes memory payload,
+        bytes memory adapterParams
     ) external view returns (uint256);
 
     function sendMessage(
         address dstAddress,
         uint256 dstChainId,
-        bytes calldata message
+        bytes calldata payload,
+        bytes calldata adapterParams
     ) external payable;
 }

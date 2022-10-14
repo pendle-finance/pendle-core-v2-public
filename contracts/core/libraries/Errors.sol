@@ -111,6 +111,8 @@ library Errors {
     error MsgNotFromSendEndpoint(address sender);
     error MsgNotFromReceiveEndpoint(address sender);
     error InsufficientFeeToSendMsg(uint256 currentFee, uint256 requiredFee);
+    error ApproxDstExecutionGasNotSet();
+    error InvalidRetryData();
 
     // GENERIC MSG
     error ArrayLengthMismatch();
