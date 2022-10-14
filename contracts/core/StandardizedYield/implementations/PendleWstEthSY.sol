@@ -49,7 +49,10 @@ contract PendleWstEthSY is SYBase {
                 amountStETH = amountDeposited;
             } else {
                 if (tokenIn == wETH) IWETH(wETH).withdraw(amountDeposited);
-                amountStETH = IStETH(stETH).submit{ value: amountDeposited }(address(0));
+
+                uint256 preBalanceStEth = _selfBalance(stETH);
+                IStETH(stETH).submit{ value: amountDeposited }(address(0));
+                amountStETH = _selfBalance(stETH) - preBalanceStEth;
             }
             amountSharesOut = IWstETH(wstETH).wrap(amountStETH);
         }
