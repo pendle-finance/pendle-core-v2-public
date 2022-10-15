@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./PendleConvexLPSY.sol";
-import "../Pendle3CrvHelper.sol";
-import "../../../../libraries/ArrayLib.sol";
+import "./base/PendleConvexLPSY.sol";
+import "./base/Pendle3CrvHelper.sol";
+import "../../../libraries/ArrayLib.sol";
 
 contract Pendle3CrvAndTokenSY is PendleConvexLPSY {
     using ArrayLib for address[];
