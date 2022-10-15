@@ -85,8 +85,8 @@ contract PendleWstEthSY is SYBase {
      * @notice Calculates and updates the exchange rate of shares to underlying asset token
      * @dev It is the exchange rate of wstETH to stETH
      */
-    function exchangeRate() public view virtual override returns (uint256 currentRate) {
-        return IWstETH(wstETH).stEthPerToken();
+    function exchangeRate() public view virtual override returns (uint256) {
+        return IStETH(stETH).getPooledEthByShares(1 ether);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ contract PendleWstEthSY is SYBase {
             } else {
                 amountStETH = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
             }
-            amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
+            amountSharesOut = IStETH(stETH).getSharesByPooledEth(amountStETH);
         }
     }
 
@@ -118,7 +118,7 @@ contract PendleWstEthSY is SYBase {
         returns (uint256 amountTokenOut)
     {
         if (tokenOut == wstETH) amountTokenOut = amountSharesToRedeem;
-        else amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
+        else amountTokenOut = IStETH(stETH).getPooledEthByShares(amountSharesToRedeem);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
