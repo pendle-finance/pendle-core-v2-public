@@ -105,9 +105,9 @@ contract PendleYieldToken is
     ) external nonReentrant notExpired updateData returns (uint256[] memory amountPYOuts) {
         uint256 length = receiverPTs.length;
 
-        if (receiverYTs.length != length && amountSyToMints.length == length)
-            revert Errors.ArrayLengthMismatch();
         if (length == 0) revert Errors.ArrayEmpty();
+        if (receiverYTs.length != length || amountSyToMints.length != length)
+            revert Errors.ArrayLengthMismatch();
 
         uint256 totalSyToMint = amountSyToMints.sum();
         if (totalSyToMint > _getFloatingSyAmount())
