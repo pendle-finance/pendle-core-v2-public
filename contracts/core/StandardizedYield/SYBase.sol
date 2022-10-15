@@ -1,17 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
 import "../../interfaces/IStandardizedYield.sol";
 
 import "../erc20/PendleERC20Permit.sol";
 
-import "../RewardManager/RewardManager.sol";
 import "../libraries/math/Math.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/Errors.sol";
-import "./SYUtils.sol";
 
 abstract contract SYBase is IStandardizedYield, PendleERC20Permit, TokenHelper {
     using Math for uint256;
