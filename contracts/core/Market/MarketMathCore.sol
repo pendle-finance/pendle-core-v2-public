@@ -171,7 +171,7 @@ library MarketMathCore {
             }
         }
 
-        if (lpToAccount == 0) revert Errors.MarketZeroAmountsOutput();
+        if (lpToAccount <= 0) revert Errors.MarketZeroAmountsOutput();
 
         /// ------------------------------------------------------------
         /// WRITE
