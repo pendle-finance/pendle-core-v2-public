@@ -58,6 +58,8 @@ library Errors {
     error YCNothingToRedeem();
     error YCPostExpiryDataNotSet();
     error YCNoFloatingSy();
+    error YCFactoryInterestFeeRateTooHigh(uint256 interestFeeRate, uint256 maxInterestFeeRate);
+    error YCFactoryRewardFeeRateTooHigh(uint256 newInterestFeeRate, uint256 maxRewardFeeRate);
 
     // YieldFactory
     error YCFactoryInvalidExpiry();

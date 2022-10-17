@@ -30,6 +30,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     address public immutable yieldContractFactory;
     uint256 public immutable maxLnFeeRateRoot;
+    uint8 public constant maxReserveFeePercent = 100;
 
     // PT -> scalarRoot -> initialAnchor
     mapping(address => mapping(int256 => mapping(int256 => address))) internal markets;
@@ -127,8 +128,11 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyOwner {
-        if (newReserveFeePercent > 100)
-            revert Errors.MFactoryReserveFeePercentTooHigh(newReserveFeePercent, 100);
+        if (newReserveFeePercent > maxReserveFeePercent)
+            revert Errors.MFactoryReserveFeePercentTooHigh(
+                newReserveFeePercent,
+                maxReserveFeePercent
+            );
 
         marketConfig.reserveFeePercent = newReserveFeePercent;
         _emitNewMarketConfigEvent();

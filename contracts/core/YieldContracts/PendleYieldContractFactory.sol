@@ -67,6 +67,9 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     mapping(address => bool) public isPT;
     mapping(address => bool) public isYT;
 
+    uint256 public constant maxInterestFeeRate = 2e17; // 20%
+    uint256 public constant maxRewardFeeRate = 2e17; // 20%
+
     constructor(
         address _ytCreationCodeContractA,
         uint256 _ytCreationCodeSizeA,
@@ -160,11 +163,17 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function setInterestFeeRate(uint128 newInterestFeeRate) public onlyOwner {
+        if (interestFeeRate > maxInterestFeeRate)
+            revert Errors.YCFactoryInterestFeeRateTooHigh(newInterestFeeRate, maxInterestFeeRate);
+
         interestFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
     function setRewardFeeRate(uint128 newInterestFeeRate) public onlyOwner {
+        if (rewardFeeRate > maxRewardFeeRate)
+            revert Errors.YCFactoryRewardFeeRateTooHigh(newInterestFeeRate, maxRewardFeeRate);
+
         rewardFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
