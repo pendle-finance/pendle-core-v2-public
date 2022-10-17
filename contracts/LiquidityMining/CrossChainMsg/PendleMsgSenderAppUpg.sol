@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
 /// This contract is upgradable because
-/// - its constructor only sets immutable variables
+/// - its constructor only sets immutable varia\bles
 /// - it has storage gaps for safe addition of future variables
 /// - it inherits only upgradable contract
 abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
@@ -51,7 +51,6 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         onlyOwner
     {
         destinationContracts.set(_chainId, _address);
-        _afterAddDestinationContract(_address, _chainId);
     }
 
     function setApproxDstExecutionGas(uint256 gas) external onlyOwner {
@@ -78,8 +77,6 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         // (version, gas consumption)
         return abi.encodePacked(uint16(1), gas);
     }
-
-    function _afterAddDestinationContract(address addr, uint256 chainId) internal virtual {}
 
     function _getSendMessageFee(
         address dstContract,

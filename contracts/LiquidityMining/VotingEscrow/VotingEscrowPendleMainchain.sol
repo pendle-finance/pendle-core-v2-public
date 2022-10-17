@@ -295,11 +295,6 @@ contract VotingEscrowPendleMainchain is
         emit BroadcastTotalSupply(supply, chainIds);
     }
 
-    function _afterAddDestinationContract(address, uint256 chainId) internal virtual override {
-        (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
-        _broadcast(chainId, wTime, supply, EMPTY_BYTES);
-    }
-
     function _broadcast(
         uint256 chainId,
         uint128 wTime,
