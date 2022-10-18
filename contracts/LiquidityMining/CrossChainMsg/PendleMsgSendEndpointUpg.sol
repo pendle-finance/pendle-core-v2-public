@@ -46,14 +46,14 @@ contract PendleMsgSendEndpointUpg is
         address dstAddress,
         uint256 dstChainId,
         bytes memory payload,
-        bytes memory adapterParams
+        uint256 estimatedGasAmount
     ) external view returns (uint256 fee) {
         (fee, ) = lzEndpoint.estimateFees(
             LayerZeroHelper._getLayerZeroChainIds(dstChainId),
             receiveEndpoints.get(dstChainId),
             abi.encode(dstAddress, payload),
             false,
-            adapterParams
+            _getAdapterParams(estimatedGasAmount)
         );
     }
 
@@ -61,7 +61,7 @@ contract PendleMsgSendEndpointUpg is
         address dstAddress,
         uint256 dstChainId,
         bytes calldata payload,
-        bytes calldata adapterParams
+        uint256 estimatedGasAmount
     ) external payable onlyWhitelisted {
         bytes memory path = abi.encodePacked(
             receiveEndpoints.get(dstChainId),
@@ -73,7 +73,7 @@ contract PendleMsgSendEndpointUpg is
             abi.encode(dstAddress, payload),
             refundAddress,
             address(0),
-            adapterParams
+            _getAdapterParams(estimatedGasAmount)
         );
     }
 
@@ -108,4 +108,10 @@ contract PendleMsgSendEndpointUpg is
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    function _getAdapterParams(uint256 estimatedGasAmount) internal pure returns (bytes memory adapterParams) {
+        // this is more like "type" rather than version
+        // It is the type of adapter params you want to pass to relayer
+        adapterParams = abi.encodePacked(uint16(1), estimatedGasAmount);
+    }
 }

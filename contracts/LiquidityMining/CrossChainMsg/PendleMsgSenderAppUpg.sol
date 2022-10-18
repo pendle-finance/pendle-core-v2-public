@@ -37,12 +37,22 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     function _sendMessage(uint256 chainId, bytes memory message) internal {
         assert(destinationContracts.contains(chainId));
         address toAddr = destinationContracts.get(chainId);
-        bytes memory adapterParams = _getAdapterParams();
-        uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message, adapterParams);
+        uint256 estimatedGasAmount = approxDstExecutionGas;
+        uint256 fee = pendleMsgSendEndpoint.calcFee(
+            toAddr,
+            chainId,
+            message,
+            estimatedGasAmount
+        );
         // LM contracts won't hold ETH on its own so this is fine
         if (address(this).balance < fee)
             revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
-        pendleMsgSendEndpoint.sendMessage{ value: fee }(toAddr, chainId, message, adapterParams);
+        pendleMsgSendEndpoint.sendMessage{ value: fee }(
+            toAddr,
+            chainId,
+            message,
+            estimatedGasAmount
+        );
     }
 
     function addDestinationContract(address _address, uint256 _chainId)
@@ -71,18 +81,11 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
-    function _getAdapterParams() internal view returns (bytes memory) {
-        uint256 gas = approxDstExecutionGas;
-        if (gas == 0) revert Errors.ApproxDstExecutionGasNotSet();
-        // (version, gas consumption)
-        return abi.encodePacked(uint16(1), gas);
-    }
-
     function _getSendMessageFee(
         address dstContract,
         uint256 chainId,
         bytes memory message
     ) internal view returns (uint256) {
-        return pendleMsgSendEndpoint.calcFee(dstContract, chainId, message, _getAdapterParams());
+        return pendleMsgSendEndpoint.calcFee(dstContract, chainId, message, approxDstExecutionGas);
     }
 }
