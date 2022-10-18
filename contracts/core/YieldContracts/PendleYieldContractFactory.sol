@@ -33,6 +33,7 @@ import "../libraries/BaseSplitCodeFactory.sol";
 import "../libraries/MiniHelpers.sol";
 import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
+import "../libraries/strings.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
@@ -40,9 +41,12 @@ import "./PendleYieldToken.sol";
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
 contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContractFactory {
     using ExpiryUtils for string;
+    using strings for string;
+    using strings for strings.slice;
 
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
+    string private constant SY_PREF = "SY-";
 
     address public immutable ytCreationCodeContractA;
     uint256 public immutable ytCreationCodeSizeA;
@@ -105,6 +109,9 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
 
         (, , uint8 assetDecimals) = _SY.assetInfo();
 
+        string memory syCoreName = _stripSYPrefix(_SY.name());
+        string memory syCoreSymbol = _stripSYPrefix(_SY.symbol());
+
         PT = Create2.deploy(
             0,
             bytes32(block.chainid),
@@ -112,8 +119,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
                 type(PendlePrincipalToken).creationCode,
                 abi.encode(
                     SY,
-                    PT_PREFIX.concat(_SY.name(), expiry, " "),
-                    PT_PREFIX.concat(_SY.symbol(), expiry, "-"),
+                    PT_PREFIX.concat(syCoreName, expiry, " "),
+                    PT_PREFIX.concat(syCoreSymbol, expiry, "-"),
                     assetDecimals,
                     expiry
                 )
@@ -126,8 +133,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
             abi.encode(
                 SY,
                 PT,
-                YT_PREFIX.concat(_SY.name(), expiry, " "),
-                YT_PREFIX.concat(_SY.symbol(), expiry, "-"),
+                YT_PREFIX.concat(syCoreName, expiry, " "),
+                YT_PREFIX.concat(syCoreSymbol, expiry, "-"),
                 assetDecimals,
                 expiry
             ),
@@ -165,5 +172,11 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     function setTreasury(address newTreasury) public onlyOwner {
         treasury = newTreasury;
         emit SetTreasury(newTreasury);
+    }
+
+    function _stripSYPrefix(string memory _str) internal pure returns (string memory) {
+        strings.slice memory str = _str.toSlice();
+        strings.slice memory delim = SY_PREF.toSlice();
+        return str.beyond(delim).toString();
     }
 }
