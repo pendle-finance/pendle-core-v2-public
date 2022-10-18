@@ -33,7 +33,7 @@ import "../libraries/BaseSplitCodeFactory.sol";
 import "../libraries/MiniHelpers.sol";
 import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
-import "../libraries/strings.sol";
+import "../libraries/StringLib.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
@@ -41,8 +41,8 @@ import "./PendleYieldToken.sol";
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
 contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContractFactory {
     using ExpiryUtils for string;
-    using strings for string;
-    using strings for strings.slice;
+    using StringLib for string;
+    using StringLib for StringLib.slice;
 
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
@@ -175,8 +175,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function _stripSYPrefix(string memory _str) internal pure returns (string memory) {
-        strings.slice memory str = _str.toSlice();
-        strings.slice memory delim = SY_PREF.toSlice();
+        StringLib.slice memory str = _str.toSlice();
+        StringLib.slice memory delim = SY_PREF.toSlice();
         return str.beyond(delim).toString();
     }
 }
