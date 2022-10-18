@@ -9,14 +9,14 @@ library LayerZeroHelper {
         if (chainId == 43113) return 10106; // fuji testnet
         else if (chainId == 80001) return 10109; // mumbai testnet
         else if (chainId == 43114) return 106; // avax mainnet
-        revert("");
+        assert(false);
     }
 
     function _getOriginalChainIds(uint16 chainId) internal pure returns (uint256) {
         if (chainId == 10106) return 43113; // fuji testnet
         else if (chainId == 10109) return 80001; // mumbai testnet
         else if (chainId == 106) return 43114; // avax mainnet
-        revert("");
+        assert(false);
     }
 
     function _getSrcAdrressFromPath(bytes memory path) internal pure returns (address src) {
