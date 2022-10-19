@@ -232,12 +232,7 @@ contract PendleVotingControllerUpg is
         address[] memory pools = new address[](length);
         uint256[] memory totalPendleAmounts = new uint256[](length);
 
-        return
-            _getSendMessageFee(
-                destinationContracts.get(chainId),
-                chainId,
-                abi.encode(uint128(0), pools, totalPendleAmounts)
-            );
+        return _getSendMessageFee(chainId, abi.encode(uint128(0), pools, totalPendleAmounts));
     }
 
     /*///////////////////////////////////////////////////////////////

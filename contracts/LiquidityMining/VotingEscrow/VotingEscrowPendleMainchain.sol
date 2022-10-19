@@ -180,11 +180,7 @@ contract VotingEscrowPendleMainchain is
         returns (uint256 fee)
     {
         for (uint256 i = 0; i < chainIds.length; i++) {
-            fee += _getSendMessageFee(
-                destinationContracts.get(chainIds[i]),
-                chainIds[i],
-                SAMPLE_SUPPLY_UPDATE_MESSAGE
-            );
+            fee += _getSendMessageFee(chainIds[i], SAMPLE_SUPPLY_UPDATE_MESSAGE);
         }
     }
 
@@ -194,11 +190,7 @@ contract VotingEscrowPendleMainchain is
         returns (uint256 fee)
     {
         for (uint256 i = 0; i < chainIds.length; i++) {
-            fee += _getSendMessageFee(
-                destinationContracts.get(chainIds[i]),
-                chainIds[i],
-                SAMPLE_POSITION_UPDATE_MESSAGE
-            );
+            fee += _getSendMessageFee(chainIds[i], SAMPLE_POSITION_UPDATE_MESSAGE);
         }
     }
 

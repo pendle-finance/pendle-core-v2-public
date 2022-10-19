@@ -38,12 +38,7 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         assert(destinationContracts.contains(chainId));
         address toAddr = destinationContracts.get(chainId);
         uint256 estimatedGasAmount = approxDstExecutionGas;
-        uint256 fee = pendleMsgSendEndpoint.calcFee(
-            toAddr,
-            chainId,
-            message,
-            estimatedGasAmount
-        );
+        uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message, estimatedGasAmount);
         // LM contracts won't hold ETH on its own so this is fine
         if (address(this).balance < fee)
             revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
@@ -81,11 +76,17 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
-    function _getSendMessageFee(
-        address dstContract,
-        uint256 chainId,
-        bytes memory message
-    ) internal view returns (uint256) {
-        return pendleMsgSendEndpoint.calcFee(dstContract, chainId, message, approxDstExecutionGas);
+    function _getSendMessageFee(uint256 chainId, bytes memory message)
+        internal
+        view
+        returns (uint256)
+    {
+        return
+            pendleMsgSendEndpoint.calcFee(
+                destinationContracts.get(chainId),
+                chainId,
+                message,
+                approxDstExecutionGas
+            );
     }
 }
