@@ -94,7 +94,7 @@ contract PendleMsgReceiveEndpointUpg is
         IPMsgReceiverApp(receiver).executeMessage(message);
     }
 
-    function setReceiveVersion(uint16 _newVersion) external {
+    function setReceiveVersion(uint16 _newVersion) external onlyOwner {
         ILayerZeroEndpoint(lzEndpoint).setReceiveVersion(_newVersion);
     }
 
