@@ -177,11 +177,10 @@ contract VotingEscrowPendleMainchain is
     function getBroadcastSupplyFee(uint256[] calldata chainIds)
         external
         view
-        returns (uint256[] memory fees)
+        returns (uint256 fee)
     {
-        fees = new uint256[](chainIds.length);
         for (uint256 i = 0; i < chainIds.length; i++) {
-            fees[i] = _getSendMessageFee(
+            fee += _getSendMessageFee(
                 destinationContracts.get(chainIds[i]),
                 chainIds[i],
                 SAMPLE_SUPPLY_UPDATE_MESSAGE
@@ -192,11 +191,10 @@ contract VotingEscrowPendleMainchain is
     function getBroadcastPositionFee(uint256[] calldata chainIds)
         external
         view
-        returns (uint256[] memory fees)
+        returns (uint256 fee)
     {
-        fees = new uint256[](chainIds.length);
         for (uint256 i = 0; i < chainIds.length; i++) {
-            fees[i] = _getSendMessageFee(
+            fee += _getSendMessageFee(
                 destinationContracts.get(chainIds[i]),
                 chainIds[i],
                 SAMPLE_POSITION_UPDATE_MESSAGE
