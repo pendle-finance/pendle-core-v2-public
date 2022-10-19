@@ -53,6 +53,8 @@ contract PendleMsgReceiveEndpointUpg is
         _;
     }
 
+    // by default we will use LZ's default version (most updated version). Hence, it's not necessary
+    // to call setLzReceiveVersion
     constructor(
         address _lzEndpoint,
         address _sendEndpointAddr,
@@ -94,7 +96,7 @@ contract PendleMsgReceiveEndpointUpg is
         IPMsgReceiverApp(receiver).executeMessage(message);
     }
 
-    function setReceiveVersion(uint16 _newVersion) external onlyOwner {
+    function setLzReceiveVersion(uint16 _newVersion) external onlyOwner {
         ILayerZeroEndpoint(lzEndpoint).setReceiveVersion(_newVersion);
     }
 

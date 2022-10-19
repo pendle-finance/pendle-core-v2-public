@@ -30,8 +30,9 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
-    constructor(address _pendleMsgSendEndpoint) {
+    constructor(address _pendleMsgSendEndpoint, uint256 _approxDstExecutionGas) {
         pendleMsgSendEndpoint = IPMsgSendEndpoint(_pendleMsgSendEndpoint);
+        approxDstExecutionGas = _approxDstExecutionGas;
     }
 
     function _sendMessage(uint256 chainId, bytes memory message) internal {
