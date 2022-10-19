@@ -43,10 +43,11 @@ contract VotingEscrowPendleMainchain is
     // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoints.History) internal userHistory;
 
-    constructor(IERC20 _pendle, address _pendleMsgSendEndpoint)
-        initializer
-        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint)
-    {
+    constructor(
+        IERC20 _pendle,
+        address _pendleMsgSendEndpoint,
+        uint256 initialApproxDestinationGas
+    ) initializer PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) {
         pendle = _pendle;
         __BoringOwnable_init();
     }

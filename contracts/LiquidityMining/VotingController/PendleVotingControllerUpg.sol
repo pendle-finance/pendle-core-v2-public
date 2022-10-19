@@ -47,9 +47,13 @@ contract PendleVotingControllerUpg is
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    constructor(address _vePendle, address _pendleMsgSendEndpoint)
+    constructor(
+        address _vePendle,
+        address _pendleMsgSendEndpoint,
+        uint256 initialApproxDestinationGas
+    )
         VotingControllerStorageUpg(_vePendle)
-        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint) // constructor only set immutable variables
+        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) // constructor only set immutable variables
         initializer
     //solhint-disable-next-line
     {
