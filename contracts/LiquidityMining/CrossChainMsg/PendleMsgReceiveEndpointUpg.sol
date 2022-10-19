@@ -55,7 +55,7 @@ contract PendleMsgReceiveEndpointUpg is
      */
     modifier mustOriginateFromSendEndpoint(uint16 srcChainId, bytes memory path) {
         if (
-            sendEndpointAddr != LayerZeroHelper._getSrcAdrressFromPath(path) ||
+            sendEndpointAddr != LayerZeroHelper._getFirstAddressFromPath(path) ||
             sendEndpointChainId != LayerZeroHelper._getOriginalChainIds(srcChainId)
         ) revert Errors.MsgNotFromSendEndpoint(msg.sender);
         _;

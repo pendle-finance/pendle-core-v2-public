@@ -19,13 +19,7 @@ library LayerZeroHelper {
         assert(false);
     }
 
-    function _getSrcAdrressFromPath(bytes memory path) internal pure returns (address src) {
-        assembly {
-            src := mload(add(add(path, EVM_ADDRESS_SIZE), EVM_ADDRESS_SIZE)) 
-        }
-    }
-
-    function _getDstAddressFromPath(bytes memory path) internal pure returns (address dst) {
+    function _getFirstAddressFromPath(bytes memory path) internal pure returns (address dst) {
         assembly {
             dst := mload(add(add(path, EVM_ADDRESS_SIZE), 0)) 
         }
