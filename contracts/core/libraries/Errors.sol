@@ -4,6 +4,16 @@ pragma solidity 0.8.17;
 /// Adapted from UniswapV3's Oracle
 
 library Errors {
+    // BulkSeller
+    error BulkInsufficientSyForTrade(uint256 currentAmount, uint256 requiredAmount);
+    error BulkInsufficientTokenForTrade(uint256 currentAmount, uint256 requiredAmount);
+    error BulkInSufficientSyOut(uint256 actualSyOut, uint256 requiredSyOut);
+    error BulkInSufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
+    error BulkInsufficientTokenReceived(uint256 actualBalance, uint256 requiredBalance);
+    error BulkInsufficientSyReceived(uint256 actualBalance, uint256 requiredBalance);
+    error BulkNotMaintainer();
+    error BulkNotAdmin();
+
     // APPROX
     error ApproxFail();
     error ApproxParamsInvalid(uint256 guessMin, uint256 guessMax, uint256 eps);
@@ -51,6 +61,7 @@ library Errors {
     error RouterExceededLimitYtIn(uint256 actualYtIn, uint256 limitYtIn);
     error RouterInsufficientSyRepay(uint256 actualSyRepay, uint256 requiredSyRepay);
     error RouterInsufficientPtRepay(uint256 actualPtRepay, uint256 requiredPtRepay);
+    error RouterBulkSellerNotFound(address token, address SY);
 
     error RouterTimeRangeZero();
     error RouterCallbackNotPendleMarket(address caller);

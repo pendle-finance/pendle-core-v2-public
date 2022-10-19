@@ -16,8 +16,8 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using PYIndexLib for IPYieldToken;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter)
-        ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
+        ActionBaseMintRedeem(_kyberSwapRouter, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
     {}
 
     function swapExactPtForSy(
@@ -168,7 +168,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         // all output SY is directly transferred to the SY contract
         uint256 netSyReceived;
         (netSyReceived, netSyFee) = IPMarket(market).swapExactPtForSy(
-            address(SY),
+            _syOrBulk(address(SY), output),
             exactPtIn,
             EMPTY_BYTES
         );

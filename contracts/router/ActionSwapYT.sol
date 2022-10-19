@@ -18,8 +18,8 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using PYIndexLib for IPYieldToken;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter)
-        ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
+        ActionBaseMintRedeem(_kyberSwapRouter, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
     {}
 
     /**
@@ -192,7 +192,14 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
 
         uint256 netSyOut;
 
-        (netSyOut, netSyFee) = _swapExactYtForSy(address(SY), market, SY, YT, netYtIn, 1);
+        (netSyOut, netSyFee) = _swapExactYtForSy(
+            _syOrBulk(address(SY), output),
+            market,
+            SY,
+            YT,
+            netYtIn,
+            1
+        );
 
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyOut, output, false);
 
@@ -247,7 +254,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
             address(YT),
             exactYtIn, // exactPtOut = exactYtIn
             _encodeSwapYtForSy(receiver, minSyOut)
-        ); // ignore return
+        );
 
         netSyOut = SY.balanceOf(receiver) - preSyBalance;
     }

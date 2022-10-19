@@ -13,11 +13,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter)
-        ActionBaseMintRedeem(_kyberSwapRouter) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
+        ActionBaseMintRedeem(_kyberSwapRouter, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
     {}
 
-    /// @dev refer to the internal function
     function mintSyFromToken(
         address receiver,
         address SY,
@@ -25,11 +24,9 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         TokenInput calldata input
     ) external payable returns (uint256 netSyOut) {
         netSyOut = _mintSyFromToken(receiver, SY, minSyOut, input);
-
         emit MintSyFromToken(msg.sender, receiver, SY, input.tokenIn, input.netTokenIn, netSyOut);
     }
 
-    /// @dev refer to the internal function
     function redeemSyToToken(
         address receiver,
         address SY,
@@ -40,25 +37,31 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit RedeemSyToToken(msg.sender, receiver, SY, netSyIn, output.tokenOut, netTokenOut);
     }
 
-    /// @dev refer to the internal function
     function mintPyFromToken(
         address receiver,
         address YT,
         uint256 minPyOut,
         TokenInput calldata input
     ) external payable returns (uint256 netPyOut) {
-        netPyOut = _mintPyFromToken(receiver, YT, minPyOut, input);
+        address SY = IPYieldToken(YT).SY();
+
+        uint256 netSyToMint = _mintSyFromToken(YT, SY, 0, input);
+        netPyOut = _mintPyFromSy(receiver, YT, minPyOut, netSyToMint, false);
+
         emit MintPyFromToken(msg.sender, receiver, YT, input.tokenIn, input.netTokenIn, netPyOut);
     }
 
-    /// @dev refer to the internal function
     function redeemPyToToken(
         address receiver,
         address YT,
         uint256 netPyIn,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut) {
-        netTokenOut = _redeemPyToToken(receiver, YT, netPyIn, output, true);
+        address SY = IPYieldToken(YT).SY();
+
+        uint256 netSyToRedeem = _redeemPyToSy(_syOrBulk(SY, output), YT, netPyIn, 1, true);
+        netTokenOut = _redeemSyToToken(receiver, SY, netSyToRedeem, output, false);
+
         emit RedeemPyToToken(msg.sender, receiver, YT, netPyIn, output.tokenOut, netTokenOut);
     }
 
@@ -187,7 +190,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
                 tokensOut.amounts[i]
             );
         }
-        _redeemAllSys(sysOut, dataYT.tokenRedeemSys, tokensOut);
+        _redeemAllSys(sysOut, dataYT.useBulks, dataYT.tokenRedeemSys, tokensOut);
 
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
@@ -218,18 +221,19 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     /// @dev pull SYs from users & redeem them, then add to tokensOut
     function _redeemAllSys(
         RouterTokenAmounts memory sys,
+        bool[] calldata useBulks,
         address[] calldata tokenRedeemSys,
         RouterTokenAmounts memory tokensOut
     ) internal {
         for (uint256 i = 0; i < sys.tokens.length; ++i) {
             if (sys.amounts[i] == 0) continue;
 
-            IERC20(sys.tokens[i]).safeTransferFrom(msg.sender, sys.tokens[i], sys.amounts[i]);
-            uint256 amountOut = IStandardizedYield(sys.tokens[i]).redeem(
+            TokenOutput memory output = _wrapTokenOutput(tokenRedeemSys[i], 1, useBulks[i]);
+            uint256 amountOut = _redeemSyToToken(
                 address(this),
+                sys.tokens[i],
                 sys.amounts[i],
-                tokenRedeemSys[i],
-                1,
+                output,
                 true
             );
 

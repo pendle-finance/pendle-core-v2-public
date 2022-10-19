@@ -19,7 +19,7 @@ interface IPActionAddRemoveLiq {
         address indexed market,
         address indexed receiver,
         address tokenIn,
-        uint256 tokenUsed,
+        uint256 netTokenUsed,
         uint256 netPtUsed,
         uint256 netLpOut
     );
@@ -111,6 +111,7 @@ interface IPActionAddRemoveLiq {
         address receiver,
         address market,
         address tokenIn,
+        bool useBulk,
         uint256 netTokenDesired,
         uint256 netPtDesired,
         uint256 minLpOut
@@ -161,6 +162,7 @@ interface IPActionAddRemoveLiq {
         uint256 netLpToRemove,
         address tokenOut,
         uint256 minTokenOut,
+        bool useBulk,
         uint256 minPtOut
     ) external returns (uint256 netTokenOut, uint256 netPtOut);
 
