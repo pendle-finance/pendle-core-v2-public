@@ -27,20 +27,12 @@ contract PendleMsgReceiveEndpointUpg is
     address public immutable sendEndpointAddr;
     uint64 public immutable sendEndpointChainId;
 
-    mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
-
     event MessageFailed(
         uint16 _srcChainId,
         bytes _path,
         uint64 _nonce,
         bytes _payload,
         bytes _reason
-    );
-    event RetryMessageSuccess(
-        uint16 _srcChainId,
-        bytes _path,
-        uint64 _nonce,
-        bytes32 _payloadHash
     );
 
     modifier onlyLzEndpoint() {
@@ -57,7 +49,7 @@ contract PendleMsgReceiveEndpointUpg is
         if (
             sendEndpointAddr != LayerZeroHelper._getFirstAddressFromPath(path) ||
             sendEndpointChainId != LayerZeroHelper._getOriginalChainIds(srcChainId)
-        ) revert Errors.MsgNotFromSendEndpoint(msg.sender);
+        ) revert Errors.MsgNotFromSendEndpoint(srcChainId, path);
         _;
     }
 
@@ -81,49 +73,17 @@ contract PendleMsgReceiveEndpointUpg is
         uint64 _nonce,
         bytes calldata _payload
     ) external onlyLzEndpoint mustOriginateFromSendEndpoint(_srcChainId, _path) {
-        (bool success, bytes memory reason) = address(this).excessivelySafeCall(
+        (address receiver, bytes memory message) = abi.decode(_payload, (address, bytes));
+
+        (bool success, bytes memory reason) = address(receiver).excessivelySafeCall(
             gasleft(),
             150,
-            abi.encodeWithSelector(this.nonBlockingReceive.selector, _payload)
+            abi.encodeWithSelector(IPMsgReceiverApp.executeMessage.selector, message)
         );
 
         if (!success) {
-            failedMessages[_srcChainId][_path][_nonce] = keccak256(_payload);
             emit MessageFailed(_srcChainId, _path, _nonce, _payload, reason);
         }
-    }
-
-    function retryMessage(
-        uint16 _srcChainId,
-        bytes calldata _path,
-        uint64 _nonce,
-        bytes calldata _payload
-    ) public payable virtual {
-        bytes32 payloadHash = failedMessages[_srcChainId][_path][_nonce];
-
-        if (payloadHash == bytes32(0) || keccak256(_payload) != payloadHash)
-            revert Errors.InvalidRetryData();
-
-        failedMessages[_srcChainId][_path][_nonce] = bytes32(0);
-        nonBlockingReceive(_payload);
-        emit RetryMessageSuccess(_srcChainId, _path, _nonce, payloadHash);
-    }
-
-    /**
-     * @dev LayerZero by default will stop all the incoming messages once some message failed to execute
-     * In the very extreme case that it fails to deliver some message to Pendle, we still want the crosschain
-     * messaging feature to keep functioning. 
-     * 
-     * @dev As the nature of all type of messages we have:
-     * - Update vePendle totalSupply
-     * - Update vePendle user balance
-     * - Send voting result to GaugeController
-     * 
-     * There is not a need to ensure the index order of messages
-     */
-    function nonBlockingReceive(bytes memory payload) public {
-        (address receiver, bytes memory message) = abi.decode(payload, (address, bytes));
-        IPMsgReceiverApp(receiver).executeMessage(message);
     }
 
     function govExecuteMessage(address receiver, bytes calldata message)
