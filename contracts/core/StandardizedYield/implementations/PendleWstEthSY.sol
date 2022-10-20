@@ -101,13 +101,7 @@ contract PendleWstEthSY is SYBase {
     {
         if (tokenIn == wstETH) amountSharesOut = amountTokenToDeposit;
         else {
-            uint256 amountStETH;
-            if (tokenIn == stETH) {
-                amountStETH = amountTokenToDeposit;
-            } else {
-                amountStETH = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
-            }
-            amountSharesOut = IStETH(stETH).getSharesByPooledEth(amountStETH);
+            amountSharesOut = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
         }
     }
 
