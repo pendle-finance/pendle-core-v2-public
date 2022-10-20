@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "../SYBase.sol";
 import "../../../interfaces/ILooksFeeSharing.sol";
 import "../../../interfaces/ILooksStaking.sol";
+import "hardhat/console.sol";
 
 contract PendleLooksStaking is SYBase {
     using Math for uint256;
@@ -48,7 +49,7 @@ contract PendleLooksStaking is SYBase {
     ) internal virtual override returns (uint256 amountTokenOut) {
         uint256 previousBalance = _selfBalance(looks);
         ILooksStaking(stakingContract).withdraw(amountSharesToRedeem);
-        amountTokenOut = _selfBalance(address(this)) - previousBalance;
+        amountTokenOut = _selfBalance(looks) - previousBalance;
         _transferOut(looks, receiver, amountTokenOut);
     }
 
@@ -61,7 +62,7 @@ contract PendleLooksStaking is SYBase {
         uint256 totalLooks = ILooksFeeSharing(feeSharingContract).calculateSharesValueInLOOKS(
             stakingContract
         );
-        return totalShares.divDown(totalLooks);
+        return totalLooks.divDown(totalShares);
     }
 
     /*///////////////////////////////////////////////////////////////

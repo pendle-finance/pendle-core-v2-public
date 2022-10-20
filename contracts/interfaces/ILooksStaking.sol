@@ -8,4 +8,6 @@ interface ILooksStaking {
     function userInfo(address user) external view returns (uint256);
 
     function withdraw(uint256 shares) external;
+
+    function harvestAndSellAndCompound() external;
 }
