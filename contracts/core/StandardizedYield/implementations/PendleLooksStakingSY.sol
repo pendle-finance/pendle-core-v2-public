@@ -4,9 +4,8 @@ pragma solidity 0.8.17;
 import "../SYBase.sol";
 import "../../../interfaces/ILooksFeeSharing.sol";
 import "../../../interfaces/ILooksStaking.sol";
-import "hardhat/console.sol";
 
-contract PendleLooksStaking is SYBase {
+contract PendleLooksStakingSY is SYBase {
     using Math for uint256;
 
     address public immutable looks;
