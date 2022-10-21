@@ -10,7 +10,7 @@ interface IBooster {
         external
         view
         returns (
-            address,
+            address lpToken,
             address,
             address,
             address,

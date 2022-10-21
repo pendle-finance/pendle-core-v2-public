@@ -30,15 +30,10 @@ contract PendleConvex2TokensSY is PendleConvexLPSY {
         override
         returns (uint256 amountLpOut)
     {
-        uint256 preBalanceLp = _selfBalance(crvLp);
-
         uint256[2] memory amounts;
-
         amounts[_getIndex(tokenIn)] = amountTokenToDeposit;
 
-        ICrvPool(crvPool).add_liquidity(amounts, 0);
-
-        amountLpOut = _selfBalance(crvLp) - preBalanceLp;
+        amountLpOut = ICrvPool(crvPool).add_liquidity(amounts, 0);
     }
 
     function _redeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
@@ -47,15 +42,11 @@ contract PendleConvex2TokensSY is PendleConvexLPSY {
         override
         returns (uint256 amountTokenOut)
     {
-        uint256 preBalanceToken = _selfBalance(tokenOut);
-
-        ICrvPool(crvPool).remove_liquidity_one_coin(
+        amountTokenOut = ICrvPool(crvPool).remove_liquidity_one_coin(
             amountLpToRedeem,
             Math.Int128(_getIndex(tokenOut)),
             0
         );
-
-        amountTokenOut = _selfBalance(tokenOut) - preBalanceToken;
     }
 
     function _previewDepositToCurve(address tokenIn, uint256 amountTokenToDeposit)
