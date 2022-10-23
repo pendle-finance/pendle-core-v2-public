@@ -115,6 +115,8 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     function setTreasury(address newTreasury) public onlyOwner {
+        if (newTreasury == address(0)) revert Errors.MFactoryZeroTreasury();
+
         marketConfig.treasury = newTreasury;
         _emitNewMarketConfigEvent();
     }

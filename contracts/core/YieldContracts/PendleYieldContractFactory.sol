@@ -158,6 +158,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function setExpiryDivisor(uint96 newExpiryDivisor) public onlyOwner {
+        if (newExpiryDivisor == 0) revert Errors.YCFactoryZeroExpiryDivisor();
+
         expiryDivisor = newExpiryDivisor;
         emit SetExpiryDivisor(newExpiryDivisor);
     }
@@ -179,6 +181,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     }
 
     function setTreasury(address newTreasury) public onlyOwner {
+        if (newTreasury == address(0)) revert Errors.YCFactoryZeroTreasury();
+
         treasury = newTreasury;
         emit SetTreasury(newTreasury);
     }

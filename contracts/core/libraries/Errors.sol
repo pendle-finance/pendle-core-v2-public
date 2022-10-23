@@ -33,6 +33,7 @@ library Errors {
 
     error MFactoryLnFeeRateRootTooHigh(uint88 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
     error MFactoryReserveFeePercentTooHigh(uint8 reserveFeePercent, uint8 maxReserveFeePercent);
+    error MFactoryZeroTreasury();
 
     // ROUTER
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);
@@ -64,6 +65,8 @@ library Errors {
     // YieldFactory
     error YCFactoryInvalidExpiry();
     error YCFactoryYieldContractExisted();
+    error YCFactoryZeroExpiryDivisor();
+    error YCFactoryZeroTreasury();
 
     // SY
     error SYInvalidTokenIn(address token);
