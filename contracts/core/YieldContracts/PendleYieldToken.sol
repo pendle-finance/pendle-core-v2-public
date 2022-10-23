@@ -45,7 +45,11 @@ contract PendleYieldToken is
     address public immutable factory;
     uint256 public immutable expiry;
 
-    uint128 public syReserve;
+    bool public immutable doCacheIndexSameBlock;
+
+    uint256 public syReserve;
+
+    uint128 public pyIndexLastUpdatedBlock;
     uint128 internal _pyIndexStored;
 
     PostExpiryData public postExpiry;
@@ -67,12 +71,14 @@ contract PendleYieldToken is
         string memory _name,
         string memory _symbol,
         uint8 __decimals,
-        uint256 _expiry
+        uint256 _expiry,
+        bool _doCacheIndexSameBlock
     ) PendleERC20Permit(_name, _symbol, __decimals) {
         SY = _SY;
         PT = _PT;
         expiry = _expiry;
         factory = msg.sender;
+        doCacheIndexSameBlock = _doCacheIndexSameBlock;
     }
 
     /// @notice Tokenize SY into PT + YT of equal qty. Every unit of underlying of SY will create 1 PT + 1 YT
@@ -336,7 +342,7 @@ contract PendleYieldToken is
     }
 
     function _updateSyReserve() internal virtual {
-        syReserve = _selfBalance(SY).Uint128();
+        syReserve = _selfBalance(SY);
     }
 
     function _getFloatingSyAmount() internal view returns (uint256 amount) {
@@ -369,8 +375,17 @@ contract PendleYieldToken is
     }
 
     function _pyIndexCurrent() internal returns (uint256 currentIndex) {
-        currentIndex = Math.max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored);
-        _pyIndexStored = currentIndex.Uint128();
+        if (doCacheIndexSameBlock && pyIndexLastUpdatedBlock == block.number)
+            return _pyIndexStored;
+
+        uint128 index128 = Math
+            .max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored)
+            .Uint128();
+
+        currentIndex = index128;
+        _pyIndexStored = index128;
+        pyIndexLastUpdatedBlock = uint128(block.number);
+
         emit NewInterestIndex(currentIndex);
     }
 

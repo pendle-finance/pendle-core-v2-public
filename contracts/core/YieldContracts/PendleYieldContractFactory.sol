@@ -99,10 +99,11 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
      * @notice Create a pair of (PT, YT) from any SY and valid expiry. Anyone can create a yield contract
      * @dev It's intentional to make expiry an uint32 to guard against fat fingers. uint32.max is year 2106
      */
-    function createYieldContract(address SY, uint32 expiry)
-        external
-        returns (address PT, address YT)
-    {
+    function createYieldContract(
+        address SY,
+        uint32 expiry,
+        bool doCacheIndexSameBlock
+    ) external returns (address PT, address YT) {
         if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0)
             revert Errors.YCFactoryInvalidExpiry();
 
@@ -139,7 +140,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
                 YT_PREFIX.concat(syCoreName, expiry, " "),
                 YT_PREFIX.concat(syCoreSymbol, expiry, "-"),
                 assetDecimals,
-                expiry
+                expiry,
+                doCacheIndexSameBlock
             ),
             ytCreationCodeContractA,
             ytCreationCodeSizeA,
