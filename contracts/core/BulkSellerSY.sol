@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "./libraries/TokenHelper.sol";
 import "./libraries/math/Math.sol";
@@ -10,7 +11,7 @@ import "./BulkSellerMathCore.sol";
 import "../interfaces/IStandardizedYield.sol";
 import "../interfaces/IPBulkSeller.sol";
 
-contract BulkSellerSY is TokenHelper, IPBulkSeller, AccessControl {
+contract BulkSellerSY is TokenHelper, IPBulkSeller, AccessControl, Initializable {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using BulkSellerMathCore for BulkSellerState;
@@ -45,6 +46,18 @@ contract BulkSellerSY is TokenHelper, IPBulkSeller, AccessControl {
         token = _token;
         SY = _SY;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function initialize(uint256 _initialTokenToSyRate, uint256 _initialSyToTokenRate, uint256 _maxDiffRate)
+        external
+        initializer
+        onlyMaintainer
+    {
+        BulkSellerState memory state = readState();
+        state.coreRateTokenToSy = _initialTokenToSyRate;
+        state.coreRateSyToToken = _initialSyToTokenRate;
+        state.maxDiffRate = _maxDiffRate;
+        _writeState(state);
     }
 
     // TODO: add events
@@ -165,8 +178,8 @@ contract BulkSellerSY is TokenHelper, IPBulkSeller, AccessControl {
     function updateRate() external onlyMaintainer {
         BulkSellerState memory state = readState();
 
-        state.updateRateSyToToken(IStandardizedYield(SY).previewDeposit);
-        state.updateRateTokenToSy(IStandardizedYield(SY).previewRedeem);
+        state.updateRateSyToToken(IStandardizedYield(SY).previewRedeem);
+        state.updateRateTokenToSy(IStandardizedYield(SY).previewDeposit);
 
         _writeState(state);
     }

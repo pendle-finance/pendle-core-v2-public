@@ -2,9 +2,10 @@
 pragma solidity 0.8.17;
 
 import "./base/PendleConvexLPSY.sol";
+import "./base/CurveFraxUsdcPoolHelper.sol";
 import "../../../libraries/ArrayLib.sol";
 
-contract PendleConvex2TokensSY is PendleConvexLPSY {
+contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
     using ArrayLib for address[];
 
     address public immutable token0;
@@ -32,7 +33,6 @@ contract PendleConvex2TokensSY is PendleConvexLPSY {
     {
         uint256[2] memory amounts;
         amounts[_getIndex(tokenIn)] = amountTokenToDeposit;
-
         amountLpOut = ICrvPool(crvPool).add_liquidity(amounts, 0);
     }
 
@@ -60,7 +60,7 @@ contract PendleConvex2TokensSY is PendleConvexLPSY {
 
         amounts[_getIndex(tokenIn)] = amountTokenToDeposit;
 
-        return ICrvPool(crvPool).calc_token_amount(amounts, true);
+        return CurveFraxUsdcPoolHelper.previewAddLiquidity(crvPool, amounts);
     }
 
     function _previewRedeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
