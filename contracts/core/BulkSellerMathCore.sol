@@ -6,14 +6,10 @@ import "./libraries/math/Math.sol";
 import "./libraries/Errors.sol";
 
 struct BulkSellerState {
-    uint256 coreRateTokenToSy;
-    uint256 coreRateSyToToken;
-    uint256 feeRate;
-    uint256 maxDiffRate;
+    uint256 rateTokenToSy;
+    uint256 rateSyToToken;
     uint256 totalToken;
     uint256 totalSy;
-    address token;
-    address SY;
 }
 
 library BulkSellerMathCore {
@@ -52,10 +48,8 @@ library BulkSellerMathCore {
         pure
         returns (uint256 netSyOut)
     {
-        // TODO: maybe eliminate the fee rate in the calculation
-        uint256 postFeeRate = state.coreRateTokenToSy.mulDown(Math.ONE - state.feeRate);
-        require(postFeeRate != 0, "zero rate");
-        netSyOut = netTokenIn.mulDown(postFeeRate);
+        assert(state.rateTokenToSy != 0);
+        netSyOut = netTokenIn.mulDown(state.rateTokenToSy);
     }
 
     function calcSwapExactSyForToken(BulkSellerState memory state, uint256 netSyIn)
@@ -63,39 +57,44 @@ library BulkSellerMathCore {
         pure
         returns (uint256 netTokenOut)
     {
-        uint256 postFeeRate = state.coreRateSyToToken.mulDown(Math.ONE - state.feeRate);
-        require(postFeeRate != 0, "zero rate");
-        netTokenOut = netSyIn.mulDown(postFeeRate);
+        assert(state.rateSyToToken != 0);
+        netTokenOut = netSyIn.mulDown(state.rateSyToToken);
     }
 
-    function getTokenProportion(BulkSellerState memory state) internal pure returns (uint256) {
+    function getTokenProp(BulkSellerState memory state) internal pure returns (uint256) {
         uint256 totalToken = state.totalToken;
-        uint256 totalTokenFromSy = state.totalSy.mulDown(state.coreRateSyToToken);
+        uint256 totalTokenFromSy = state.totalSy.mulDown(state.rateSyToToken);
         return totalToken.divDown(totalToken + totalTokenFromSy);
     }
 
-    function getReBalanceParams(BulkSellerState memory state, uint256 targetProportion)
+    function getReBalanceParams(BulkSellerState memory state, uint256 targetTokenProp)
         internal
         pure
         returns (uint256 netTokenToDeposit, uint256 netSyToRedeem)
     {
-        uint256 currentProportion = getTokenProportion(state);
+        uint256 currentTokenProp = getTokenProp(state);
 
-        if (currentProportion > targetProportion) {
-            netTokenToDeposit = state.totalToken.mulDown(currentProportion - targetProportion);
+        if (currentTokenProp > targetTokenProp) {
+            netTokenToDeposit = state.totalToken.mulDown(
+                (currentTokenProp - targetTokenProp).divDown(currentTokenProp)
+            );
         } else {
-            netSyToRedeem = state.totalSy.mulDown(targetProportion - currentProportion);
+            uint256 currentSyProp = Math.ONE - currentTokenProp;
+            netSyToRedeem = state.totalSy.mulDown(
+                (targetTokenProp - currentTokenProp).divDown(currentSyProp)
+            );
         }
     }
 
     function reBalanceTokenToSy(
         BulkSellerState memory state,
         uint256 netTokenToDeposit,
-        uint256 netSyFromToken
+        uint256 netSyFromToken,
+        uint256 maxDiff
     ) internal pure {
         uint256 rate = netSyFromToken.divDown(netTokenToDeposit);
 
-        require(Math.isAApproxB(rate, state.coreRateTokenToSy, state.maxDiffRate), "bad rate");
+        require(Math.isAApproxB(rate, state.rateTokenToSy, maxDiff), "bad rate");
 
         state.totalToken -= netTokenToDeposit;
         state.totalSy += netSyFromToken;
@@ -104,40 +103,27 @@ library BulkSellerMathCore {
     function reBalanceSyToToken(
         BulkSellerState memory state,
         uint256 netSyToRedeem,
-        uint256 netTokenFromSy
+        uint256 netTokenFromSy,
+        uint256 maxDiff
     ) internal pure {
         uint256 rate = netTokenFromSy.divDown(netSyToRedeem);
 
-        require(Math.isAApproxB(rate, state.coreRateSyToToken, state.maxDiffRate), "bad rate");
+        require(Math.isAApproxB(rate, state.rateSyToToken, maxDiff), "bad rate");
 
         state.totalToken += netTokenFromSy;
         state.totalSy -= netSyToRedeem;
     }
 
-    function updateRateTokenToSy(
+    function setRate(
         BulkSellerState memory state,
-        function(address, uint256) external view returns (uint256) previewDeposit
-    ) internal view {
-        uint256 hypoTotalToken = state.totalToken + calcSwapExactSyForToken(state, state.totalSy);
-        uint256 netSyFromToken = previewDeposit(state.token, hypoTotalToken);
+        uint256 rateTokenToSy,
+        uint256 rateSyToToken,
+        uint256 maxDiff
+    ) internal pure {
+        require(Math.isAApproxB(rateSyToToken, state.rateSyToToken, maxDiff), "bad rate");
+        require(Math.isAApproxB(rateTokenToSy, state.rateTokenToSy, maxDiff), "bad rate");
 
-        uint256 newRate = netSyFromToken.divDown(hypoTotalToken);
-
-        require(Math.isAApproxB(newRate, state.coreRateTokenToSy, state.maxDiffRate), "bad rate");
-
-        state.coreRateTokenToSy = newRate.Uint128();
-    }
-
-    function updateRateSyToToken(
-        BulkSellerState memory state,
-        function(address, uint256) external view returns (uint256) previewRedeem
-    ) internal view {
-        uint256 hypoTotalSy = state.totalSy + calcSwapExactTokenForSy(state, state.totalToken);
-        uint256 netTokenFromSy = previewRedeem(state.token, hypoTotalSy);
-
-        uint256 newRate = netTokenFromSy.divDown(hypoTotalSy);
-        require(Math.isAApproxB(newRate, state.coreRateSyToToken, state.maxDiffRate), "bad rate");
-
-        state.coreRateSyToToken = newRate.Uint128();
+        state.rateTokenToSy = rateTokenToSy;
+        state.rateSyToToken = rateSyToToken;
     }
 }
