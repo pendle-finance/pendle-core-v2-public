@@ -59,14 +59,14 @@ library Errors {
     error YCNothingToRedeem();
     error YCPostExpiryDataNotSet();
     error YCNoFloatingSy();
-    error YCFactoryInterestFeeRateTooHigh(uint256 interestFeeRate, uint256 maxInterestFeeRate);
-    error YCFactoryRewardFeeRateTooHigh(uint256 newInterestFeeRate, uint256 maxRewardFeeRate);
 
     // YieldFactory
     error YCFactoryInvalidExpiry();
     error YCFactoryYieldContractExisted();
     error YCFactoryZeroExpiryDivisor();
     error YCFactoryZeroTreasury();
+    error YCFactoryInterestFeeRateTooHigh(uint256 interestFeeRate, uint256 maxInterestFeeRate);
+    error YCFactoryRewardFeeRateTooHigh(uint256 newRewardFeeRate, uint256 maxRewardFeeRate);
 
     // SY
     error SYInvalidTokenIn(address token);
