@@ -143,12 +143,10 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
         override
         returns (uint256 amountTokenOut)
     {
-        uint256 amountLpTokenToReceive = (amountSharesToRedeem * exchangeRate()) / 1e18;
-
         if (tokenOut == crvLp) {
-            amountTokenOut = amountLpTokenToReceive;
+            amountTokenOut = amountSharesToRedeem;
         } else {
-            amountTokenOut = _previewRedeemFromCurve(tokenOut, amountLpTokenToReceive);
+            amountTokenOut = _previewRedeemFromCurve(tokenOut, amountSharesToRedeem);
         }
     }
 
