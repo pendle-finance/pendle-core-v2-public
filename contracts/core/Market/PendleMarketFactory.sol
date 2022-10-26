@@ -31,6 +31,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     address public immutable yieldContractFactory;
     uint256 public immutable maxLnFeeRateRoot;
     uint8 public constant maxReserveFeePercent = 100;
+    int256 public constant minInitialAnchor = Math.IONE;
 
     // PT -> scalarRoot -> initialAnchor
     mapping(address => mapping(int256 => mapping(int256 => address))) internal markets;
@@ -88,6 +89,9 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         if (markets[PT][scalarRoot][initialAnchor] != address(0))
             revert Errors.MarketFactoryMarketExists();
 
+        if (initialAnchor < minInitialAnchor)
+            revert Errors.MarketFactoryInitialAnchorTooLow(initialAnchor, minInitialAnchor);
+
         market = BaseSplitCodeFactory._create2(
             0,
             bytes32(block.chainid),
@@ -115,7 +119,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     function setTreasury(address newTreasury) public onlyOwner {
-        if (newTreasury == address(0)) revert Errors.MFactoryZeroTreasury();
+        if (newTreasury == address(0)) revert Errors.MarketFactoryZeroTreasury();
 
         marketConfig.treasury = newTreasury;
         _emitNewMarketConfigEvent();
@@ -123,7 +127,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     function setlnFeeRateRoot(uint88 newLnFeeRateRoot) public onlyOwner {
         if (newLnFeeRateRoot > maxLnFeeRateRoot)
-            revert Errors.MFactoryLnFeeRateRootTooHigh(newLnFeeRateRoot, maxLnFeeRateRoot);
+            revert Errors.MarketFactoryLnFeeRateRootTooHigh(newLnFeeRateRoot, maxLnFeeRateRoot);
 
         marketConfig.lnFeeRateRoot = newLnFeeRateRoot;
         _emitNewMarketConfigEvent();
@@ -131,7 +135,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     function setReserveFeePercent(uint8 newReserveFeePercent) public onlyOwner {
         if (newReserveFeePercent > maxReserveFeePercent)
-            revert Errors.MFactoryReserveFeePercentTooHigh(
+            revert Errors.MarketFactoryReserveFeePercentTooHigh(
                 newReserveFeePercent,
                 maxReserveFeePercent
             );

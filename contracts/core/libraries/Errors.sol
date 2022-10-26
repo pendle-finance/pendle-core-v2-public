@@ -31,9 +31,13 @@ library Errors {
     error MarketFactoryInvalidPt();
     error MarketFactoryMarketExists();
 
-    error MFactoryLnFeeRateRootTooHigh(uint88 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
-    error MFactoryReserveFeePercentTooHigh(uint8 reserveFeePercent, uint8 maxReserveFeePercent);
-    error MFactoryZeroTreasury();
+    error MarketFactoryLnFeeRateRootTooHigh(uint88 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
+    error MarketFactoryReserveFeePercentTooHigh(
+        uint8 reserveFeePercent,
+        uint8 maxReserveFeePercent
+    );
+    error MarketFactoryZeroTreasury();
+    error MarketFactoryInitialAnchorTooLow(int256 initialAnchor, int256 minInitialAnchor);
 
     // ROUTER
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);
