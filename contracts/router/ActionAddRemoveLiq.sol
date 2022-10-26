@@ -60,12 +60,13 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit AddLiquidityDualSyAndPt(msg.sender, market, receiver, netSyUsed, netPtUsed, netLpOut);
     }
 
+    /**
+     * @dev this function assumes that netTokenDesired = netTokenUsed, and fails if this does not hold
+     */
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
-        address tokenIn,
-        bool useBulk,
-        uint256 netTokenDesired,
+        TokenInput calldata input,
         uint256 netPtDesired,
         uint256 minLpOut
     )
@@ -79,20 +80,11 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     {
         (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
+        uint256 netSyDesired = _mintSyFromToken(market, address(SY), 1, input);
         uint256 netSyUsed;
 
-        // calculate the amount of Token, SY and PT to be used
         {
-            uint256 netSyDesired;
-
-            if (useBulk) {
-                address bulk = bulkDir.get(tokenIn, address(SY));
-                BulkSellerState memory bState = IPBulkSeller(bulk).readState();
-                netSyDesired = bState.calcSwapExactTokenForSy(netTokenDesired);
-            } else {
-                netSyDesired = SY.previewDeposit(tokenIn, netTokenDesired);
-            }
-
+            // calc the amount of SY and PT to be used
             MarketState memory state = IPMarket(market).readState();
             (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
                 netSyDesired,
@@ -100,18 +92,15 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
                 block.timestamp
             );
 
-            netTokenUsed = (netTokenDesired * netSyUsed).rawDivUp(netSyDesired);
+            if (netSyDesired != netSyUsed)
+                revert Errors.RouterNotAllSyUsed(netSyDesired, netSyUsed);
+            if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+
+            netTokenUsed = input.netTokenIn;
         }
 
-        // early-check
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
-
-        // execute the addLiquidity
-        TokenInput memory input = _wrapTokenInput(tokenIn, netTokenUsed, useBulk);
-
-        _mintSyFromToken(market, address(SY), netSyUsed, input);
+        // SY has been minted and transferred to the market
         IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
-
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
         // fail-safe
@@ -121,7 +110,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             msg.sender,
             market,
             receiver,
-            tokenIn,
+            input.tokenIn,
             netTokenUsed,
             netPtUsed,
             netLpOut
@@ -250,14 +239,10 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         address receiver,
         address market,
         uint256 netLpToRemove,
-        address tokenOut,
-        uint256 minTokenOut,
-        bool useBulk,
+        TokenOutput calldata output,
         uint256 minPtOut
     ) external returns (uint256 netTokenOut, uint256 netPtOut) {
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        TokenOutput memory output = _wrapTokenOutput(tokenOut, minTokenOut, useBulk);
 
         // burn LP, SY sent to either SY or bulk, PT sent to receiver
         IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
@@ -280,7 +265,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             receiver,
             netLpToRemove,
             netPtOut,
-            tokenOut,
+            output.tokenOut,
             netTokenOut
         );
     }

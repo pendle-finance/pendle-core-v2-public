@@ -148,14 +148,6 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         return (output.useBulk ? bulkDir.get(output.tokenRedeemSy, SY) : SY);
     }
 
-    function _wrapTokenInput(
-        address tokenIn,
-        uint256 netTokenIn,
-        bool useBulk
-    ) internal pure returns (TokenInput memory) {
-        return TokenInput(tokenIn, netTokenIn, tokenIn, EMPTY_BYTES, useBulk);
-    }
-
     function _wrapTokenOutput(
         address tokenOut,
         uint256 minTokenOut,

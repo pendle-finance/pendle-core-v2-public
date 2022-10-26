@@ -717,4 +717,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             return (SY.getTokensIn(), SY.getTokensOut());
         }
     }
+
+    function getAmountTokenToMintSy(
+        address SY,
+        address tokenIn,
+        uint256 netSyOut
+    ) public view returns (uint256 netTokenIn) {
+        return MarketMathStatic.getAmountTokenToMintSy(SY, tokenIn, netSyOut);
+    }
 }

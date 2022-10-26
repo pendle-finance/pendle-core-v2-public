@@ -61,7 +61,7 @@ library MarketMathStatic {
             block.timestamp
         );
 
-        netTokenUsed = (netTokenDesired * syUsed).rawDivUp(syDesired);
+        netTokenUsed = getAmountTokenToMintSy(address(SY), tokenIn, syUsed);
     }
 
     /// @dev netPtToSwap is the parameter to approx
@@ -625,5 +625,45 @@ library MarketMathStatic {
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();
+    }
+
+    function getAmountTokenToMintSy(
+        address SY,
+        address tokenIn,
+        uint256 netSyOut
+    ) internal view returns (uint256 netTokenIn) {
+        uint256 pivotAmount = netSyOut;
+
+        uint256 low = pivotAmount;
+        {
+            while (true) {
+                uint256 lowSyOut = IStandardizedYield(SY).previewDeposit(tokenIn, low);
+                if (lowSyOut >= netSyOut) low /= 10;
+                else break;
+            }
+        }
+
+        uint256 high = pivotAmount;
+        {
+            while (true) {
+                uint256 highSyOut = IStandardizedYield(SY).previewDeposit(tokenIn, high);
+                if (highSyOut < netSyOut) high *= 10;
+                else break;
+            }
+        }
+
+        while(low <= high) {
+            uint256 mid = (low + high) / 2;
+            uint256 syOut = IStandardizedYield(SY).previewDeposit(tokenIn, mid);
+
+            if (syOut >= netSyOut) {
+                netTokenIn = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        assert(netTokenIn > 0);
     }
 }
