@@ -119,6 +119,16 @@ contract BulkSellerSY is
         emit SwapExactSyForToken(receiver, exactSyIn, netTokenOut);
     }
 
+    function calcSwapExactTokenForSy(uint256 netTokenIn) external view returns (uint256 netSyOut) {
+        assert(_storage.rateTokenToSy != 0);
+        netSyOut = netTokenIn.mulDown(_storage.rateTokenToSy);
+    }
+
+    function calcSwapExactSyForToken(uint256 netSyIn) external view returns (uint256 netTokenOut) {
+        assert(_storage.rateSyToToken != 0);
+        netTokenOut = netSyIn.mulDown(_storage.rateSyToToken);
+    }
+
     function readState() public view returns (BulkSellerState memory state) {
         BulkSellerStorage storage s = _storage;
 
