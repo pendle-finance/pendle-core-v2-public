@@ -35,35 +35,6 @@ library MarketMathStatic {
         );
     }
 
-    function addLiquidityDualTokenAndPtStatic(
-        address market,
-        address tokenIn,
-        uint256 netTokenDesired,
-        uint256 netPtDesired
-    )
-        external
-        view
-        returns (
-            uint256 netLpOut,
-            uint256 netTokenUsed,
-            uint256 netPtUsed
-        )
-    {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        uint256 syDesired = SY.previewDeposit(tokenIn, netTokenDesired);
-        uint256 syUsed;
-
-        MarketState memory state = IPMarket(market).readState();
-        (, netLpOut, syUsed, netPtUsed) = state.addLiquidity(
-            syDesired,
-            netPtDesired,
-            block.timestamp
-        );
-
-        netTokenUsed = getAmountTokenToMintSy(address(SY), tokenIn, syUsed);
-    }
-
     /// @dev netPtToSwap is the parameter to approx
     function addLiquiditySinglePtStatic(
         address market,
@@ -140,31 +111,6 @@ library MarketMathStatic {
         priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
     }
 
-    /// @dev netPtFromSwap is the parameter to approx
-    function addLiquiditySingleBaseTokenStatic(
-        address market,
-        address baseToken,
-        uint256 netBaseTokenIn,
-        ApproxParams memory approxParams
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netPtFromSwap,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        return
-            addLiquiditySingleSyStatic(
-                market,
-                SY.previewDeposit(baseToken, netBaseTokenIn),
-                approxParams
-            );
-    }
-
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
@@ -172,20 +118,6 @@ library MarketMathStatic {
     {
         MarketState memory state = IPMarket(market).readState();
         (netSyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
-    }
-
-    function removeLiquidityDualTokenAndPtStatic(
-        address market,
-        uint256 metLpToRemove,
-        address tokenOut
-    ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        uint256 netSyOut;
-        MarketState memory state = IPMarket(market).readState();
-        (netSyOut, netPtOut) = state.removeLiquidity(metLpToRemove);
-
-        netTokenOut = SY.previewRedeem(tokenOut, netSyOut);
     }
 
     /// @dev netPtFromSwap is the parameter to approx
@@ -241,25 +173,6 @@ library MarketMathStatic {
             netSyOut = syFromBurn + syFromSwap;
             priceImpact = calcPriceImpact(market, ptFromBurn.neg());
         }
-    }
-
-    function removeLiquiditySingleBaseTokenStatic(
-        address market,
-        uint256 netLpToRemove,
-        address baseToken
-    )
-        external
-        returns (
-            uint256 netBaseTokenOut,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact) = removeLiquiditySingleSyStatic(market, netLpToRemove);
-
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
     }
 
     function swapExactPtForSyStatic(address market, uint256 exactPtIn)
@@ -333,49 +246,6 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpact(market, netPtIn.neg());
-    }
-
-    /// @dev netPtOut is the parameter to approx
-    function swapExactBaseTokenForPtStatic(
-        address market,
-        address baseToken,
-        uint256 amountBaseToken,
-        ApproxParams memory approxParams
-    )
-        external
-        returns (
-            uint256 netPtOut,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        return
-            swapExactSyForPtStatic(
-                market,
-                SY.previewDeposit(baseToken, amountBaseToken),
-                approxParams
-            );
-    }
-
-    function swapExactPtForBaseTokenStatic(
-        address market,
-        uint256 exactPtIn,
-        address baseToken
-    )
-        external
-        returns (
-            uint256 netBaseTokenOut,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact) = swapExactPtForSyStatic(market, exactPtIn);
-
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -475,49 +345,6 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpact(market, netYtIn.Int());
-    }
-
-    function swapExactYtForBaseTokenStatic(
-        address market,
-        uint256 exactYtIn,
-        address baseToken
-    )
-        external
-        returns (
-            uint256 netBaseTokenOut,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact) = swapExactYtForSyStatic(market, exactYtIn);
-
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-        netBaseTokenOut = SY.previewRedeem(baseToken, netSyOut);
-    }
-
-    /// @dev netYtOut is the parameter to approx
-    function swapExactBaseTokenForYtStatic(
-        address market,
-        address baseToken,
-        uint256 amountBaseToken,
-        ApproxParams memory approxParams
-    )
-        external
-        returns (
-            uint256 netYtOut,
-            uint256 netSyFee,
-            uint256 priceImpact
-        )
-    {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-
-        return
-            swapExactSyForYtStatic(
-                market,
-                SY.previewDeposit(baseToken, amountBaseToken),
-                approxParams
-            );
     }
 
     // totalPtToSwap is the param to approx
@@ -625,45 +452,5 @@ library MarketMathStatic {
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();
-    }
-
-    function getAmountTokenToMintSy(
-        address SY,
-        address tokenIn,
-        uint256 netSyOut
-    ) internal view returns (uint256 netTokenIn) {
-        uint256 pivotAmount = netSyOut;
-
-        uint256 low = pivotAmount;
-        {
-            while (true) {
-                uint256 lowSyOut = IStandardizedYield(SY).previewDeposit(tokenIn, low);
-                if (lowSyOut >= netSyOut) low /= 10;
-                else break;
-            }
-        }
-
-        uint256 high = pivotAmount;
-        {
-            while (true) {
-                uint256 highSyOut = IStandardizedYield(SY).previewDeposit(tokenIn, high);
-                if (highSyOut < netSyOut) high *= 10;
-                else break;
-            }
-        }
-
-        while(low <= high) {
-            uint256 mid = (low + high) / 2;
-            uint256 syOut = IStandardizedYield(SY).previewDeposit(tokenIn, mid);
-
-            if (syOut >= netSyOut) {
-                netTokenIn = mid;
-                high = mid - 1;
-            } else {
-                low = mid + 1;
-            }
-        }
-
-        assert(netTokenIn > 0);
     }
 }
