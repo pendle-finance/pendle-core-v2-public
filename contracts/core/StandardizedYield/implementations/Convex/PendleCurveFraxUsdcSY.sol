@@ -8,21 +8,22 @@ import "../../../libraries/ArrayLib.sol";
 contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
     using ArrayLib for address[];
 
-    address public immutable token0;
-    address public immutable token1;
+    uint256 public constant PID = 100;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _cvxPid,
-        address _crvLp,
-        address _crvPool
-    ) PendleConvexLPSY(_name, _symbol, _cvxPid, _crvLp, _crvPool) {
-        token0 = ICrvPool(_crvPool).coins(0);
-        token1 = ICrvPool(_crvPool).coins(1);
+    address public constant FRAX = CurveFraxUsdcPoolHelper.FRAX;
+    address public constant USDC = CurveFraxUsdcPoolHelper.USDC;
 
-        _safeApproveInf(token0, crvPool);
-        _safeApproveInf(token1, crvPool);
+    constructor(string memory _name, string memory _symbol)
+        PendleConvexLPSY(
+            _name,
+            _symbol,
+            PID,
+            CurveFraxUsdcPoolHelper.LP,
+            CurveFraxUsdcPoolHelper.POOL
+        )
+    {
+        _safeApproveInf(FRAX, crvPool);
+        _safeApproveInf(USDC, crvPool);
     }
 
     function _depositToCurve(address tokenIn, uint256 amountTokenToDeposit)
@@ -56,11 +57,7 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         override
         returns (uint256)
     {
-        uint256[2] memory amounts;
-
-        amounts[_getIndex(tokenIn)] = amountTokenToDeposit;
-
-        return CurveFraxUsdcPoolHelper.previewAddLiquidity(crvPool, amounts);
+        return CurveFraxUsdcPoolHelper.previewAddLiquidity(tokenIn, amountTokenToDeposit);
     }
 
     function _previewRedeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
@@ -70,37 +67,36 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         override
         returns (uint256)
     {
-        uint256 amountTokenRemoved = ICrvPool(crvPool).calc_withdraw_one_coin(
-            amountLpToRedeem,
-            Math.Int128(_getIndex(tokenOut))
-        );
-
-        return amountTokenRemoved;
+        return
+            ICrvPool(crvPool).calc_withdraw_one_coin(
+                amountLpToRedeem,
+                Math.Int128(_getIndex(tokenOut))
+            );
     }
 
-    function _getIndex(address token) internal view returns (uint256) {
-        return (token == token0 ? 0 : 1);
+    function _getIndex(address token) internal pure returns (uint256) {
+        return (token == FRAX ? 0 : 1);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](3);
         res[0] = crvLp;
-        res[1] = token0;
-        res[2] = token1;
+        res[1] = FRAX;
+        res[2] = USDC;
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](3);
         res[0] = crvLp;
-        res[1] = token0;
-        res[2] = token1;
+        res[1] = FRAX;
+        res[2] = USDC;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool res) {
-        res = (token == crvLp || token == token0 || token == token1);
+        res = (token == crvLp || token == FRAX || token == USDC);
     }
 
     function isValidTokenOut(address token) public view override returns (bool res) {
-        res = (token == crvLp || token == token0 || token == token1);
+        res = (token == crvLp || token == FRAX || token == USDC);
     }
 }
