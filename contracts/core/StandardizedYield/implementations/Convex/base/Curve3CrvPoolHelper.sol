@@ -5,18 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 library Curve3CrvPoolHelper {
     using Math for uint256;
 
-    uint256 public constant N_COINS = 3;
-    uint256 public constant PRECISION = 10**18;
-    uint256 public constant RATE_0 = 1000000000000000000;
-    uint256 public constant RATE_1 = 1000000000000000000000000000000;
-    uint256 public constant RATE_2 = 1000000000000000000000000000000;
-    uint256 public constant FEE_DENOMINATOR = 10**10;
+    uint256 internal constant N_COINS = 3;
+    uint256 internal constant PRECISION = 10**18;
+    uint256 internal constant RATE_0 = 1000000000000000000;
+    uint256 internal constant RATE_1 = 1000000000000000000000000000000;
+    uint256 internal constant RATE_2 = 1000000000000000000000000000000;
+    uint256 internal constant FEE_DENOMINATOR = 10**10;
 
-    address public constant LP = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
-    address public constant POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
-    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address public constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address internal constant LP = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address internal constant POOL = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
+    address internal constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address internal constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address internal constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
     function preview3CrvDeposit(address token, uint256 amount)
         internal
@@ -27,7 +27,7 @@ library Curve3CrvPoolHelper {
 
         uint256 amp = ITriCrvPool(POOL).A();
         uint256 _admin_fee = ITriCrvPool(POOL).admin_fee();
-        
+
         uint256[N_COINS] memory old_balances = _getBalances();
         uint256[N_COINS] memory new_balances;
         uint256[N_COINS] memory balances_after;
@@ -66,7 +66,10 @@ library Curve3CrvPoolHelper {
         uint256 D2 = _get_D_mem(new_balances, amp);
 
         netLpOut = (total_supply * (D2 - D0)) / D0;
-        new_virtual_price = _get_virtual_price_with_balances(balances_after);
+        new_virtual_price = _get_virtual_price_with_balances(
+            balances_after,
+            total_supply + netLpOut
+        );
     }
 
     function preview3CrvRedeem(address tokenOut, uint256 amountSharesToRedeem)
@@ -130,15 +133,17 @@ library Curve3CrvPoolHelper {
         }
     }
 
-    function get_virtual_price() public view returns (uint256) {
+    function get_virtual_price() internal view returns (uint256) {
         return ITriCrvPool(POOL).get_virtual_price();
     }
 
-
-    function _get_virtual_price_with_balances(uint256[N_COINS] memory balances) internal view returns (uint256) {
+    function _get_virtual_price_with_balances(
+        uint256[N_COINS] memory balances,
+        uint256 new_totalSupply
+    ) internal view returns (uint256) {
         uint256 amp = ITriCrvPool(POOL).A();
         uint256 D = _get_D_mem(balances, amp);
-        return D * PRECISION / IERC20(LP).totalSupply();
+        return (D * PRECISION) / new_totalSupply;
     }
 
     function _get_D_mem(uint256[N_COINS] memory balances, uint256 _amp)

@@ -9,23 +9,18 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 library CurveUsdd3CrvPoolHelper {
     using Math for uint256;
 
-    uint256 public constant N_COINS = 2;
-    uint256 public constant A_PRECISION = 100;
-    uint256 public constant PRECISION = 10**18;
-    uint256 public constant RATE_0 = 10**18;
-    uint256 public constant FEE_DENOMINATOR = 10**10;
+    uint256 internal constant N_COINS = 2;
+    uint256 internal constant A_PRECISION = 100;
+    uint256 internal constant PRECISION = 10**18;
+    uint256 internal constant RATE_0 = 10**18;
+    uint256 internal constant FEE_DENOMINATOR = 10**10;
 
     // LP == POOL
-    address public constant POOL = 0xe6b5CC1B4b47305c58392CE3D359B10282FC36Ea;
-    address public constant USDD = 0x0C10bF8FcB7Bf5412187A595ab97a3609160b5c6;
-    address public constant LP_3CRV = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
+    address internal constant POOL = 0xe6b5CC1B4b47305c58392CE3D359B10282FC36Ea;
+    address internal constant USDD = 0x0C10bF8FcB7Bf5412187A595ab97a3609160b5c6;
+    address internal constant LP_3CRV = 0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490;
 
-    function previewAddLiquidity(address token, uint256 amount)
-        internal
-        view
-        returns (uint256)
-    {
-
+    function previewAddLiquidity(address token, uint256 amount) internal view returns (uint256) {
         uint256 RATE_1 = Curve3CrvPoolHelper.get_virtual_price();
         if (Curve3CrvPoolHelper.is3CrvToken(token)) {
             (amount, RATE_1) = Curve3CrvPoolHelper.preview3CrvDeposit(token, amount);
@@ -41,7 +36,6 @@ library CurveUsdd3CrvPoolHelper {
 
         uint256 D0 = _get_D_mem(old_balances, amp, RATE_1);
         uint256 total_supply = IERC20(POOL).totalSupply();
-
 
         for (uint256 i = 0; i < N_COINS; ++i) {
             // skip totalSupply = 0 check
@@ -72,11 +66,11 @@ library CurveUsdd3CrvPoolHelper {
         return (total_supply * (D2 - D0)) / D0;
     }
 
-    function _get_D_mem(uint256[N_COINS] memory balances, uint256 _amp, uint256 RATE_1)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _get_D_mem(
+        uint256[N_COINS] memory balances,
+        uint256 _amp,
+        uint256 RATE_1
+    ) internal pure returns (uint256) {
         uint256[N_COINS] memory _xp;
         _xp[0] = (RATE_0 * balances[0]) / PRECISION;
         _xp[1] = (RATE_1 * balances[1]) / PRECISION;

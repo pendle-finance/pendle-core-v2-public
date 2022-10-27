@@ -150,4 +150,11 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
             token == LP_3CRV ||
             Curve3CrvPoolHelper.is3CrvToken(token));
     }
+
+    function _getRewardTokens() internal view override returns (address[] memory rewardTokens) {
+        rewardTokens = new address[](3);
+        rewardTokens[0] = USDD;
+        rewardTokens[1] = CRV;
+        rewardTokens[2] = CVX;
+    }
 }
