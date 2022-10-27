@@ -27,7 +27,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         address receiver,
         address SY,
         uint256 minSyOut,
-        TokenInput memory input
+        TokenInput calldata input
     ) internal returns (uint256 netSyOut) {
         _transferIn(input.tokenIn, msg.sender, input.netTokenIn);
 
