@@ -13,6 +13,8 @@ library Errors {
     error BulkInsufficientSyReceived(uint256 actualBalance, uint256 requiredBalance);
     error BulkNotMaintainer();
     error BulkNotAdmin();
+    error BulkSellerAlreadyExisted(address token, address SY, address bulkSeller);
+    error BulkSellerInvalidToken(address token, address SY);
 
     // APPROX
     error ApproxFail();

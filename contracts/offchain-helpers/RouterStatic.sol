@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../interfaces/IPYieldContractFactory.sol";
 import "../interfaces/IPMarketFactory.sol";
 import "../interfaces/IPVotingEscrowMainchain.sol";
-import "../interfaces/IPBulkSellerDirectory.sol";
+import "../interfaces/IPBulkSellerFactory.sol";
 import "../interfaces/IPBulkSeller.sol";
 
 import "./MarketMathStatic.sol";
@@ -60,18 +60,18 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     IPYieldContractFactory internal immutable yieldContractFactory;
     IPMarketFactory internal immutable marketFactory;
     IPVotingEscrowMainchain internal immutable vePENDLE;
-    IPBulkSellerDirectory internal immutable bulkDir;
+    IPBulkSellerFactory internal immutable bulkFactory;
 
     constructor(
         IPYieldContractFactory _yieldContractFactory,
         IPMarketFactory _marketFactory,
         IPVotingEscrowMainchain _vePENDLE,
-        IPBulkSellerDirectory _bulkDir
+        IPBulkSellerFactory _bulkFactory
     ) initializer {
         yieldContractFactory = _yieldContractFactory;
         marketFactory = _marketFactory;
         vePENDLE = _vePENDLE;
-        bulkDir = _bulkDir;
+        bulkFactory = _bulkFactory;
     }
 
     function initialize() external initializer {
@@ -733,7 +733,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         bool useBulk
     ) public view returns (uint256 amountSy) {
         if (useBulk) {
-            address bulk = bulkDir.get(baseToken, address(SY));
+            address bulk = bulkFactory.get(baseToken, address(SY));
             return IPBulkSeller(bulk).calcSwapExactTokenForSy(amountToken);
         } else {
             return SY.previewDeposit(baseToken, amountToken);
@@ -747,7 +747,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         bool useBulk
     ) public view returns (uint256 amountBaseToken) {
         if (useBulk) {
-            address bulk = bulkDir.get(baseToken, address(SY));
+            address bulk = bulkFactory.get(baseToken, address(SY));
             return IPBulkSeller(bulk).calcSwapExactSyForToken(amountSy);
         } else {
             return SY.previewRedeem(baseToken, amountSy);

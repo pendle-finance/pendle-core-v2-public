@@ -1,26 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./libraries/TokenHelper.sol";
-import "./libraries/math/Math.sol";
-import "./libraries/Errors.sol";
+import "../../interfaces/IStandardizedYield.sol";
+import "../../interfaces/IPBulkSellerFactory.sol";
+import "../../interfaces/IPBulkSeller.sol";
+
+import "../libraries/TokenHelper.sol";
+import "../libraries/math/Math.sol";
+import "../libraries/Errors.sol";
+
 import "./BulkSellerMathCore.sol";
-import "../interfaces/IStandardizedYield.sol";
-import "../interfaces/IPBulkSeller.sol";
 
-contract BulkSellerSY is
-    TokenHelper,
-    IPBulkSeller,
-    AccessControl,
-    Initializable,
-    ReentrancyGuard,
-    Pausable
-{
+contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuardUpgradeable {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using BulkSellerMathCore for BulkSellerState;
@@ -54,27 +47,32 @@ contract BulkSellerSY is
         uint128 totalToken;
     }
 
-    bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
-
-    address public immutable token;
-    address public immutable SY;
+    address public token;
+    address public SY;
+    address public factory;
     BulkSellerStorage public _storage;
 
     modifier onlyMaintainer() {
-        if (!(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(MAINTAINER, msg.sender)))
+        if (!IPBulkSellerFactory(factory).isMaintainer(msg.sender))
             revert Errors.BulkNotMaintainer();
         _;
     }
 
     modifier onlyAdmin() {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert Errors.BulkNotAdmin();
+        if (!IPBulkSellerFactory(factory).isAdmin(msg.sender)) revert Errors.BulkNotAdmin();
         _;
     }
 
-    constructor(address _token, address _SY) {
+    // Since this contract is a beacon contract, no constructor should be defined.
+    function initialize(
+        address _token,
+        address _SY,
+        address _factory
+    ) external initializer {
+        __ReentrancyGuard_init();
         token = _token;
         SY = _SY;
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        factory = _factory;
     }
 
     function swapExactTokenForSy(
@@ -151,15 +149,7 @@ contract BulkSellerSY is
         _storage = tmp;
     }
 
-    //////////////////////////
-
-    function pause() external onlyMaintainer {
-        _pause();
-    }
-
-    function unpause() external onlyMaintainer {
-        _unpause();
-    }
+    // ----------------- BulkSeller management -----------------
 
     function increaseReserve(uint256 netTokenIn, uint256 netSyIn) external onlyMaintainer {
         BulkSellerState memory state = readState();

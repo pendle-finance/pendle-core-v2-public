@@ -5,7 +5,7 @@ import "../kyberswap/KyberSwapHelper.sol";
 import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPBulkSellerDirectory.sol";
+import "../../interfaces/IPBulkSellerFactory.sol";
 import "../../interfaces/IPBulkSeller.sol";
 import "../../core/libraries/Errors.sol";
 
@@ -14,13 +14,13 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     using SafeERC20 for IERC20;
 
     bytes internal constant EMPTY_BYTES = abi.encode();
-    IPBulkSellerDirectory public immutable bulkDir;
+    IPBulkSellerFactory public immutable bulkFactory;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
         KyberSwapHelper(_kyberSwapRouter)
     {
-        bulkDir = IPBulkSellerDirectory(_bulkSellerDirectory);
+        bulkFactory = IPBulkSellerFactory(_bulkSellerDirectory);
     }
 
     function _mintSyFromToken(
@@ -38,7 +38,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
 
         uint256 tokenMintSyBal = _selfBalance(input.tokenMintSy);
         if (input.useBulk) {
-            address bulk = bulkDir.get(input.tokenMintSy, SY);
+            address bulk = bulkFactory.get(input.tokenMintSy, SY);
 
             _transferOut(input.tokenMintSy, bulk, tokenMintSyBal);
 
@@ -73,7 +73,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 netTokenRedeemed;
 
         if (output.useBulk) {
-            address bulk = bulkDir.get(output.tokenRedeemSy, SY);
+            address bulk = bulkFactory.get(output.tokenRedeemSy, SY);
             netTokenRedeemed = IPBulkSeller(bulk).swapExactSyForToken(
                 receiverRedeemSy,
                 netSyIn,
@@ -145,7 +145,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         view
         returns (address addr)
     {
-        return (output.useBulk ? bulkDir.get(output.tokenRedeemSy, SY) : SY);
+        return (output.useBulk ? bulkFactory.get(output.tokenRedeemSy, SY) : SY);
     }
 
     function _wrapTokenOutput(

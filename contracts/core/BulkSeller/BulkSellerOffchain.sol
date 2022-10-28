@@ -2,10 +2,10 @@
 pragma solidity 0.8.17;
 
 import "./BulkSellerMathCore.sol";
-import "./BulkSellerSY.sol";
+import "./BulkSeller.sol";
 
 // upgradable bla bla
-contract BulkSellerSYOffchain {
+contract BulkSellerOffchain {
     using BulkSellerMathCore for BulkSellerState;
     using Math for uint256;
 

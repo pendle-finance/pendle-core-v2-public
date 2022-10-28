@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.17;
+
+import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
+import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+import "../../interfaces/IStandardizedYield.sol";
+import "../../interfaces/IPBulkSellerFactory.sol";
+import "../libraries/BoringOwnableUpgradeable.sol";
+import "../libraries/Errors.sol";
+
+contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, AccessControl {
+    bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
+
+    address public implementation;
+
+    mapping(address => mapping(address => address)) internal syToBulkSeller;
+
+    modifier onlyAdmin() {
+        if (!isAdmin(msg.sender)) revert Errors.BulkNotAdmin();
+        _;
+    }
+
+    constructor(address implementation_) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setImplementation(implementation_);
+    }
+
+    function createBulkSeller(address token, address SY)
+        external
+        onlyAdmin
+        returns (address bulk)
+    {
+        IStandardizedYield _SY = IStandardizedYield(SY);
+        if (syToBulkSeller[token][SY] != address(0))
+            revert Errors.BulkSellerAlreadyExisted(token, SY, syToBulkSeller[token][SY]);
+        if (_SY.isValidTokenIn(token) == false || _SY.isValidTokenOut(token))
+            revert Errors.BulkSellerInvalidToken(token, SY);
+
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address)",
+            token,
+            SY,
+            address(this)
+        );
+
+        bulk = address(new BeaconProxy(address(this), data));
+
+        syToBulkSeller[token][SY] = bulk;
+
+        return bulk;
+    }
+
+    function get(address token, address SY) external view override returns (address) {
+        if (syToBulkSeller[token][SY] == address(0))
+            revert Errors.RouterBulkSellerNotFound(token, SY);
+        return syToBulkSeller[token][SY];
+    }
+
+    function isMaintainer(address addr) public view override returns (bool) {
+        return (hasRole(DEFAULT_ADMIN_ROLE, addr) || hasRole(MAINTAINER, addr));
+    }
+
+    function isAdmin(address addr) public view override returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, addr);
+    }
+
+    // ----------------- upgrade-related -----------------
+    function upgradeTo(address newImplementation) public virtual onlyAdmin {
+        _setImplementation(newImplementation);
+        emit Upgraded(newImplementation);
+    }
+
+    function _setImplementation(address newImplementation) private {
+        require(
+            Address.isContract(newImplementation),
+            "UpgradeableBeacon: implementation is not a contract"
+        );
+        implementation = newImplementation;
+    }
+}

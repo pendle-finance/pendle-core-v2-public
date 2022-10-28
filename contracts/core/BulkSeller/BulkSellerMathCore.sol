@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./libraries/TokenHelper.sol";
-import "./libraries/math/Math.sol";
-import "./libraries/Errors.sol";
+import "../libraries/TokenHelper.sol";
+import "../libraries/math/Math.sol";
+import "../libraries/Errors.sol";
 
 struct BulkSellerState {
     uint256 rateTokenToSy;
