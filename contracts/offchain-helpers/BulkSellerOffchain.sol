@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./BulkSellerMathCore.sol";
-import "./BulkSeller.sol";
+import "../core/BulkSeller/BulkSellerMathCore.sol";
+import "../core/BulkSeller/BulkSeller.sol";
 
 // upgradable bla bla
 contract BulkSellerOffchain {
