@@ -15,6 +15,8 @@ library Errors {
     error BulkNotAdmin();
     error BulkSellerAlreadyExisted(address token, address SY, address bulkSeller);
     error BulkSellerInvalidToken(address token, address SY);
+    error BulkBadRateTokenToSy(uint256 actualRate, uint256 currentRate, uint256 eps);
+    error BulkBadRateSyToToken(uint256 actualRate, uint256 currentRate, uint256 eps);
 
     // APPROX
     error ApproxFail();

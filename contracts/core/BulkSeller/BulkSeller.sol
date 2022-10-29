@@ -39,6 +39,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         uint256 oldTokenProp
     );
     event ReserveUpdated(uint256 totalToken, uint256 totalSy);
+    event FeeRateUpdated(uint256 newFeeRate, uint256 oldFeeRate);
 
     struct BulkSellerStorage {
         uint128 rateTokenToSy;
@@ -49,6 +50,8 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
 
     address public token;
     address public SY;
+    uint64 public feeRate;
+
     address public factory;
     BulkSellerStorage public _storage;
 
@@ -134,7 +137,8 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
             rateTokenToSy: s.rateTokenToSy,
             rateSyToToken: s.rateSyToToken,
             totalToken: s.totalToken,
-            totalSy: s.totalSy
+            totalSy: s.totalSy,
+            feeRate: feeRate
         });
     }
 
@@ -222,6 +226,11 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         state.setRate(newRateSyToToken, newRateTokenToSy, maxDiff);
 
         _writeState(state);
+    }
+
+    function setFeeRate(uint64 newFeeRate) external onlyMaintainer {
+        emit FeeRateUpdated(newFeeRate, feeRate);
+        feeRate = newFeeRate;
     }
 
     function getTokenProp() external view returns (uint256) {

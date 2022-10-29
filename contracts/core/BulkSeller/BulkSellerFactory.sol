@@ -4,13 +4,20 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPBulkSellerFactory.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
 import "../libraries/Errors.sol";
 
-contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, AccessControl {
+contract BulkSellerFactory is
+    IBeacon,
+    IPBulkSellerFactory,
+    AccessControl,
+    UUPSUpgradeable,
+    Initializable
+{
     bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
 
     address public implementation;
@@ -24,7 +31,7 @@ contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, AccessControl {
 
     constructor(address implementation_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setImplementation(implementation_);
+        upgradeBeacon(implementation_);
     }
 
     function createBulkSeller(address token, address SY)
@@ -35,7 +42,7 @@ contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, AccessControl {
         IStandardizedYield _SY = IStandardizedYield(SY);
         if (syToBulkSeller[token][SY] != address(0))
             revert Errors.BulkSellerAlreadyExisted(token, SY, syToBulkSeller[token][SY]);
-        if (_SY.isValidTokenIn(token) == false || _SY.isValidTokenOut(token))
+        if (_SY.isValidTokenIn(token) == false || _SY.isValidTokenOut(token) == false)
             revert Errors.BulkSellerInvalidToken(token, SY);
 
         bytes memory data = abi.encodeWithSignature(
@@ -67,16 +74,14 @@ contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, AccessControl {
     }
 
     // ----------------- upgrade-related -----------------
-    function upgradeTo(address newImplementation) public virtual onlyAdmin {
-        _setImplementation(newImplementation);
-        emit Upgraded(newImplementation);
-    }
-
-    function _setImplementation(address newImplementation) private {
+    function upgradeBeacon(address newImplementation) public onlyAdmin {
         require(
             Address.isContract(newImplementation),
             "UpgradeableBeacon: implementation is not a contract"
         );
         implementation = newImplementation;
+        emit UpgradedBeacon(newImplementation);
     }
+
+    function _authorizeUpgrade(address) internal override onlyAdmin {}
 }

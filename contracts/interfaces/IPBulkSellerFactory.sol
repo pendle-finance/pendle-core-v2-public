@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 interface IPBulkSellerFactory {
-    event Upgraded(address indexed implementation);
+    event UpgradedBeacon(address indexed implementation);
 
     function get(address token, address SY) external view returns (address);
 
