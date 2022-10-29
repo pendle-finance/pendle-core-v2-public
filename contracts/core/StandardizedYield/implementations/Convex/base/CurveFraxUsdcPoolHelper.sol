@@ -6,25 +6,21 @@ import "../../../../../interfaces/Curve/ICrvPool.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 library CurveFraxUsdcPoolHelper {
-    uint256 public constant N_COINS = 2;
-    uint256 public constant A_PRECISION = 100;
-    uint256 public constant PRECISION = 10**18;
-    uint256 public constant RATE_0 = 1000000000000000000;
-    uint256 public constant RATE_1 = 1000000000000000000000000000000;
-    uint256 public constant FEE_DENOMINATOR = 10**10;
+    uint256 internal constant N_COINS = 2;
+    uint256 internal constant A_PRECISION = 100;
+    uint256 internal constant PRECISION = 10**18;
+    uint256 internal constant RATE_0 = 1000000000000000000;
+    uint256 internal constant RATE_1 = 1000000000000000000000000000000;
+    uint256 internal constant FEE_DENOMINATOR = 10**10;
 
-    address public constant POOL = 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
-    address public constant LP = 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC;
-    address public constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
-    address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address internal constant POOL = 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
+    address internal constant LP = 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC;
+    address internal constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
+    address internal constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     using Math for uint256;
 
-    function previewAddLiquidity(address token, uint256 amount)
-        internal
-        view
-        returns (uint256)
-    {
+    function previewAddLiquidity(address token, uint256 amount) internal view returns (uint256) {
         uint256 amp = ICrvPool(POOL).A_precise();
         uint256[N_COINS] memory _amounts = _getTokenAmounts(token, amount);
         uint256[N_COINS] memory old_balances = _getBalances();
