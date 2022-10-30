@@ -50,7 +50,9 @@ contract PendleWstEthSY is SYBase {
             } else {
                 if (tokenIn == wETH) IWETH(wETH).withdraw(amountDeposited);
 
-                uint256 amountStEthSharesOut = IStETH(stETH).submit{ value: amountDeposited }(address(0));
+                uint256 amountStEthSharesOut = IStETH(stETH).submit{ value: amountDeposited }(
+                    address(0)
+                );
                 amountStETH = IStETH(stETH).getPooledEthByShares(amountStEthSharesOut);
             }
             amountSharesOut = IWstETH(wstETH).wrap(amountStETH);
@@ -113,7 +115,7 @@ contract PendleWstEthSY is SYBase {
                 uint256 stEthBalance = (amountStEthSharesOut * totalPooledEth) / totalShares;
                 amountSharesOut = (stEthBalance * totalShares) / totalPooledEth;
             } else {
-                amountTokenToDeposit = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
+                amountSharesOut = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
             }
         }
     }
