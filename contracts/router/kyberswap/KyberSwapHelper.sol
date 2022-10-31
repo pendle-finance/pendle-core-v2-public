@@ -25,12 +25,14 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "../../core/libraries/TokenHelper.sol";
-import "./AggregationRouterHelper.sol";
+import "./IAggregatorRouterHelper.sol";
+import "../../core/libraries/Errors.sol";
 
 struct TokenInput {
     address tokenIn;
     uint256 netTokenIn;
     address tokenMintSy;
+    address kyberRouter;
     bytes kybercall;
     bool useBulk;
 }
@@ -39,30 +41,35 @@ struct TokenOutput {
     address tokenOut;
     uint256 minTokenOut;
     address tokenRedeemSy;
+    address kyberRouter;
     bytes kybercall;
     bool useBulk;
 }
 
 abstract contract KyberSwapHelper is TokenHelper {
     using Address for address;
-    address public immutable kyberSwapRouter;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter) {
-        kyberSwapRouter = _kyberSwapRouter;
+    address public immutable kyberScalingLib;
+
+    constructor(address _kyberScalingLib) {
+        kyberScalingLib = _kyberScalingLib;
     }
 
     function _kyberswap(
         address tokenIn,
         uint256 amountIn,
+        address kyberRouter,
         bytes memory rawKybercall
     ) internal {
-        _safeApproveInf(tokenIn, kyberSwapRouter);
+        if (kyberRouter == address(0) || rawKybercall.length == 0) {
+            revert Errors.RouterKyberSwapDataZero();
+        }
+        _safeApproveInf(tokenIn, kyberRouter);
 
-        bytes memory kybercall = AggregationRouterHelper.getScaledInputData(
+        bytes memory kybercall = IAggregationRouterHelper(kyberScalingLib).getScaledInputData(
             rawKybercall,
             amountIn
         );
-        kyberSwapRouter.functionCallWithValue(kybercall, tokenIn == NATIVE ? amountIn : 0);
+        kyberRouter.functionCallWithValue(kybercall, tokenIn == NATIVE ? amountIn : 0);
     }
 }

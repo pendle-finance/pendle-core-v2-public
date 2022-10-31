@@ -3,8 +3,16 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IMultihopRouter.sol";
+import "./IAggregatorRouterHelper.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
-library AggregationRouterHelper {
+contract AggregationRouterHelper is
+    IAggregationRouterHelper,
+    Initializable,
+    UUPSUpgradeable,
+    BoringOwnableUpgradeable
+{
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;
@@ -13,6 +21,14 @@ library AggregationRouterHelper {
     uint256 private constant _SIMPLE_SWAP = 0x20;
 
     uint256 private constant SLIPPAGE_RANGE = 10; // over 100
+
+    constructor() initializer {}
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     enum DexType {
         UNI,

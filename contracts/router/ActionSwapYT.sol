@@ -18,8 +18,8 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using PYIndexLib for IPYieldToken;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
-        ActionBaseMintRedeem(_kyberSwapRouter, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberScalingLib, address _bulkSellerDirectory)
+        ActionBaseMintRedeem(_kyberScalingLib, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
     {}
 
     /**

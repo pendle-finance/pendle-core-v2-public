@@ -13,8 +13,8 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
-        ActionBaseMintRedeem(_kyberSwapRouter, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberScalingLib, address _bulkSellerDirectory)
+        ActionBaseMintRedeem(_kyberScalingLib, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
     {}
 
     function mintSyFromToken(
@@ -247,7 +247,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) internal returns (uint256 netTokenOut) {
         for (uint256 i = 0; i < tokens.tokens.length; ++i) {
             if (tokens.amounts[i] == 0) continue;
-            _kyberswap(tokens.tokens[i], tokens.amounts[i], dataSwap.kybercalls[i]);
+            _kyberswap(tokens.tokens[i], tokens.amounts[i], dataSwap.kyberRouter, dataSwap.kybercalls[i]);
         }
         netTokenOut = _selfBalance(dataSwap.outputToken);
         _transferOut(dataSwap.outputToken, msg.sender, netTokenOut);

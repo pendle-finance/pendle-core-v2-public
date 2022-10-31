@@ -72,6 +72,8 @@ library Errors {
     error RouterCallbackNotPendleMarket(address caller);
     error RouterInvalidAction(bytes4 selector);
 
+    error RouterKyberSwapDataZero();
+
     // YIELD CONTRACT
     error YCExpired();
     error YCNotExpired();

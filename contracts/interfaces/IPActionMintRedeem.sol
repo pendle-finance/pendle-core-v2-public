@@ -147,6 +147,7 @@ interface IPActionMintRedeem {
         address[] tokens;
         bytes[] kybercalls;
         //
+        address kyberRouter;
         address outputToken;
         uint256 minTokenOut;
     }

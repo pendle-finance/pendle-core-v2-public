@@ -17,8 +17,8 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     IPBulkSellerFactory public immutable bulkFactory;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberSwapRouter, address _bulkSellerDirectory)
-        KyberSwapHelper(_kyberSwapRouter)
+    constructor(address _kyberScalingLib, address _bulkSellerDirectory)
+        KyberSwapHelper(_kyberScalingLib)
     {
         bulkFactory = IPBulkSellerFactory(_bulkSellerDirectory);
     }
@@ -33,7 +33,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
 
         bool requireSwap = input.tokenIn != input.tokenMintSy;
         if (requireSwap) {
-            _kyberswap(input.tokenIn, input.netTokenIn, input.kybercall);
+            _kyberswap(input.tokenIn, input.netTokenIn, input.kyberRouter, input.kybercall);
         }
 
         uint256 tokenMintSyBal = _selfBalance(input.tokenMintSy);
@@ -90,7 +90,12 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         if (requireSwap) {
-            _kyberswap(output.tokenRedeemSy, netTokenRedeemed, output.kybercall);
+            _kyberswap(
+                output.tokenRedeemSy,
+                netTokenRedeemed,
+                output.kyberRouter,
+                output.kybercall
+            );
 
             netTokenOut = _selfBalance(output.tokenOut);
 
@@ -153,6 +158,6 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 minTokenOut,
         bool useBulk
     ) internal pure returns (TokenOutput memory) {
-        return TokenOutput(tokenOut, minTokenOut, tokenOut, EMPTY_BYTES, useBulk);
+        return TokenOutput(tokenOut, minTokenOut, tokenOut, address(0), EMPTY_BYTES, useBulk);
     }
 }
