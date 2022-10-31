@@ -29,7 +29,9 @@ contract BulkSellerFactory is
         _;
     }
 
-    constructor(address implementation_) {
+    constructor() initializer {}
+
+    function initialize(address implementation_) external initializer {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         upgradeBeacon(implementation_);
     }
