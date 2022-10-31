@@ -575,7 +575,7 @@ library MarketApproxPtOutLib {
             {
                 uint256 netSyRemaining = a.totalSyIn - netSyIn;
                 uint256 newTotalPt = a.market.totalPt.Uint() - guess;
-                uint256 netTotalSy = comp.totalAsset.Uint() + netSyIn - netSyFee;
+                uint256 netTotalSy = a.market.totalSy.Uint() + netSyIn - netSyFee;
 
                 // it is desired that
                 // netPtFromSwap / newTotalPt = netSyRemaining / netTotalSy
