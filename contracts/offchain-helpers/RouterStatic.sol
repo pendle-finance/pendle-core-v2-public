@@ -12,7 +12,7 @@ import "./MarketMathStatic.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../LiquidityMining/libraries/VeBalanceLib.sol";
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK

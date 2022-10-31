@@ -26,7 +26,7 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     modifier refundUnusedEth() {
         _;
         if (address(this).balance > 0) {
-            Address.sendValue(payable(msg.sender), address(this).balance);
+            AddressUpgradeable.sendValue(payable(msg.sender), address(this).balance);
         }
     }
 

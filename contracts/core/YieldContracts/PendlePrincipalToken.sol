@@ -9,7 +9,7 @@ import "../libraries/Errors.sol";
 
 import "../erc20/PendleERC20Permit.sol";
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {
     address public immutable SY;

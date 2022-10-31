@@ -3,20 +3,21 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "../libraries/BoringOwnableUpgradeable.sol";
 
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPBulkSellerFactory.sol";
-import "../libraries/BoringOwnableUpgradeable.sol";
 import "../libraries/Errors.sol";
 
 contract BulkSellerFactory is
     IBeacon,
     IPBulkSellerFactory,
-    AccessControl,
-    UUPSUpgradeable,
-    Initializable
+    Initializable,
+    AccessControlUpgradeable,
+    UUPSUpgradeable
 {
     bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
 
@@ -78,7 +79,7 @@ contract BulkSellerFactory is
     // ----------------- upgrade-related -----------------
     function upgradeBeacon(address newImplementation) public onlyAdmin {
         require(
-            Address.isContract(newImplementation),
+            AddressUpgradeable.isContract(newImplementation),
             "UpgradeableBeacon: implementation is not a contract"
         );
         implementation = newImplementation;
