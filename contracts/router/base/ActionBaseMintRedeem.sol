@@ -30,26 +30,31 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         _transferIn(input.tokenIn, msg.sender, input.netTokenIn);
 
         bool requireSwap = input.tokenIn != input.tokenMintSy;
+
+        uint256 netTokenMintSy;
+
         if (requireSwap) {
             _kyberswap(input.tokenIn, input.netTokenIn, input.kyberRouter, input.kybercall);
+            netTokenMintSy = _selfBalance(input.tokenMintSy);
+        } else {
+            netTokenMintSy = input.netTokenIn;
         }
 
-        uint256 tokenMintSyBal = _selfBalance(input.tokenMintSy);
         if (input.useBulk) {
             address bulk = bulkFactory.get(input.tokenMintSy, SY);
 
-            _transferOut(input.tokenMintSy, bulk, tokenMintSyBal);
+            _transferOut(input.tokenMintSy, bulk, netTokenMintSy);
 
-            netSyOut = IPBulkSeller(bulk).swapExactTokenForSy(receiver, tokenMintSyBal, minSyOut);
+            netSyOut = IPBulkSeller(bulk).swapExactTokenForSy(receiver, netTokenMintSy, minSyOut);
         } else {
-            uint256 netNative = input.tokenMintSy == NATIVE ? tokenMintSyBal : 0;
+            uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
 
             _safeApproveInf(input.tokenMintSy, SY);
 
             netSyOut = IStandardizedYield(SY).deposit{ value: netNative }(
                 receiver,
                 input.tokenMintSy,
-                tokenMintSyBal,
+                netTokenMintSy,
                 minSyOut
             );
         }
@@ -128,16 +133,14 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         address receiver,
         address YT,
         uint256 netPyIn,
-        uint256 minSyOut,
-        bool doPull
+        uint256 minSyOut
     ) internal returns (uint256 netSyOut) {
         address PT = IPYieldToken(YT).PT();
 
-        if (doPull) {
-            bool needToBurnYt = (!IPYieldToken(YT).isExpired());
-            _transferFrom(IERC20(PT), msg.sender, YT, netPyIn);
-            if (needToBurnYt) _transferFrom(IERC20(YT), msg.sender, YT, netPyIn);
-        }
+        _transferFrom(IERC20(PT), msg.sender, YT, netPyIn);
+
+        bool needToBurnYt = (!IPYieldToken(YT).isExpired());
+        if (needToBurnYt) _transferFrom(IERC20(YT), msg.sender, YT, netPyIn);
 
         netSyOut = IPYieldToken(YT).redeemPY(receiver);
         if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);

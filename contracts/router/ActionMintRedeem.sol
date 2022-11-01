@@ -58,7 +58,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) external returns (uint256 netTokenOut) {
         address SY = IPYieldToken(YT).SY();
 
-        uint256 netSyToRedeem = _redeemPyToSy(_syOrBulk(SY, output), YT, netPyIn, 1, true);
+        uint256 netSyToRedeem = _redeemPyToSy(_syOrBulk(SY, output), YT, netPyIn, 1);
         netTokenOut = _redeemSyToToken(receiver, SY, netSyToRedeem, output, false);
 
         emit RedeemPyToToken(msg.sender, receiver, YT, netPyIn, output.tokenOut, netTokenOut);
@@ -80,7 +80,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256 netPyIn,
         uint256 minSyOut
     ) external returns (uint256 netSyOut) {
-        netSyOut = _redeemPyToSy(receiver, YT, netPyIn, minSyOut, true);
+        netSyOut = _redeemPyToSy(receiver, YT, netPyIn, minSyOut);
         emit RedeemPyToSy(msg.sender, receiver, YT, netPyIn, netSyOut);
     }
 
