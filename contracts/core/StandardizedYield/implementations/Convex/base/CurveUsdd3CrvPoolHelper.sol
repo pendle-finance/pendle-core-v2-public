@@ -41,7 +41,7 @@ library CurveUsdd3CrvPoolHelper {
 
         rates[0] = rate_multiplier;
 
-        if (token == USDD) {
+        if (token == USDD || token == LP_3CRV) {
             rates[1] = Curve3CrvPoolHelper.get_virtual_price();
         } else {
             (amount, rates[1]) = Curve3CrvPoolHelper.preview3CrvDeposit(token, amount);
@@ -102,7 +102,7 @@ library CurveUsdd3CrvPoolHelper {
     {
         uint256[N_COINS] memory result;
         for (uint256 i = 0; i < N_COINS; ++i) {
-            result[i] = balances[i] * _rates[i];
+            result[i] = balances[i] * _rates[i] / PRECISION;
         }
         return result;
     }
