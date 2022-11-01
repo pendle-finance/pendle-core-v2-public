@@ -101,10 +101,10 @@ library Curve3CrvPoolHelper {
         uint256 token_supply = IERC20(LP).totalSupply();
         // Initial invariant
         uint256 D0 = 0;
-        uint256[N_COINS] memory old_balances = self_balances;
+        uint256[N_COINS] memory old_balances = arrayClone(self_balances);
         D0 = get_D_mem(old_balances, amp);
 
-        uint256[N_COINS] memory new_balances = old_balances;
+        uint256[N_COINS] memory new_balances = arrayClone(old_balances);
 
         for (uint256 i = 0; i < N_COINS; ++i) {
             new_balances[i] += amounts[i];
@@ -201,5 +201,15 @@ library Curve3CrvPoolHelper {
         balances[0] = ITriCrvPool(POOL).balances(0);
         balances[1] = ITriCrvPool(POOL).balances(1);
         balances[2] = ITriCrvPool(POOL).balances(2);
+    }
+
+    function arrayClone(uint256[N_COINS] memory a)
+        internal
+        pure
+        returns (uint256[N_COINS] memory res)
+    {
+        for (uint256 i = 0; i < N_COINS; ++i) {
+            res[i] = a[i];
+        }
     }
 }

@@ -52,7 +52,7 @@ library CurveUsdd3CrvPoolHelper {
 
         uint256[N_COINS] memory old_balances = _getBalances();
         uint256 D0 = get_D_mem(rates, old_balances, amp);
-        uint256[N_COINS] memory new_balances = old_balances;
+        uint256[N_COINS] memory new_balances = arrayClone(old_balances);
 
         uint256 total_supply = IERC20(POOL).totalSupply();
         for (uint256 i = 0; i < N_COINS; ++i) {
@@ -138,5 +138,15 @@ library CurveUsdd3CrvPoolHelper {
             }
         }
         assert(false);
+    }
+
+    function arrayClone(uint256[N_COINS] memory a)
+        internal
+        pure
+        returns (uint256[N_COINS] memory res)
+    {
+        for (uint256 i = 0; i < N_COINS; ++i) {
+            res[i] = a[i];
+        }
     }
 }
