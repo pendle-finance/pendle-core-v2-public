@@ -10,7 +10,6 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using Math for uint256;
     using Math for int256;
-    using SafeERC20 for IERC20;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
     constructor(address _kyberScalingLib, address _bulkSellerDirectory)
@@ -184,7 +183,8 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
         // guaranteed no ETH, all rewards are ERC20
         for (uint256 i = 0; i < tokensOut.tokens.length; ++i) {
-            IERC20(tokensOut.tokens[i]).safeTransferFrom(
+            _transferFrom(
+                IERC20(tokensOut.tokens[i]),
                 msg.sender,
                 address(this),
                 tokensOut.amounts[i]
@@ -247,7 +247,12 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) internal returns (uint256 netTokenOut) {
         for (uint256 i = 0; i < tokens.tokens.length; ++i) {
             if (tokens.amounts[i] == 0) continue;
-            _kyberswap(tokens.tokens[i], tokens.amounts[i], dataSwap.kyberRouter, dataSwap.kybercalls[i]);
+            _kyberswap(
+                tokens.tokens[i],
+                tokens.amounts[i],
+                dataSwap.kyberRouter,
+                dataSwap.kybercalls[i]
+            );
         }
         netTokenOut = _selfBalance(dataSwap.outputToken);
         _transferOut(dataSwap.outputToken, msg.sender, netTokenOut);

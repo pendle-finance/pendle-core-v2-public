@@ -12,7 +12,6 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;
-    using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
     using BulkSellerMathCore for BulkSellerState;
 
@@ -49,8 +48,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
 
         // execute the addLiquidity
-        IERC20(SY).safeTransferFrom(msg.sender, market, netSyUsed);
-        IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
+        _transferFrom(IERC20(SY), msg.sender, market, netSyUsed);
+        _transferFrom(IERC20(PT), msg.sender, market, netPtUsed);
 
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
@@ -100,7 +99,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         }
 
         // SY has been minted and transferred to the market
-        IERC20(PT).safeTransferFrom(msg.sender, market, netPtUsed);
+        _transferFrom(IERC20(PT), msg.sender, market, netPtUsed);
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
         // fail-safe
@@ -137,7 +136,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
 
         // execute the swap
-        IERC20(PT).safeTransferFrom(msg.sender, market, netPtIn);
+        _transferFrom(IERC20(PT), msg.sender, market, netPtIn);
 
         uint256 netSyReceived;
         (netSyReceived, netSyFee) = IPMarket(market).swapExactPtForSy(
@@ -164,7 +163,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         // transfer SY to market
-        IERC20(SY).safeTransferFrom(msg.sender, market, netSyIn);
+        _transferFrom(IERC20(SY), msg.sender, market, netSyIn);
 
         // mint LP
         (netLpOut, netSyFee) = _addLiquiditySingleSy(
@@ -218,7 +217,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 minSyOut,
         uint256 minPtOut
     ) external returns (uint256 netSyOut, uint256 netPtOut) {
-        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
+        _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         (netSyOut, netPtOut) = IPMarket(market).burn(receiver, receiver, netLpToRemove);
 
@@ -245,7 +244,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
         // burn LP, SY sent to either SY or bulk, PT sent to receiver
-        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
+        _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         uint256 netSyOut;
         (netSyOut, netPtOut) = IPMarket(market).burn(
@@ -293,7 +292,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             revert Errors.RouterInsufficientPtOut(ptFromBurn + ptFromSwap, minPtOut);
 
         // execute the burn & the swap
-        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
+        _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         (, ptFromBurn) = IPMarket(market).burn(market, receiver, netLpToRemove);
         (, netSyFee) = IPMarket(market).swapSyForExactPt(receiver, ptFromSwap, EMPTY_BYTES);
@@ -313,7 +312,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 minSyOut
     ) external returns (uint256 netSyOut, uint256 netSyFee) {
         // transfer LP to market
-        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
+        _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         // burn LP, SY sent to receiver
         (netSyOut, netSyFee) = _removeLiquiditySingleSy(receiver, market, netLpToRemove, minSyOut);
@@ -330,7 +329,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
 
         // transfer LP to market, burn LP, SY sent to either SY or bulk
-        IERC20(market).safeTransferFrom(msg.sender, market, netLpToRemove);
+        _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         uint256 netSyReceived;
 

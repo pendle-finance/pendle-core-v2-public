@@ -17,6 +17,15 @@ abstract contract TokenHelper {
         else if (amount != 0) IERC20(token).safeTransferFrom(from, address(this), amount);
     }
 
+    function _transferFrom(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        if (amount != 0) token.safeTransferFrom(from, to, amount);
+    }
+
     function _transferOut(
         address token,
         address to,

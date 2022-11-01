@@ -12,13 +12,9 @@ import "./base/CallbackHelper.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
+contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
     using Math for int256;
     using Math for uint256;
-    using SafeERC20 for IStandardizedYield;
-    using SafeERC20 for IPYieldToken;
-    using SafeERC20 for IPPrincipalToken;
-    using SafeERC20 for IERC20;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
@@ -114,7 +110,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         /// mint & transfer
         /// ------------------------------------------------------------
         if (netSyToPull > 0) {
-            SY.safeTransferFrom(vars.payer, address(YT), netSyToPull);
+            _transferFrom(IERC20(SY), vars.payer, address(YT), netSyToPull);
         }
 
         uint256 netPyOut = YT.mintPY(market, vars.receiver);
@@ -175,7 +171,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
 
         uint256 netSyOwed = syToAccount.abs();
 
-        PT.safeTransfer(address(YT), exactYtIn);
+        _transferOut(address(PT), address(YT), exactYtIn);
         uint256 netSyToMarket = YT.redeemPY(market);
 
         if (netSyToMarket < netSyOwed)
@@ -184,6 +180,6 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper {
         uint256 netPtOut = ptToAccount.Uint() - exactYtIn;
         if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 
-        PT.safeTransfer(receiver, netPtOut);
+        _transferOut(address(PT), receiver, netPtOut);
     }
 }

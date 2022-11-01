@@ -11,8 +11,6 @@ import "../../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
-    using SafeERC20 for IERC20;
-
     bytes internal constant EMPTY_BYTES = abi.encode();
     IPBulkSellerFactory public immutable bulkFactory;
 
@@ -65,7 +63,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         bool doPull
     ) internal returns (uint256 netTokenOut) {
         if (doPull) {
-            IERC20(SY).safeTransferFrom(msg.sender, _syOrBulk(SY, output), netSyIn);
+            _transferFrom(IERC20(SY), msg.sender, _syOrBulk(SY, output), netSyIn);
         }
 
         bool requireSwap = output.tokenRedeemSy != output.tokenOut;
@@ -119,7 +117,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         address SY = IPYieldToken(YT).SY();
 
         if (doPull) {
-            IERC20(SY).safeTransferFrom(msg.sender, YT, netSyIn);
+            _transferFrom(IERC20(SY), msg.sender, YT, netSyIn);
         }
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
@@ -137,8 +135,8 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
 
         if (doPull) {
             bool needToBurnYt = (!IPYieldToken(YT).isExpired());
-            IERC20(PT).safeTransferFrom(msg.sender, YT, netPyIn);
-            if (needToBurnYt) IERC20(YT).safeTransferFrom(msg.sender, YT, netPyIn);
+            _transferFrom(IERC20(PT), msg.sender, YT, netPyIn);
+            if (needToBurnYt) _transferFrom(IERC20(YT), msg.sender, YT, netPyIn);
         }
 
         netSyOut = IPYieldToken(YT).redeemPY(receiver);
