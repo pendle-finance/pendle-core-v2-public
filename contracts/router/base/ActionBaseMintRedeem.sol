@@ -5,21 +5,15 @@ import "../kyberswap/KyberSwapHelper.sol";
 import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPBulkSellerFactory.sol";
 import "../../interfaces/IPBulkSeller.sol";
 import "../../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
     bytes internal constant EMPTY_BYTES = abi.encode();
-    IPBulkSellerFactory public immutable bulkFactory;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberScalingLib, address _bulkSellerDirectory)
-        KyberSwapHelper(_kyberScalingLib)
-    {
-        bulkFactory = IPBulkSellerFactory(_bulkSellerDirectory);
-    }
+    constructor(address _kyberScalingLib) KyberSwapHelper(_kyberScalingLib) {}
 
     function _mintSyFromToken(
         address receiver,
@@ -40,12 +34,14 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             netTokenMintSy = input.netTokenIn;
         }
 
-        if (input.useBulk) {
-            address bulk = bulkFactory.get(input.tokenMintSy, SY);
+        if (input.bulk != address(0)) {
+            _transferOut(input.tokenMintSy, input.bulk, netTokenMintSy);
 
-            _transferOut(input.tokenMintSy, bulk, netTokenMintSy);
-
-            netSyOut = IPBulkSeller(bulk).swapExactTokenForSy(receiver, netTokenMintSy, minSyOut);
+            netSyOut = IPBulkSeller(input.bulk).swapExactTokenForSy(
+                receiver,
+                netTokenMintSy,
+                minSyOut
+            );
         } else {
             uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
 
@@ -75,9 +71,8 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         address receiverRedeemSy = requireSwap ? address(this) : receiver;
         uint256 netTokenRedeemed;
 
-        if (output.useBulk) {
-            address bulk = bulkFactory.get(output.tokenRedeemSy, SY);
-            netTokenRedeemed = IPBulkSeller(bulk).swapExactSyForToken(
+        if (output.bulk != address(0)) {
+            netTokenRedeemed = IPBulkSeller(output.bulk).swapExactSyForToken(
                 receiverRedeemSy,
                 netSyIn,
                 0
@@ -148,17 +143,17 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
 
     function _syOrBulk(address SY, TokenOutput memory output)
         internal
-        view
+        pure
         returns (address addr)
     {
-        return (output.useBulk ? bulkFactory.get(output.tokenRedeemSy, SY) : SY);
+        return output.bulk != address(0) ? output.bulk : SY;
     }
 
     function _wrapTokenOutput(
         address tokenOut,
         uint256 minTokenOut,
-        bool useBulk
+        address bulk
     ) internal pure returns (TokenOutput memory) {
-        return TokenOutput(tokenOut, minTokenOut, tokenOut, address(0), EMPTY_BYTES, useBulk);
+        return TokenOutput(tokenOut, minTokenOut, tokenOut, bulk, address(0), EMPTY_BYTES);
     }
 }

@@ -65,7 +65,6 @@ library Errors {
     error RouterExceededLimitYtIn(uint256 actualYtIn, uint256 limitYtIn);
     error RouterInsufficientSyRepay(uint256 actualSyRepay, uint256 requiredSyRepay);
     error RouterInsufficientPtRepay(uint256 actualPtRepay, uint256 requiredPtRepay);
-    error RouterBulkSellerNotFound(address token, address SY);
     error RouterNotAllSyUsed(uint256 netSyDesired, uint256 netSyUsed);
 
     error RouterTimeRangeZero();

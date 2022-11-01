@@ -29,21 +29,25 @@ import "./IAggregatorRouterHelper.sol";
 import "../../core/libraries/Errors.sol";
 
 struct TokenInput {
+    // Token/Sy data
     address tokenIn;
     uint256 netTokenIn;
     address tokenMintSy;
+    address bulk;
+    // Kyber data
     address kyberRouter;
     bytes kybercall;
-    bool useBulk;
 }
 
 struct TokenOutput {
+    // Token/Sy data
     address tokenOut;
     uint256 minTokenOut;
     address tokenRedeemSy;
+    address bulk;
+    // Kyber data
     address kyberRouter;
     bytes kybercall;
-    bool useBulk;
 }
 
 abstract contract KyberSwapHelper is TokenHelper {
@@ -61,9 +65,9 @@ abstract contract KyberSwapHelper is TokenHelper {
         address kyberRouter,
         bytes memory rawKybercall
     ) internal {
-        if (kyberRouter == address(0) || rawKybercall.length == 0) {
+        if (kyberRouter == address(0) || rawKybercall.length == 0)
             revert Errors.RouterKyberSwapDataZero();
-        }
+
         _safeApproveInf(tokenIn, kyberRouter);
 
         bytes memory kybercall = IAggregationRouterHelper(kyberScalingLib).getScaledInputData(

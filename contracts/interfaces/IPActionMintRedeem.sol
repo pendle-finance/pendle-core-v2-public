@@ -138,7 +138,7 @@ interface IPActionMintRedeem {
         // key-value pair
         address[] syAddrs;
         address[] tokenRedeemSys;
-        bool[] useBulks;
+        address[] bulks;
         //
     }
 

@@ -12,8 +12,8 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberScalingLib, address _bulkSellerDirectory)
-        ActionBaseMintRedeem(_kyberScalingLib, _bulkSellerDirectory) //solhint-disable-next-line no-empty-blocks
+    constructor(address _kyberScalingLib)
+        ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
     {}
 
     function mintSyFromToken(
@@ -190,7 +190,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
                 tokensOut.amounts[i]
             );
         }
-        _redeemAllSys(sysOut, dataYT.useBulks, dataYT.tokenRedeemSys, tokensOut);
+        _redeemAllSys(sysOut, dataYT.bulks, dataYT.tokenRedeemSys, tokensOut);
 
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
@@ -221,14 +221,14 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     /// @dev pull SYs from users & redeem them, then add to tokensOut
     function _redeemAllSys(
         RouterTokenAmounts memory sys,
-        bool[] calldata useBulks,
+        address[] calldata bulks,
         address[] calldata tokenRedeemSys,
         RouterTokenAmounts memory tokensOut
     ) internal {
         for (uint256 i = 0; i < sys.tokens.length; ++i) {
             if (sys.amounts[i] == 0) continue;
 
-            TokenOutput memory output = _wrapTokenOutput(tokenRedeemSys[i], 1, useBulks[i]);
+            TokenOutput memory output = _wrapTokenOutput(tokenRedeemSys[i], 1, bulks[i]);
             uint256 amountOut = _redeemSyToToken(
                 address(this),
                 sys.tokens[i],
