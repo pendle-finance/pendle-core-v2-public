@@ -164,7 +164,7 @@ library BaseSplitCodeFactory {
         uint256 creationCodeSizeA,
         address creationCodeContractB,
         uint256 creationCodeSizeB
-    ) public view returns (bytes memory) {
+    ) internal view returns (bytes memory) {
         return
             _getCreationCodeWithArgs(
                 "",
