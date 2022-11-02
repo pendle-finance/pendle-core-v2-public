@@ -40,6 +40,9 @@ contract PendleRouter is Proxy, Initializable, UUPSUpgradeable, BoringOwnableUpg
         ACTION_MISC = _ACTION_MISC;
     }
 
+    receive() external payable virtual override {
+    }
+
     function initialize() external initializer {
         __BoringOwnable_init();
     }
