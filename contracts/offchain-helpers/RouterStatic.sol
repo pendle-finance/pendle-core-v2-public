@@ -841,4 +841,21 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         return SY;
     }
+
+    function getBulkSellerInfo(address token, address SY)
+        external
+        view
+        returns (
+            address bulk,
+            uint256 totalToken,
+            uint256 totalSy
+        )
+    {
+        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
+        if (bulk != address(0)) {
+            BulkSellerState memory state = IPBulkSeller(bulk).readState();
+            totalToken = state.totalToken;
+            totalSy = state.totalSy;
+        }
+    }
 }

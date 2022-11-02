@@ -45,7 +45,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address SY = IPYieldToken(YT).SY();
 
         uint256 netSyToMint = _mintSyFromToken(YT, SY, 0, input);
-        netPyOut = _mintPyFromSy(receiver, YT, minPyOut, netSyToMint, false);
+        netPyOut = _mintPyFromSy(receiver, YT, netSyToMint, minPyOut, false);
 
         emit MintPyFromToken(msg.sender, receiver, YT, input.tokenIn, input.netTokenIn, netPyOut);
     }
