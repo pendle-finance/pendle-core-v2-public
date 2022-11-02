@@ -62,6 +62,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
     uint96 public expiryDivisor;
 
     // SY => expiry => address
+    // returns address(0) if not created
     mapping(address => mapping(uint256 => address)) public getPT;
     mapping(address => mapping(uint256 => address)) public getYT;
     mapping(address => bool) public isPT;

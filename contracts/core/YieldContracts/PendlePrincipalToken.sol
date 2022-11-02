@@ -22,7 +22,7 @@ contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalTo
         _;
     }
 
-    modifier onlYieldFactory() {
+    modifier onlyYieldFactory() {
         if (msg.sender != factory) revert Errors.OnlyYCFactory();
         _;
     }
@@ -39,7 +39,7 @@ contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalTo
         factory = msg.sender;
     }
 
-    function initialize(address _YT) external initializer onlYieldFactory {
+    function initialize(address _YT) external initializer onlyYieldFactory {
         YT = _YT;
     }
 

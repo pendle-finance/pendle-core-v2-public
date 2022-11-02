@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * - comes with built-in reentrancy protection, storage-packed with totalSupply variable
  * - delete increaseAllowance / decreaseAllowance
  * - add nonReentrancy protection to transfer / transferFrom functions
- * - allow decimals to by passed in
+ * - allow decimals to be passed in
  * - block self-transfer by default
  */
 // solhint-disable
@@ -26,7 +26,7 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint248 private _totalSupply;
-    uint8 private _status;
+    uint8 private _status; 
 
     string private _name;
     string private _symbol;
@@ -54,12 +54,9 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
     }
 
     /**
-     * @dev Sets the values for {name} and {symbol}.
+     * @dev Sets the values for {name}, {symbol} and {decimals}.
      *
-     * The default value of {decimals} is 18. To select a different value for
-     * {decimals} you should overload it.
-     *
-     * All two of these values are immutable: they can only be set once during
+     * All three of these values are immutable: they can only be set once during
      * construction.
      */
     constructor(

@@ -43,7 +43,7 @@ interface IStandardizedYield is IERC20Metadata {
         uint256 amountTokenOut
     );
 
-    /// @dev check assetInfo for more information
+    /// @dev check `assetInfo()` for more information
     enum AssetType {
         TOKEN,
         LIQUIDITY
@@ -74,9 +74,10 @@ interface IStandardizedYield is IERC20Metadata {
     /**
      * @notice redeems an amount of base tokens by burning some shares
      * @param receiver recipient address
-     * @param amountSharesToRedeem amount of shares to be burned from (`msg.sender`)
+     * @param amountSharesToRedeem amount of shares to be burned
      * @param tokenOut address of the base token to be redeemed
      * @param minTokenOut reverts if amount of base token redeemed is lower than this
+     * @param burnFromInternalBalance if true, burns from balance of `address(this)`, otherwise burns from `msg.sender`
      * @return amountTokenOut amount of base tokens redeemed
      * @dev Emits a {Redeem} event
      *
@@ -105,7 +106,7 @@ interface IStandardizedYield is IERC20Metadata {
      * @param user the user receiving their rewards
      * @return rewardAmounts an array of reward amounts in the same order as `getRewardTokens`
      * @dev
-     * Emits a `ClaimRewardss` event
+     * Emits a `ClaimRewards` event
      * See {getRewardTokens} for list of reward tokens
      */
     function claimRewards(address user) external returns (uint256[] memory rewardAmounts);
@@ -131,8 +132,14 @@ interface IStandardizedYield is IERC20Metadata {
      */
     function yieldToken() external view returns (address);
 
+    /**
+     * @notice returns all tokens that can mint this SY
+     */
     function getTokensIn() external view returns (address[] memory res);
 
+    /**
+     * @notice returns all tokens that can be redeemed by this SY
+     */
     function getTokensOut() external view returns (address[] memory res);
 
     function isValidTokenIn(address token) external view returns (bool);
@@ -150,13 +157,11 @@ interface IStandardizedYield is IERC20Metadata {
         returns (uint256 amountTokenOut);
 
     /**
-    * @notice This function contains information to interpret what the asset is
-    * @notice decimals is the decimals to format asset balances
-    * @notice if asset is an ERC20 token, assetType = 0, assetAddress is the address of the token
-    * @notice if asset is liquidity of an AMM (like sqrt(k) in UniswapV2 forks), assetType = 1,
-    assetAddress is the address of the LP token
-    * @notice assetDecimals is the decimals of the asset
-    */
+     * @notice This function contains information to interpret what the asset is
+     * @return assetType the type of the asset (0 for ERC20 tokens, 1 for AMM liquidity tokens)
+     * @return assetAddress the address of the asset
+     * @return assetDecimals the decimals of the asset
+     */
     function assetInfo()
         external
         view
