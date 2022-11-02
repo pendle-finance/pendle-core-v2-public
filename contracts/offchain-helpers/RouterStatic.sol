@@ -288,7 +288,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         address tokenIn,
         uint256 netTokenDesired,
-        bool useBulk,
+        address bulk,
         uint256 netPtDesired
     )
         external
@@ -303,7 +303,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             getSyMarket(market),
             tokenIn,
             netTokenDesired,
-            useBulk
+            bulk
         );
 
         uint256 netSyUsed;
@@ -348,7 +348,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         address baseToken,
         uint256 netBaseTokenIn,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -362,7 +362,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             getSyMarket(market),
             baseToken,
             netBaseTokenIn,
-            useBulk
+            bulk
         );
 
         return
@@ -381,7 +381,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         uint256 netLpToRemove,
         address tokenOut,
-        bool useBulk
+        address bulk
     ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
         uint256 netSyOut;
 
@@ -390,7 +390,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             netLpToRemove
         );
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyOut, useBulk);
+        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyOut, bulk);
     }
 
     function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
@@ -425,7 +425,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         uint256 netLpToRemove,
         address baseToken,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -441,7 +441,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             netLpToRemove
         );
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, useBulk);
+        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
 
     function swapExactPtForSyStatic(address market, uint256 exactPtIn)
@@ -494,7 +494,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         address baseToken,
         uint256 amountBaseToken,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -507,7 +507,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             getSyMarket(market),
             baseToken,
             amountBaseToken,
-            useBulk
+            bulk
         );
         return MarketMathStatic.swapExactSyForPtStatic(market, netSyIn, getDefaultApproxParams());
     }
@@ -516,7 +516,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         uint256 exactPtIn,
         address baseToken,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -531,7 +531,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             exactPtIn
         );
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, useBulk);
+        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -584,7 +584,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address market,
         uint256 exactYtIn,
         address baseToken,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -599,14 +599,14 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             exactYtIn
         );
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, useBulk);
+        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
 
     function swapExactBaseTokenForYtStatic(
         address market,
         address baseToken,
         uint256 amountBaseToken,
-        bool useBulk
+        address bulk
     )
         external
         returns (
@@ -619,7 +619,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             getSyMarket(market),
             baseToken,
             amountBaseToken,
-            useBulk
+            bulk
         );
 
         return MarketMathStatic.swapExactSyForYtStatic(market, netSyIn, getDefaultApproxParams());
@@ -708,10 +708,10 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address YT,
         address baseToken,
         uint256 amountBaseToken,
-        bool useBulk
+        address bulk
     ) external returns (uint256 amountPY) {
         IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
-        uint256 amountSy = previewDepositStatic(SY, baseToken, amountBaseToken, useBulk);
+        uint256 amountSy = previewDepositStatic(SY, baseToken, amountBaseToken, bulk);
         return mintPYFromSyStatic(YT, amountSy);
     }
 
@@ -719,21 +719,20 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address YT,
         uint256 amountPYToRedeem,
         address baseToken,
-        bool useBulk
+        address bulk
     ) external returns (uint256 amountBaseToken) {
         IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
         uint256 amountSy = redeemPYToSyStatic(YT, amountPYToRedeem);
-        return previewRedeemStatic(SY, baseToken, amountSy, useBulk);
+        return previewRedeemStatic(SY, baseToken, amountSy, bulk);
     }
 
     function previewDepositStatic(
         IStandardizedYield SY,
         address baseToken,
         uint256 amountToken,
-        bool useBulk
+        address bulk
     ) public view returns (uint256 amountSy) {
-        if (useBulk) {
-            address bulk = bulkFactory.get(baseToken, address(SY));
+        if (bulk != address(0)) {
             return IPBulkSeller(bulk).calcSwapExactTokenForSy(amountToken);
         } else {
             return SY.previewDeposit(baseToken, amountToken);
@@ -744,10 +743,9 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         IStandardizedYield SY,
         address baseToken,
         uint256 amountSy,
-        bool useBulk
+        address bulk
     ) public view returns (uint256 amountBaseToken) {
-        if (useBulk) {
-            address bulk = bulkFactory.get(baseToken, address(SY));
+        if (bulk != address(0)) {
             return IPBulkSeller(bulk).calcSwapExactSyForToken(amountSy);
         } else {
             return SY.previewRedeem(baseToken, amountSy);
@@ -799,7 +797,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     function getAmountTokenToMintSy(
         IStandardizedYield SY,
         address tokenIn,
-        bool useBulk,
+        address bulk,
         uint256 netSyOut
     ) public view returns (uint256 netTokenIn) {
         uint256 pivotAmount = netSyOut;
@@ -807,7 +805,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         uint256 low = pivotAmount;
         {
             while (true) {
-                uint256 lowSyOut = previewDepositStatic(SY, tokenIn, low, useBulk);
+                uint256 lowSyOut = previewDepositStatic(SY, tokenIn, low, bulk);
                 if (lowSyOut >= netSyOut) low /= 10;
                 else break;
             }
@@ -816,7 +814,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         uint256 high = pivotAmount;
         {
             while (true) {
-                uint256 highSyOut = previewDepositStatic(SY, tokenIn, high, useBulk);
+                uint256 highSyOut = previewDepositStatic(SY, tokenIn, high, bulk);
                 if (highSyOut < netSyOut) high *= 10;
                 else break;
             }
@@ -824,7 +822,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
         while (low <= high) {
             uint256 mid = (low + high) / 2;
-            uint256 syOut = previewDepositStatic(SY, tokenIn, mid, useBulk);
+            uint256 syOut = previewDepositStatic(SY, tokenIn, mid, bulk);
 
             if (syOut >= netSyOut) {
                 netTokenIn = mid;
