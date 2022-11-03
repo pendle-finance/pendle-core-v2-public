@@ -83,6 +83,10 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     /**
      * @notice PendleMarket allows users to provide in PT & SY in exchange for LPs, which
      * will grant LP holders more exchange fee over time
+     * @dev will mint as much LP as possible such that the corresponding SY and PT used do
+     * not exceed `netSyDesired` and `netPtDesired`, respectively
+     * @dev PT and SY should be transferred to this contract prior to calling
+     * @dev will revert if PT is expired
      */
     function mint(
         address receiver,
@@ -129,7 +133,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     /**
      * @notice LP Holders can burn their LP to receive back SY & PT proportionally
-     * to their share of market
+     * to their share of the market
      */
     function burn(
         address receiverSy,
@@ -158,7 +162,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
        - Release the calculated amount of SY to receiver
        - Callback to msg.sender if data.length > 0
        - Ensure exactPtIn amount of PT has been transferred to this address
-     * @param data bytes data to be sent in the callback
+     * @dev will revert if PT is expired
+     * @param data bytes data to be sent in the callback (if any)
      */
     function swapExactPtForSy(
         address receiver,
@@ -190,12 +195,13 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     /**
      * @notice Pendle Market allows swaps between PT & SY it is holding. This function
-     * aims to swap an exact amount of SY to PT.
+     * aims to swap SY for an exact amount of PT.
      * @dev steps working of this function
        - The exact outcome amount of PT will be transferred to receiver
        - Callback to msg.sender if data.length > 0
        - Ensure the calculated required amount of SY is transferred to this address
-     * @param data bytes data to be sent in the callback
+     * @dev will revert if PT is expired
+     * @param data bytes data to be sent in the callback (if any)
      */
     function swapSyForExactPt(
         address receiver,
@@ -226,7 +232,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         emit Swap(receiver, exactPtOut.Int(), netSyIn.neg(), netSyToReserve);
     }
 
-    /// @notice force balances to match reserves
+    /// @notice forces balances to match reserves
     function skim() external nonReentrant {
         MarketState memory market = readState();
         uint256 excessPt = _selfBalance(PT) - market.totalPt.Uint();
@@ -235,10 +241,15 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         IERC20(SY).safeTransfer(market.treasury, excessSy);
     }
 
+    /**
+     * @notice redeems the user's reward
+     * @return amount of reward token redeemed, in the same order as `getRewardTokens()`
+     */
     function redeemRewards(address user) external nonReentrant returns (uint256[] memory) {
         return _redeemRewards(user);
     }
 
+    /// @notice returns the list of reward tokens
     function getRewardTokens() external view returns (address[] memory) {
         return _getRewardTokens();
     }
@@ -248,7 +259,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     //////////////////////////////////////////////////////////////*/
 
     function observe(uint32[] memory secondsAgos)
-        public
+        external
         view
         returns (uint216[] memory lnImpliedRateCumulative)
     {

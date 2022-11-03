@@ -74,8 +74,8 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     /**
-     * @notice Create a market between PT and its corresponding SY
-     * with scalar & anchor config. Anyone is allowed to create a market on their own.
+     * @notice Create a market between PT and its corresponding SY with scalar & anchor config. 
+     * Anyone is allowed to create a market on their own.
      */
     function createNewMarket(
         address PT,
