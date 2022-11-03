@@ -119,8 +119,8 @@ library BulkSellerMathCore {
 
     function setRate(
         BulkSellerState memory state,
-        uint256 rateTokenToSy,
         uint256 rateSyToToken,
+        uint256 rateTokenToSy,
         uint256 maxDiff
     ) internal pure {
         if (
