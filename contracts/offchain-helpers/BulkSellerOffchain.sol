@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import "../core/BulkSeller/BulkSellerMathCore.sol";
 import "../core/BulkSeller/BulkSeller.sol";
+import "hardhat/console.sol";
 
 // upgradable bla bla
 contract BulkSellerOffchain {
@@ -21,16 +22,15 @@ contract BulkSellerOffchain {
 
         {
             uint256 hypoTotalToken = state.totalToken +
-                state.calcSwapExactSyForToken(state.totalSy);
+                state.totalSy.mulDown(state.rateSyToToken);
             uint256 netSyFromToken = IStandardizedYield(SY).previewDeposit(token, hypoTotalToken);
 
             rateTokenToSy = netSyFromToken.divDown(hypoTotalToken);
         }
 
         {
-            uint256 hypoTotalSy = state.totalSy + state.calcSwapExactTokenForSy(state.totalToken);
+            uint256 hypoTotalSy = state.totalSy + state.totalToken.mulDown(state.rateTokenToSy);
             uint256 netTokenFromSy = IStandardizedYield(SY).previewRedeem(token, hypoTotalSy);
-
             rateSyToToken = netTokenFromSy.divDown(hypoTotalSy);
         }
     }
