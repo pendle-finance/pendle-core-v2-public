@@ -313,7 +313,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         (uint16 observationIndex, uint16 observationCardinality) = observations.write(
             _storage.observationIndex,
             uint32(block.timestamp),
-            lastLnImpliedRate96,
+            _storage.lastLnImpliedRate,
             _storage.observationCardinality,
             _storage.observationCardinalityNext
         );
