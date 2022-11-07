@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 interface IPBulkSellerFactory {
+    event BulkSellerCreated(address indexed token, address indexed sy, address indexed bulk);
+
     event UpgradedBeacon(address indexed implementation);
 
     function get(address token, address SY) external view returns (address);
