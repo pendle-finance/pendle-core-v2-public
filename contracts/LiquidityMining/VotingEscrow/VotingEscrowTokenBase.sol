@@ -30,13 +30,10 @@ abstract contract VotingEscrowTokenBase is IPVeToken {
     uint128 public constant MIN_LOCK_TIME = 1 weeks;
 
     VeBalance internal _totalSupply;
-    uint128 public lastSlopeChangeAppliedAt;
 
     mapping(address => LockedPosition) public positionData;
 
-    constructor() {
-        lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
-    }
+    constructor() {}
 
     function balanceOf(address user) public view virtual returns (uint128) {
         return positionData[user].convertToVeBalance().getCurrentValue();

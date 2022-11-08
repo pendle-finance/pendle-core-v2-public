@@ -122,6 +122,7 @@ library Errors {
     error VEPositionNotExpired();
     error VEZeroPosition();
     error VEZeroSlope(uint128 bias, uint128 slope);
+    error VEReceiveOldSupply(uint256 msgTime);
 
     error GCNotPendleMarket(address caller);
     error GCNotVotingController(address caller);

@@ -14,6 +14,8 @@ contract VotingEscrowPendleSidechain is
     PendleMsgReceiverAppUpg,
     BoringOwnableUpgradeable
 {
+    uint256 public lastTotalSupplyReceivedAt;
+
     mapping(address => address) internal delegatorOf;
 
     event SetNewDelegator(address delegator, address receiver);
@@ -47,11 +49,11 @@ contract VotingEscrowPendleSidechain is
      * @dev If the message also contains some users' position, we should update it
      */
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint128 wTime, VeBalance memory supply, bytes memory userData) = abi.decode(
+        (uint128 msgTime, VeBalance memory supply, bytes memory userData) = abi.decode(
             message,
             (uint128, VeBalance, bytes)
         );
-        _setNewTotalSupply(wTime, supply);
+        _setNewTotalSupply(msgTime, supply);
         if (userData.length > 0) {
             _setNewUserPosition(userData);
         }
@@ -66,9 +68,12 @@ contract VotingEscrowPendleSidechain is
         emit SetNewUserPosition(position);
     }
 
-    function _setNewTotalSupply(uint128 wTime, VeBalance memory supply) internal {
-        assert(wTime == WeekMath.getWeekStartTimestamp(wTime));
-        lastSlopeChangeAppliedAt = wTime;
+    function _setNewTotalSupply(uint128 msgTime, VeBalance memory supply) internal {
+        // lastSlopeChangeAppliedAt = wTime;
+        if (msgTime < lastTotalSupplyReceivedAt) {
+            revert Errors.VEReceiveOldSupply(msgTime);
+        }
+        lastTotalSupplyReceivedAt = msgTime;
         _totalSupply = supply;
         emit SetNewTotalSupply(supply);
     }

@@ -32,6 +32,8 @@ contract VotingEscrowPendleMainchain is
 
     IERC20 public immutable pendle;
 
+    uint128 public lastSlopeChangeAppliedAt;
+
     // [wTime] => slopeChanges
     mapping(uint128 => uint128) public slopeChanges;
 
@@ -49,6 +51,7 @@ contract VotingEscrowPendleMainchain is
         uint256 initialApproxDestinationGas
     ) initializer PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) {
         pendle = _pendle;
+        lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
         __BoringOwnable_init();
     }
 
@@ -268,7 +271,7 @@ contract VotingEscrowPendleMainchain is
     function _broadcastPosition(address user, uint256[] calldata chainIds) internal {
         if (chainIds.length == 0) revert Errors.ArrayEmpty();
 
-        (VeBalance memory supply, uint128 wTime) = _applySlopeChange();
+        (VeBalance memory supply,) = _applySlopeChange();
 
         bytes memory userData = (
             user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
@@ -277,7 +280,7 @@ contract VotingEscrowPendleMainchain is
         for (uint256 i = 0; i < chainIds.length; ++i) {
             if (!destinationContracts.contains(chainIds[i]))
                 revert Errors.ChainNotSupported(chainIds[i]);
-            _broadcast(chainIds[i], wTime, supply, userData);
+            _broadcast(chainIds[i], uint128(block.timestamp), supply, userData);
         }
 
         if (user != address(0)) {
@@ -288,10 +291,10 @@ contract VotingEscrowPendleMainchain is
 
     function _broadcast(
         uint256 chainId,
-        uint128 wTime,
+        uint128 msgTime,
         VeBalance memory supply,
         bytes memory userData
     ) internal {
-        _sendMessage(chainId, abi.encode(wTime, supply, userData));
+        _sendMessage(chainId, abi.encode(msgTime, supply, userData));
     }
 }
