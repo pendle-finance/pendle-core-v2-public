@@ -23,7 +23,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         TokenInput calldata input
     ) external payable returns (uint256 netSyOut) {
         netSyOut = _mintSyFromToken(receiver, SY, minSyOut, input);
-        emit MintSyFromToken(msg.sender, receiver, SY, input.tokenIn, input.netTokenIn, netSyOut);
+        emit MintSyFromToken(msg.sender, input.tokenIn, SY, receiver, input.netTokenIn, netSyOut);
     }
 
     function redeemSyToToken(
@@ -33,7 +33,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut) {
         netTokenOut = _redeemSyToToken(receiver, SY, netSyIn, output, true);
-        emit RedeemSyToToken(msg.sender, receiver, SY, netSyIn, output.tokenOut, netTokenOut);
+        emit RedeemSyToToken(msg.sender, output.tokenOut, SY, receiver, netSyIn, netTokenOut);
     }
 
     function mintPyFromToken(
@@ -47,7 +47,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256 netSyToMint = _mintSyFromToken(YT, SY, 0, input);
         netPyOut = _mintPyFromSy(receiver, YT, netSyToMint, minPyOut, false);
 
-        emit MintPyFromToken(msg.sender, receiver, YT, input.tokenIn, input.netTokenIn, netPyOut);
+        emit MintPyFromToken(msg.sender, input.tokenIn, YT, receiver, input.netTokenIn, netPyOut);
     }
 
     function redeemPyToToken(
@@ -61,7 +61,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256 netSyToRedeem = _redeemPyToSy(_syOrBulk(SY, output), YT, netPyIn, 1);
         netTokenOut = _redeemSyToToken(receiver, SY, netSyToRedeem, output, false);
 
-        emit RedeemPyToToken(msg.sender, receiver, YT, netPyIn, output.tokenOut, netTokenOut);
+        emit RedeemPyToToken(msg.sender, output.tokenOut, YT, receiver, netPyIn, netTokenOut);
     }
 
     function mintPyFromSy(

@@ -16,8 +16,8 @@ interface IPActionSwapYT {
     event SwapYtAndToken(
         address indexed caller,
         address indexed market,
-        address indexed receiver,
-        address token,
+        address indexed token,
+        address receiver,
         int256 netYtToAccount,
         int256 netTokenToAccount
     );

@@ -157,7 +157,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
         isPT[PT] = true;
         isYT[YT] = true;
 
-        emit CreateYieldContract(SY, PT, YT, expiry);
+        emit CreateYieldContract(SY, expiry, PT, YT);
     }
 
     function setExpiryDivisor(uint96 newExpiryDivisor) public onlyOwner {

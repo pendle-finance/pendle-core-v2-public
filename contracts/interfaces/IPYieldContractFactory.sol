@@ -24,7 +24,7 @@
 pragma solidity 0.8.17;
 
 interface IPYieldContractFactory {
-    event CreateYieldContract(address indexed SY, address PT, address YT, uint256 expiry);
+    event CreateYieldContract(address indexed SY, uint256 indexed expiry, address PT, address YT);
 
     event SetExpiryDivisor(uint256 newExpiryDivisor);
 

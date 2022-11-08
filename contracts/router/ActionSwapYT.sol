@@ -171,8 +171,8 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         emit SwapYtAndToken(
             msg.sender,
             market,
-            receiver,
             input.tokenIn,
+            receiver,
             netYtOut.Int(),
             input.netTokenIn.neg()
         );
@@ -204,8 +204,8 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         emit SwapYtAndToken(
             msg.sender,
             market,
-            receiver,
             output.tokenOut,
+            receiver,
             netYtIn.neg(),
             netTokenOut.Int()
         );

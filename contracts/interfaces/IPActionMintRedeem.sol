@@ -7,19 +7,19 @@ import "../router/kyberswap/KyberSwapHelper.sol";
 interface IPActionMintRedeem {
     event MintSyFromToken(
         address indexed caller,
-        address indexed receiver,
+        address indexed tokenIn,
         address indexed SY,
-        address tokenIn,
+        address receiver,
         uint256 netTokenIn,
         uint256 netSyOut
     );
 
     event RedeemSyToToken(
         address indexed caller,
-        address indexed receiver,
+        address indexed tokenOut,
         address indexed SY,
+        address receiver,
         uint256 netSyIn,
-        address tokenOut,
         uint256 netTokenOut
     );
 
@@ -41,19 +41,19 @@ interface IPActionMintRedeem {
 
     event MintPyFromToken(
         address indexed caller,
-        address indexed receiver,
+        address indexed tokenIn,
         address indexed YT,
-        address tokenIn,
+        address receiver,
         uint256 netTokenIn,
         uint256 netPyOut
     );
 
     event RedeemPyToToken(
         address indexed caller,
-        address indexed receiver,
+        address indexed tokenOut,
         address indexed YT,
+        address receiver,
         uint256 netPyIn,
-        address tokenOut,
         uint256 netTokenOut
     );
 
