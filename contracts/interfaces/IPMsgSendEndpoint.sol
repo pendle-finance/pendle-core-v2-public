@@ -8,7 +8,7 @@ interface IPMsgSendEndpoint {
         uint256 dstChainId,
         bytes memory payload,
         uint256 estimatedGasAmount
-    ) external view returns (uint256);
+    ) external view returns (uint256 fee);
 
     function sendMessage(
         address dstAddress,
