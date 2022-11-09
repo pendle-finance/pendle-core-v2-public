@@ -17,8 +17,8 @@ interface IPActionAddRemoveLiq {
     event AddLiquidityDualTokenAndPt(
         address indexed caller,
         address indexed market,
-        address indexed receiver,
-        address tokenIn,
+        address indexed tokenIn,
+        address receiver,
         uint256 netTokenUsed,
         uint256 netPtUsed,
         uint256 netLpOut
@@ -61,10 +61,10 @@ interface IPActionAddRemoveLiq {
     event RemoveLiquidityDualTokenAndPt(
         address indexed caller,
         address indexed market,
-        address indexed receiver,
+        address indexed tokenOut,
+        address receiver,
         uint256 netLpToRemove,
         uint256 netPtOut,
-        address tokenOut,
         uint256 netTokenOut
     );
 

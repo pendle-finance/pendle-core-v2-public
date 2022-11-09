@@ -108,8 +108,8 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit AddLiquidityDualTokenAndPt(
             msg.sender,
             market,
-            receiver,
             input.tokenIn,
+            receiver,
             netTokenUsed,
             netPtUsed,
             netLpOut
@@ -261,10 +261,10 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit RemoveLiquidityDualTokenAndPt(
             msg.sender,
             market,
+            output.tokenOut,
             receiver,
             netLpToRemove,
             netPtOut,
-            output.tokenOut,
             netTokenOut
         );
     }
