@@ -717,11 +717,14 @@ library MarketApproxPtOutLib {
         uint256 minGuessMin,
         uint256 maxGuessMax
     ) internal pure returns (ApproxParamsPtOut memory res) {
+        if (_approx.guessMin > _approx.guessMax || _approx.eps > Math.ONE)
+            revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
+
         res.guessMin = Math.max(_approx.guessMin, minGuessMin);
         res.guessMax = Math.min(_approx.guessMax, maxGuessMax);
 
-        if (res.guessMin > res.guessMax || _approx.eps > Math.ONE)
-            revert Errors.ApproxParamsInvalid(_approx.guessMin, _approx.guessMax, _approx.eps);
+        if (res.guessMin > res.guessMax)
+            revert Errors.ApproxBinarySearchInputInvalid(_approx.guessMin, _approx.guessMax, minGuessMin, maxGuessMax);
 
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
