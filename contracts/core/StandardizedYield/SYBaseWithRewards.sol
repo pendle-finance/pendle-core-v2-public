@@ -120,7 +120,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
         address from,
         address to,
         uint256
-    ) internal virtual override {
+    ) internal virtual override whenNotPaused {
         _updateAndDistributeRewardsForTwo(from, to);
     }
 }
