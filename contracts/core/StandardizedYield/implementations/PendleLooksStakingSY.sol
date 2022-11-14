@@ -57,10 +57,7 @@ contract PendleLooksStakingSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        uint256 totalShares = ILooksStaking(stakingContract).totalShares();
-        uint256 totalLooks = ILooksFeeSharing(feeSharingContract).calculateSharesValueInLOOKS(
-            stakingContract
-        );
+        (uint256 totalShares, uint256 totalLooks) = _getLooksStakingParams();
         return totalLooks.divDown(totalShares);
     }
 
@@ -68,17 +65,14 @@ contract PendleLooksStakingSY is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @dev LooksRare also uses 1e18 precision, so it is accurate to
-     * calculate preview results using our built-in exchangeRate function
-     */
     function _previewDeposit(address, uint256 amountTokenToDeposit)
         internal
         view
         override
         returns (uint256 amountSharesOut)
     {
-        amountSharesOut = amountTokenToDeposit.divDown(exchangeRate());
+        (uint256 totalShares, uint256 totalLooks) = _getLooksStakingParams();
+        amountSharesOut = (amountTokenToDeposit * totalShares) / totalLooks;
     }
 
     function _previewRedeem(address, uint256 amountSharesToRedeem)
@@ -87,7 +81,19 @@ contract PendleLooksStakingSY is SYBase {
         override
         returns (uint256 amountTokenOut)
     {
-        amountTokenOut = amountSharesToRedeem.mulDown(exchangeRate());
+        (uint256 totalShares, uint256 totalLooks) = _getLooksStakingParams();
+        amountTokenOut = (amountSharesToRedeem * totalLooks) / totalShares;
+    }
+
+    function _getLooksStakingParams()
+        private
+        view
+        returns (uint256 totalShares, uint256 totalLooks)
+    {
+        totalShares = ILooksStaking(stakingContract).totalShares();
+        totalLooks = ILooksFeeSharing(feeSharingContract).calculateSharesValueInLOOKS(
+            stakingContract
+        );
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
