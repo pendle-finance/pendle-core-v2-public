@@ -27,7 +27,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
         ApproxParams calldata guessTotalPtToSwap
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         _transferFrom(IERC20(PT), msg.sender, market, exactPtIn);
 
@@ -58,7 +58,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
         ApproxParams calldata guessTotalPtSwapped
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         _transferFrom(IERC20(YT), msg.sender, address(YT), exactYtIn);
 

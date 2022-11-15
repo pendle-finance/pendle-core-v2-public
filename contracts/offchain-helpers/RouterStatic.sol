@@ -155,7 +155,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
 
         pt = address(PT);
         sy = address(SY);
-        state = _market.readState();
+        state = _market.readState(address(this));
         impliedYield = getPtImpliedYield(market);
         exchangeRate = MarketMathStatic.getExchangeRate(market);
     }
@@ -244,7 +244,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         (userMarketInfo.assetBalance.assetType, userMarketInfo.assetBalance.assetAddress, ) = SY
             .assetInfo();
 
-        MarketState memory state = _market.readState();
+        MarketState memory state = _market.readState(address(this));
         uint256 totalLp = uint256(state.totalLp);
 
         if (totalLp == 0) {

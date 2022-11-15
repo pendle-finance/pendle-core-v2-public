@@ -27,7 +27,7 @@ library MarketMathStatic {
             uint256 netPtUsed
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
             netSyDesired,
             netPtDesired,
@@ -49,7 +49,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (netPtToSwap, , ) = state.approxSwapPtToAddLiquidity(
             pyIndex(market),
@@ -58,7 +58,7 @@ library MarketMathStatic {
             approxParams
         );
 
-        state = IPMarket(market).readState(); // re-read
+        state = IPMarket(market).readState(address(this)); // re-read
 
         uint256 netSyReceived;
         (netSyReceived, netSyFee) = state.swapExactPtForSy(
@@ -89,7 +89,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (netPtFromSwap, , ) = state.approxSwapSyToAddLiquidity(
             pyIndex(market),
@@ -98,7 +98,7 @@ library MarketMathStatic {
             approxParams
         );
 
-        state = IPMarket(market).readState(); // re-read
+        state = IPMarket(market).readState(address(this)); // re-read
 
         uint256 netSySwap;
         (netSySwap, netSyFee) = state.swapSyForExactPt(
@@ -116,7 +116,7 @@ library MarketMathStatic {
         view
         returns (uint256 netSyOut, uint256 netPtOut)
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (netSyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
     }
 
@@ -134,7 +134,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (uint256 syFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
         (netPtFromSwap, netSyFee) = state.approxSwapExactSyForPt(
@@ -156,7 +156,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (uint256 syFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
 
@@ -183,7 +183,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (netSyOut, netSyFee) = state.swapExactPtForSy(pyIndex(market), exactPtIn, block.timestamp);
         priceImpact = calcPriceImpact(market, exactPtIn.neg());
     }
@@ -196,7 +196,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (netSyIn, netSyFee) = state.swapSyForExactPt(pyIndex(market), exactPtOut, block.timestamp);
         priceImpact = calcPriceImpact(market, exactPtOut.Int());
     }
@@ -214,7 +214,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (netPtOut, netSyFee) = state.approxSwapExactSyForPt(
             pyIndex(market),
             exactSyIn,
@@ -237,7 +237,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (netPtIn, , netSyFee) = state.approxSwapPtForExactSy(
             pyIndex(market),
@@ -256,7 +256,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         PYIndex index = pyIndex(market);
 
@@ -286,7 +286,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         PYIndex index = pyIndex(market);
 
         (netYtOut, netSyFee) = state.approxSwapExactSyForYt(
@@ -307,7 +307,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         PYIndex index = pyIndex(market);
 
@@ -334,7 +334,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         PYIndex index = pyIndex(market);
 
@@ -361,7 +361,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         PYIndex index = pyIndex(market);
 
         (netYtOut, totalPtToSwap, netSyFee) = state.approxSwapExactPtForYt(
@@ -387,7 +387,7 @@ library MarketMathStatic {
             uint256 priceImpact
         )
     {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         PYIndex index = pyIndex(market);
 
         (netPtOut, totalPtSwapped, netSyFee) = state.approxSwapExactYtForPt(
@@ -416,7 +416,7 @@ library MarketMathStatic {
     {
         if (IPMarket(market).isExpired()) return Math.ONE;
         int256 netPtToAccount = netPtOut;
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
 
         int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
@@ -448,7 +448,7 @@ library MarketMathStatic {
     }
 
     function getPtImpliedYield(address market) public view returns (int256) {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();

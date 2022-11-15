@@ -37,7 +37,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         // calculate the amount of SY and PT to be used
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
             netSyDesired,
             netPtDesired,
@@ -84,7 +84,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         {
             // calc the amount of SY and PT to be used
-            MarketState memory state = IPMarket(market).readState();
+            MarketState memory state = IPMarket(market).readState(address(this));
             (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
                 netSyDesired,
                 netPtDesired,
@@ -126,7 +126,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
         // calculate the amount of PT to swap
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (uint256 netPtSwap, , ) = state.approxSwapPtToAddLiquidity(
             YT.newIndex(),
@@ -279,7 +279,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         // calculate the total amount of PT received from burning & selling SY
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (uint256 syFromBurn, uint256 ptFromBurn) = state.removeLiquidity(netLpToRemove);
         (uint256 ptFromSwap, ) = state.approxSwapExactSyForPt(
             YT.newIndex(),
@@ -361,7 +361,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 minLpOut,
         ApproxParams calldata guessPtReceivedFromSy
     ) internal returns (uint256 netLpOut, uint256 netSyFee) {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         // calculate the PT amount needed to add liquidity
         (uint256 netPtFromSwap, , ) = state.approxSwapSyToAddLiquidity(

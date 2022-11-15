@@ -125,7 +125,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 maxYtIn,
         ApproxParams memory guessYtIn
     ) external returns (uint256 netYtIn, uint256 netSyFee) {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         (netYtIn, , ) = state.approxSwapYtForExactSy(
@@ -219,7 +219,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         uint256 minYtOut,
         ApproxParams memory guessYtOut
     ) internal returns (uint256 netYtOut, uint256 netSyFee) {
-        MarketState memory state = IPMarket(market).readState();
+        MarketState memory state = IPMarket(market).readState(address(this));
 
         (netYtOut, ) = state.approxSwapExactSyForYt(
             YT.newIndex(),
