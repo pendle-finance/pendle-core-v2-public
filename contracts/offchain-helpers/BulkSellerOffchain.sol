@@ -5,12 +5,10 @@ import "../core/BulkSeller/BulkSellerMathCore.sol";
 import "../core/BulkSeller/BulkSeller.sol";
 import "hardhat/console.sol";
 
-// upgradable bla bla
 contract BulkSellerOffchain {
     using BulkSellerMathCore for BulkSellerState;
     using Math for uint256;
 
-    // rmb to add fee here
     function calcCurrentRates(IPBulkSeller bulk)
         external
         view
@@ -21,8 +19,7 @@ contract BulkSellerOffchain {
         address token = bulk.token();
 
         {
-            uint256 hypoTotalToken = state.totalToken +
-                state.totalSy.mulDown(state.rateSyToToken);
+            uint256 hypoTotalToken = state.totalToken + state.totalSy.mulDown(state.rateSyToToken);
             uint256 netSyFromToken = IStandardizedYield(SY).previewDeposit(token, hypoTotalToken);
 
             rateTokenToSy = netSyFromToken.divDown(hypoTotalToken);
@@ -34,10 +31,4 @@ contract BulkSellerOffchain {
             rateSyToToken = netTokenFromSy.divDown(hypoTotalSy);
         }
     }
-
-    // TODO: pause contract when rate is bad compared to market
-    // TODO: Sound alarm if updates fail
-    // TODO: audit even the typescript code
-    // TODO: add a max with currentRate to guarantee no loss?
-    // TODO: pause immediately if lost enough money
 }
