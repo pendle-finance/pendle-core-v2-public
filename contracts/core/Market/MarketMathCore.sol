@@ -15,8 +15,9 @@ struct MarketState {
     address treasury;
     /// immutable variables ///
     int256 scalarRoot;
-    uint256 lnFeeRateRoot;
     uint256 expiry;
+    /// fee data ///
+    uint256 lnFeeRateRoot;
     uint256 reserveFeePercent; // base 100
     /// last trade data ///
     uint256 lastLnImpliedRate;

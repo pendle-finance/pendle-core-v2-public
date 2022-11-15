@@ -2,7 +2,13 @@
 pragma solidity 0.8.17;
 
 interface IPMarketFactory {
-    event NewMarketConfig(address indexed treasury, uint88 lnFeeRateRoot, uint8 reserveFeePercent);
+    event NewMarketConfig(
+        address indexed treasury,
+        uint80 defaultLnFeeRateRoot,
+        uint8 reserveFeePercent
+    );
+    event SetOverriddenFee(address indexed router, uint80 lnFeeRateRoot, uint8 reserveFeePercent);
+    event UnsetOverriddenFee(address indexed router);
 
     event CreateNewMarket(
         address indexed market,
@@ -13,15 +19,13 @@ interface IPMarketFactory {
 
     function isValidMarket(address market) external view returns (bool);
 
-    function treasury() external view returns (address);
-
     // If this is changed, change the readState function in market as well
-    function marketConfig()
+    function getMarketConfig(address router)
         external
         view
         returns (
             address treasury,
-            uint88 lnFeeRateRoot,
+            uint80 lnFeeRateRoot,
             uint8 reserveFeePercent
         );
 }

@@ -102,7 +102,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
             uint256 netPtUsed
         )
     {
-        MarketState memory market = readState();
+        MarketState memory market = readState(msg.sender);
         PYIndex index = YT.newIndex();
 
         uint256 lpToReserve;
@@ -140,7 +140,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         address receiverPt,
         uint256 netLpToBurn
     ) external nonReentrant returns (uint256 netSyOut, uint256 netPtOut) {
-        MarketState memory market = readState();
+        MarketState memory market = readState(msg.sender);
 
         _burn(address(this), netLpToBurn);
 
@@ -170,7 +170,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         uint256 exactPtIn,
         bytes calldata data
     ) external nonReentrant notExpired returns (uint256 netSyOut, uint256 netSyToReserve) {
-        MarketState memory market = readState();
+        MarketState memory market = readState(msg.sender);
 
         (netSyOut, netSyToReserve) = market.swapExactPtForSy(
             YT.newIndex(),
@@ -208,7 +208,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         uint256 exactPtOut,
         bytes calldata data
     ) external nonReentrant notExpired returns (uint256 netSyIn, uint256 netSyToReserve) {
-        MarketState memory market = readState();
+        MarketState memory market = readState(msg.sender);
 
         (netSyIn, netSyToReserve) = market.swapSyForExactPt(
             YT.newIndex(),
@@ -234,7 +234,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     /// @notice forces balances to match reserves
     function skim() external nonReentrant {
-        MarketState memory market = readState();
+        MarketState memory market = readState(msg.sender);
         uint256 excessPt = _selfBalance(PT) - market.totalPt.Uint();
         uint256 excessSy = _selfBalance(SY) - market.totalSy.Uint();
         IERC20(PT).safeTransfer(market.treasury, excessPt);
@@ -289,14 +289,14 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     /**
      * @notice read the state of the market from storage into memory for gas-efficient manipulation
      */
-    function readState() public view returns (MarketState memory market) {
+    function readState(address router) public view returns (MarketState memory market) {
         market.totalPt = _storage.totalPt;
         market.totalSy = _storage.totalSy;
         market.totalLp = totalSupply().Int();
 
         (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
             factory
-        ).marketConfig();
+        ).getMarketConfig(router);
 
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;

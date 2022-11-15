@@ -45,7 +45,7 @@ library Errors {
     error MarketFactoryInvalidPt();
     error MarketFactoryMarketExists();
 
-    error MarketFactoryLnFeeRateRootTooHigh(uint88 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
+    error MarketFactoryLnFeeRateRootTooHigh(uint80 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
     error MarketFactoryReserveFeePercentTooHigh(
         uint8 reserveFeePercent,
         uint8 maxReserveFeePercent
