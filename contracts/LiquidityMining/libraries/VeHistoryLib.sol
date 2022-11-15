@@ -31,11 +31,6 @@ library Checkpoints {
         return self._checkpoints[index];
     }
 
-    /**
-     * @dev Pushes a value onto a History so that it is stored as the checkpoint for the current block.
-     *
-     * Returns previous value and new value.
-     */
     function push(History storage self, VeBalance memory value) internal {
         uint256 pos = self._checkpoints.length;
         if (pos > 0 && self._checkpoints[pos - 1].timestamp == WeekMath.getCurrentWeekStart()) {

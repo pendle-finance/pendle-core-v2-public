@@ -83,7 +83,6 @@ contract PendleVotingControllerUpg is
         if (pools.length != weights.length) revert Errors.ArrayLengthMismatch();
         if (user != owner && vePendle.balanceOf(user) == 0) revert Errors.VCZeroVePendle(user);
 
-        UserData storage uData = userData[user];
         LockedPosition memory userPosition = _getUserVePendlePosition(user);
 
         for (uint256 i = 0; i < pools.length; ++i) {
@@ -92,11 +91,9 @@ contract PendleVotingControllerUpg is
             emit Vote(user, pools[i], weights[i], newVote);
         }
 
-        if (uData.totalVotedWeight > VeBalanceLib.USER_VOTE_MAX_WEIGHT)
-            revert Errors.VCExceededMaxWeight(
-                uData.totalVotedWeight,
-                VeBalanceLib.USER_VOTE_MAX_WEIGHT
-            );
+        uint256 totalVotedWeight = userData[user].totalVotedWeight;
+        if (totalVotedWeight > VeBalanceLib.USER_VOTE_MAX_WEIGHT)
+            revert Errors.VCExceededMaxWeight(totalVotedWeight, VeBalanceLib.USER_VOTE_MAX_WEIGHT);
     }
 
     /**
