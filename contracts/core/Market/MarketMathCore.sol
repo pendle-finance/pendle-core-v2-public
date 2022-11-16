@@ -113,7 +113,7 @@ library MarketMathCore {
         );
 
         netSyToAccount = _netSyToAccount.Uint();
-        netSyFee = _netSyFee.abs();
+        netSyFee = _netSyFee.Uint();
         netSyToReserve = _netSyToReserve.Uint();
     }
 
@@ -139,7 +139,7 @@ library MarketMathCore {
         );
 
         netSyToMarket = _netSyToAccount.neg().Uint();
-        netSyFee = _netSyFee.abs();
+        netSyFee = _netSyFee.neg().Uint();
         netSyToReserve = _netSyToReserve.Uint();
     }
 
@@ -339,7 +339,7 @@ library MarketMathCore {
         netSyToAccount = netAssetToAccount < 0
             ? index.assetToSyUp(netAssetToAccount)
             : index.assetToSy(netAssetToAccount);
-        netSyFee = fee;
+        netSyFee = index.assetToSy(fee);
         netSyToReserve = index.assetToSy(netAssetToReserve);
     }
 
