@@ -83,11 +83,11 @@ library MarketMathCore {
     function removeLiquidity(MarketState memory market, uint256 lpToRemove)
         internal
         pure
-        returns (uint256 syToAccount, uint256 netPtToAccount)
+        returns (uint256 netSyToAccount, uint256 netPtToAccount)
     {
         (int256 _syToAccount, int256 _ptToAccount) = removeLiquidityCore(market, lpToRemove.Int());
 
-        syToAccount = _syToAccount.Uint();
+        netSyToAccount = _syToAccount.Uint();
         netPtToAccount = _ptToAccount.Uint();
     }
 
