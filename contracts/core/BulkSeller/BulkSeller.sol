@@ -233,11 +233,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         feeRate = newFeeRate;
     }
 
-    function getTokenProp() external view returns (uint256) {
-        BulkSellerState memory state = readState();
-        return state.getTokenProp();
-    }
-
     function _depositToken(uint256 netTokenDeposit) internal returns (uint256 netSyFromToken) {
         _safeApprove(token, SY, netTokenDeposit);
         uint256 nativeToDeposit = token == NATIVE ? netTokenDeposit : 0;

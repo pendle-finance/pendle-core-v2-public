@@ -31,4 +31,21 @@ contract BulkSellerOffchain {
             rateSyToToken = netTokenFromSy.divDown(hypoTotalSy);
         }
     }
+
+    function getCurrentState(IPBulkSeller bulk)
+        external
+        view
+        returns (
+            BulkSellerState memory state,
+            uint256 tokenProp,
+            uint256 hypoTokenBal
+        )
+    {
+        state = bulk.readState();
+
+        tokenProp = state.getTokenProp();
+        hypoTokenBal =
+            state.totalToken +
+            IStandardizedYield(bulk.SY()).previewRedeem(bulk.token(), state.totalSy);
+    }
 }
