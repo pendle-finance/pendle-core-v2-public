@@ -139,7 +139,7 @@ library MarketMathCore {
         );
 
         netSyToMarket = _netSyToAccount.neg().Uint();
-        netSyFee = _netSyFee.neg().Uint();
+        netSyFee = _netSyFee.Uint();
         netSyToReserve = _netSyToReserve.Uint();
     }
 

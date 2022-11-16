@@ -30,7 +30,7 @@ contract PendleRouter is Proxy, BoringOwnableUpgradeable {
         address _ACTION_SWAP_PTYT,
         address _ACTION_CALLBACK,
         address _ACTION_MISC
-    ) {
+    ) initializer {
         ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
         ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
