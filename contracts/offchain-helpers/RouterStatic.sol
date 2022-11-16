@@ -85,7 +85,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
                 guessMax: type(uint256).max,
                 guessOffchain: 0,
                 maxIteration: 256,
-                eps: 1e15
+                eps: 1e14
             });
     }
 
