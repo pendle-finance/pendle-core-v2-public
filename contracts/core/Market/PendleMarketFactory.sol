@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
@@ -11,12 +10,8 @@ import "../libraries/BaseSplitCodeFactory.sol";
 import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
 
-import "./PendleMarket.sol";
-import "./PendleGauge.sol";
-
 contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
-
 
     address public immutable marketCreationCodeContractA;
     uint256 public immutable marketCreationCodeSizeA;
@@ -32,7 +27,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     FeeConfig public defaultFee;
     /// 1 SLOT
 
-    // user -> overriddenFee
+    // router -> overriddenFee
     mapping(address => FeeConfig) public overriddenFee;
 
     // PT -> scalarRoot -> initialAnchor
@@ -162,12 +157,12 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         emit UnsetOverriddenFee(router);
     }
 
-    function _verifyFeeConfig(uint80 lnFeeRateRoot, uint8 reserveFeePercent) internal view {
-        if (lnFeeRateRoot > maxLnFeeRateRoot)
-            revert Errors.MarketFactoryLnFeeRateRootTooHigh(lnFeeRateRoot, maxLnFeeRateRoot);
-        if (reserveFeePercent > maxReserveFeePercent)
+    function _verifyFeeConfig(uint80 newLnFeeRateRoot, uint8 newReserveFeePercent) internal view {
+        if (newLnFeeRateRoot > maxLnFeeRateRoot)
+            revert Errors.MarketFactoryLnFeeRateRootTooHigh(newLnFeeRateRoot, maxLnFeeRateRoot);
+        if (newReserveFeePercent > maxReserveFeePercent)
             revert Errors.MarketFactoryReserveFeePercentTooHigh(
-                reserveFeePercent,
+                newReserveFeePercent,
                 maxReserveFeePercent
             );
     }
