@@ -2,6 +2,12 @@
 pragma solidity 0.8.17;
 
 interface IPMarketFactory {
+    struct FeeConfig {
+        uint80 lnFeeRateRoot;
+        uint8 reserveFeePercent;
+        bool active;
+    }
+
     event NewMarketConfig(
         address indexed treasury,
         uint80 defaultLnFeeRateRoot,

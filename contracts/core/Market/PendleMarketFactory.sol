@@ -17,11 +17,6 @@ import "./PendleGauge.sol";
 contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    struct FeeConfig {
-        uint80 lnFeeRateRoot;
-        uint8 reserveFeePercent;
-        bool active;
-    }
 
     address public immutable marketCreationCodeContractA;
     uint256 public immutable marketCreationCodeSizeA;
