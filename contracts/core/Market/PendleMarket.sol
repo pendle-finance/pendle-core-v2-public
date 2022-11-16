@@ -169,10 +169,11 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         address receiver,
         uint256 exactPtIn,
         bytes calldata data
-    ) external nonReentrant notExpired returns (uint256 netSyOut, uint256 netSyToReserve) {
+    ) external nonReentrant notExpired returns (uint256 netSyOut, uint256 netSyFee) {
         MarketState memory market = readState(msg.sender);
 
-        (netSyOut, netSyToReserve) = market.swapExactPtForSy(
+        uint256 netSyToReserve;
+        (netSyOut, netSyFee, netSyToReserve) = market.swapExactPtForSy(
             YT.newIndex(),
             exactPtIn,
             block.timestamp
@@ -190,7 +191,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         if (_selfBalance(PT) < market.totalPt.Uint())
             revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
 
-        emit Swap(receiver, exactPtIn.neg(), netSyOut.Int(), netSyToReserve);
+        emit Swap(receiver, exactPtIn.neg(), netSyOut.Int(), netSyFee, netSyToReserve);
     }
 
     /**
@@ -207,10 +208,11 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         address receiver,
         uint256 exactPtOut,
         bytes calldata data
-    ) external nonReentrant notExpired returns (uint256 netSyIn, uint256 netSyToReserve) {
+    ) external nonReentrant notExpired returns (uint256 netSyIn, uint256 netSyFee) {
         MarketState memory market = readState(msg.sender);
 
-        (netSyIn, netSyToReserve) = market.swapSyForExactPt(
+        uint256 netSyToReserve;
+        (netSyIn, netSyFee, netSyToReserve) = market.swapSyForExactPt(
             YT.newIndex(),
             exactPtOut,
             block.timestamp
@@ -229,7 +231,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         if (_selfBalance(SY) < market.totalSy.Uint())
             revert Errors.MarketInsufficientSyReceived(_selfBalance(SY), market.totalSy.Uint());
 
-        emit Swap(receiver, exactPtOut.Int(), netSyIn.neg(), netSyToReserve);
+        emit Swap(receiver, exactPtOut.Int(), netSyIn.neg(), netSyFee, netSyToReserve);
     }
 
     /// @notice forces balances to match reserves

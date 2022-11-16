@@ -24,7 +24,13 @@ interface IPMarket is IERC20Metadata, IPGauge {
         uint256 netPtOut
     );
 
-    event Swap(address indexed receiver, int256 netPtOut, int256 netSyOut, uint256 netSyToReserve);
+    event Swap(
+        address indexed receiver,
+        int256 netPtOut,
+        int256 netSyOut,
+        uint256 netSyFee,
+        uint256 netSyToReserve
+    );
 
     event UpdateImpliedRate(uint256 indexed timestamp, uint256 lnLastImpliedRate);
 
@@ -55,13 +61,23 @@ interface IPMarket is IERC20Metadata, IPGauge {
         address receiver,
         uint256 exactPtIn,
         bytes calldata data
-    ) external returns (uint256 netSyOut, uint256 netSyToReserve);
+    )
+        external
+        returns (
+            uint256 netSyOut,
+            uint256 netSyFee
+        );
 
     function swapSyForExactPt(
         address receiver,
         uint256 exactPtOut,
         bytes calldata data
-    ) external returns (uint256 netSyIn, uint256 netSyToReserve);
+    )
+        external
+        returns (
+            uint256 netSyIn,
+            uint256 netSyFee
+        );
 
     function redeemRewards(address user) external returns (uint256[] memory);
 

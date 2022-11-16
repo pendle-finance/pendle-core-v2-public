@@ -84,7 +84,7 @@ library MarketApproxPtInLib {
                 continue;
             }
 
-            (uint256 netSyOut, uint256 netSyFee) = calcSyOut(a.market, comp, a.index, guess);
+            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(a.market, comp, a.index, guess);
 
             if (netSyOut >= a.minSyOut) {
                 p.guessMax = guess;
@@ -146,7 +146,7 @@ library MarketApproxPtInLib {
                 continue;
             }
 
-            (uint256 netSyOut, uint256 netSyFee) = calcSyOut(a.market, comp, a.index, guess);
+            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(a.market, comp, a.index, guess);
 
             uint256 maxPtPayable = a.index.syToAsset(netSyOut + a.exactSyIn);
 
@@ -211,14 +211,18 @@ library MarketApproxPtInLib {
                 continue;
             }
 
-            (uint256 netSyOut, uint256 netSyFee) = calcSyOut(a.market, comp, a.index, guess);
+            (uint256 netSyOut, uint256 netSyFee, uint256 netSyToReserve) = calcSyOut(
+                a.market,
+                comp,
+                a.index,
+                guess
+            );
 
             uint256 syNumerator;
             uint256 ptNumerator;
             {
                 uint256 newTotalPt = a.market.totalPt.Uint() + guess;
-                uint256 netPtRemaining = a.totalPtIn - guess;
-                uint256 newTotalSy = (a.market.totalSy.Uint() - netSyOut - netSyFee);
+                uint256 newTotalSy = (a.market.totalSy.Uint() - netSyOut - netSyToReserve);
 
                 // it is desired that
                 // netSyOut / newTotalSy = netPtRemaining / newTotalPt
@@ -226,7 +230,7 @@ library MarketApproxPtInLib {
                 // netSyOut * newTotalPt = netPtRemaining * newTotalSy
 
                 syNumerator = netSyOut * newTotalPt;
-                ptNumerator = netPtRemaining * newTotalSy;
+                ptNumerator = (a.totalPtIn - guess) * newTotalSy;
             }
 
             if (Math.isAApproxB(syNumerator, ptNumerator, p.eps)) {
@@ -292,7 +296,7 @@ library MarketApproxPtInLib {
                 continue;
             }
 
-            (uint256 netSyOut, uint256 netSyFee) = calcSyOut(a.market, comp, a.index, guess);
+            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(a.market, comp, a.index, guess);
 
             uint256 netAssetOut = a.index.syToAsset(netSyOut);
 
@@ -316,10 +320,23 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp,
         PYIndex index,
         uint256 netPtIn
-    ) internal pure returns (uint256 netSyOut, uint256 netSyFee) {
-        (int256 _netSyOut, int256 _netSyFee) = market.calcTrade(comp, index, netPtIn.neg());
+    )
+        internal
+        pure
+        returns (
+            uint256 netSyOut,
+            uint256 netSyFee,
+            uint256 netSyToReserve
+        )
+    {
+        (int256 _netSyOut, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(
+            comp,
+            index,
+            netPtIn.neg()
+        );
         netSyOut = _netSyOut.Uint();
         netSyFee = _netSyFee.Uint();
+        netSyToReserve = _netSyToReserve.Uint();
     }
 
     function newApproxParamsPtIn(
@@ -447,7 +464,7 @@ library MarketApproxPtOutLib {
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netSyIn, uint256 netSyFee) = calcSyIn(a.market, comp, a.index, guess);
+            (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(a.market, comp, a.index, guess);
 
             if (netSyIn <= a.exactSyIn) {
                 p.guessMin = guess;
@@ -502,7 +519,7 @@ library MarketApproxPtOutLib {
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netSyOwed, uint256 netSyFee) = calcSyIn(a.market, comp, a.index, guess);
+            (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(a.market, comp, a.index, guess);
 
             uint256 netAssetToRepay = a.index.syToAssetUp(netSyOwed);
             uint256 netSyOut = a.index.assetToSy(guess - netAssetToRepay);
@@ -562,7 +579,12 @@ library MarketApproxPtOutLib {
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netSyIn, uint256 netSyFee) = calcSyIn(a.market, comp, a.index, guess);
+            (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) = calcSyIn(
+                a.market,
+                comp,
+                a.index,
+                guess
+            );
 
             if (netSyIn > a.totalSyIn) {
                 p.guessMax = guess - 1;
@@ -573,9 +595,8 @@ library MarketApproxPtOutLib {
             uint256 ptNumerator;
 
             {
-                uint256 netSyRemaining = a.totalSyIn - netSyIn;
                 uint256 newTotalPt = a.market.totalPt.Uint() - guess;
-                uint256 netTotalSy = a.market.totalSy.Uint() + netSyIn - netSyFee;
+                uint256 netTotalSy = a.market.totalSy.Uint() + netSyIn - netSyToReserve;
 
                 // it is desired that
                 // netPtFromSwap / newTotalPt = netSyRemaining / netTotalSy
@@ -583,7 +604,7 @@ library MarketApproxPtOutLib {
                 // netPtFromSwap * netTotalSy = netSyRemaining * newTotalPt
 
                 ptNumerator = guess * netTotalSy;
-                syNumerator = netSyRemaining * newTotalPt;
+                syNumerator = (a.totalSyIn - netSyIn) * newTotalPt;
             }
 
             if (Math.isAApproxB(ptNumerator, syNumerator, p.eps)) {
@@ -650,7 +671,7 @@ library MarketApproxPtOutLib {
         for (uint256 iter = 0; iter < p.maxIteration; ++iter) {
             uint256 guess = nextGuess(p, iter);
 
-            (uint256 netSyOwed, uint256 netSyFee) = calcSyIn(a.market, comp, a.index, guess);
+            (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(a.market, comp, a.index, guess);
 
             if (netSyOwed <= a.maxSyPayable) {
                 p.guessMin = guess;
@@ -671,11 +692,24 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp,
         PYIndex index,
         uint256 netPtOut
-    ) internal pure returns (uint256 netSyIn, uint256 netSyFee) {
-        (int256 _netSyIn, int256 _netSyFee) = market.calcTrade(comp, index, netPtOut.Int());
+    )
+        internal
+        pure
+        returns (
+            uint256 netSyIn,
+            uint256 netSyFee,
+            uint256 netSyToReserve
+        )
+    {
+        (int256 _netSyIn, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(
+            comp,
+            index,
+            netPtOut.Int()
+        );
 
         netSyIn = _netSyIn.abs();
         netSyFee = _netSyFee.Uint();
+        netSyToReserve = _netSyToReserve.Uint();
     }
 
     function newApproxParamsPtOut(

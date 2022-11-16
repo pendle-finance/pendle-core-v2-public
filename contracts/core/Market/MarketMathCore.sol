@@ -96,8 +96,16 @@ library MarketMathCore {
         PYIndex index,
         uint256 exactPtToMarket,
         uint256 blockTime
-    ) internal pure returns (uint256 netSyToAccount, uint256 netSyToReserve) {
-        (int256 _netSyToAccount, int256 _netSyToReserve) = executeTradeCore(
+    )
+        internal
+        pure
+        returns (
+            uint256 netSyToAccount,
+            uint256 netSyFee,
+            uint256 netSyToReserve
+        )
+    {
+        (int256 _netSyToAccount, int256 _netSyFee, int256 _netSyToReserve) = executeTradeCore(
             market,
             index,
             exactPtToMarket.neg(),
@@ -105,6 +113,7 @@ library MarketMathCore {
         );
 
         netSyToAccount = _netSyToAccount.Uint();
+        netSyFee = _netSyFee.abs();
         netSyToReserve = _netSyToReserve.Uint();
     }
 
@@ -113,8 +122,16 @@ library MarketMathCore {
         PYIndex index,
         uint256 exactPtToAccount,
         uint256 blockTime
-    ) internal pure returns (uint256 netSyToMarket, uint256 netSyToReserve) {
-        (int256 _netSyToAccount, int256 _netSyToReserve) = executeTradeCore(
+    )
+        internal
+        pure
+        returns (
+            uint256 netSyToMarket,
+            uint256 netSyFee,
+            uint256 netSyToReserve
+        )
+    {
+        (int256 _netSyToAccount, int256 _netSyFee, int256 _netSyToReserve) = executeTradeCore(
             market,
             index,
             exactPtToAccount.Int(),
@@ -122,6 +139,7 @@ library MarketMathCore {
         );
 
         netSyToMarket = _netSyToAccount.neg().Uint();
+        netSyFee = _netSyFee.abs();
         netSyToReserve = _netSyToReserve.Uint();
     }
 
@@ -213,7 +231,15 @@ library MarketMathCore {
         PYIndex index,
         int256 netPtToAccount,
         uint256 blockTime
-    ) internal pure returns (int256 netSyToAccount, int256 netSyToReserve) {
+    )
+        internal
+        pure
+        returns (
+            int256 netSyToAccount,
+            int256 netSyFee,
+            int256 netSyToReserve
+        )
+    {
         /// ------------------------------------------------------------
         /// CHECKS
         /// ------------------------------------------------------------
@@ -226,7 +252,12 @@ library MarketMathCore {
         /// ------------------------------------------------------------
         MarketPreCompute memory comp = getMarketPreCompute(market, index, blockTime);
 
-        (netSyToAccount, netSyToReserve) = calcTrade(market, comp, index, netPtToAccount);
+        (netSyToAccount, netSyFee, netSyToReserve) = calcTrade(
+            market,
+            comp,
+            index,
+            netPtToAccount
+        );
 
         /// ------------------------------------------------------------
         /// WRITE
@@ -272,7 +303,15 @@ library MarketMathCore {
         MarketPreCompute memory comp,
         PYIndex index,
         int256 netPtToAccount
-    ) internal pure returns (int256 netSyToAccount, int256 netSyToReserve) {
+    )
+        internal
+        pure
+        returns (
+            int256 netSyToAccount,
+            int256 netSyFee,
+            int256 netSyToReserve
+        )
+    {
         int256 preFeeExchangeRate = _getExchangeRate(
             market.totalPt,
             comp.totalAsset,
@@ -300,6 +339,7 @@ library MarketMathCore {
         netSyToAccount = netAssetToAccount < 0
             ? index.assetToSyUp(netAssetToAccount)
             : index.assetToSy(netAssetToAccount);
+        netSyFee = fee;
         netSyToReserve = index.assetToSy(netAssetToReserve);
     }
 

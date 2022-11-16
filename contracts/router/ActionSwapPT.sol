@@ -78,7 +78,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         MarketState memory state = IPMarket(market).readState(address(this));
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netSyIn, ) = state.swapSyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
+        (netSyIn, , ) = state.swapSyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
 
         if (netSyIn > maxSyIn) revert Errors.RouterExceededLimitSyIn(netSyIn, maxSyIn);
 
