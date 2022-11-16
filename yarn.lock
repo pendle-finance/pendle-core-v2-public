@@ -643,16 +643,16 @@ __metadata:
     "@openzeppelin/contracts-upgradeable": ^4.7.3
     "@typechain/ethers-v5": ^9.0.0
     "@typechain/hardhat": ^4.0.0
-    hardhat: ^2.12.0
+    hardhat: ^2.12.2
     hardhat-contract-sizer: ^2.6.1
     hardhat-storage-layout-diff: ^0.0.4
     prettier: ^2.7.1
-    prettier-plugin-solidity: ^1.0.0-beta.24
+    prettier-plugin-solidity: ^1.0.0-rc.1
     solc: ^0.8.17
     solhint: ^3.3.7
     ts-node: ^10.9.1
-    typechain: ^8.1.0
-    typescript: ^4.8.4
+    typechain: ^8.1.1
+    typescript: ^4.9.3
   languageName: unknown
   linkType: soft
 
@@ -775,12 +775,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidity-parser/parser@npm:^0.14.3":
-  version: 0.14.3
-  resolution: "@solidity-parser/parser@npm:0.14.3"
+"@solidity-parser/parser@npm:^0.14.5":
+  version: 0.14.5
+  resolution: "@solidity-parser/parser@npm:0.14.5"
   dependencies:
     antlr4ts: ^0.5.0-alpha.4
-  checksum: 9a27eb961c22a3b8732bd9782ce3b7912e67b2e2183acada552116dd0bbe637c33265177ab3db9610063da48aa57299d67afdeb0616450b631a0e3da865c4e88
+  checksum: 9e85a0d4f8a05a11db6022444b70b2f353e2358467b1cce44cdda703ae1e3c7337e1b8cbc2eec8e14a8f34f9c60b42f325e5fe9b3c934cc980e35091e292d7ee
   languageName: node
   linkType: hard
 
@@ -2600,9 +2600,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.12.0":
-  version: 2.12.0
-  resolution: "hardhat@npm:2.12.0"
+"hardhat@npm:^2.12.2":
+  version: 2.12.2
+  resolution: "hardhat@npm:2.12.2"
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -2664,7 +2664,7 @@ __metadata:
       optional: true
   bin:
     hardhat: internal/cli/cli.js
-  checksum: 28ae9e7d6cf8e66167a94efbabd5ac4c086f0c05a77b190162906f1dd46b4971eb2eb94412b1eaee5626ab2ec6431a94feae15348b10ba10c1a4b7efcef789ec
+  checksum: cd45bf9d4f15d967bd2d8154cc5bc60e7d0d4bab80caea909d36e3660437fc9f6b4faf41736ed3b75b11ff15ac9a9b68828eebb1026ed9fa8d9eb87242f061d2
   languageName: node
   linkType: hard
 
@@ -3863,11 +3863,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-solidity@npm:^1.0.0-beta.24":
-  version: 1.0.0-dev.23
-  resolution: "prettier-plugin-solidity@npm:1.0.0-dev.23"
+"prettier-plugin-solidity@npm:^1.0.0-rc.1":
+  version: 1.0.0-rc.1
+  resolution: "prettier-plugin-solidity@npm:1.0.0-rc.1"
   dependencies:
-    "@solidity-parser/parser": ^0.14.3
+    "@solidity-parser/parser": ^0.14.5
     emoji-regex: ^10.1.0
     escape-string-regexp: ^4.0.0
     semver: ^7.3.7
@@ -3875,7 +3875,7 @@ __metadata:
     string-width: ^4.2.3
   peerDependencies:
     prettier: ^2.3.0
-  checksum: bf068bcd763b2c2be48859abca5f2aee9543c38e875039470c8c0a850de4218292c7ec46fb63ef6866f51e8c87e80f8de015446ebd9f407712b26a9e30c41050
+  checksum: 8f8edc921b3d89048c688dcb3e6fef2bedcb94de622d5777e83de329d80caf76fc453b9c747bf91d2ad961d8577b10703bd8db259653bd6479c3cd1095973745
   languageName: node
   linkType: hard
 
@@ -4799,9 +4799,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typechain@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "typechain@npm:8.1.0"
+"typechain@npm:^8.1.1":
+  version: 8.1.1
+  resolution: "typechain@npm:8.1.1"
   dependencies:
     "@types/prettier": ^2.1.1
     debug: ^4.3.1
@@ -4817,27 +4817,27 @@ __metadata:
     typescript: ">=4.3.0"
   bin:
     typechain: dist/cli/cli.js
-  checksum: d8e05c4437d5ba54fd5dea28c20884c2aa259e911c6ffc9d1768a229633c661f378439e4b0a1a21f33372e8ed82adc324583381cde16f199af9440792a95da88
+  checksum: 77984239d9728befe5a484c4e1b55c8f194696fc8a78c44754f8e25ca8fd6d0208ddfcd9e71c90c1c35ac0689f5c3053107b54fdc2aab691c980614f6daf209b
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.8.4":
-  version: 4.8.4
-  resolution: "typescript@npm:4.8.4"
+"typescript@npm:^4.9.3":
+  version: 4.9.3
+  resolution: "typescript@npm:4.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 3e4f061658e0c8f36c820802fa809e0fd812b85687a9a2f5430bc3d0368e37d1c9605c3ce9b39df9a05af2ece67b1d844f9f6ea8ff42819f13bcb80f85629af0
+  checksum: 17b8f816050b412403e38d48eef0e893deb6be522d6dc7caf105e54a72e34daf6835c447735fd2b28b66784e72bfbf87f627abb4818a8e43d1fa8106396128dc
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>":
-  version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=f456af"
+"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
+  version: 4.9.3
+  resolution: "typescript@patch:typescript@npm%3A4.9.3#~builtin<compat/typescript>::version=4.9.3&hash=f456af"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 563a0ef47abae6df27a9a3ab38f75fc681f633ccf1a3502b1108e252e187787893de689220f4544aaf95a371a4eb3141e4a337deb9895de5ac3c1ca76430e5f0
+  checksum: ef65c22622d864497d0a0c5db693523329b3284c15fe632e93ad9aa059e8dc38ef3bd767d6f26b1e5ecf9446f49bd0f6c4e5714a2eeaf352805dc002479843d1
   languageName: node
   linkType: hard
 
