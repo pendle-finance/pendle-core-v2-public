@@ -99,8 +99,6 @@ contract PendleRouter is Proxy, BoringOwnableUpgradeable {
         revert Errors.RouterInvalidAction(sig);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
     function _implementation() internal view override returns (address) {
         return getRouterImplementation(msg.sig);
     }
