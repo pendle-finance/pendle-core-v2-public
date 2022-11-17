@@ -16,6 +16,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
     {}
 
+    /**
+     * @notice swaps input token for SY-mintable tokens (if needed), then mints SY from such
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     */
     function mintSyFromToken(
         address receiver,
         address SY,
@@ -26,6 +30,11 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit MintSyFromToken(msg.sender, input.tokenIn, SY, receiver, input.netTokenIn, netSyOut);
     }
 
+    /**
+     * @notice redeems SY for SY-mintable tokens, then (if needed) swaps resulting tokens for 
+     * desired output token through Kyberswap
+     * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
+     */
     function redeemSyToToken(
         address receiver,
         address SY,
@@ -36,6 +45,13 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit RedeemSyToToken(msg.sender, output.tokenOut, SY, receiver, netSyIn, netTokenOut);
     }
 
+    /**
+     * @notice mints PY from any input token
+     * @dev swaps input token through Kyberswap to SY-mintable tokens first, then mints SY, finally 
+     * mints PY from SY
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @dev reverts if PY is expired
+     */
     function mintPyFromToken(
         address receiver,
         address YT,
@@ -50,6 +66,12 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit MintPyFromToken(msg.sender, input.tokenIn, YT, receiver, input.netTokenIn, netPyOut);
     }
 
+    /**
+     * @notice redeems PY for token
+     * @dev redeems PT(+YT) for SY first, then redeems SY, finally swaps resulting tokens to output 
+     * token through Kyberswap (if needed)
+     * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
+     */
     function redeemPyToToken(
         address receiver,
         address YT,
@@ -64,6 +86,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit RedeemPyToToken(msg.sender, output.tokenOut, YT, receiver, netPyIn, netTokenOut);
     }
 
+    /**
+     * @notice mints PT+YT from input SY
+     * @dev reverts if the PY pair is expired
+     */
     function mintPyFromSy(
         address receiver,
         address YT,
@@ -74,6 +100,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit MintPyFromSy(msg.sender, receiver, YT, netSyIn, netPyOut);
     }
 
+    /// @notice redeems PT(+YT) for its corresponding SY
     function redeemPyToSy(
         address receiver,
         address YT,
@@ -84,6 +111,11 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         emit RedeemPyToSy(msg.sender, receiver, YT, netPyIn, netSyOut);
     }
 
+    /**
+     * @notice A unified interface for redeeming rewards and interests for any SYs,
+     * YTs, and markets alike for `user`.
+     * @dev returns arrays of amounts claimed for each asset.
+     */
     function redeemDueInterestAndRewards(
         address user,
         address[] calldata sys,
@@ -134,6 +166,14 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256[] amounts;
     }
 
+    /** 
+     * @notice A function to:
+        - Redeem all of caller's due interest and rewards in SYs, YTs, and markets
+        - Redeem SYs themselves
+        - Finally swaps all resulting tokens to `dataSwap.outputToken`
+     * @return netTokenOut total token output amount, will not be lower than `dataSwap.minTokenOut`
+     * @return amountsSwapped the amounts swapped for each token defined in `dataSwap.tokens`
+     */
     function redeemDueInterestAndRewardsThenSwapAll(
         address[] calldata sys,
         RouterYtRedeemStruct calldata dataYT,

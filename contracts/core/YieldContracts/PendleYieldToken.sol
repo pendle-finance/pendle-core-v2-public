@@ -66,8 +66,9 @@ contract PendleYieldToken is
     }
 
     /**
-     * @param _doCacheIndexSameBlock if true, the PY index is cached for each block, and thus is constant 
-     * for all txs within the same block. Otherwise, the PY index is recalculated for every tx.
+     * @param _doCacheIndexSameBlock if true, the PY index is cached for each block, and thus is 
+     * constant for all txs within the same block. Otherwise, the PY index is recalculated for 
+     * every tx.
      */
     constructor(
         address _SY,
@@ -85,9 +86,9 @@ contract PendleYieldToken is
         doCacheIndexSameBlock = _doCacheIndexSameBlock;
     }
 
-    /** 
-     * @notice Tokenize SY into PT + YT of equal qty. Every unit of underlying of SY will create 1 PT + 1 YT
-     * @dev SY should be transferred directly into this contract prior to calling this function
+    /**
+     * @notice Tokenize SY into PT + YT of equal qty. Every unit of asset of SY will create 1 PT + 1 YT
+     * @dev SY must be transferred to this contract prior to calling
      */
     function mintPY(address receiverPT, address receiverYT)
         external
@@ -130,8 +131,9 @@ contract PendleYieldToken is
     }
 
     /**
-     * @notice Converts PY tokens into SY, but interests & rewards are not redeemed at the same time
-     * @dev PT/YT tokens should be transferred into this contract prior to redeeming
+     * @notice converts PT(+YT) tokens into SY, but interests & rewards are not redeemed at the 
+     * same time
+     * @dev PT/YT must be transferred to this contract prior to calling
      */
     function redeemPY(address receiver)
         external
@@ -149,9 +151,10 @@ contract PendleYieldToken is
         amountSyOut = amountSyOuts[0];
     }
 
-    /** 
-     * @notice Converts PY tokens into SY for multiple receivers. See (`redeemPY`) for more details
-     * @dev Reverts if unable to redeem the total amount in `amountPYToRedeems`
+    /**
+     * @notice redeems PT(+YT) for multiple users. See `redeemPY()`
+     * @dev PT/YT must be transferred to this contract prior to calling
+     * @dev fails if unable to redeem the total PY amount in `amountPYToRedeems`
      */
     function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
         external
@@ -169,10 +172,10 @@ contract PendleYieldToken is
      * @param redeemInterest will only transfer out interest for user if true
      * @param redeemRewards will only transfer out rewards for user if true
      * @dev With YT yielding interest in the form of SY, which is redeemable by users, the reward
-     * distribution should be based on the amount of SYs that their YT currently represent, plus their
-     * dueInterest. It has been proven and tested that _rewardSharesUser will not change over time,
-     * unless users redeem their dueInterest or redeemPY. Due to this, it is required to update users'
-     * accruedReward STRICTLY BEFORE transferring out their interest.
+     * distribution should be based on the amount of SYs that their YT currently represent, plus 
+     * their dueInterest. It has been proven and tested that _rewardSharesUser will not change over 
+     * time, unless users redeem their dueInterest or redeemPY. Due to this, it is required to 
+     * update users' accruedReward STRICTLY BEFORE transferring out their interest.
      */
     function redeemDueInterestAndRewards(
         address user,
@@ -202,7 +205,10 @@ contract PendleYieldToken is
         }
     }
 
-    /// @dev reverts if called before expiry
+    /**
+     * @dev All rewards and interests accrued post-expiry goes to the treasury.
+     * Reverts if called pre-expiry.
+     */
     function redeemInterestAndRewardsPostExpiryForTreasury()
         external
         nonReentrant
@@ -234,17 +240,27 @@ contract PendleYieldToken is
         return IStandardizedYield(SY).rewardIndexesCurrent();
     }
 
-    /// @dev maximizes the current rate with the previous rate to guarantee non-decreasing rate
+    /**
+     * @notice updates and returns the current PY index
+     * @dev this function maximizes the current PY index with the previous index, guaranteeing
+     * non-decreasing PY index
+     * @dev if `doCacheIndexSameBlock` is true, PY index only updates at most once per block,
+     * and has no state changes on the second call onwards (within the same block).
+     * @dev see `pyIndexStored()` for view function for cached value.
+     */
     function pyIndexCurrent() public nonReentrant returns (uint256 currentIndex) {
         currentIndex = _pyIndexCurrent();
     }
-    
+
     /// @notice returns the last-updated PY index
     function pyIndexStored() public view returns (uint256) {
         return _pyIndexStored;
     }
 
-    /// @dev has no effect if called pre-expiry
+    /**
+     * @notice do a final rewards redeeming, and sets post-expiry data
+     * @dev has no effect if called pre-expiry
+     */
     function setPostExpiryData() external nonReentrant {
         if (isExpired()) {
             _setPostExpiryData();

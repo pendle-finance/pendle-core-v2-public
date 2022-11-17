@@ -6,6 +6,7 @@ import "../interfaces/IPActionSwapPT.sol";
 import "../interfaces/IPMarket.sol";
 import "../core/libraries/Errors.sol";
 
+/// @dev All swap actions will revert if market is expired
 contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
@@ -19,6 +20,12 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
     {}
 
+    /**
+     * @notice swaps exact amount of PT for SY
+     * @param exactPtIn will always consume this exact amount of PT for as much SY as possible
+     * @return netSyOut amount SY output, will not be less than `minSyOut`
+     * @return netSyFee amount SY fee incurred
+     */
     function swapExactPtForSy(
         address receiver,
         address market,
@@ -36,8 +43,13 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice Note that the amount of SY out will be a bit more than `exactSyOut`, since an approximation is used. It's
-        guaranteed that the `netSyOut` is at least `exactSyOut`
+     * @notice swaps some amount of PT for the desired SY amount
+     * @param guessPtIn approximation data for input PT amount
+     * @param exactSyOut will consume as little PT as possible for this much SY amount
+     * @return netPtIn amount of PT used, will not be more than `maxPtIn`
+     * @return netSyFee amount SY fee incurred
+     * @dev the SY output might be slightly more than `exactSyOut` since an approximation is used. 
+     * It is guaranteed that exactSyOut <= actualSyOut <= exactSyOut*(100% + guessPtIn.eps) 
      */
     function swapPtForExactSy(
         address receiver,
@@ -69,6 +81,13 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         emit SwapPtAndSy(msg.sender, market, receiver, netPtIn.neg(), exactSyOut.Int());
     }
 
+    /**
+     * @notice swaps SY for exact amount of PT
+     * @param exactPtOut will always consume as little SY as possible for this much amount of PT
+     * @return netSyIn amount SY used, will not be more than `maxSyIn`
+     * @return netSyFee amount SY fee incurred
+     * @dev the output amount of PT here is exact, no approximation is used
+     */
     function swapSyForExactPt(
         address receiver,
         address market,
@@ -90,6 +109,13 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         emit SwapPtAndSy(msg.sender, market, receiver, exactPtOut.Int(), netSyIn.neg());
     }
 
+    /**
+     * @notice swaps exact amount of SY for as much PT as possible
+     * @param exactSyIn will always consume this much amount of SY
+     * @param guessPtOut approximation data for output PT amount
+     * @return netPtOut amount of PT output, will not be less than `minPtOut`
+     * @return netSyFee amount SY fee incurred
+     */
     function swapExactSyForPt(
         address receiver,
         address market,
@@ -114,9 +140,10 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice swap from any ERC20 tokens, through Uniswap's forks, to get baseTokens to make SY, then swap
-        from SY to PT
-     * @dev simply a combination of _mintSyFromToken & _swapExactSyForPt
+     * @notice swap (through Kyberswap) from any input token for SY-mintable tokens, then mints SY 
+     * and swaps said SY for PT
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @dev is a combination of `_mintSyFromToken()` and `_swapExactSyForPt()`
      */
     function swapExactTokenForPt(
         address receiver,
@@ -151,8 +178,11 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice swap from PT to SY, then redeem SY to baseToken & swap through Uniswap's forks to get tokenOut
-     * @dev simply a combination of _swapExactPtForSy & _redeemSyToToken
+     * @notice swap from exact amount of PT to SY, then redeem SY for assets, finally swaps 
+     * resulting assets through Kyberswap to get desired output token
+     * @param exactPtIn will always consume this much PT for as much SY as possible
+     * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @dev is a combination of `_swapExactPtForSy()` and `_redeemSyToToken()`
      */
     function swapExactPtForToken(
         address receiver,

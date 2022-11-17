@@ -6,6 +6,14 @@ import "../interfaces/IPActionAddRemoveLiq.sol";
 import "../interfaces/IPMarket.sol";
 import "../core/libraries/Errors.sol";
 
+/**
+ * @dev If market is expired, all actions will revert, except for the following:
+ * - removeLiquidityDualSyAndPt()
+ * - removeLiquidityDualTokenAndPt()
+ * - removeLiquiditySingleSy()
+ * - removeLiquiditySingleToken()
+ * This is because swapping and adding liquidity are not allowed on an expired market.
+ */
 contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using Math for uint256;
     using Math for int256;
@@ -20,6 +28,13 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
     {}
 
+    /**
+     * @notice Adds liquidity to the SY/PT market, granting LP tokens in return
+     * @dev Will mint as much LP as possible given no more than `netSyDesired` and `netPtDesired`,
+     * while not changing the market's price
+     * @dev Only the necessary SY/PT amount will be transferred
+     * @dev Reverts if market is expired
+     */
     function addLiquidityDualSyAndPt(
         address receiver,
         address market,
@@ -60,7 +75,15 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     }
 
     /**
-     * @dev this function assumes that netTokenDesired = netTokenUsed, and fails if this does not hold
+     * @notice Adds liquidity to SY/PT market using PT + any token.
+     * @dev Input token is first swapped to SY-mintable token using Kyber, then SY is minted from 
+     * such. Finally the SY/PT pair is added to the market
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @param netPtDesired maximum PT to be used
+     * @dev Only the necessary PT amount will be transferred
+     * @dev All SY minted must be used, otherwise the call will revert. Therefore it is recommended
+     * that `netPtDesired` is slightly higher than actual expected.
+     * @dev Reverts if market is expired
      */
     function addLiquidityDualTokenAndPt(
         address receiver,
@@ -116,6 +139,14 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
+    /**
+     * @notice Swaps partial PT to SY, then use them to add liquidity to SY/PT pair
+     * @param netPtIn amount of PT to be transferred in from caller
+     * @param guessPtSwapToSy approximate info for the swap
+     * @return netLpOut actual LP output, will not be lower than `minLpOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Reverts if market is expired
+     */
     function addLiquiditySinglePt(
         address receiver,
         address market,
@@ -153,6 +184,14 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
 
+    /**
+     * @notice Swaps partial SY to PT, then use them to add liquidity to SY/PT pair
+     * @param netSyIn amount of SY to be transferred in from caller
+     * @param guessPtReceivedFromSy approx. output PT from the swap
+     * @return netLpOut actual LP output, will not be lower than `minLpOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Reverts if market is expired
+     */
     function addLiquiditySingleSy(
         address receiver,
         address market,
@@ -178,6 +217,15 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit AddLiquiditySingleSy(msg.sender, market, receiver, netSyIn, netLpOut);
     }
 
+    /**
+     * @notice Adds liquidity using a single token input. The input token is first swapped through 
+     * Kyberswap to a SY-mintable token, the rest is the same as `addLiquiditySingleSy()`
+     * @param guessPtReceivedFromSy approximate PT output for the SY-to-PT swap
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @return netLpOut actual LP output, will not be lower than `minLpOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Reverts if market is expired
+     */
     function addLiquiditySingleToken(
         address receiver,
         address market,
@@ -210,6 +258,11 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
+    /**
+     * @notice Burns LP token to remove SY/PT liquidity
+     * @param netLpToRemove amount of LP to be burned from caller
+     * @dev Will work even if market is expired
+     */
     function removeLiquidityDualSyAndPt(
         address receiver,
         address market,
@@ -234,6 +287,13 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
+    /**
+     * @notice Burns LP token to remove SY/PT liquidity, then redeems SY, finally (if needed)
+     * swaps SY redeemings through Kyberswap to desired output token.
+     * @param netLpToRemove amount of LP to be burned from caller
+     * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @dev Will work even if market is expired
+     */
     function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
@@ -269,12 +329,20 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
+    /**
+     * @notice Removes SY/PT liquidity, then swaps all resulting SY to return only PT
+     * @param netLpToRemove amount of LP to be burned from caller
+     * @param guessPtReceivedFromSy approximate info for the swap
+     * @return netPtOut total PT output, will not be lower than `minPtOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Reverts if market is expired
+     */
     function removeLiquiditySinglePt(
         address receiver,
         address market,
         uint256 netLpToRemove,
         uint256 minPtOut,
-        ApproxParams calldata guessPtOut
+        ApproxParams calldata guessPtReceivedFromSy
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -285,7 +353,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             YT.newIndex(),
             syFromBurn,
             block.timestamp,
-            guessPtOut
+            guessPtReceivedFromSy
         );
 
         if (ptFromBurn + ptFromSwap < minPtOut)
@@ -305,6 +373,14 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit RemoveLiquiditySinglePt(msg.sender, market, receiver, netLpToRemove, netPtOut);
     }
 
+    /**
+     * @notice Removes SY/PT liquidity, then converts all resulting PT to return only SY
+     * @dev Conversion is done with market swap if not expired, or with PT redeeming if expired
+     * @param netLpToRemove amount of LP to be burned from caller
+     * @return netSyOut total SY output, will not be lower than `minSyOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Will work even if market is expired
+     */
     function removeLiquiditySingleSy(
         address receiver,
         address market,
@@ -320,6 +396,18 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         emit RemoveLiquiditySingleSy(msg.sender, market, receiver, netLpToRemove, netSyOut);
     }
 
+    /**
+     * @notice Removes SY/PT liquidity, then converts all to desired output token.
+     * @dev inner workings of this function:
+        - Removes SY/PT liquidity to only SY (see `removeLiquiditySingleSy()`)
+        - Burns SY to redeem SY-mintable tokens
+        - (If needed) swaps resulting tokens to desired output token using Kyberswap
+     * @param netLpToRemove amount of LP to be burned from caller
+     * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @return netTokenOut total token output, will not be lower than `output.minTokenOut`
+     * @return netSyFee amount of SY fee incurred from the swap
+     * @dev Will work even if market is expired
+     */
     function removeLiquiditySingleToken(
         address receiver,
         address market,
@@ -353,6 +441,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         );
     }
 
+    /// @dev swaps SY to PT, then adds liquidity
     function _addLiquiditySingleSy(
         address receiver,
         address market,
@@ -384,6 +473,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
     }
 
+    /// @dev removes SY/PT liquidity, then converts PT to SY
     function _removeLiquiditySingleSy(
         address receiver,
         address market,
@@ -399,6 +489,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
     }
 
+    /// @dev converts PT to SY post-expiry
     function __removeLpToSyAfterExpiry(
         address receiver,
         address market,
@@ -409,6 +500,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         netSyOut = syFromBurn + IPYieldToken(YT).redeemPY(receiver);
     }
 
+    /// @dev swaps PT to SY pre-expiry
     function __removeLpToSyBeforeExpiry(
         address receiver,
         address market,
