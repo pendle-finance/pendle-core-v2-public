@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarketSwapCallback.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../core/libraries/Errors.sol";
 
 /// @dev this contract will be deployed behind an ERC1967 proxy
@@ -13,7 +12,7 @@ import "../core/libraries/Errors.sol";
 /// corresponding implementation contracts
 
 // solhint-disable no-empty-blocks
-contract PendleRouter is Proxy, BoringOwnableUpgradeable {
+contract PendleRouter is Proxy {
     address public immutable ACTION_MINT_REDEEM;
     address public immutable ACTION_ADD_REMOVE_LIQ;
     address public immutable ACTION_SWAP_PT;
@@ -30,7 +29,7 @@ contract PendleRouter is Proxy, BoringOwnableUpgradeable {
         address _ACTION_SWAP_PTYT,
         address _ACTION_CALLBACK,
         address _ACTION_MISC
-    ) initializer {
+    ) {
         ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
         ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
@@ -38,7 +37,6 @@ contract PendleRouter is Proxy, BoringOwnableUpgradeable {
         ACTION_SWAP_PTYT = _ACTION_SWAP_PTYT;
         ACTION_CALLBACK = _ACTION_CALLBACK;
         ACTION_MISC = _ACTION_MISC;
-        __BoringOwnable_init();
     }
 
     receive() external payable virtual override {}
