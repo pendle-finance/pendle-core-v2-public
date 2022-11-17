@@ -239,8 +239,8 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         MarketState memory market = readState(msg.sender);
         uint256 excessPt = _selfBalance(PT) - market.totalPt.Uint();
         uint256 excessSy = _selfBalance(SY) - market.totalSy.Uint();
-        IERC20(PT).safeTransfer(market.treasury, excessPt);
-        IERC20(SY).safeTransfer(market.treasury, excessSy);
+        if (excessPt != 0) IERC20(PT).safeTransfer(market.treasury, excessPt);
+        if (excessSy != 0) IERC20(SY).safeTransfer(market.treasury, excessSy);
     }
 
     /**

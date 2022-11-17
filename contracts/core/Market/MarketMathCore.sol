@@ -216,7 +216,7 @@ library MarketMathCore {
         netSyToAccount = (lpToRemove * market.totalSy) / market.totalLp;
         netPtToAccount = (lpToRemove * market.totalPt) / market.totalLp;
 
-        if (netSyToAccount == 0 || netPtToAccount == 0) revert Errors.MarketZeroAmountsOutput();
+        if (netSyToAccount == 0 && netPtToAccount == 0) revert Errors.MarketZeroAmountsOutput();
 
         /// ------------------------------------------------------------
         /// WRITE
