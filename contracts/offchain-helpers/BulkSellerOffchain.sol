@@ -48,7 +48,7 @@ contract BulkSellerOffchain {
             state.totalToken +
             IStandardizedYield(bulk.SY()).previewRedeem(bulk.token(), state.totalSy);
     }
-    
+
     function calcCurrentRatesWithAmount(
         IPBulkSeller bulk,
         uint256 hypoTotalToken,
@@ -67,10 +67,4 @@ contract BulkSellerOffchain {
             rateSyToToken = netTokenFromSy.divDown(hypoTotalSy);
         }
     }
-
-    // TODO: pause contract when rate is bad compared to market
-    // TODO: Sound alarm if updates fail
-    // TODO: audit even the typescript code
-    // TODO: add a max with currentRate to guarantee no loss?
-    // TODO: pause immediately if lost enough money
 }
