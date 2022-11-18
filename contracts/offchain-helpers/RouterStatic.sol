@@ -852,8 +852,10 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
         if (bulk != address(0)) {
             BulkSellerState memory state = IPBulkSeller(bulk).readState();
-            totalToken = state.totalToken;
-            totalSy = state.totalSy;
+            if (state.rateTokenToSy != 0 || state.rateSyToToken != 0) {
+                totalToken = state.totalToken;
+                totalSy = state.totalSy;
+            }
         }
     }
 }
