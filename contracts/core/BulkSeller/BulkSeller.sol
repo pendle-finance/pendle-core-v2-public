@@ -38,11 +38,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         _;
     }
 
-    modifier onlyAdmin() {
-        if (!IPBulkSellerFactory(factory).isAdmin(msg.sender)) revert Errors.BulkNotAdmin();
-        _;
-    }
-
     // Since this contract is a beacon contract, no constructor should be defined.
     function initialize(
         address _token,
@@ -140,7 +135,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         _writeState(state);
     }
 
-    function decreaseReserve(uint256 netTokenOut, uint256 netSyOut) external onlyAdmin {
+    function decreaseReserve(uint256 netTokenOut, uint256 netSyOut) external onlyMaintainer {
         BulkSellerState memory state = readState();
 
         if (netTokenOut == type(uint256).max) netTokenOut = state.totalToken;

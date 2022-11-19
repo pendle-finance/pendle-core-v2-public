@@ -9,6 +9,4 @@ interface IPBulkSellerFactory {
     function get(address token, address SY) external view returns (address);
 
     function isMaintainer(address addr) external view returns (bool);
-
-    function isAdmin(address addr) external view returns (bool);
 }

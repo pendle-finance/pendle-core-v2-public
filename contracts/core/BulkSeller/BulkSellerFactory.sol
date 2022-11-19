@@ -25,8 +25,8 @@ contract BulkSellerFactory is
 
     mapping(address => mapping(address => address)) internal syToBulkSeller;
 
-    modifier onlyAdmin() {
-        if (!isAdmin(msg.sender)) revert Errors.BulkNotAdmin();
+    modifier onlyMaintainer() {
+        if (!isMaintainer(msg.sender)) revert Errors.BulkNotMaintainer();
         _;
     }
 
@@ -39,7 +39,7 @@ contract BulkSellerFactory is
 
     function createBulkSeller(address token, address SY)
         external
-        onlyAdmin
+        onlyMaintainer
         returns (address bulk)
     {
         IStandardizedYield _SY = IStandardizedYield(SY);
@@ -72,12 +72,8 @@ contract BulkSellerFactory is
         return (hasRole(DEFAULT_ADMIN_ROLE, addr) || hasRole(MAINTAINER, addr));
     }
 
-    function isAdmin(address addr) public view override returns (bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, addr);
-    }
-
     // ----------------- upgrade-related -----------------
-    function upgradeBeacon(address newImplementation) public onlyAdmin {
+    function upgradeBeacon(address newImplementation) public onlyMaintainer {
         require(
             AddressUpgradeable.isContract(newImplementation),
             "UpgradeableBeacon: implementation is not a contract"
@@ -86,5 +82,5 @@ contract BulkSellerFactory is
         emit UpgradedBeacon(newImplementation);
     }
 
-    function _authorizeUpgrade(address) internal override onlyAdmin {}
+    function _authorizeUpgrade(address) internal override onlyMaintainer {}
 }
