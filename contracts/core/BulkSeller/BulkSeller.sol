@@ -18,29 +18,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
     using SafeERC20 for IERC20;
     using BulkSellerMathCore for BulkSellerState;
 
-    event SwapExactTokenForSy(address receiver, uint256 netTokenIn, uint256 netSyOut);
-    event SwapExactSyForToken(address receiver, uint256 netSyIn, uint256 netTokenOut);
-    event RateUpdated(
-        uint256 newRateTokenToSy,
-        uint256 newRateSyToToken,
-        uint256 oldRateTokenToSy,
-        uint256 oldRateSyToToken
-    );
-    event ReBalanceTokenToSy(
-        uint256 netTokenDeposit,
-        uint256 netSyFromToken,
-        uint256 newTokenProp,
-        uint256 oldTokenProp
-    );
-    event ReBalanceSyToToken(
-        uint256 netSyRedeem,
-        uint256 netTokenFromSy,
-        uint256 newTokenProp,
-        uint256 oldTokenProp
-    );
-    event ReserveUpdated(uint256 totalToken, uint256 totalSy);
-    event FeeRateUpdated(uint256 newFeeRate, uint256 oldFeeRate);
-
     struct BulkSellerStorage {
         uint128 rateTokenToSy;
         uint128 rateSyToToken;
