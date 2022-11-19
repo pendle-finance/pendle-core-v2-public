@@ -157,6 +157,16 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         _writeState(state);
     }
 
+    function redeemRewards() external onlyMaintainer {
+        IStandardizedYield(SY).claimRewards(address(this));
+        address[] memory rewardTokens = IStandardizedYield(SY).getRewardTokens();
+
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            if (rewardTokens[i] == token) continue;
+            _transferOut(rewardTokens[i], msg.sender, _selfBalance(rewardTokens[i]));
+        }
+    }
+
     function reBalance(uint256 targetProp, uint256 maxDiff) external onlyMaintainer {
         BulkSellerState memory state = readState();
         uint256 oldTokenProp = state.getTokenProp();
