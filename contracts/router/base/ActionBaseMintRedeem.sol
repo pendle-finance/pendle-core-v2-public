@@ -34,19 +34,17 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             netTokenMintSy = input.netTokenIn;
         }
 
-        if (input.bulk != address(0)) {
-            _transferOut(input.tokenMintSy, input.bulk, netTokenMintSy);
+        uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
 
-            netSyOut = IPBulkSeller(input.bulk).swapExactTokenForSy(
+        _safeApproveInf(input.tokenMintSy, SY);
+
+        if (input.bulk != address(0)) {
+            netSyOut = IPBulkSeller(input.bulk).swapExactTokenForSy{ value: netNative }(
                 receiver,
                 netTokenMintSy,
                 minSyOut
             );
         } else {
-            uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
-
-            _safeApproveInf(input.tokenMintSy, SY);
-
             netSyOut = IStandardizedYield(SY).deposit{ value: netNative }(
                 receiver,
                 input.tokenMintSy,
@@ -75,7 +73,8 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
             netTokenRedeemed = IPBulkSeller(output.bulk).swapExactSyForToken(
                 receiverRedeemSy,
                 netSyIn,
-                0
+                0,
+                true
             );
         } else {
             netTokenRedeemed = IStandardizedYield(SY).redeem(

@@ -82,8 +82,10 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         address receiver,
         uint256 netTokenIn,
         uint256 minSyOut
-    ) external nonReentrant returns (uint256 netSyOut) {
+    ) external payable nonReentrant returns (uint256 netSyOut) {
         BulkSellerState memory state = readState();
+
+        _transferIn(token, msg.sender, netTokenIn);
 
         netSyOut = state.swapExactTokenForSy(netTokenIn);
 
@@ -93,18 +95,23 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
 
         _writeState(state);
 
-        if (_selfBalance(token) < state.totalToken)
-            revert Errors.BulkInsufficientTokenReceived(_selfBalance(token), state.totalToken);
-
         emit SwapExactTokenForSy(receiver, netTokenIn, netSyOut);
     }
 
     function swapExactSyForToken(
         address receiver,
         uint256 exactSyIn,
-        uint256 minTokenOut
+        uint256 minTokenOut,
+        bool swapFromInternalBalance
     ) external nonReentrant returns (uint256 netTokenOut) {
         BulkSellerState memory state = readState();
+
+        if (!swapFromInternalBalance) _transferIn(SY, msg.sender, exactSyIn);
+        else {
+            uint256 netSyReceived = _selfBalance(SY) - state.totalSy;
+            if (exactSyIn < netSyReceived)
+                revert Errors.BulkInsufficientSyReceived(exactSyIn, netSyReceived);
+        }
 
         netTokenOut = state.swapExactSyForToken(exactSyIn);
 
@@ -113,9 +120,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         if (receiver != address(this)) _transferOut(token, receiver, netTokenOut);
 
         _writeState(state);
-
-        if (_selfBalance(SY) < state.totalSy)
-            revert Errors.BulkInsufficientSyReceived(_selfBalance(SY), state.totalSy);
 
         emit SwapExactSyForToken(receiver, exactSyIn, netTokenOut);
     }
@@ -239,6 +243,4 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         _transferOut(SY, SY, netSyRedeem);
         return IStandardizedYield(SY).redeem(address(this), netSyRedeem, token, 0, true);
     }
-
-    receive() external payable {}
 }

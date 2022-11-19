@@ -9,7 +9,6 @@ library Errors {
     error BulkInsufficientTokenForTrade(uint256 currentAmount, uint256 requiredAmount);
     error BulkInSufficientSyOut(uint256 actualSyOut, uint256 requiredSyOut);
     error BulkInSufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
-    error BulkInsufficientTokenReceived(uint256 actualBalance, uint256 requiredBalance);
     error BulkInsufficientSyReceived(uint256 actualBalance, uint256 requiredBalance);
     error BulkNotMaintainer();
     error BulkNotAdmin();
