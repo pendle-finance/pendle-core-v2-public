@@ -46,7 +46,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
 
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
-    string private constant SY_PREF = "SY-";
+    string private constant SY_SYMBOL_PREF = "SY-";
+    string private constant SY_NAME_PREF = "SY ";
 
     address public immutable ytCreationCodeContractA;
     uint256 public immutable ytCreationCodeSizeA;
@@ -192,7 +193,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
 
     function _stripSYPrefix(string memory _str) internal pure returns (string memory) {
         StringLib.slice memory str = _str.toSlice();
-        StringLib.slice memory delim = SY_PREF.toSlice();
-        return str.beyond(delim).toString();
+        StringLib.slice memory delim_name = SY_NAME_PREF.toSlice();
+        StringLib.slice memory delim_symbol = SY_SYMBOL_PREF.toSlice();
+        return str.beyond(delim_name).beyond(delim_symbol).toString();
     }
 }
