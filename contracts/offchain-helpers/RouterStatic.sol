@@ -20,6 +20,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     using Math for uint256;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
+    using BulkSellerMathCore for BulkSellerState;
 
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint128 public constant MIN_LOCK_TIME = 1 weeks;
@@ -733,7 +734,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address bulk
     ) public view returns (uint256 amountSy) {
         if (bulk != address(0)) {
-            return IPBulkSeller(bulk).calcSwapExactTokenForSy(amountToken);
+            BulkSellerState memory state = IPBulkSeller(bulk).readState();
+            return state.calcSwapExactTokenForSy(amountToken);
         } else {
             return SY.previewDeposit(baseToken, amountToken);
         }
@@ -746,7 +748,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address bulk
     ) public view returns (uint256 amountBaseToken) {
         if (bulk != address(0)) {
-            return IPBulkSeller(bulk).calcSwapExactSyForToken(amountSy);
+            BulkSellerState memory state = IPBulkSeller(bulk).readState();
+            return state.calcSwapExactSyForToken(amountSy);
         } else {
             return SY.previewRedeem(baseToken, amountSy);
         }

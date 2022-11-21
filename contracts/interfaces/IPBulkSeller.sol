@@ -16,10 +16,6 @@ interface IPBulkSeller {
         uint256 minSyOut
     ) external returns (uint256 netSyOut);
 
-    function calcSwapExactTokenForSy(uint256 netTokenIn) external view returns (uint256 netSyOut);
-
-    function calcSwapExactSyForToken(uint256 netSyIn) external view returns (uint256 netTokenOut);
-
     function SY() external view returns (address);
 
     function token() external view returns (address);

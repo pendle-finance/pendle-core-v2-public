@@ -120,16 +120,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         emit SwapExactSyForToken(receiver, exactSyIn, netTokenOut);
     }
 
-    function calcSwapExactTokenForSy(uint256 netTokenIn) external view returns (uint256 netSyOut) {
-        BulkSellerState memory s = readState();
-        return s.calcSwapExactTokenForSy(netTokenIn);
-    }
-
-    function calcSwapExactSyForToken(uint256 netSyIn) external view returns (uint256 netTokenOut) {
-        BulkSellerState memory s = readState();
-        return s.calcSwapExactSyForToken(netSyIn);
-    }
-
     function readState() public view returns (BulkSellerState memory state) {
         BulkSellerStorage storage s = _storage;
 
