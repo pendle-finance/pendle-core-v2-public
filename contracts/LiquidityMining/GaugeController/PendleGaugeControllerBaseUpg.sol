@@ -93,8 +93,8 @@ abstract contract PendleGaugeControllerBaseUpg is
     }
 
     /**
-     * @notice receive voting results from VotingController. Can handle duplicated messages fine by only accepting the first
-     message for that timestamp
+     * @notice receive voting results from VotingController. Only the first message for a timestamp
+     * will be accepted.
      * @dev state changes expected:
         - epochRewardReceived is marked as true
         - rewardData is updated for all markets in markets[]
@@ -142,11 +142,9 @@ abstract contract PendleGaugeControllerBaseUpg is
         accumulatedPendle
      * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
-    function _getUpdatedMarketReward(address market)
-        internal
-        view
-        returns (MarketRewardData memory)
-    {
+    function _getUpdatedMarketReward(
+        address market
+    ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);
