@@ -24,7 +24,8 @@ struct ApproxParams {
 
     /// for guessOffchain, this is to provide a shortcut to guessing. The offchain SDK can precalculate the exact result
     /// before the tx is sent. When the tx reaches the contract, the guessOffchain will be checked first, and if it satisfies the
-    /// approximation, it will be used (and save all the guessing).
+    /// approximation, it will be used (and save all the guessing). It's expected that this shortcut will be used in most cases
+    /// except in cases that there is a trade in the same market right before the tx
 }
 
 library MarketApproxPtInLib {
@@ -724,7 +725,12 @@ library MarketApproxPtOutLib {
         res.guessMax = Math.min(_approx.guessMax, maxGuessMax);
 
         if (res.guessMin > res.guessMax)
-            revert Errors.ApproxBinarySearchInputInvalid(_approx.guessMin, _approx.guessMax, minGuessMin, maxGuessMax);
+            revert Errors.ApproxBinarySearchInputInvalid(
+                _approx.guessMin,
+                _approx.guessMax,
+                minGuessMin,
+                maxGuessMax
+            );
 
         res.guessOffchain = _approx.guessOffchain;
         res.maxIteration = _approx.maxIteration;
