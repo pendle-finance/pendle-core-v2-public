@@ -858,4 +858,39 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             }
         }
     }
+
+    function getBulkSellerInfo(
+        address token,
+        address SY,
+        uint256 netTokenIn,
+        uint256 netSyIn
+    )
+        external
+        view
+        returns (
+            address bulk,
+            uint256 totalToken,
+            uint256 totalSy
+        )
+    {
+        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
+        if (bulk != address(0)) {
+            BulkSellerState memory state = IPBulkSeller(bulk).readState();
+            if (state.rateTokenToSy != 0 || state.rateSyToToken != 0) {
+                totalToken = state.totalToken;
+                totalSy = state.totalSy;
+            }
+
+            uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
+            uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
+            if (
+                netTokenIn.mulDown(postFeeRateTokenToSy) > state.totalSy ||
+                netSyIn.mulDown(postFeeRateSyToToken) > state.totalToken
+            ) {
+                bulk = address(0);
+                totalToken = 0;
+                totalSy = 0;
+            }
+        }
+    }
 }
