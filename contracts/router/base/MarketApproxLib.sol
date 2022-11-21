@@ -156,7 +156,7 @@ library MarketApproxPtInLib {
                 bool isAnswerAccepted = Math.isASmallerApproxB(guess, maxPtPayable, p.eps);
                 if (isAnswerAccepted) return (guess, netSyFee);
             } else {
-                p.guessMax = guess;
+                p.guessMax = guess - 1;
             }
         }
         revert Errors.ApproxFail();
