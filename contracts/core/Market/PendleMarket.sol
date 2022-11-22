@@ -191,7 +191,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         if (_selfBalance(PT) < market.totalPt.Uint())
             revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
 
-        emit Swap(receiver, exactPtIn.neg(), netSyOut.Int(), netSyFee, netSyToReserve);
+        emit Swap(msg.sender, receiver, exactPtIn.neg(), netSyOut.Int(), netSyFee, netSyToReserve);
     }
 
     /**
@@ -231,7 +231,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         if (_selfBalance(SY) < market.totalSy.Uint())
             revert Errors.MarketInsufficientSyReceived(_selfBalance(SY), market.totalSy.Uint());
 
-        emit Swap(receiver, exactPtOut.Int(), netSyIn.neg(), netSyFee, netSyToReserve);
+        emit Swap(msg.sender, receiver, exactPtOut.Int(), netSyIn.neg(), netSyFee, netSyToReserve);
     }
 
     /// @notice forces balances to match reserves

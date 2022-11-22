@@ -25,6 +25,7 @@ interface IPMarket is IERC20Metadata, IPGauge {
     );
 
     event Swap(
+        address indexed caller,
         address indexed receiver,
         int256 netPtOut,
         int256 netSyOut,
