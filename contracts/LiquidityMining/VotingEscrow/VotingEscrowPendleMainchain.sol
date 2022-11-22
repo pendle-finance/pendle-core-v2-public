@@ -105,12 +105,6 @@ contract VotingEscrowPendleMainchain is
 
     /**
      * @notice Withdraws an expired lock position, returns locked PENDLE back to user
-     * @dev Expected state changes:
-        - positionData is cleared
-        - pendle is transferred out
-        - _totalSupply, lastSlopeChangeAppliedAt, slopeChanges, totalSupplyAt all doesn't need to be updated
-            since these data will automatically hold true when _applySlopeChange() is called
-        - no checkpoint is added
      * @dev reverts if position is not expired, or if no locked PENDLE to withdraw
      * @dev broadcast is not bundled since it can be done anytime after
      */
@@ -131,8 +125,6 @@ contract VotingEscrowPendleMainchain is
 
     /**
      * @notice update & return the current totalSupply, but does not broadcast info to other chains
-     * @dev state changes expected:
-        - _totalSupply & lastSlopeChangeAppliedAt is updated
      * @dev See `broadcastTotalSupply()` and `broadcastUserPosition()` for broadcasting
      */
     function totalSupplyCurrent()
@@ -145,12 +137,7 @@ contract VotingEscrowPendleMainchain is
         return supply.getCurrentValue();
     }
 
-    /**
-     * @notice updates and broadcast the current totalSupply to different chains
-     * @dev state changes expected:
-        - _totalSupply & lastSlopeChangeAppliedAt is updated
-        - all chains in chainIds receive the new totalSupply
-     */
+    /// @notice updates and broadcast the current totalSupply to different chains
     function broadcastTotalSupply(uint256[] calldata chainIds) public payable refundUnusedEth {
         _broadcastPosition(address(0), chainIds);
     }
@@ -158,9 +145,6 @@ contract VotingEscrowPendleMainchain is
     /**
      * @notice updates and broadcast the position of `user` to different chains, also updates and 
      * broadcasts totalSupply
-     * @dev state changes expected:
-        - _totalSupply & lastSlopeChangeAppliedAt is updated
-        - all chains in chainIds receive the new totalSupply & user's new position
      */
     function broadcastUserPosition(
         address user,
@@ -201,10 +185,6 @@ contract VotingEscrowPendleMainchain is
      * @notice increase the locking position of the user
      * @dev works by simply removing the old position from all relevant data (as if the user has 
      * never locked) and then add in the new position
-     * @dev expected state changes:
-        - a new lock with the amount & expiry increase accordingly
-        - _totalSupply, lastSlopeChangeAppliedAt, slopeChanges, totalSupplyAt is updated
-        - a checkpoint is added
      */
     function _increasePosition(
         address user,
@@ -241,8 +221,6 @@ contract VotingEscrowPendleMainchain is
     /**
      * @notice updates the totalSupply, processing all slope changes of past weeks. At the same time, 
      * set the finalized totalSupplyAt
-     * @dev state changes expected:
-        - _totalSupply, lastSlopeChangeAppliedAt, totalSupplyAt is updated
      */
     function _applySlopeChange() internal returns (VeBalance memory, uint128) {
         VeBalance memory supply = _totalSupply;

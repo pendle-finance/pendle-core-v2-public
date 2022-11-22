@@ -144,12 +144,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = 0; i < pools.length; ++i) poolVotes[i] = data.poolVotes[pools[i]];
     }
 
-    /// @dev trivial view function
     function getAllActivePools() external view returns (address[] memory) {
         return allActivePools.values();
     }
 
-    /// @dev trivial view function
     function getAllRemovedPools(
         uint256 start,
         uint256 end
@@ -162,12 +160,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = start; i <= end; ++i) arr[i - start] = allRemovedPools.at(i);
     }
 
-    /// @dev trivial view function
     function getActiveChainPools(uint64 chainId) external view returns (address[] memory) {
         return activeChainPools[chainId].values();
     }
 
-    /// @dev trivial view function
     function getUserPoolVote(
         address user,
         address pool
@@ -188,14 +184,9 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            INTERNAL DATA MANIPULATION FUNCTIONS
+                INTERNAL DATA MANIPULATION FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /**
-    * @dev expected behavior:
-        - add to allActivePools, activeChainPools
-        - set params in poolData
-     */
     function _addPool(uint64 chainId, address pool) internal {
         if (!activeChainPools[chainId].add(pool)) assert(false);
         if (!allActivePools.add(pool)) assert(false);
@@ -204,12 +195,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         poolData[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
     }
 
-    /**
-    * @dev expected behavior:
-        - remove from allActivePool, activeChainPools
-        - add to allRemovedPools
-        - clear all params in poolData
-     */
     function _removePool(address pool) internal {
         uint64 chainId = poolData[pool].chainId;
         if (!activeChainPools[chainId].remove(pool)) assert(false);
@@ -219,10 +204,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         delete poolData[pool];
     }
 
-    /**
-     * @notice set the final pool vote for weekData
-     * @dev assumption: weekData[wTime].poolVotes[pool] == 0
-     */
     function _setFinalPoolVoteForWeek(address pool, uint128 wTime, uint128 vote) internal {
         weekData[wTime].totalVotes += vote;
         weekData[wTime].poolVotes[pool] = vote;
@@ -236,11 +217,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
     /**
      * @notice modifies `user`'s vote weight on `pool`
-     * @dev the function works by simply removing the old vote position, then adds in a fresh vote
-     * @dev state changes expected:
-        - update weekData (if any)
-        - update poolData, userData to reflect the new vote
-        - add 1 check point for each of pools
+     * @dev works by simply removing the old vote position, then adds in a fresh vote
      */
     function _modifyVoteWeight(
         address user,
