@@ -24,10 +24,6 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * on inheriting contracts
  */
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
 abstract contract PendleGaugeControllerBaseUpg is
     IPGaugeController,
     BoringOwnableUpgradeable,

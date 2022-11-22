@@ -6,9 +6,6 @@ import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it inherits only upgradable contract
 contract PendleGaugeControllerSidechainUpg is
     PendleGaugeControllerBaseUpg,
     PendleMsgReceiverAppUpg

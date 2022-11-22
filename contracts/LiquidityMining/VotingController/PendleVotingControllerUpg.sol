@@ -32,10 +32,6 @@ Cons:
     - Does not guarantee the reward will be distributed on epoch start and end
 */
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
 contract PendleVotingControllerUpg is
     PendleMsgSenderAppUpg,
     VotingControllerStorageUpg,

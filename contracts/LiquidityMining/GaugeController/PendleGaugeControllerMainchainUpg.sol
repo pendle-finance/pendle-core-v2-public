@@ -4,9 +4,6 @@ pragma solidity 0.8.17;
 import "./PendleGaugeControllerBaseUpg.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it inherits only upgradable contract
 contract PendleGaugeControllerMainchainUpg is
     PendleGaugeControllerBaseUpg,
     IPGaugeControllerMainchain
