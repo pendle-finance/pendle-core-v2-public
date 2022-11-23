@@ -73,7 +73,8 @@ contract PendleVotingControllerUpg is
      * @dev A user's max voting weights is equal to `USER_VOTE_MAX_WEIGHT` (1e18). If their total
      * voted weights is less than such, then the excess weight is not counted. For such reason, a 
      * user's voting power will only be fully utilized if their total voted weight is exactly 1e18.
-     * @dev Function reverts if, after all vote changes, the total voted weight is more than 1e18.
+     * @dev Reverts if, after all vote changes, the total voted weight is more than 1e18.
+     * @dev A removed pool can be included, but the new weight must be 0, otherwise will revert.
      * @dev See {`VotingControllerStorageUpg - getUserData()`} for current user data.
      */
     function vote(address[] calldata pools, uint64[] calldata weights) external {
