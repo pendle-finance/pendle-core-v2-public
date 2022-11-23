@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Forked from OpenZeppelin (v4.5.0) (utils/Checkpoints.sol)
 pragma solidity ^0.8.0;
 

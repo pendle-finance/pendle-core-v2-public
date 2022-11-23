@@ -19,10 +19,7 @@ interface ITriCrvPool {
         uint256 min_dy // The amount of i being exchanged.
     ) external returns (uint256);
 
-    function add_liquidity(
-        uint256[3] memory _deposit_amount,
-        uint256 _min_amount
-    ) external;
+    function add_liquidity(uint256[3] memory _deposit_amount, uint256 _min_amount) external;
 
     function remove_liquidity_one_coin(
         uint256 _burn_amount,

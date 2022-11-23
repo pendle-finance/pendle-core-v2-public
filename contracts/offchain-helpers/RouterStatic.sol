@@ -885,7 +885,6 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
                 return (address(0), 0, 0);
             }
 
-
             // Liquidity check
             uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
             uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);

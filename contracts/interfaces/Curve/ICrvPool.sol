@@ -25,10 +25,9 @@ interface ICrvPool {
         uint256 min_dy // The amount of i being exchanged.
     ) external returns (uint256);
 
-    function add_liquidity(
-        uint256[2] memory _deposit_amount,
-        uint256 _min_amount
-    ) external returns (uint256 lpOut);
+    function add_liquidity(uint256[2] memory _deposit_amount, uint256 _min_amount)
+        external
+        returns (uint256 lpOut);
 
     function remove_liquidity_one_coin(
         uint256 _burn_amount,

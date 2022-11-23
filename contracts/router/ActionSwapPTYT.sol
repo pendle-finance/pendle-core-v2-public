@@ -69,7 +69,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
      - `exactYtIn` YT is transferred to yield contract
      - `market.swapSyForExactPt` is called, which will transfer PT directly to this contract & callback is invoked.
         Note that we now owe SY
-     - in callback, a portion of PT + YT is used to redeem SY, which is then used to payback the loan. The rest of 
+     - in callback, a portion of PT + YT is used to redeem SY, which is then used to payback the loan. The rest of
        of the PT is transferred to `receiver`
      * @param exactYtIn will always consume this amount of YT for as much PT as possible
      * @param guessTotalPtFromSwap approximation data for PT output of the SY-to-PT flashswap

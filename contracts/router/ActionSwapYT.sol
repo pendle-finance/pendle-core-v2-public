@@ -25,9 +25,9 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
      * @notice swap exact SY to YT with the help of flashswaps & YT tokenization / redemption
      * @dev inner working of this function:
      - `exactSyIn` SY is transferred to YT contract
-     - `market.swapExactPtForSy` is called, which will transfer more SY directly to YT contract & 
+     - `market.swapExactPtForSy` is called, which will transfer more SY directly to YT contract &
        callback is invoked. Note that now we owe PT
-     - in callback, all SY in YT contract is used to mint PT + YT, with all PT used to pay back the 
+     - in callback, all SY in YT contract is used to mint PT + YT, with all PT used to pay back the
        loan, and all YT transferred to the receiver
      * @param exactSyIn will always consume this amount of SY for as much YT as possible
      * @param guessYtOut approximation data for total YT output
@@ -60,9 +60,9 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
      * @notice swap exact YT to SY with the help of flashswaps & YT tokenization / redemption
      * @dev inner working of this function:
      - `exactYtIn` YT is transferred to YT contract
-     - `market.swapSyForExactPt` is called, which will transfer PT directly to YT contract & 
+     - `market.swapSyForExactPt` is called, which will transfer PT directly to YT contract &
        callback is invoked. Note that now we owe SY.
-     - In callback, all PT + YT in YT contract is used to redeem SY. A portion of SY is used to 
+     - In callback, all PT + YT in YT contract is used to redeem SY. A portion of SY is used to
        payback the loan, the rest is transferred to the `receiver`
      * @param exactYtIn will consume exactly this much YT for as much SY as possible
      * @dev this function works in conjunction with ActionCallback
@@ -85,9 +85,9 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     /**
      * @notice swap SY to exact YT with the help of flashswaps & YT tokenization / redemption
      * @dev inner working of this function:
-     - `market.swapExactPtForSy` is called, which will transfer SY directly to YT contract & 
+     - `market.swapExactPtForSy` is called, which will transfer SY directly to YT contract &
        callback is invoked. Note that now we owe PT
-     - In callback, we will pull in more SY as needed from caller & mint all SY to PT + YT. PT is 
+     - In callback, we will pull in more SY as needed from caller & mint all SY to PT + YT. PT is
        then used to payback the loan, while YT is transferred to `receiver`
      * @param exactYtOut will output exactly this amount of YT, no approximation is used
      * @dev this function works in conjunction with ActionCallback
@@ -118,9 +118,9 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
      * @dev inner working of this function:
      - Approximates `netYtIn` using the data from `guessYtIn`
      - Pulls `netYtIn` amount of YT from caller
-     - `market.swapSyForExactPt` is called, which will transfer PT directly to YT contract & 
+     - `market.swapSyForExactPt` is called, which will transfer PT directly to YT contract &
        callback is invoked. Note that now we owe SY
-     - In callback, we will redeem all PT + YT to get SY. A portion of it is used to payback the 
+     - In callback, we will redeem all PT + YT to get SY. A portion of it is used to payback the
        loan. The rest is transferred to `receiver`
      * @dev this function works in conjunction with ActionCallback
      */

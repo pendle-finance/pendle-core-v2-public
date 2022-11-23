@@ -76,7 +76,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
     /**
      * @notice Adds liquidity to SY/PT market using PT + any token.
-     * @dev Input token is first swapped to SY-mintable token using Kyber, then SY is minted from 
+     * @dev Input token is first swapped to SY-mintable token using Kyber, then SY is minted from
      * such. Finally the SY/PT pair is added to the market
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
      * @param netPtDesired maximum PT to be used
@@ -218,7 +218,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice Adds liquidity using a single token input. The input token is first swapped through 
+     * @notice Adds liquidity using a single token input. The input token is first swapped through
      * Kyberswap to a SY-mintable token, the rest is the same as `addLiquiditySingleSy()`
      * @param guessPtReceivedFromSy approximate PT output for the SY-to-PT swap
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity >=0.5.0;
 
@@ -8,5 +8,10 @@ interface ILayerZeroReceiver {
     // @param _srcAddress - the source sending contract address from the source chain
     // @param _nonce - the ordered message nonce
     // @param _payload - the signed payload is the UA bytes has encoded to be sent
-    function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) external;
+    function lzReceive(
+        uint16 _srcChainId,
+        bytes calldata _srcAddress,
+        uint64 _nonce,
+        bytes calldata _payload
+    ) external;
 }

@@ -66,7 +66,7 @@ contract VotingEscrowPendleMainchain is
     }
 
     /**
-     * @notice increases the lock position of a user (amount and/or expiry). Applicable even when 
+     * @notice increases the lock position of a user (amount and/or expiry). Applicable even when
      * user has no position or the current position has expired.
      * @param additionalAmountToLock pendle amount to be pulled in from user to lock.
      * @param newExpiry new lock expiry. Must be a valid week beginning, and resulting lock
@@ -75,10 +75,10 @@ contract VotingEscrowPendleMainchain is
      * @dev See `_increasePosition()` for details on inner workings.
      * @dev Sidechain broadcasting is not bundled since it can be done anytime after.
      */
-    function increaseLockPosition(
-        uint128 additionalAmountToLock,
-        uint128 newExpiry
-    ) public returns (uint128 newVeBalance) {
+    function increaseLockPosition(uint128 additionalAmountToLock, uint128 newExpiry)
+        public
+        returns (uint128 newVeBalance)
+    {
         address user = msg.sender;
 
         if (!WeekMath.isValidWTime(newExpiry)) revert Errors.InvalidWTime(newExpiry);
@@ -143,13 +143,14 @@ contract VotingEscrowPendleMainchain is
     }
 
     /**
-     * @notice updates and broadcast the position of `user` to different chains, also updates and 
+     * @notice updates and broadcast the position of `user` to different chains, also updates and
      * broadcasts totalSupply
      */
-    function broadcastUserPosition(
-        address user,
-        uint256[] calldata chainIds
-    ) public payable refundUnusedEth {
+    function broadcastUserPosition(address user, uint256[] calldata chainIds)
+        public
+        payable
+        refundUnusedEth
+    {
         if (user == address(0)) revert Errors.ZeroAddress();
         _broadcastPosition(user, chainIds);
     }
@@ -158,24 +159,29 @@ contract VotingEscrowPendleMainchain is
         return userHistory[user].length();
     }
 
-    function getUserHistoryAt(
-        address user,
-        uint256 index
-    ) external view returns (Checkpoint memory) {
+    function getUserHistoryAt(address user, uint256 index)
+        external
+        view
+        returns (Checkpoint memory)
+    {
         return userHistory[user].get(index);
     }
 
-    function getBroadcastSupplyFee(
-        uint256[] calldata chainIds
-    ) external view returns (uint256 fee) {
+    function getBroadcastSupplyFee(uint256[] calldata chainIds)
+        external
+        view
+        returns (uint256 fee)
+    {
         for (uint256 i = 0; i < chainIds.length; i++) {
             fee += _getSendMessageFee(chainIds[i], SAMPLE_SUPPLY_UPDATE_MESSAGE);
         }
     }
 
-    function getBroadcastPositionFee(
-        uint256[] calldata chainIds
-    ) external view returns (uint256 fee) {
+    function getBroadcastPositionFee(uint256[] calldata chainIds)
+        external
+        view
+        returns (uint256 fee)
+    {
         for (uint256 i = 0; i < chainIds.length; i++) {
             fee += _getSendMessageFee(chainIds[i], SAMPLE_POSITION_UPDATE_MESSAGE);
         }
@@ -183,7 +189,7 @@ contract VotingEscrowPendleMainchain is
 
     /**
      * @notice increase the locking position of the user
-     * @dev works by simply removing the old position from all relevant data (as if the user has 
+     * @dev works by simply removing the old position from all relevant data (as if the user has
      * never locked) and then add in the new position
      */
     function _increasePosition(
@@ -219,7 +225,7 @@ contract VotingEscrowPendleMainchain is
     }
 
     /**
-     * @notice updates the totalSupply, processing all slope changes of past weeks. At the same time, 
+     * @notice updates the totalSupply, processing all slope changes of past weeks. At the same time,
      * set the finalized totalSupplyAt
      */
     function _applySlopeChange() internal returns (VeBalance memory, uint128) {

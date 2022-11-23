@@ -108,8 +108,8 @@ abstract contract PendleGaugeControllerBaseUpg is
 
     /**
      * @notice merge the additional rewards with the existing rewards
-     * @dev this function will calc the total amount of Pendle that hasn't been factored into 
-     * accumulatedPendle yet, combined them with the additional pendleAmount, then divide them 
+     * @dev this function will calc the total amount of Pendle that hasn't been factored into
+     * accumulatedPendle yet, combined them with the additional pendleAmount, then divide them
      * equally over the next one week
      */
     function _addRewardsToMarket(address market, uint128 pendleAmount) internal {
@@ -128,13 +128,15 @@ abstract contract PendleGaugeControllerBaseUpg is
     }
 
     /**
-     * @notice get the updated state of the market, to the current time with all the undistributed 
+     * @notice get the updated state of the market, to the current time with all the undistributed
      * Pendle distributed to the accumulatedPendle
      * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
-    function _getUpdatedMarketReward(
-        address market
-    ) internal view returns (MarketRewardData memory) {
+    function _getUpdatedMarketReward(address market)
+        internal
+        view
+        returns (MarketRewardData memory)
+    {
         MarketRewardData memory rwd = rewardData[market];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);

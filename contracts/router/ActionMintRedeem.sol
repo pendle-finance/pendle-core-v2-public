@@ -31,7 +31,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice redeems SY for SY-mintable tokens, then (if needed) swaps resulting tokens for 
+     * @notice redeems SY for SY-mintable tokens, then (if needed) swaps resulting tokens for
      * desired output token through Kyberswap
      * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
      */
@@ -47,7 +47,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
     /**
      * @notice mints PY from any input token
-     * @dev swaps input token through Kyberswap to SY-mintable tokens first, then mints SY, finally 
+     * @dev swaps input token through Kyberswap to SY-mintable tokens first, then mints SY, finally
      * mints PY from SY
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
      * @dev reverts if PY is expired
@@ -68,7 +68,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
     /**
      * @notice redeems PY for token
-     * @dev redeems PT(+YT) for SY first, then redeems SY, finally swaps resulting tokens to output 
+     * @dev redeems PT(+YT) for SY first, then redeems SY, finally swaps resulting tokens to output
      * token through Kyberswap (if needed)
      * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
      */
@@ -166,7 +166,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256[] amounts;
     }
 
-    /** 
+    /**
      * @notice A function to:
         - Redeem all of caller's due interest and rewards in SYs, YTs, and markets
         - Redeem SYs themselves

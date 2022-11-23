@@ -66,8 +66,8 @@ contract PendleYieldToken is
     }
 
     /**
-     * @param _doCacheIndexSameBlock if true, the PY index is cached for each block, and thus is 
-     * constant for all txs within the same block. Otherwise, the PY index is recalculated for 
+     * @param _doCacheIndexSameBlock if true, the PY index is cached for each block, and thus is
+     * constant for all txs within the same block. Otherwise, the PY index is recalculated for
      * every tx.
      */
     constructor(
@@ -131,7 +131,7 @@ contract PendleYieldToken is
     }
 
     /**
-     * @notice converts PT(+YT) tokens into SY, but interests & rewards are not redeemed at the 
+     * @notice converts PT(+YT) tokens into SY, but interests & rewards are not redeemed at the
      * same time
      * @dev PT/YT must be transferred to this contract prior to calling
      */
@@ -172,9 +172,9 @@ contract PendleYieldToken is
      * @param redeemInterest will only transfer out interest for user if true
      * @param redeemRewards will only transfer out rewards for user if true
      * @dev With YT yielding interest in the form of SY, which is redeemable by users, the reward
-     * distribution should be based on the amount of SYs that their YT currently represent, plus 
-     * their dueInterest. It has been proven and tested that _rewardSharesUser will not change over 
-     * time, unless users redeem their dueInterest or redeemPY. Due to this, it is required to 
+     * distribution should be based on the amount of SYs that their YT currently represent, plus
+     * their dueInterest. It has been proven and tested that _rewardSharesUser will not change over
+     * time, unless users redeem their dueInterest or redeemPY. Due to this, it is required to
      * update users' accruedReward STRICTLY BEFORE transferring out their interest.
      */
     function redeemDueInterestAndRewards(

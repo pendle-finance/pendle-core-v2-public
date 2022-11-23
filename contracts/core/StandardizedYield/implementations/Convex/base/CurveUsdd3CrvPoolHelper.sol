@@ -102,7 +102,7 @@ library CurveUsdd3CrvPoolHelper {
     {
         uint256[N_COINS] memory result;
         for (uint256 i = 0; i < N_COINS; ++i) {
-            result[i] = balances[i] * _rates[i] / PRECISION;
+            result[i] = (balances[i] * _rates[i]) / PRECISION;
         }
         return result;
     }

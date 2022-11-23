@@ -66,12 +66,12 @@ contract PendleVotingControllerUpg is
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice updates a user's vote weights, also allowing user to divide their voting power 
+     * @notice updates a user's vote weights, also allowing user to divide their voting power
      * across different pools
      * @param pools pools to change vote weights, if not listed then existing weight won't change
      * @param weights voting weight on each pool in `pools`, must be same length as `pools`
      * @dev A user's max voting weights is equal to `USER_VOTE_MAX_WEIGHT` (1e18). If their total
-     * voted weights is less than such, then the excess weight is not counted. For such reason, a 
+     * voted weights is less than such, then the excess weight is not counted. For such reason, a
      * user's voting power will only be fully utilized if their total voted weight is exactly 1e18.
      * @dev Reverts if, after all vote changes, the total voted weight is more than 1e18.
      * @dev A removed pool can be included, but the new weight must be 0, otherwise will revert.
@@ -124,8 +124,8 @@ contract PendleVotingControllerUpg is
     /**
      * @notice finalize the voting results of all pools, up to the current epoch
      * @dev See `applyPoolSlopeChanges()` for more details
-     * @dev This function might be gas-costly if there are a lot of active pools, but this can be 
-     * mitigated by calling `applyPoolSlopeChanges()` for each pool separately, spreading the gas 
+     * @dev This function might be gas-costly if there are a lot of active pools, but this can be
+     * mitigated by calling `applyPoolSlopeChanges()` for each pool separately, spreading the gas
      * cost across multiple txs (although the total gas cost will be higher).
      * This is because `applyPoolSlopeChanges()` will not update anything if already up-to-date.
      */
@@ -139,7 +139,7 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice broadcast the voting results of the current week to the chain with chainId. Can be
-     * called by anyone. 
+     * called by anyone.
      * @dev It's intentional to allow the same results to be broadcasted multiple
      * times. The receiver should be able to filter these duplicated messages
      * @dev The epoch must have already been finalized by `finalizeEpoch()`, otherwise will revert.
@@ -156,10 +156,10 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice add a pool to allow users to vote. Can only be done by governance
-     * @custom:gov NOTE TO GOV: 
+     * @custom:gov NOTE TO GOV:
      * - Previous week's results should have been broadcasted prior to calling this function.
      * - `pool` must not have been added before (even if has been removed).
-     * - `chainId` must be valid. 
+     * - `chainId` must be valid.
      */
     function addPool(uint64 chainId, address pool) external onlyOwner {
         if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
@@ -171,7 +171,7 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice remove a pool from voting. Can only be done by governance
-     * @custom:gov NOTE TO GOV: 
+     * @custom:gov NOTE TO GOV:
      * - Previous week's results should have been broadcasted prior to calling this function.
      * - `pool` must be currently active.
      */

@@ -48,8 +48,8 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
      * @param exactSyOut will consume as little PT as possible for this much SY amount
      * @return netPtIn amount of PT used, will not be more than `maxPtIn`
      * @return netSyFee amount SY fee incurred
-     * @dev the SY output might be slightly more than `exactSyOut` since an approximation is used. 
-     * It is guaranteed that exactSyOut <= actualSyOut <= exactSyOut*(100% + guessPtIn.eps) 
+     * @dev the SY output might be slightly more than `exactSyOut` since an approximation is used.
+     * It is guaranteed that exactSyOut <= actualSyOut <= exactSyOut*(100% + guessPtIn.eps)
      */
     function swapPtForExactSy(
         address receiver,
@@ -140,7 +140,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice swap (through Kyberswap) from any input token for SY-mintable tokens, then mints SY 
+     * @notice swap (through Kyberswap) from any input token for SY-mintable tokens, then mints SY
      * and swaps said SY for PT
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
      * @dev is a combination of `_mintSyFromToken()` and `_swapExactSyForPt()`
@@ -178,7 +178,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     }
 
     /**
-     * @notice swap from exact amount of PT to SY, then redeem SY for assets, finally swaps 
+     * @notice swap from exact amount of PT to SY, then redeem SY for assets, finally swaps
      * resulting assets through Kyberswap to get desired output token
      * @param exactPtIn will always consume this much PT for as much SY as possible
      * @param output data for desired output token, see {`./kyberswap/KyberSwapHelper.sol`}
