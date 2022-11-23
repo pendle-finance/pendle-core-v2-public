@@ -32,7 +32,7 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
         (crvLp, cvxRewardManager) = _getPoolInfo(cvxPid);
         if (crvLp != _crvLp) revert Errors.SYCurveInvalidPid();
 
-        _safeApprove(crvLp, BOOSTER, type(uint256).max);
+        _safeApproveInf(crvLp, BOOSTER);
     }
 
     function _getPoolInfo(uint256 _cvxPid)

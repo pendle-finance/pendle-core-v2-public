@@ -64,10 +64,7 @@ abstract contract TokenHelper {
     }
 
     /// @notice Approves the stipulated contract to spend the given allowance in the given token
-    /// @dev Errors with 'SA' if transfer fails
-    /// @param token The contract address of the token to be approved
-    /// @param to The target of the approval
-    /// @param value The amount of the given token the target will be allowed to spend
+    /// @dev PLS PAY ATTENTION to tokens that requires the approval to be set to 0 before changing it
     function _safeApprove(
         address token,
         address to,
@@ -81,7 +78,9 @@ abstract contract TokenHelper {
 
     function _safeApproveInf(address token, address to) internal {
         if (token == NATIVE) return;
-        if (IERC20(token).allowance(address(this), to) < LOWER_BOUND_APPROVAL)
+        if (IERC20(token).allowance(address(this), to) < LOWER_BOUND_APPROVAL) {
+            _safeApprove(token, to, 0);
             _safeApprove(token, to, type(uint256).max);
+        }
     }
 }

@@ -76,13 +76,14 @@ library BulkSellerMathCore {
         uint256 currentTokenProp = getTokenProp(state);
 
         if (currentTokenProp > targetTokenProp) {
-            netTokenToDeposit = state.totalToken.mulDown(
-                (currentTokenProp - targetTokenProp).divDown(currentTokenProp)
-            );
+            netTokenToDeposit = state
+                .totalToken
+                .mulDown(currentTokenProp - targetTokenProp)
+                .divDown(currentTokenProp);
         } else {
             uint256 currentSyProp = Math.ONE - currentTokenProp;
-            netSyToRedeem = state.totalSy.mulDown(
-                (targetTokenProp - currentTokenProp).divDown(currentSyProp)
+            netSyToRedeem = state.totalSy.mulDown(targetTokenProp - currentTokenProp).divDown(
+                currentSyProp
             );
         }
     }

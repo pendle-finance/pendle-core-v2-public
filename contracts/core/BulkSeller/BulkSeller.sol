@@ -48,6 +48,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         token = _token;
         SY = _SY;
         factory = _factory;
+        _safeApproveInf(token, SY);
     }
 
     function swapExactTokenForSy(
@@ -63,7 +64,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
 
         if (netSyOut < minSyOut) revert Errors.BulkInSufficientSyOut(netSyOut, minSyOut);
 
-        if (receiver != address(this)) _transferOut(SY, receiver, netSyOut);
+        _transferOut(SY, receiver, netSyOut);
 
         _writeState(state);
 
@@ -81,7 +82,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         if (!swapFromInternalBalance) _transferIn(SY, msg.sender, exactSyIn);
         else {
             uint256 netSyReceived = _selfBalance(SY) - state.totalSy;
-            if (exactSyIn < netSyReceived)
+            if (netSyReceived < exactSyIn)
                 revert Errors.BulkInsufficientSyReceived(exactSyIn, netSyReceived);
         }
 
@@ -89,7 +90,8 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
 
         if (netTokenOut < minTokenOut)
             revert Errors.BulkInSufficientTokenOut(netTokenOut, minTokenOut);
-        if (receiver != address(this)) _transferOut(token, receiver, netTokenOut);
+
+        _transferOut(token, receiver, netTokenOut);
 
         _writeState(state);
 
@@ -162,6 +164,14 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         }
     }
 
+    function skim() external onlyMaintainer {
+        BulkSellerState memory state = readState();
+        uint256 excessToken = _selfBalance(token) - state.totalToken;
+        uint256 excessSy = _selfBalance(SY) - state.totalSy;
+        if (excessToken != 0) IERC20(token).safeTransfer(msg.sender, excessToken);
+        if (excessSy != 0) IERC20(SY).safeTransfer(msg.sender, excessSy);
+    }
+
     function reBalance(uint256 targetProp, uint256 maxDiff) external onlyMaintainer {
         BulkSellerState memory state = readState();
         uint256 oldTokenProp = state.getTokenProp();
@@ -210,7 +220,6 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
     }
 
     function _depositToken(uint256 netTokenDeposit) internal returns (uint256 netSyFromToken) {
-        _safeApprove(token, SY, netTokenDeposit);
         uint256 nativeToDeposit = token == NATIVE ? netTokenDeposit : 0;
         return
             IStandardizedYield(SY).deposit{ value: nativeToDeposit }(

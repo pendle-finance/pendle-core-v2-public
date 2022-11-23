@@ -20,7 +20,7 @@ contract PendleWstEthSY is SYBase {
         wETH = _wETH;
         wstETH = _wstETH;
         stETH = IWstETH(wstETH).stETH();
-        _safeApprove(stETH, wstETH, type(uint256).max);
+        _safeApproveInf(stETH, wstETH);
     }
 
     /*///////////////////////////////////////////////////////////////

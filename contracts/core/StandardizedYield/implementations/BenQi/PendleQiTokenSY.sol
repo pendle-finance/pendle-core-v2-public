@@ -35,9 +35,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
         QI = IBenQiComptroller(comptroller).qiAddress();
         WAVAX = _WAVAX;
 
-        if (underlying != NATIVE) {
-            _safeApprove(underlying, qiToken, type(uint256).max);
-        }
+        _safeApproveInf(underlying, qiToken);
     }
 
     /*///////////////////////////////////////////////////////////////
