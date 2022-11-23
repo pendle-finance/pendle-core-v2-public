@@ -113,7 +113,7 @@ library MarketApproxPtInLib {
         - Flashswap the corresponding amount of SY out
         - Pair those amount with exactSyIn SY to tokenize into PT & YT
         - PT to repay the flashswap, YT transferred to user
-        - Stop when PT to repay the flashswap greater approx the amount of PT owed
+        - Stop when the amount of SY to be pulled to tokenize PT to repay loan approx the exactSyIn
         - guess & approx is for netYtOut (also netPtIn)
      */
     function approxSwapExactSyForYt(
@@ -149,11 +149,14 @@ library MarketApproxPtInLib {
 
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(a.market, comp, a.index, guess);
 
-            uint256 maxPtPayable = a.index.syToAsset(netSyOut + a.exactSyIn);
+            uint256 netSyToTokenizePt = a.index.assetToSyUp(guess);
 
-            if (guess <= maxPtPayable) {
+            // for sure netSyToTokenizePt >= netSyOut since we are swapping PT to SY
+            uint256 netSyToPull = netSyToTokenizePt - netSyOut;
+
+            if (netSyToPull <= a.exactSyIn) {
                 p.guessMin = guess;
-                bool isAnswerAccepted = Math.isASmallerApproxB(guess, maxPtPayable, p.eps);
+                bool isAnswerAccepted = Math.isASmallerApproxB(netSyToPull, a.exactSyIn, p.eps);
                 if (isAnswerAccepted) return (guess, netSyFee);
             } else {
                 p.guessMax = guess - 1;
