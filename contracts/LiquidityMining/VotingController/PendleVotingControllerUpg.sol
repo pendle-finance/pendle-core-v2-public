@@ -32,10 +32,6 @@ Cons:
     - Does not guarantee the reward will be distributed on epoch start and end
 */
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
 contract PendleVotingControllerUpg is
     PendleMsgSenderAppUpg,
     VotingControllerStorageUpg,
@@ -70,12 +66,16 @@ contract PendleVotingControllerUpg is
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev state changes expected:
-        - update weekData (if any)
-        - update poolData, userData to reflect the new vote
-        - add 1 check point for each of pools
-     * @dev vePENDLE position not expired is a must, else bias - t*slope < 0 & it will be
-        negative weight
+     * @notice updates a user's vote weights, also allowing user to divide their voting power 
+     * across different pools
+     * @param pools pools to change vote weights, if not listed then existing weight won't change
+     * @param weights voting weight on each pool in `pools`, must be same length as `pools`
+     * @dev A user's max voting weights is equal to `USER_VOTE_MAX_WEIGHT` (1e18). If their total
+     * voted weights is less than such, then the excess weight is not counted. For such reason, a 
+     * user's voting power will only be fully utilized if their total voted weight is exactly 1e18.
+     * @dev Reverts if, after all vote changes, the total voted weight is more than 1e18.
+     * @dev A removed pool can be included, but the new weight must be 0, otherwise will revert.
+     * @dev See {`VotingControllerStorageUpg - getUserData()`} for current user data.
      */
     function vote(address[] calldata pools, uint64[] calldata weights) external {
         address user = msg.sender;
@@ -98,11 +98,9 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice Process all the slopeChanges that haven't been processed & update these data into
-        poolData
-     * @dev pre-condition: the pool must be active
-     * @dev state changes expected:
-        - update weekData
-        - update poolData
+     * poolData
+     * @dev reverts if pool is not active
+     * @dev if pool is already up-to-date, the function will succeed without any state updates
      */
     function applyPoolSlopeChanges(address pool) public {
         if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
@@ -125,11 +123,11 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice finalize the voting results of all pools, up to the current epoch
-     * @dev state changes expected:
-        - weekData, poolData is updated for all pools in allActivePools
-        - isEpochFinalized is set to true for all epochs since the last time until now
-     * @dev this function might take a lot of gas, but can be mitigated by calling applyPoolSlopeChanges
-        separately, hence reduce the number of states to be updated
+     * @dev See `applyPoolSlopeChanges()` for more details
+     * @dev This function might be gas-costly if there are a lot of active pools, but this can be 
+     * mitigated by calling `applyPoolSlopeChanges()` for each pool separately, spreading the gas 
+     * cost across multiple txs (although the total gas cost will be higher).
+     * This is because `applyPoolSlopeChanges()` will not update anything if already up-to-date.
      */
     function finalizeEpoch() public {
         uint256 length = allActivePools.length();
@@ -141,11 +139,10 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice broadcast the voting results of the current week to the chain with chainId. Can be
-        called by anyone. It's intentional to allow the same results to be broadcasted multiple
-        times. The receiver should be able to filter these duplicated messages
-     * @dev pre-condition: the epoch must have already been finalized by finalizeEpoch
-     * @dev state changes expected:
-        - the gaugeController receives the new pendle allocation
+     * called by anyone. 
+     * @dev It's intentional to allow the same results to be broadcasted multiple
+     * times. The receiver should be able to filter these duplicated messages
+     * @dev The epoch must have already been finalized by `finalizeEpoch()`, otherwise will revert.
      */
     function broadcastResults(uint64 chainId) external payable refundUnusedEth {
         uint128 wTime = WeekMath.getCurrentWeekStart();
@@ -159,13 +156,10 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice add a pool to allow users to vote. Can only be done by governance
-     * @dev pre-condition: pool must not have been added before
-     * @dev assumption: chainId is valid, pool does exist on the chain (guaranteed by gov)
-     * @dev state changes expected:
-        - add to allActivePools & activeChainPools
-        - set params in poolData
-     * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
-      this function
+     * @custom:gov NOTE TO GOV: 
+     * - Previous week's results should have been broadcasted prior to calling this function.
+     * - `pool` must not have been added before (even if has been removed).
+     * - `chainId` must be valid. 
      */
     function addPool(uint64 chainId, address pool) external onlyOwner {
         if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
@@ -177,13 +171,9 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice remove a pool from voting. Can only be done by governance
-     * @dev pre-condition: pool must have been added before
-     * @dev state changes expected:
-        - update weekData (if any)
-        - remove from allActivePools & activeChainPools
-        - clear data in poolData
-     * @dev NOTE TO GOV: previous week's results should have been broadcasted prior to calling
-      this function
+     * @custom:gov NOTE TO GOV: 
+     * - Previous week's results should have been broadcasted prior to calling this function.
+     * - `pool` must be currently active.
      */
     function removePool(address pool) external onlyOwner {
         if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
@@ -198,11 +188,7 @@ contract PendleVotingControllerUpg is
 
     /**
      * @notice use the gov-privilege to force broadcast a message in case there are issues with LayerZero
-     * @dev it's intentional for this function to have minimal checks since we assume gov has done the
-        due diligence
-     * @dev gov should always call finalizeEpoch beforehand
-     * @dev state changes expected:
-        - the gaugeController receives the new pendle allocation
+     * @custom:gov NOTE TO GOV: gov should always call finalizeEpoch beforehand
      */
     function forceBroadcastResults(
         uint64 chainId,
@@ -213,11 +199,10 @@ contract PendleVotingControllerUpg is
     }
 
     /**
-     * @notice set new pendlePerSec
+     * @notice sets new pendlePerSec
      * @dev no zero checks because gov may want to stop liquidity mining
-     * @dev state changes expected: pendlePerSec is updated
-     * @dev NOTE TO GOV: This should be done mid-week, well before the next broadcast to avoid
-        race condition
+     * @custom:gov NOTE TO GOV: Should be done mid-week, well before the next broadcast to avoid
+     * race condition
      */
     function setPendlePerSec(uint128 newPendlePerSec) external onlyOwner {
         pendlePerSec = newPendlePerSec;
@@ -240,12 +225,7 @@ contract PendleVotingControllerUpg is
                     INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice broadcast voting results of the timestamp to chainId
-     * @dev assumption: the epoch is already finalized, lastSlopeChangeAppliedAt of all pools >= currentWeekTimestamp
-     * @dev state changes expected:
-        - the gaugeController receives the new pendle allocation
-     */
+    /// @notice broadcast voting results of the timestamp to chainId
     function _broadcastResults(
         uint64 chainId,
         uint128 wTime,

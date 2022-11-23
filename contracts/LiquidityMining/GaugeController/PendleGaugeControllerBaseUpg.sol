@@ -20,15 +20,10 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * @dev Gauge controller provides no write function to any party other than voting controller
  * @dev Gauge controller will receive (lpTokens[], pendle per sec[]) from voting controller and
  * set it directly to contract state
- *
- * @dev All of the core data in this function will be set to private to prevent unintended assignments
+ * @dev All of the core data in this function are set to private to prevent unintended assignments
  * on inheriting contracts
  */
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
 abstract contract PendleGaugeControllerBaseUpg is
     IPGaugeController,
     BoringOwnableUpgradeable,
@@ -66,10 +61,7 @@ abstract contract PendleGaugeControllerBaseUpg is
 
     /**
      * @notice claim the rewards allocated by gaugeController
-     * @dev pre-condition: onlyPendleMarket can call it
-     * @dev state changes expected:
-        - rewardData[market] is updated with the data up to now
-        - all accumulatedPendle is transferred out & the accumulatedPendle is set to 0
+     * @dev only pendle market can call this
      */
     function redeemMarketReward() external onlyPendleMarket {
         address market = msg.sender;
@@ -93,11 +85,8 @@ abstract contract PendleGaugeControllerBaseUpg is
     }
 
     /**
-     * @notice receive voting results from VotingController. Can handle duplicated messages fine by only accepting the first
-     message for that timestamp
-     * @dev state changes expected:
-        - epochRewardReceived is marked as true
-        - rewardData is updated for all markets in markets[]
+     * @notice receive voting results from VotingController. Only the first message for a timestamp
+     * will be accepted, all subsequent messages will be ignored
      */
     function _receiveVotingResults(
         uint128 wTime,
@@ -119,10 +108,9 @@ abstract contract PendleGaugeControllerBaseUpg is
 
     /**
      * @notice merge the additional rewards with the existing rewards
-     * @dev this function will calc the total amount of Pendle that hasn't been factored into accumulatedPendle yet,
-        combined them with the additional pendleAmount, then divide them equally over the next one week
-     * @dev expected state changes:
-        - rewardData of the market is updated
+     * @dev this function will calc the total amount of Pendle that hasn't been factored into 
+     * accumulatedPendle yet, combined them with the additional pendleAmount, then divide them 
+     * equally over the next one week
      */
     function _addRewardsToMarket(address market, uint128 pendleAmount) internal {
         MarketRewardData memory rwd = _getUpdatedMarketReward(market);
@@ -140,15 +128,13 @@ abstract contract PendleGaugeControllerBaseUpg is
     }
 
     /**
-     * @notice get the updated state of the market, to the current time with all the undistributed Pendle distributed to the
-        accumulatedPendle
+     * @notice get the updated state of the market, to the current time with all the undistributed 
+     * Pendle distributed to the accumulatedPendle
      * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
-    function _getUpdatedMarketReward(address market)
-        internal
-        view
-        returns (MarketRewardData memory)
-    {
+    function _getUpdatedMarketReward(
+        address market
+    ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);

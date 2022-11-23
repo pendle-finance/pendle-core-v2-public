@@ -13,10 +13,6 @@ import "../../core/libraries/Errors.sol";
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
 abstract contract VotingControllerStorageUpg is IPVotingController {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
@@ -91,7 +87,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return weekData[wTime].poolVotes[pool];
     }
 
-    function getPoolData(address pool, uint128[] calldata wTimes)
+    function getPoolData(
+        address pool,
+        uint128[] calldata wTimes
+    )
         public
         view
         returns (
@@ -115,11 +114,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         }
     }
 
-    function getUserData(address user, address[] calldata pools)
-        public
-        view
-        returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools)
-    {
+    function getUserData(
+        address user,
+        address[] calldata pools
+    ) public view returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools) {
         UserData storage data = userData[user];
 
         totalVotedWeight = data.totalVotedWeight;
@@ -128,15 +126,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = 0; i < pools.length; ++i) voteForPools[i] = data.voteForPools[pools[i]];
     }
 
-    function getWeekData(uint128 wTime, address[] calldata pools)
-        public
-        view
-        returns (
-            bool isEpochFinalized,
-            uint128 totalVotes,
-            uint128[] memory poolVotes
-        )
-    {
+    function getWeekData(
+        uint128 wTime,
+        address[] calldata pools
+    ) public view returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes) {
         if (!wTime.isValidWTime()) revert Errors.InvalidWTime(wTime);
 
         WeekData storage data = weekData[wTime];
@@ -147,17 +140,14 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = 0; i < pools.length; ++i) poolVotes[i] = data.poolVotes[pools[i]];
     }
 
-    /// @dev trivial view function
     function getAllActivePools() external view returns (address[] memory) {
         return allActivePools.values();
     }
 
-    /// @dev trivial view function
-    function getAllRemovedPools(uint256 start, uint256 end)
-        external
-        view
-        returns (uint256 lengthOfRemovedPools, address[] memory arr)
-    {
+    function getAllRemovedPools(
+        uint256 start,
+        uint256 end
+    ) external view returns (uint256 lengthOfRemovedPools, address[] memory arr) {
         lengthOfRemovedPools = allRemovedPools.length();
 
         if (end >= lengthOfRemovedPools) revert Errors.ArrayOutOfBounds();
@@ -166,17 +156,14 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = start; i <= end; ++i) arr[i - start] = allRemovedPools.at(i);
     }
 
-    /// @dev trivial view function
     function getActiveChainPools(uint64 chainId) external view returns (address[] memory) {
         return activeChainPools[chainId].values();
     }
 
-    /// @dev trivial view function
-    function getUserPoolVote(address user, address pool)
-        external
-        view
-        returns (UserPoolData memory)
-    {
+    function getUserPoolVote(
+        address user,
+        address pool
+    ) external view returns (UserPoolData memory) {
         return userData[user].voteForPools[pool];
     }
 
@@ -193,14 +180,9 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            INTERNAL DATA MANIPULATION FUNCTIONS
+                INTERNAL DATA MANIPULATION FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /**
-    * @dev expected behavior:
-        - add to allActivePools, activeChainPools
-        - set params in poolData
-     */
     function _addPool(uint64 chainId, address pool) internal {
         if (!activeChainPools[chainId].add(pool)) assert(false);
         if (!allActivePools.add(pool)) assert(false);
@@ -209,12 +191,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         poolData[pool].lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
     }
 
-    /**
-    * @dev expected behavior:
-        - remove from allActivePool, activeChainPools
-        - add to allRemovedPools
-        - clear all params in poolData
-     */
     function _removePool(address pool) internal {
         uint64 chainId = poolData[pool].chainId;
         if (!activeChainPools[chainId].remove(pool)) assert(false);
@@ -224,29 +200,21 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         delete poolData[pool];
     }
 
-    /**
-     * @notice set the final pool vote for weekData
-     * @dev assumption: weekData[wTime].poolVotes[pool] == 0
-     */
-    function _setFinalPoolVoteForWeek(
-        address pool,
-        uint128 wTime,
-        uint128 vote
-    ) internal {
+    function _setFinalPoolVoteForWeek(address pool, uint128 wTime, uint128 vote) internal {
         weekData[wTime].totalVotes += vote;
         weekData[wTime].poolVotes[pool] = vote;
     }
 
-    function _setNewVotePoolData(
-        address pool,
-        VeBalance memory vote,
-        uint128 wTime
-    ) internal {
+    function _setNewVotePoolData(address pool, VeBalance memory vote, uint128 wTime) internal {
         poolData[pool].totalVote = vote;
         poolData[pool].lastSlopeChangeAppliedAt = wTime;
         emit PoolVoteChange(pool, vote);
     }
 
+    /**
+     * @notice modifies `user`'s vote weight on `pool`
+     * @dev works by simply removing the old vote position, then adds in a fresh vote
+     */
     function _modifyVoteWeight(
         address user,
         address pool,

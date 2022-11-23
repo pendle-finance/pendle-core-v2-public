@@ -7,10 +7,7 @@ import "../../core/libraries/Errors.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
-/// This contract is upgradable because
-/// - its constructor only sets immutable varia\bles
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
+
 abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 

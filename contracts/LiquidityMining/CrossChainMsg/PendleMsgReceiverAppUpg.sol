@@ -6,10 +6,7 @@ import "../../core/libraries/BoringOwnableUpgradeable.sol";
 import "../../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
-/// This contract is upgradable because
-/// - its constructor only sets immutable variables
-/// - it has storage gaps for safe addition of future variables
-/// - it inherits only upgradable contract
+
 abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp {
     address public immutable pendleMsgReceiveEndpoint;
 
