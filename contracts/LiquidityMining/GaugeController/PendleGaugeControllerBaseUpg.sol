@@ -123,6 +123,8 @@ abstract contract PendleGaugeControllerBaseUpg is
             lastUpdated: uint128(block.timestamp),
             incentiveEndsAt: uint128(block.timestamp) + WEEK
         });
+
+        emit UpdateMarketReward(market, newSpeed, uint128(block.timestamp) + WEEK);
     }
 
     /**

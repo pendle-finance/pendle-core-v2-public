@@ -4,7 +4,13 @@ pragma solidity 0.8.17;
 interface IPGaugeController {
     event MarketClaimReward(address indexed market, uint256 amount);
 
-    event ReceiveVotingResults(uint128 wTime, address[] markets, uint256[] pendleAmounts);
+    event ReceiveVotingResults(uint128 indexed wTime, address[] markets, uint256[] pendleAmounts);
+
+    event UpdateMarketReward(
+        address indexed market,
+        uint256 pendlePerSec,
+        uint256 incentiveEndsAt
+    );
 
     function fundPendle(uint256 amount) external;
 

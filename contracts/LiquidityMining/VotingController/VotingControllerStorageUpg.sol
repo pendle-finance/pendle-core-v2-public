@@ -46,7 +46,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint128 public constant WEEK = 1 weeks;
-    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10 ** 24;
+    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10 * (10**6) * (10**18); // 10 mils of PENDLE
 
     IPVeToken public immutable vePendle;
 
