@@ -415,7 +415,22 @@ library MarketMathStatic {
     }
 
     function getExchangeRate(address market) public returns (uint256) {
-        return getTradeExchangeRateIncludeFee(market, 0);
+        return getTradeExchangeRateExcludeFee(market);
+    }
+
+    function getTradeExchangeRateExcludeFee(address market) public returns (uint256) {
+        if (IPMarket(market).isExpired()) return Math.ONE;
+        MarketState memory state = IPMarket(market).readState(address(this));
+        MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
+
+        int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
+            state.totalPt,
+            comp.totalAsset,
+            comp.rateScalar,
+            comp.rateAnchor,
+            0
+        );
+        return preFeeExchangeRate.Uint();
     }
 
     function getTradeExchangeRateIncludeFee(address market, int256 netPtOut)
@@ -449,7 +464,7 @@ library MarketMathStatic {
         public
         returns (uint256 priceImpact)
     {
-        uint256 preTradeRate = getExchangeRate(market);
+        uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, 0);
         uint256 tradedRate = getTradeExchangeRateIncludeFee(market, netPtOut);
 
         priceImpact = (tradedRate.Int() - preTradeRate.Int()).abs().divDown(preTradeRate);
