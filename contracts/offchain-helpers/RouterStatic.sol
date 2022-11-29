@@ -803,7 +803,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address bulk,
         uint256 netSyOut
     ) public view returns (uint256 netTokenIn) {
-        uint256 pivotAmount = netSyOut;
+        uint256 pivotAmount = 10 ** IERC20Metadata(tokenIn).decimals();
 
         uint256 low = pivotAmount;
         {
