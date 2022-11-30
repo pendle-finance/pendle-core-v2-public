@@ -464,7 +464,7 @@ library MarketMathStatic {
         public
         returns (uint256 priceImpact)
     {
-        uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, 0);
+        uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, netPtOut > 0 ? int256(1) : int256(-1));
         uint256 tradedRate = getTradeExchangeRateIncludeFee(market, netPtOut);
 
         priceImpact = (tradedRate.Int() - preTradeRate.Int()).abs().divDown(preTradeRate);
