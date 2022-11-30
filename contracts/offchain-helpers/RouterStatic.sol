@@ -778,7 +778,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         public
         returns (uint256 priceImpact)
     {
-        return MarketMathStatic.calcPriceImpact(market, netPtOut);
+        return MarketMathStatic.calcPriceImpactPt(market, netPtOut);
     }
 
     // either but not both pyToken or market must be != 0

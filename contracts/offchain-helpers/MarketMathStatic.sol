@@ -72,7 +72,7 @@ library MarketMathStatic {
             block.timestamp
         );
 
-        priceImpact = calcPriceImpact(market, netPtToSwap.neg());
+        priceImpact = calcPriceImpactPt(market, netPtToSwap.neg());
     }
 
     /// @dev netPtFromSwap is the parameter to approx
@@ -108,7 +108,7 @@ library MarketMathStatic {
         );
         (, netLpOut, , ) = state.addLiquidity(netSyIn - netSySwap, netPtFromSwap, block.timestamp);
 
-        priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
+        priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
@@ -145,7 +145,7 @@ library MarketMathStatic {
         );
 
         netPtOut = ptFromBurn + netPtFromSwap;
-        priceImpact = calcPriceImpact(market, netPtFromSwap.Int());
+        priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
     }
 
     function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
@@ -171,7 +171,7 @@ library MarketMathStatic {
             );
 
             netSyOut = syFromBurn + syFromSwap;
-            priceImpact = calcPriceImpact(market, ptFromBurn.neg());
+            priceImpact = calcPriceImpactPt(market, ptFromBurn.neg());
         }
     }
 
@@ -189,7 +189,7 @@ library MarketMathStatic {
             exactPtIn,
             block.timestamp
         );
-        priceImpact = calcPriceImpact(market, exactPtIn.neg());
+        priceImpact = calcPriceImpactPt(market, exactPtIn.neg());
     }
 
     function swapSyForExactPtStatic(address market, uint256 exactPtOut)
@@ -206,7 +206,7 @@ library MarketMathStatic {
             exactPtOut,
             block.timestamp
         );
-        priceImpact = calcPriceImpact(market, exactPtOut.Int());
+        priceImpact = calcPriceImpactPt(market, exactPtOut.Int());
     }
 
     /// @dev netPtOut is the parameter to approx
@@ -229,7 +229,7 @@ library MarketMathStatic {
             block.timestamp,
             approxParams
         );
-        priceImpact = calcPriceImpact(market, netPtOut.Int());
+        priceImpact = calcPriceImpactPt(market, netPtOut.Int());
     }
 
     /// @dev netPtIn is the parameter to approx
@@ -253,7 +253,7 @@ library MarketMathStatic {
             block.timestamp,
             approxParams
         );
-        priceImpact = calcPriceImpact(market, netPtIn.neg());
+        priceImpact = calcPriceImpactPt(market, netPtIn.neg());
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -278,7 +278,7 @@ library MarketMathStatic {
         uint256 totalSyNeed = index.assetToSyUp(exactYtOut);
         netSyIn = totalSyNeed.subMax0(syReceived);
 
-        priceImpact = calcPriceImpact(market, exactYtOut.neg());
+        priceImpact = calcPriceImpactYt(market, exactYtOut.neg());
     }
 
     /// @dev netYtOut is the parameter to approx
@@ -304,7 +304,7 @@ library MarketMathStatic {
             approxParams
         );
 
-        priceImpact = calcPriceImpact(market, netYtOut.neg());
+        priceImpact = calcPriceImpactYt(market, netYtOut.neg());
     }
 
     function swapExactYtForSyStatic(address market, uint256 exactYtIn)
@@ -326,7 +326,7 @@ library MarketMathStatic {
         uint256 amountPYToRedeemSyOut = exactYtIn - amountPYToRepaySyOwed;
 
         netSyOut = index.assetToSy(amountPYToRedeemSyOut);
-        priceImpact = calcPriceImpact(market, exactYtIn.Int());
+        priceImpact = calcPriceImpactYt(market, exactYtIn.Int());
     }
 
     /// @dev netYtIn is the parameter to approx
@@ -352,7 +352,7 @@ library MarketMathStatic {
             block.timestamp,
             approxParams
         );
-        priceImpact = calcPriceImpact(market, netYtIn.Int());
+        priceImpact = calcPriceImpactYt(market, netYtIn.Int());
     }
 
     // totalPtToSwap is the param to approx
@@ -378,7 +378,7 @@ library MarketMathStatic {
             block.timestamp,
             approxParams
         );
-        priceImpact = calcPriceImpact(market, totalPtToSwap.neg());
+        priceImpact = calcPriceImpactPY(market, totalPtToSwap.neg());
     }
 
     // totalPtSwapped is the param to approx
@@ -405,7 +405,7 @@ library MarketMathStatic {
             approxParams
         );
 
-        priceImpact = calcPriceImpact(market, totalPtSwapped.Int());
+        priceImpact = calcPriceImpactPY(market, totalPtSwapped.Int());
     }
 
     function pyIndex(address market) public returns (PYIndex index) {
@@ -460,14 +460,40 @@ library MarketMathStatic {
         }
     }
 
-    function calcPriceImpact(address market, int256 netPtOut)
+    function calcPriceImpactPt(address market, int256 netPtOut)
         public
         returns (uint256 priceImpact)
     {
-        uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, netPtOut > 0 ? int256(1) : int256(-1));
+        uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, _getSign(netPtOut));
         uint256 tradedRate = getTradeExchangeRateIncludeFee(market, netPtOut);
+        priceImpact = _calculateImpact(preTradeRate, tradedRate);
+    }
 
-        priceImpact = (tradedRate.Int() - preTradeRate.Int()).abs().divDown(preTradeRate);
+    function calcPriceImpactYt(address market, int256 netPtOut)
+        public
+        returns (uint256 priceImpact)
+    {
+        uint256 ytPreTradeRate = _calcVirtualYTPrice(
+            getTradeExchangeRateIncludeFee(market, _getSign(netPtOut))
+        );
+        uint256 ytTradedRate = _calcVirtualYTPrice(
+            getTradeExchangeRateIncludeFee(market, netPtOut)
+        );
+        priceImpact = _calculateImpact(ytPreTradeRate, ytTradedRate);
+    }
+
+    function calcPriceImpactPY(address market, int256 netPtOut)
+        public
+        returns (uint256 priceImpact)
+    {
+        uint256 ptPreTradeRate = getTradeExchangeRateIncludeFee(market, _getSign(netPtOut));
+        uint256 ytPreTradeRate = _calcVirtualYTPrice(ptPreTradeRate);
+        uint256 ptTradeRate = getTradeExchangeRateIncludeFee(market, netPtOut);
+        uint256 ytTradeRate = _calcVirtualYTPrice(ptTradeRate);
+
+        uint256 pyPreTradeRate = ytPreTradeRate.divDown(ptPreTradeRate);
+        uint256 pyTradeRate = ytTradeRate.divDown(ptTradeRate);
+        priceImpact = _calculateImpact(pyPreTradeRate, pyTradeRate);
     }
 
     function getPtImpliedYield(address market) public view returns (int256) {
@@ -475,5 +501,30 @@ library MarketMathStatic {
 
         int256 lnImpliedRate = (state.lastLnImpliedRate).Int();
         return lnImpliedRate.exp();
+    }
+
+    function _calcVirtualYTPrice(uint256 ptAssetExchangeRate)
+        private
+        pure
+        returns (uint256 ytAssetExchangeRate)
+    {
+        // 1 asset = EX pt
+        // 1 pt = 1/EX Asset
+        // 1 yt + 1/EX Asset = 1 Asset
+        // 1 yt = 1 Asset - 1/EX Asset
+        // 1 yt = (EX - 1) / EX Asset
+        return (ptAssetExchangeRate - Math.ONE).divDown(ptAssetExchangeRate);
+    }
+
+    function _getSign(int256 netPtOut) private pure returns (int256) {
+        return netPtOut > 0 ? int256(1) : int256(-1);
+    }
+
+    function _calculateImpact(uint256 rateBefore, uint256 rateTraded)
+        private
+        pure
+        returns (uint256 impact)
+    {
+        impact = (rateBefore.Int() - rateTraded.Int()).abs().divDown(rateBefore);
     }
 }
