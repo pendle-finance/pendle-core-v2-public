@@ -29,7 +29,6 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
         virtual
         override
         nonReentrant
-        whenNotPaused
         returns (uint256[] memory rewardAmounts)
     {
         _updateAndDistributeRewards(user);
@@ -74,7 +73,6 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     function rewardIndexesCurrent()
         external
         override
-        whenNotPaused
         nonReentrant
         returns (uint256[] memory indexes)
     {
@@ -122,7 +120,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
         address from,
         address to,
         uint256
-    ) internal virtual override whenNotPaused {
+    ) internal virtual override {
         _updateAndDistributeRewardsForTwo(from, to);
     }
 }

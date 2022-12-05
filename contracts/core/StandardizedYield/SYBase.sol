@@ -1,22 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
+
 import "../../interfaces/IStandardizedYield.sol";
-
 import "../erc20/PendleERC20Permit.sol";
-
 import "../libraries/math/Math.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/Errors.sol";
-import "../libraries/BoringOwnableUpgradeable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
 
-abstract contract SYBase is
-    IStandardizedYield,
-    PendleERC20Permit,
-    TokenHelper,
-    BoringOwnableUpgradeable,
-    Pausable
-{
+abstract contract SYBase is IStandardizedYield, PendleERC20Permit, TokenHelper {
     using Math for uint256;
 
     address public immutable yieldToken;
@@ -25,9 +16,8 @@ abstract contract SYBase is
         string memory _name,
         string memory _symbol,
         address _yieldToken
-    ) PendleERC20Permit(_name, _symbol, IERC20Metadata(_yieldToken).decimals()) initializer {
+    ) PendleERC20Permit(_name, _symbol, IERC20Metadata(_yieldToken).decimals()) {
         yieldToken = _yieldToken;
-        __BoringOwnable_init();
     }
 
     // solhint-disable no-empty-blocks
@@ -189,19 +179,11 @@ abstract contract SYBase is
         return _previewRedeem(tokenOut, amountSharesToRedeem);
     }
 
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
-    }
-
     function _beforeTokenTransfer(
         address,
         address,
         uint256
-    ) internal virtual override whenNotPaused {}
+    ) internal virtual override {}
 
     function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
         internal
