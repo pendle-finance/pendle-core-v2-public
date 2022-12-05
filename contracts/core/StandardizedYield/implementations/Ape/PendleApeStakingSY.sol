@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../SYBaseAutoCompound.sol";
-import "../../../interfaces/IApeStaking.sol";
-import "../../libraries/BoringOwnableUpgradeable.sol";
+import "../../SYBase.sol";
+import "../../../../interfaces/IApeStaking.sol";
 
-/**
- * @dev SYBase already adopted BoringOwnable & Initializable
- */
-contract PendleApeStakingSY is SYBaseAutoCompound {
+contract PendleApeStakingSY is SYBase {
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
@@ -26,7 +22,7 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         address _apeCoin,
         address _apeStaking
     )
-        SYBaseAutoCompound(_name, _symbol, _apeCoin) // solhint-disable-next-line no-empty-blocks
+        SYBase(_name, _symbol, _apeCoin) 
     {
         apeStaking = _apeStaking;
         apeCoin = _apeCoin;
@@ -45,7 +41,7 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
             revert Errors.SYApeDepositAmountTooSmall(amountDeposited);
         }
 
-        _claimRewardsAndCompoundAsset();
+        _harvestAndCompound();
 
         // As SY Base is pulling the tokenIn first, the totalAsset should exclude user's deposit
         uint256 priorTotalAssetOwned = getTotalAssetOwned() - amountDeposited;
@@ -64,7 +60,7 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         address,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
-        _claimRewardsAndCompoundAsset();
+        _harvestAndCompound();
 
         // As SY is burned before calling _redeem(), we should account for priorSupply
         uint256 priorTotalSupply = totalSupply() + amountSharesToRedeem;
@@ -87,11 +83,19 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         _transferOut(apeCoin, receiver, amountTokenOut);
     }
 
+    function exchangeRate() public view virtual override returns (uint256) {
+        return getTotalAssetOwned().divDown(totalSupply());
+    }
+
     /*///////////////////////////////////////////////////////////////
-                SY AUTOCOMPOUND FUNCTIONS
+                AUTOCOMPOUND FEATURE
     //////////////////////////////////////////////////////////////*/
 
-    function getTotalAssetOwned() public view virtual override returns (uint256 totalAssetOwned) {
+    function harvestAndCompound() external {
+        _harvestAndCompound();
+    }
+
+    function getTotalAssetOwned() public view returns (uint256 totalAssetOwned) {
         (uint256 stakedAmount, ) = IApeStaking(apeStaking).addressPosition(address(this));
         uint256 unclaimedAmount = IApeStaking(apeStaking).pendingRewards(
             APE_COIN_POOL_ID,
@@ -102,7 +106,7 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
     }
 
-    function _claimRewardsAndCompoundAsset() internal virtual override {
+    function _harvestAndCompound() internal {
         // Claim reward
         uint256 currentEpochId = _getCurrentEpochId();
         if (currentEpochId != lastRewardClaimedEpoch) {
@@ -143,6 +147,11 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / totalSupply();
     }
 
+
+    function _getCurrentEpochId() private view returns (uint256) {
+        return block.timestamp / EPOCH_LENGTH;
+    }
+
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](1);
         res[0] = apeCoin;
@@ -171,13 +180,5 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         )
     {
         return (AssetType.TOKEN, apeCoin, IERC20Metadata(apeCoin).decimals());
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                FUNCTIONS FOR PROXY/UPGRADABLE
-    //////////////////////////////////////////////////////////////*/
-
-    function _getCurrentEpochId() private view returns (uint256) {
-        return block.timestamp / EPOCH_LENGTH;
     }
 }
