@@ -8,7 +8,7 @@ import "./SYBase.sol";
  * the rewardToken
  * 
  * @notice Unlike usual sy - taking exchangeRate from underlying protocol, 
- * variant of SY should account for its own exchangeRate
+ * this variant of SY should account for its own exchangeRate
  */
 abstract contract SYBaseAutoCompound is SYBase {
     using Math for uint256;
@@ -28,7 +28,7 @@ abstract contract SYBaseAutoCompound is SYBase {
         return _getTotalAssetOwned().divDown(totalSupply());
     }
 
-    function _claimRewardsAndCompoundAsset() internal virtual returns (uint256 totalAssetCompounded);
+    function _claimRewardsAndCompoundAsset() internal virtual;
 
     /**
      * @return totalAssetOwned the total asset owned by SY contract

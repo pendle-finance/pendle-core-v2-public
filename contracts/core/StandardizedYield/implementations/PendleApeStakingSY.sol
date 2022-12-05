@@ -8,9 +8,12 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
+    uint256 public constant MIN_APE_DEPOSIT = 10**18;
+    uint256 public constant EPOCH_LENGTH = 1 hours;
 
     address public immutable apeStaking;
     address public immutable apeCoin;
+    uint256 private lastRewardClaimedEpoch;
 
     constructor(
         string memory _name,
@@ -23,6 +26,8 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         apeStaking = _apeStaking;
         apeCoin = _apeCoin;
         _safeApproveInf(_apeCoin, _apeStaking);
+
+        lastRewardClaimedEpoch = _getCurrentEpochId();
     }
 
     function _deposit(address, uint256 amountDeposited)
@@ -54,15 +59,19 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         IApeStaking(apeStaking).withdrawApeCoin(amountTokenOut, receiver);
     }
 
-    function _claimRewardsAndCompoundAsset()
-        internal
-        virtual
-        override
-        returns (uint256 totalAssetCompounded)
-    {
-        IApeStaking(apeStaking).claimSelfApeCoin();
-        totalAssetCompounded = _selfBalance(apeCoin);
-        IApeStaking(apeStaking).depositSelfApeCoin(totalAssetCompounded);
+    function _claimRewardsAndCompoundAsset() internal virtual override {
+        // Claim reward
+        uint256 currentEpochId = _getCurrentEpochId();
+        if (currentEpochId != lastRewardClaimedEpoch) {
+            IApeStaking(apeStaking).claimSelfApeCoin();
+            lastRewardClaimedEpoch = currentEpochId;
+        }
+
+        // Deposit APE
+        uint256 amountAssetToCompound = _selfBalance(apeCoin);
+        if (amountAssetToCompound > MIN_APE_DEPOSIT) {
+            IApeStaking(apeStaking).depositSelfApeCoin(amountAssetToCompound);
+        }
     }
 
     function _getTotalAssetOwned()
@@ -80,6 +89,10 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         );
         uint256 floatingAmount = _selfBalance(apeCoin);
         totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
+    }
+
+    function _getCurrentEpochId() private view returns (uint256) {
+        return block.timestamp / EPOCH_LENGTH;
     }
 
     /*///////////////////////////////////////////////////////////////

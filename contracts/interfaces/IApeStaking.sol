@@ -11,6 +11,9 @@ interface IApeStaking {
 
     function claimSelfApeCoin() external;
 
+    /**
+     * @notice when poolId is set to 0, tokenId's value does not matter
+     */
     function pendingRewards(
         uint256 _poolId,
         address _address,
