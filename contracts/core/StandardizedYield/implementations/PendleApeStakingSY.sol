@@ -3,8 +3,15 @@ pragma solidity 0.8.17;
 
 import "../SYBaseAutoCompound.sol";
 import "../../../interfaces/IApeStaking.sol";
+import "../../libraries/BoringOwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-contract PendleApeStakingSY is SYBaseAutoCompound {
+contract PendleApeStakingSY is
+    Initializable,
+    UUPSUpgradeable,
+    BoringOwnableUpgradeable,
+    SYBaseAutoCompound
+{
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
@@ -13,7 +20,9 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
 
     address public immutable apeStaking;
     address public immutable apeCoin;
+
     uint256 private lastRewardClaimedEpoch;
+    uint256[48] private __gap;
 
     constructor(
         string memory _name,
@@ -28,6 +37,7 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
         _safeApproveInf(_apeCoin, _apeStaking);
 
         lastRewardClaimedEpoch = _getCurrentEpochId();
+        __BoringOwnable_init();
     }
 
     function _deposit(address, uint256 amountDeposited)
@@ -146,4 +156,14 @@ contract PendleApeStakingSY is SYBaseAutoCompound {
     {
         return (AssetType.TOKEN, apeCoin, IERC20Metadata(apeCoin).decimals());
     }
+
+    /*///////////////////////////////////////////////////////////////
+                FUNCTIONS FOR PROXY/UPGRADABLE
+    //////////////////////////////////////////////////////////////*/
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
