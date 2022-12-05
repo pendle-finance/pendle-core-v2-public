@@ -25,10 +25,8 @@ abstract contract SYBaseAutoCompound is SYBase {
      * @notice 
      */
     function exchangeRate() public view virtual override returns (uint256) {
-        return _getTotalAssetOwned().divDown(totalSupply());
+        return getTotalAssetOwned().divDown(totalSupply());
     }
-
-    function _claimRewardsAndCompoundAsset() internal virtual;
 
     /**
      * @return totalAssetOwned the total asset owned by SY contract
@@ -37,5 +35,7 @@ abstract contract SYBaseAutoCompound is SYBase {
      * 2. Floating asset reward (might be permissionlessly claimed)
      * 3. Unclaimed asset reward
      */
-    function _getTotalAssetOwned() internal view virtual returns (uint256 totalAssetOwned);
+    function getTotalAssetOwned() public view virtual returns (uint256 totalAssetOwned);
+
+    function _claimRewardsAndCompoundAsset() internal virtual;
 }

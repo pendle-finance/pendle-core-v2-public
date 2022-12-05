@@ -111,6 +111,8 @@ library Errors {
     error SYCurveInvalidPid();
     error SYCurve3crvPoolNotFound();
 
+    error SYApeDepositAmountTooSmall(uint256 amountDeposited);
+
     // Liquidity Mining
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);

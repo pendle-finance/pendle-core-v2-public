@@ -6,12 +6,10 @@ import "../../../interfaces/IApeStaking.sol";
 import "../../libraries/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-contract PendleApeStakingSY is
-    Initializable,
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable,
-    SYBaseAutoCompound
-{
+/**
+ * @dev SYBase already adopted BoringOwnable & Initializable
+ */
+contract PendleApeStakingSY is UUPSUpgradeable, SYBaseAutoCompound {
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
@@ -34,10 +32,6 @@ contract PendleApeStakingSY is
     {
         apeStaking = _apeStaking;
         apeCoin = _apeCoin;
-        _safeApproveInf(_apeCoin, _apeStaking);
-
-        lastRewardClaimedEpoch = _getCurrentEpochId();
-        __BoringOwnable_init();
     }
 
     function _deposit(address, uint256 amountDeposited)
@@ -46,13 +40,23 @@ contract PendleApeStakingSY is
         override
         returns (uint256 amountSharesOut)
     {
+        // Respecting APE's deposit invariant & prevent frontrunning on deployment
+        if (amountDeposited < MIN_APE_DEPOSIT) {
+            revert Errors.SYApeDepositAmountTooSmall(amountDeposited);
+        }
+
         _claimRewardsAndCompoundAsset();
 
-        // The upcoming calculation can be reduced to amountDeposited.divDown(exchangeRate())
-        // The following calculation is choosen instead to minimize precision error
-        amountSharesOut = (amountDeposited * totalSupply()) / _getTotalAssetOwned();
+        // As SY Base is pulling the tokenIn first, the totalAsset should exclude user's deposit
+        uint256 priorTotalAssetOwned = getTotalAssetOwned() - amountDeposited;
 
-        IApeStaking(apeStaking).depositSelfApeCoin(amountDeposited);
+        if (totalSupply() == 0) {
+            amountSharesOut = amountDeposited;
+        } else {
+            // The upcoming calculation can be reduced to amountDeposited.divDown(exchangeRate())
+            // The following calculation is choosen instead to minimize precision error
+            amountSharesOut = (amountDeposited * totalSupply()) / priorTotalAssetOwned;
+        }
     }
 
     function _redeem(
@@ -62,11 +66,40 @@ contract PendleApeStakingSY is
     ) internal virtual override returns (uint256 amountTokenOut) {
         _claimRewardsAndCompoundAsset();
 
-        // The upcoming calculation can be reduced to amountSharesToRedeem.mulDown(exchangeRate())
-        // The following calculation is choosen instead to minimize precision error
-        amountTokenOut = (amountSharesToRedeem * _getTotalAssetOwned()) / totalSupply();
+        // As SY is burned before calling _redeem(), we should account for priorSupply
+        uint256 priorTotalSupply = totalSupply() + amountSharesToRedeem;
 
-        IApeStaking(apeStaking).withdrawApeCoin(amountTokenOut, receiver);
+        if (amountSharesToRedeem == priorTotalSupply) {
+            amountTokenOut = getTotalAssetOwned();
+        } else {
+            // The upcoming calculation can be reduced to amountSharesToRedeem.mulDown(exchangeRate())
+            // The following calculation is choosen instead to minimize precision error
+            amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / priorTotalSupply;
+        }
+
+        // There might be case when the contract is holding < 1 APE reward and user is withdrawing everything out of it
+        if (amountTokenOut > _selfBalance(apeCoin)) {
+            IApeStaking(apeStaking).withdrawApeCoin(
+                amountTokenOut - _selfBalance(apeCoin),
+                address(this)
+            );
+        }
+        _transferOut(apeCoin, receiver, amountTokenOut);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                SY AUTOCOMPOUND FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function getTotalAssetOwned() public view virtual override returns (uint256 totalAssetOwned) {
+        (uint256 stakedAmount, ) = IApeStaking(apeStaking).addressPosition(address(this));
+        uint256 unclaimedAmount = IApeStaking(apeStaking).pendingRewards(
+            APE_COIN_POOL_ID,
+            address(this),
+            0
+        );
+        uint256 floatingAmount = _selfBalance(apeCoin);
+        totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
     }
 
     function _claimRewardsAndCompoundAsset() internal virtual override {
@@ -79,30 +112,9 @@ contract PendleApeStakingSY is
 
         // Deposit APE
         uint256 amountAssetToCompound = _selfBalance(apeCoin);
-        if (amountAssetToCompound > MIN_APE_DEPOSIT) {
+        if (amountAssetToCompound >= MIN_APE_DEPOSIT) {
             IApeStaking(apeStaking).depositSelfApeCoin(amountAssetToCompound);
         }
-    }
-
-    function _getTotalAssetOwned()
-        internal
-        view
-        virtual
-        override
-        returns (uint256 totalAssetOwned)
-    {
-        (uint256 stakedAmount, ) = IApeStaking(apeStaking).addressPosition(address(this));
-        uint256 unclaimedAmount = IApeStaking(apeStaking).pendingRewards(
-            APE_COIN_POOL_ID,
-            address(this),
-            0
-        );
-        uint256 floatingAmount = _selfBalance(apeCoin);
-        totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
-    }
-
-    function _getCurrentEpochId() private view returns (uint256) {
-        return block.timestamp / EPOCH_LENGTH;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -115,7 +127,11 @@ contract PendleApeStakingSY is
         override
         returns (uint256 amountSharesOut)
     {
-        amountSharesOut = (amountTokenToDeposit * totalSupply()) / _getTotalAssetOwned();
+        if (totalSupply() == 0) {
+            amountSharesOut = amountTokenToDeposit;
+        } else {
+            amountSharesOut = (amountTokenToDeposit * totalSupply()) / getTotalAssetOwned();
+        }
     }
 
     function _previewRedeem(address, uint256 amountSharesToRedeem)
@@ -124,7 +140,7 @@ contract PendleApeStakingSY is
         override
         returns (uint256 amountTokenOut)
     {
-        amountTokenOut = (amountSharesToRedeem * _getTotalAssetOwned()) / totalSupply();
+        amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / totalSupply();
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
@@ -163,7 +179,13 @@ contract PendleApeStakingSY is
 
     function initialize() external initializer {
         __BoringOwnable_init();
+        _safeApproveInf(apeCoin, apeStaking);
+        lastRewardClaimedEpoch = _getCurrentEpochId();
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    function _getCurrentEpochId() private view returns (uint256) {
+        return block.timestamp / EPOCH_LENGTH;
+    }
 }
