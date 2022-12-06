@@ -14,9 +14,10 @@ import "../LiquidityMining/libraries/VeBalanceLib.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/Proxy.sol";
 
 /// EXCLUDED FROM ALL AUDITS, TO BE CALLED ONLY BY PENDLE's SDK
-contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable {
+contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpgradeable {
     using Math for uint256;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
@@ -62,32 +63,29 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     IPMarketFactory internal immutable marketFactory;
     IPVotingEscrowMainchain internal immutable vePENDLE;
     IPBulkSellerFactory internal immutable bulkFactory;
+    address internal immutable marketMathStaticLib;
 
     constructor(
         IPYieldContractFactory _yieldContractFactory,
         IPMarketFactory _marketFactory,
         IPVotingEscrowMainchain _vePENDLE,
-        IPBulkSellerFactory _bulkFactory
+        IPBulkSellerFactory _bulkFactory,
+        address _marketMathStaticLib
     ) initializer {
         yieldContractFactory = _yieldContractFactory;
         marketFactory = _marketFactory;
         vePENDLE = _vePENDLE;
         bulkFactory = _bulkFactory;
+        marketMathStaticLib = _marketMathStaticLib;
+    }
+
+    // all Market-related functions will go to MarketMathStaticLib
+    function _implementation() internal view override returns (address) {
+        return marketMathStaticLib;
     }
 
     function initialize() external initializer {
         __BoringOwnable_init();
-    }
-
-    function getDefaultApproxParams() public pure returns (ApproxParams memory) {
-        return
-            ApproxParams({
-                guessMin: 0,
-                guessMax: type(uint256).max,
-                guessOffchain: 0,
-                maxIteration: 256,
-                eps: 1e14
-            });
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -329,8 +327,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn, getDefaultApproxParams());
+        return MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn);
     }
 
     function addLiquiditySingleSyStatic(address market, uint256 netSyIn)
@@ -343,8 +340,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn, getDefaultApproxParams());
+        return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
     }
 
     function addLiquiditySingleBaseTokenStatic(
@@ -369,8 +365,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             bulk
         );
 
-        return
-            MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn, getDefaultApproxParams());
+        return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
@@ -407,12 +402,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.removeLiquiditySinglePtStatic(
-                market,
-                netLpToRemove,
-                getDefaultApproxParams()
-            );
+        return MarketMathStatic.removeLiquiditySinglePtStatic(market, netLpToRemove);
     }
 
     function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
@@ -443,10 +433,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
     {
         uint256 netSyOut;
 
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.removeLiquiditySingleSyStatic(
-            market,
-            netLpToRemove
-        );
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+            .removeLiquiditySingleSyStatic(market, netLpToRemove);
 
         netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
@@ -484,8 +472,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.swapExactSyForPtStatic(market, exactSyIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactSyForPtStatic(market, exactSyIn);
     }
 
     function swapPtForExactSyStatic(address market, uint256 exactSyOut)
@@ -497,8 +484,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.swapPtForExactSyStatic(market, exactSyOut, getDefaultApproxParams());
+        return MarketMathStatic.swapPtForExactSyStatic(market, exactSyOut);
     }
 
     function swapExactBaseTokenForPtStatic(
@@ -521,7 +507,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             amountBaseToken,
             bulk
         );
-        return MarketMathStatic.swapExactSyForPtStatic(market, netSyIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactSyForPtStatic(market, netSyIn);
     }
 
     function swapExactPtForBaseTokenStatic(
@@ -539,10 +525,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         )
     {
         uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.swapExactPtForSyStatic(
-            market,
-            exactPtIn
-        );
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+            .swapExactPtForSyStatic(market, exactPtIn);
 
         netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
@@ -566,11 +550,9 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netSyFee,
             uint256 priceImpact,
             uint256 exchangeRateAfter
-
         )
     {
-        return
-            MarketMathStatic.swapExactSyForYtStatic(market, exactSyIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactSyForYtStatic(market, exactSyIn);
     }
 
     function swapExactYtForSyStatic(address market, uint256 exactYtIn)
@@ -580,7 +562,6 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netSyFee,
             uint256 priceImpact,
             uint256 exchangeRateAfter
-
         )
     {
         return MarketMathStatic.swapExactYtForSyStatic(market, exactYtIn);
@@ -595,8 +576,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return
-            MarketMathStatic.swapYtForExactSyStatic(market, exactSyOut, getDefaultApproxParams());
+        return MarketMathStatic.swapYtForExactSyStatic(market, exactSyOut);
     }
 
     function swapExactYtForBaseTokenStatic(
@@ -614,10 +594,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         )
     {
         uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.swapExactYtForSyStatic(
-            market,
-            exactYtIn
-        );
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+            .swapExactYtForSyStatic(market, exactYtIn);
 
         netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
     }
@@ -643,7 +621,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             bulk
         );
 
-        return MarketMathStatic.swapExactSyForYtStatic(market, netSyIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactSyForYtStatic(market, netSyIn);
     }
 
     function swapExactPtForYtStatic(address market, uint256 exactPtIn)
@@ -656,7 +634,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return MarketMathStatic.swapExactPtForYt(market, exactPtIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactPtForYt(market, exactPtIn);
     }
 
     function swapExactYtForPtStatic(address market, uint256 exactYtIn)
@@ -669,7 +647,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 exchangeRateAfter
         )
     {
-        return MarketMathStatic.swapExactYtForPt(market, exactYtIn, getDefaultApproxParams());
+        return MarketMathStatic.swapExactYtForPt(market, exactYtIn);
     }
 
     // ============= vePENDLE =============
@@ -825,7 +803,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         address bulk,
         uint256 netSyOut
     ) public view returns (uint256 netTokenIn) {
-        uint256 pivotAmount = 10 ** IERC20Metadata(tokenIn).decimals();
+        uint256 pivotAmount = 10**IERC20Metadata(tokenIn).decimals();
 
         uint256 low = pivotAmount;
         {

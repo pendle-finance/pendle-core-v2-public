@@ -14,6 +14,17 @@ library MarketMathStatic {
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
+    function getDefaultApproxParams() public pure returns (ApproxParams memory) {
+        return
+            ApproxParams({
+                guessMin: 0,
+                guessMax: type(uint256).max,
+                guessOffchain: 0,
+                maxIteration: 256,
+                eps: 1e14
+            });
+    }
+
     function addLiquidityDualSyAndPtStatic(
         address market,
         uint256 netSyDesired,
@@ -36,11 +47,7 @@ library MarketMathStatic {
     }
 
     /// @dev netPtToSwap is the parameter to approx
-    function addLiquiditySinglePtStatic(
-        address market,
-        uint256 netPtIn,
-        ApproxParams memory approxParams
-    )
+    function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
         external
         returns (
             uint256 netLpOut,
@@ -56,7 +63,7 @@ library MarketMathStatic {
             pyIndex(market),
             netPtIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
 
         state = IPMarket(market).readState(address(this)); // re-read
@@ -78,11 +85,7 @@ library MarketMathStatic {
     }
 
     /// @dev netPtFromSwap is the parameter to approx
-    function addLiquiditySingleSyStatic(
-        address market,
-        uint256 netSyIn,
-        ApproxParams memory approxParams
-    )
+    function addLiquiditySingleSyStatic(address market, uint256 netSyIn)
         public
         returns (
             uint256 netLpOut,
@@ -98,7 +101,7 @@ library MarketMathStatic {
             pyIndex(market),
             netSyIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
 
         state = IPMarket(market).readState(address(this)); // re-read
@@ -125,11 +128,7 @@ library MarketMathStatic {
     }
 
     /// @dev netPtFromSwap is the parameter to approx
-    function removeLiquiditySinglePtStatic(
-        address market,
-        uint256 netLpToRemove,
-        ApproxParams memory approxParams
-    )
+    function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
         external
         returns (
             uint256 netPtOut,
@@ -146,7 +145,7 @@ library MarketMathStatic {
             pyIndex(market),
             syFromBurn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
 
         netPtOut = ptFromBurn + netPtFromSwap;
@@ -225,11 +224,7 @@ library MarketMathStatic {
     }
 
     /// @dev netPtOut is the parameter to approx
-    function swapExactSyForPtStatic(
-        address market,
-        uint256 exactSyIn,
-        ApproxParams memory approxParams
-    )
+    function swapExactSyForPtStatic(address market, uint256 exactSyIn)
         public
         returns (
             uint256 netPtOut,
@@ -243,7 +238,7 @@ library MarketMathStatic {
             pyIndex(market),
             exactSyIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
         priceImpact = calcPriceImpactPt(market, netPtOut.Int());
 
@@ -253,11 +248,7 @@ library MarketMathStatic {
     }
 
     /// @dev netPtIn is the parameter to approx
-    function swapPtForExactSyStatic(
-        address market,
-        uint256 exactSyOut,
-        ApproxParams memory approxParams
-    )
+    function swapPtForExactSyStatic(address market, uint256 exactSyOut)
         public
         returns (
             uint256 netPtIn,
@@ -272,7 +263,7 @@ library MarketMathStatic {
             pyIndex(market),
             exactSyOut,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
         priceImpact = calcPriceImpactPt(market, netPtIn.neg());
 
@@ -309,11 +300,7 @@ library MarketMathStatic {
     }
 
     /// @dev netYtOut is the parameter to approx
-    function swapExactSyForYtStatic(
-        address market,
-        uint256 exactSyIn,
-        ApproxParams memory approxParams
-    )
+    function swapExactSyForYtStatic(address market, uint256 exactSyIn)
         public
         returns (
             uint256 netYtOut,
@@ -329,7 +316,7 @@ library MarketMathStatic {
             index,
             exactSyIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
 
         priceImpact = calcPriceImpactYt(market, netYtOut.neg());
@@ -365,11 +352,7 @@ library MarketMathStatic {
     }
 
     /// @dev netYtIn is the parameter to approx
-    function swapYtForExactSyStatic(
-        address market,
-        uint256 exactSyOut,
-        ApproxParams memory approxParams
-    )
+    function swapYtForExactSyStatic(address market, uint256 exactSyOut)
         external
         returns (
             uint256 netYtIn,
@@ -386,7 +369,7 @@ library MarketMathStatic {
             index,
             exactSyOut,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
         priceImpact = calcPriceImpactYt(market, netYtIn.Int());
 
@@ -396,11 +379,7 @@ library MarketMathStatic {
     }
 
     // totalPtToSwap is the param to approx
-    function swapExactPtForYt(
-        address market,
-        uint256 exactPtIn,
-        ApproxParams memory approxParams
-    )
+    function swapExactPtForYt(address market, uint256 exactPtIn)
         external
         returns (
             uint256 netYtOut,
@@ -417,7 +396,7 @@ library MarketMathStatic {
             index,
             exactPtIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
         priceImpact = calcPriceImpactPY(market, totalPtToSwap.neg());
 
@@ -427,11 +406,7 @@ library MarketMathStatic {
     }
 
     // totalPtSwapped is the param to approx
-    function swapExactYtForPt(
-        address market,
-        uint256 exactYtIn,
-        ApproxParams memory approxParams
-    )
+    function swapExactYtForPt(address market, uint256 exactYtIn)
         external
         returns (
             uint256 netPtOut,
@@ -448,7 +423,7 @@ library MarketMathStatic {
             index,
             exactYtIn,
             block.timestamp,
-            approxParams
+            getDefaultApproxParams()
         );
 
         priceImpact = calcPriceImpactPY(market, totalPtSwapped.Int());
