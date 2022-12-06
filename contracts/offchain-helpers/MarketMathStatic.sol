@@ -74,7 +74,7 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactPt(market, netPtToSwap.neg());
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     /// @dev netPtFromSwap is the parameter to approx
@@ -112,7 +112,7 @@ library MarketMathStatic {
         (, netLpOut, , ) = state.addLiquidity(netSyIn - netSySwap, netPtFromSwap, block.timestamp);
 
         priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
@@ -154,7 +154,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapSyForExactPt(pyIndex(market), netPtFromSwap, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
@@ -182,7 +182,7 @@ library MarketMathStatic {
 
             netSyOut = syFromBurn + syFromSwap;
             priceImpact = calcPriceImpactPt(market, ptFromBurn.neg());
-            exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+            exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
         }
     }
 
@@ -202,7 +202,7 @@ library MarketMathStatic {
             block.timestamp
         );
         priceImpact = calcPriceImpactPt(market, exactPtIn.neg());
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function swapSyForExactPtStatic(address market, uint256 exactPtOut)
@@ -221,7 +221,7 @@ library MarketMathStatic {
             block.timestamp
         );
         priceImpact = calcPriceImpactPt(market, exactPtOut.Int());
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     /// @dev netPtOut is the parameter to approx
@@ -249,7 +249,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapSyForExactPt(pyIndex(market), netPtOut, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     /// @dev netPtIn is the parameter to approx
@@ -278,7 +278,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapExactPtForSy(pyIndex(market), netPtIn, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -305,7 +305,7 @@ library MarketMathStatic {
         uint256 totalSyNeed = index.assetToSyUp(exactYtOut);
         netSyIn = totalSyNeed.subMax0(syReceived);
 
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     /// @dev netYtOut is the parameter to approx
@@ -336,7 +336,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapSyForExactPt(index, netYtOut, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function swapExactYtForSyStatic(address market, uint256 exactYtIn)
@@ -361,7 +361,7 @@ library MarketMathStatic {
         uint256 amountPYToRedeemSyOut = exactYtIn - amountPYToRepaySyOwed;
 
         netSyOut = index.assetToSy(amountPYToRedeemSyOut);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     /// @dev netYtIn is the parameter to approx
@@ -392,7 +392,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapSyForExactPt(index, netYtIn, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     // totalPtToSwap is the param to approx
@@ -423,7 +423,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapExactPtForSy(index, totalPtToSwap, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     // totalPtSwapped is the param to approx
@@ -455,7 +455,7 @@ library MarketMathStatic {
 
         // Execute swap to calculate exchangeRateAfter
         state.swapSyForExactPt(index, totalPtSwapped, block.timestamp);
-        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
+        exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
     function pyIndex(address market) public returns (PYIndex index) {
@@ -464,15 +464,17 @@ library MarketMathStatic {
         return YT.newIndex();
     }
 
-    function getExchangeRate(address market) public returns (uint256) {
-        return getTradeExchangeRateExcludeFee(market);
-    }
-
     function getTradeExchangeRateExcludeFee(address market) public returns (uint256) {
         if (IPMarket(market).isExpired()) return Math.ONE;
         MarketState memory state = IPMarket(market).readState(address(this));
-        MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
+        return _getTradeExchangeRateExcludeFee(market, state);
+    }
 
+    function _getTradeExchangeRateExcludeFee(address market, MarketState memory state)
+        public
+        returns (uint256)
+    {
+        MarketPreCompute memory comp = state.getMarketPreCompute(pyIndex(market), block.timestamp);
         int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
             state.totalPt,
             comp.totalAsset,

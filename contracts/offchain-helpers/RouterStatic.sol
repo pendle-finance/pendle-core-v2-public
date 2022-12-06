@@ -158,7 +158,7 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         sy = address(SY);
         state = _market.readState(address(this));
         impliedYield = getPtImpliedYield(market);
-        exchangeRate = MarketMathStatic.getExchangeRate(market);
+        exchangeRate = MarketMathStatic.getTradeExchangeRateExcludeFee(market);
     }
 
     // ============= USER INFO =============
