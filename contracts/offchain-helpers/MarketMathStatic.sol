@@ -46,7 +46,8 @@ library MarketMathStatic {
             uint256 netLpOut,
             uint256 netPtToSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -73,6 +74,7 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactPt(market, netPtToSwap.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     /// @dev netPtFromSwap is the parameter to approx
@@ -86,7 +88,8 @@ library MarketMathStatic {
             uint256 netLpOut,
             uint256 netPtFromSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -109,6 +112,7 @@ library MarketMathStatic {
         (, netLpOut, , ) = state.addLiquidity(netSyIn - netSySwap, netPtFromSwap, block.timestamp);
 
         priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
@@ -131,7 +135,8 @@ library MarketMathStatic {
             uint256 netPtOut,
             uint256 netPtFromSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -146,6 +151,7 @@ library MarketMathStatic {
 
         netPtOut = ptFromBurn + netPtFromSwap;
         priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
@@ -153,7 +159,8 @@ library MarketMathStatic {
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -172,6 +179,7 @@ library MarketMathStatic {
 
             netSyOut = syFromBurn + syFromSwap;
             priceImpact = calcPriceImpactPt(market, ptFromBurn.neg());
+            exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
         }
     }
 
@@ -180,7 +188,8 @@ library MarketMathStatic {
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -190,6 +199,7 @@ library MarketMathStatic {
             block.timestamp
         );
         priceImpact = calcPriceImpactPt(market, exactPtIn.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function swapSyForExactPtStatic(address market, uint256 exactPtOut)
@@ -197,7 +207,8 @@ library MarketMathStatic {
         returns (
             uint256 netSyIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -207,6 +218,7 @@ library MarketMathStatic {
             block.timestamp
         );
         priceImpact = calcPriceImpactPt(market, exactPtOut.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     /// @dev netPtOut is the parameter to approx
@@ -219,7 +231,8 @@ library MarketMathStatic {
         returns (
             uint256 netPtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -230,6 +243,7 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPt(market, netPtOut.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     /// @dev netPtIn is the parameter to approx
@@ -242,7 +256,8 @@ library MarketMathStatic {
         returns (
             uint256 netPtIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -254,6 +269,7 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPt(market, netPtIn.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -261,7 +277,8 @@ library MarketMathStatic {
         returns (
             uint256 netSyIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -279,6 +296,7 @@ library MarketMathStatic {
         netSyIn = totalSyNeed.subMax0(syReceived);
 
         priceImpact = calcPriceImpactYt(market, exactYtOut.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     /// @dev netYtOut is the parameter to approx
@@ -291,7 +309,8 @@ library MarketMathStatic {
         returns (
             uint256 netYtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -305,6 +324,7 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactYt(market, netYtOut.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function swapExactYtForSyStatic(address market, uint256 exactYtIn)
@@ -312,7 +332,8 @@ library MarketMathStatic {
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -327,6 +348,7 @@ library MarketMathStatic {
 
         netSyOut = index.assetToSy(amountPYToRedeemSyOut);
         priceImpact = calcPriceImpactYt(market, exactYtIn.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     /// @dev netYtIn is the parameter to approx
@@ -339,7 +361,8 @@ library MarketMathStatic {
         returns (
             uint256 netYtIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -353,6 +376,7 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactYt(market, netYtIn.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     // totalPtToSwap is the param to approx
@@ -366,7 +390,8 @@ library MarketMathStatic {
             uint256 netYtOut,
             uint256 totalPtToSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -379,6 +404,7 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPY(market, totalPtToSwap.neg());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     // totalPtSwapped is the param to approx
@@ -392,7 +418,8 @@ library MarketMathStatic {
             uint256 netPtOut,
             uint256 totalPtSwapped,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         MarketState memory state = IPMarket(market).readState(address(this));
@@ -406,6 +433,7 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactPY(market, totalPtSwapped.Int());
+        exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
     function pyIndex(address market) public returns (PYIndex index) {

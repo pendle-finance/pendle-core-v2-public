@@ -325,7 +325,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netLpOut,
             uint256 netPtToSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -338,7 +339,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netLpOut,
             uint256 netPtFromSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -356,7 +358,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netLpOut,
             uint256 netPtFromSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyIn = previewDepositStatic(
@@ -400,7 +403,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netPtOut,
             uint256 netPtFromSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -416,7 +420,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.removeLiquiditySingleSyStatic(market, netLpToRemove);
@@ -432,12 +437,13 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netBaseTokenOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyOut;
 
-        (netSyOut, netSyFee, priceImpact) = MarketMathStatic.removeLiquiditySingleSyStatic(
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.removeLiquiditySingleSyStatic(
             market,
             netLpToRemove
         );
@@ -450,7 +456,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.swapExactPtForSyStatic(market, exactPtIn);
@@ -461,7 +468,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netSyIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.swapSyForExactPtStatic(market, exactPtOut);
@@ -472,7 +480,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netPtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -484,7 +493,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netPtIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -501,7 +511,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netPtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyIn = previewDepositStatic(
@@ -523,11 +534,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netBaseTokenOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact) = MarketMathStatic.swapExactPtForSyStatic(
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.swapExactPtForSyStatic(
             market,
             exactPtIn
         );
@@ -540,7 +552,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netSyIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.swapSyForExactYtStatic(market, exactYtOut);
@@ -551,7 +564,9 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netYtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
+
         )
     {
         return
@@ -563,7 +578,9 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
+
         )
     {
         return MarketMathStatic.swapExactYtForSyStatic(market, exactYtIn);
@@ -574,7 +591,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netYtIn,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return
@@ -591,11 +609,12 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netBaseTokenOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact) = MarketMathStatic.swapExactYtForSyStatic(
+        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic.swapExactYtForSyStatic(
             market,
             exactYtIn
         );
@@ -613,7 +632,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
         returns (
             uint256 netYtOut,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         uint256 netSyIn = previewDepositStatic(
@@ -632,7 +652,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netYtOut,
             uint256 totalPtToSwap,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.swapExactPtForYt(market, exactPtIn, getDefaultApproxParams());
@@ -644,7 +665,8 @@ contract RouterStatic is Initializable, BoringOwnableUpgradeable, UUPSUpgradeabl
             uint256 netPtOut,
             uint256 totalPtSwapped,
             uint256 netSyFee,
-            uint256 priceImpact
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
         )
     {
         return MarketMathStatic.swapExactYtForPt(market, exactYtIn, getDefaultApproxParams());
