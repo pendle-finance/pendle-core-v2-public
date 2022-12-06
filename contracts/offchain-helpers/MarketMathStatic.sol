@@ -151,6 +151,9 @@ library MarketMathStatic {
 
         netPtOut = ptFromBurn + netPtFromSwap;
         priceImpact = calcPriceImpactPt(market, netPtFromSwap.Int());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapSyForExactPt(pyIndex(market), netPtFromSwap, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -243,6 +246,9 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPt(market, netPtOut.Int());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapSyForExactPt(pyIndex(market), netPtOut, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -269,6 +275,9 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPt(market, netPtIn.neg());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapExactPtForSy(pyIndex(market), netPtIn, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -281,8 +290,9 @@ library MarketMathStatic {
             uint256 exchangeRateAfter
         )
     {
-        MarketState memory state = IPMarket(market).readState(address(this));
+        priceImpact = calcPriceImpactYt(market, exactYtOut.neg());
 
+        MarketState memory state = IPMarket(market).readState(address(this));
         PYIndex index = pyIndex(market);
 
         uint256 syReceived;
@@ -295,7 +305,6 @@ library MarketMathStatic {
         uint256 totalSyNeed = index.assetToSyUp(exactYtOut);
         netSyIn = totalSyNeed.subMax0(syReceived);
 
-        priceImpact = calcPriceImpactYt(market, exactYtOut.neg());
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -324,6 +333,9 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactYt(market, netYtOut.neg());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapSyForExactPt(index, netYtOut, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -336,6 +348,8 @@ library MarketMathStatic {
             uint256 exchangeRateAfter
         )
     {
+        priceImpact = calcPriceImpactYt(market, exactYtIn.Int());
+
         MarketState memory state = IPMarket(market).readState(address(this));
 
         PYIndex index = pyIndex(market);
@@ -347,7 +361,6 @@ library MarketMathStatic {
         uint256 amountPYToRedeemSyOut = exactYtIn - amountPYToRepaySyOwed;
 
         netSyOut = index.assetToSy(amountPYToRedeemSyOut);
-        priceImpact = calcPriceImpactYt(market, exactYtIn.Int());
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -376,6 +389,9 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactYt(market, netYtIn.Int());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapSyForExactPt(index, netYtIn, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -404,6 +420,9 @@ library MarketMathStatic {
             approxParams
         );
         priceImpact = calcPriceImpactPY(market, totalPtToSwap.neg());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapExactPtForSy(index, totalPtToSwap, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
@@ -433,6 +452,9 @@ library MarketMathStatic {
         );
 
         priceImpact = calcPriceImpactPY(market, totalPtSwapped.Int());
+
+        // Execute swap to calculate exchangeRateAfter
+        state.swapSyForExactPt(index, totalPtSwapped, block.timestamp);
         exchangeRateAfter = getTradeExchangeRateExcludeFee(market);
     }
 
