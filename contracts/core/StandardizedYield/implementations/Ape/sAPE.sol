@@ -4,12 +4,13 @@ pragma solidity 0.8.17;
 import "../../SYBase.sol";
 import "../../../../interfaces/IApeStaking.sol";
 
-contract PendleApeStakingSY is SYBase {
+contract sAPE is SYBase {
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
     uint256 public constant MIN_APE_DEPOSIT = 10**18;
     uint256 public constant EPOCH_LENGTH = 1 hours;
+    uint256 private constant MINIMUM_LIQUIDITY = 1e9;
 
     address public immutable apeStaking;
     address public immutable apeCoin;
@@ -21,9 +22,7 @@ contract PendleApeStakingSY is SYBase {
         string memory _symbol,
         address _apeCoin,
         address _apeStaking
-    )
-        SYBase(_name, _symbol, _apeCoin) 
-    {
+    ) SYBase(_name, _symbol, _apeCoin) {
         apeStaking = _apeStaking;
         apeCoin = _apeCoin;
         lastRewardClaimedEpoch = _getCurrentEpochId();
@@ -44,11 +43,12 @@ contract PendleApeStakingSY is SYBase {
         _harvestAndCompound();
 
         // As SY Base is pulling the tokenIn first, the totalAsset should exclude user's deposit
-        uint256 priorTotalAssetOwned = getTotalAssetOwned() - amountDeposited;
 
         if (totalSupply() == 0) {
-            amountSharesOut = amountDeposited;
+            amountSharesOut = amountDeposited - MINIMUM_LIQUIDITY;
+            _mint(address(1), MINIMUM_LIQUIDITY);
         } else {
+            uint256 priorTotalAssetOwned = getTotalAssetOwned() - amountDeposited;
             // The upcoming calculation can be reduced to amountDeposited.divDown(exchangeRate())
             // The following calculation is choosen instead to minimize precision error
             amountSharesOut = (amountDeposited * totalSupply()) / priorTotalAssetOwned;
@@ -60,7 +60,7 @@ contract PendleApeStakingSY is SYBase {
         address,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
-        _harvestAndCompound();
+        _harvest();
 
         // As SY is burned before calling _redeem(), we should account for priorSupply
         uint256 priorTotalSupply = totalSupply() + amountSharesToRedeem;
@@ -81,19 +81,17 @@ contract PendleApeStakingSY is SYBase {
             );
         }
         _transferOut(apeCoin, receiver, amountTokenOut);
+        _compound();
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
+        // This function is intentionally left reverted when the contract does not have any fund
         return getTotalAssetOwned().divDown(totalSupply());
     }
 
     /*///////////////////////////////////////////////////////////////
                 AUTOCOMPOUND FEATURE
     //////////////////////////////////////////////////////////////*/
-
-    function harvestAndCompound() external {
-        _harvestAndCompound();
-    }
 
     function getTotalAssetOwned() public view returns (uint256 totalAssetOwned) {
         (uint256 stakedAmount, ) = IApeStaking(apeStaking).addressPosition(address(this));
@@ -106,19 +104,31 @@ contract PendleApeStakingSY is SYBase {
         totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
     }
 
-    function _harvestAndCompound() internal {
-        // Claim reward
-        uint256 currentEpochId = _getCurrentEpochId();
-        if (currentEpochId != lastRewardClaimedEpoch) {
-            IApeStaking(apeStaking).claimSelfApeCoin();
-            lastRewardClaimedEpoch = currentEpochId;
-        }
+    function harvestAndCompound() external {
+        _harvestAndCompound();
+    }
 
+    function _harvestAndCompound() internal {
         // Deposit APE
+        _harvest();
+        _compound();
+    }
+
+    function _compound() internal {
         uint256 amountAssetToCompound = _selfBalance(apeCoin);
         if (amountAssetToCompound >= MIN_APE_DEPOSIT) {
             IApeStaking(apeStaking).depositSelfApeCoin(amountAssetToCompound);
         }
+    }
+
+    function _harvest() internal {
+        // Claim reward
+        uint256 currentEpochId = _getCurrentEpochId();
+        if (currentEpochId == lastRewardClaimedEpoch) {
+            return;
+        }
+        IApeStaking(apeStaking).claimSelfApeCoin();
+        lastRewardClaimedEpoch = currentEpochId;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -146,7 +156,6 @@ contract PendleApeStakingSY is SYBase {
     {
         amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / totalSupply();
     }
-
 
     function _getCurrentEpochId() private view returns (uint256) {
         return block.timestamp / EPOCH_LENGTH;
