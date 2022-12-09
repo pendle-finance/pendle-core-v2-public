@@ -322,7 +322,7 @@ library MarketMathStatic {
         priceImpact = calcPriceImpactYt(market, netYtOut.neg());
 
         // Execute swap to calculate exchangeRateAfter
-        state.swapSyForExactPt(index, netYtOut, block.timestamp);
+        state.swapExactPtForSy(index, netYtOut, block.timestamp);
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
