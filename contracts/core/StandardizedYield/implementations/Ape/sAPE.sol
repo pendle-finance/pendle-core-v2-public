@@ -85,7 +85,7 @@ contract sAPE is SYBase {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        // This function is intentionally left reverted when the contract does not have any fund
+        // This function is intentionally left reverted when totalSupply() = 0
         return getTotalAssetOwned().divDown(totalSupply());
     }
 
@@ -141,11 +141,8 @@ contract sAPE is SYBase {
         override
         returns (uint256 amountSharesOut)
     {
-        if (totalSupply() == 0) {
-            amountSharesOut = amountTokenToDeposit;
-        } else {
-            amountSharesOut = (amountTokenToDeposit * totalSupply()) / getTotalAssetOwned();
-        }
+        // This function is intentionally left reverted when totalSupply() = 0
+        amountSharesOut = (amountTokenToDeposit * totalSupply()) / getTotalAssetOwned();
     }
 
     function _previewRedeem(address, uint256 amountSharesToRedeem)
