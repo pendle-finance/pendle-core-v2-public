@@ -29,13 +29,26 @@ contract sAPE is SYBase {
         _safeApproveInf(apeCoin, apeStaking);
     }
 
+    function wrap(uint256 amountTokenIn) external {
+        _transferIn(apeCoin, msg.sender, amountTokenIn);
+        uint256 amountSharesOut = _deposit(apeCoin, amountTokenIn);
+        _mint(msg.sender, amountSharesOut);
+        emit Deposit(msg.sender, msg.sender, apeCoin, amountTokenIn, amountSharesOut);
+    }
+
+    function unwrap(uint256 amountShares) external {
+        _burn(msg.sender, amountShares);
+        uint256 amountTokenOut = _redeem(msg.sender, apeCoin, amountShares);
+        emit Redeem(msg.sender, msg.sender, apeCoin, amountShares, amountTokenOut);
+    }
+
     function _deposit(address, uint256 amountDeposited)
         internal
         virtual
         override
         returns (uint256 amountSharesOut)
     {
-        // Respecting APE's deposit invariant & prevent frontrunning on deployment
+        // Respecting APE's deposit invariant
         if (amountDeposited < MIN_APE_DEPOSIT) {
             revert Errors.SYApeDepositAmountTooSmall(amountDeposited);
         }
@@ -43,14 +56,11 @@ contract sAPE is SYBase {
         _harvestAndCompound();
 
         // As SY Base is pulling the tokenIn first, the totalAsset should exclude user's deposit
-
         if (totalSupply() == 0) {
             amountSharesOut = amountDeposited - MINIMUM_LIQUIDITY;
             _mint(address(1), MINIMUM_LIQUIDITY);
         } else {
             uint256 priorTotalAssetOwned = getTotalAssetOwned() - amountDeposited;
-            // The upcoming calculation can be reduced to amountDeposited.divDown(exchangeRate())
-            // The following calculation is choosen instead to minimize precision error
             amountSharesOut = (amountDeposited * totalSupply()) / priorTotalAssetOwned;
         }
     }
@@ -68,8 +78,6 @@ contract sAPE is SYBase {
         if (amountSharesToRedeem == priorTotalSupply) {
             amountTokenOut = getTotalAssetOwned();
         } else {
-            // The upcoming calculation can be reduced to amountSharesToRedeem.mulDown(exchangeRate())
-            // The following calculation is choosen instead to minimize precision error
             amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / priorTotalSupply;
         }
 
@@ -109,7 +117,6 @@ contract sAPE is SYBase {
     }
 
     function _harvestAndCompound() internal {
-        // Deposit APE
         _harvest();
         _compound();
     }
@@ -122,7 +129,6 @@ contract sAPE is SYBase {
     }
 
     function _harvest() internal {
-        // Claim reward
         uint256 currentEpochId = _getCurrentEpochId();
         if (currentEpochId == lastRewardClaimedEpoch) {
             return;
@@ -151,6 +157,7 @@ contract sAPE is SYBase {
         override
         returns (uint256 amountTokenOut)
     {
+        // This function is intentionally left reverted when totalSupply() = 0
         amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / totalSupply();
     }
 
