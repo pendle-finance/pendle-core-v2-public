@@ -83,7 +83,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         else {
             uint256 netSyReceived = _selfBalance(SY) - state.totalSy;
             if (netSyReceived < exactSyIn)
-                revert Errors.BulkInsufficientSyReceived(exactSyIn, netSyReceived);
+                revert Errors.BulkInsufficientSyReceived(netSyReceived, exactSyIn);
         }
 
         netTokenOut = state.swapExactSyForToken(exactSyIn);
