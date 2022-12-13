@@ -8,30 +8,52 @@ import "../../../../../interfaces/Balancer/IGauge.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IAsset.sol";
 import "../../../../../interfaces/Balancer/IBasePool.sol";
+import "../../../../../interfaces/ConvexCurve/IBooster.sol";
+import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../libraries/ArrayLib.sol";
 
 abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
 
-    address public constant VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-    address public constant GAUGE_FACTORY = 0x4E7bBd911cf1EFa442BC1b2e9Ea01ffE785412EC;
+    address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    address public constant BALANCER_GAUGE_FACTORY = 0x4E7bBd911cf1EFa442BC1b2e9Ea01ffE785412EC;
     address public constant BAL_TOKEN = 0xba100000625a3754423978a60c9317c58a424e3D;
+    address public constant AURA_BOOSTER = 0x7818A1DA7BD1E64c199029E86Ba244a9798eEE10;
+    address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
+
     address public immutable balancerLp;
     bytes32 public immutable poolId;
+    uint256 public immutable auraPid;
+    address public immutable auraRewardManager;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _balancerLp
+        address _balancerLp,
+        uint256 _auraPid
     ) SYBaseWithRewards(_name, _symbol, _balancerLp) {
-        balancerLp = _balancerLp;
         poolId = IBasePool(_balancerLp).getPoolId();
+        auraPid = _auraPid;
+
+        (balancerLp, auraRewardManager) = _getPoolInfo(_auraPid);
+        if (balancerLp != _balancerLp) revert Errors.SYBalancerInvalidPid();
 
         address[] memory tokens = _getPoolTokens();
         for (uint i = 0; i < tokens.length; ++i) {
-            _safeApproveInf(tokens[i], VAULT);
+            _safeApproveInf(tokens[i], BALANCER_VAULT);
         }
+        _safeApproveInf(_balancerLp, AURA_BOOSTER);
+    }
+
+    function _getPoolInfo(uint256 _auraPid)
+        internal
+        view
+        returns (address _auraLp, address _auraRewardManager)
+    {
+        if (_auraPid > IBooster(AURA_BOOSTER).poolLength()) revert Errors.SYBalancerInvalidPid();
+
+        (_auraLp, , , _auraRewardManager, , ) = IBooster(AURA_BOOSTER).poolInfo(_auraPid);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -50,6 +72,8 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
         } else {
             amountSharesOut = _depositToBalancerSingleToken(tokenIn, amount);
         }
+
+        IBooster(AURA_BOOSTER).deposit(auraPid, amountSharesOut, true);
     }
 
     /**
@@ -60,6 +84,8 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
+        IRewards(auraRewardManager).withdrawAndUnwrap(amountSharesToRedeem, false);
+
         if (tokenOut == balancerLp) {
             amountTokenOut = amountSharesToRedeem;
         } else {
@@ -75,27 +101,22 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     /**
      * 
      */
-    function exchangeRate() public view virtual override returns (uint256) {}
+    function exchangeRate() public view virtual override returns (uint256) {
+        // TODO
+    }
 
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
     function _getRewardTokens() internal view virtual override returns (address[] memory res) {
-        address gauge = ILiquidityGaugeFactory(GAUGE_FACTORY).getPoolGauge(balancerLp);
-        uint256 len = IGauge(gauge).reward_count();
-
-        res = new address[](len+1);
-        for (uint i = 0; i < len; i++) {
-            res[i+1] = IGauge(gauge).reward_tokens(i);
-        }
+        res = new address[](2);
         res[0] = BAL_TOKEN;
+        res[1] = AURA_TOKEN;
     }
 
     function _redeemExternalReward() internal virtual override {
-        // Redeem all extra rewards from the balancer pool
-        address gauge = ILiquidityGaugeFactory(GAUGE_FACTORY).getPoolGauge(balancerLp);
-        IGauge(gauge).claim_rewards(address(this), address(this));
+        IRewards(auraRewardManager).getReward();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -124,7 +145,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
 
     function _getPoolTokens() internal view virtual returns (address[] memory res) {
         IERC20[] memory tokens;
-        (tokens, , ) = IVault(VAULT).getPoolTokens(poolId);
+        (tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(poolId);
 
         res = new address[](tokens.length);
         for (uint i = 0; i < tokens.length; ++i) {
