@@ -19,7 +19,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     address public constant BALANCER_GAUGE_FACTORY = 0x4E7bBd911cf1EFa442BC1b2e9Ea01ffE785412EC;
     address public constant BAL_TOKEN = 0xba100000625a3754423978a60c9317c58a424e3D;
-    address public constant AURA_BOOSTER = 0x7818A1DA7BD1E64c199029E86Ba244a9798eEE10;
+    address public constant AURA_BOOSTER = 0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
 
     address public immutable balancerLp;
