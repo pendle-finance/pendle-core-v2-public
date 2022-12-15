@@ -138,8 +138,14 @@ library Errors {
     error ExpiryInThePast(uint256 expiry);
     error ChainNotSupported(uint256 chainId);
 
-    error FDCantFundFutureEpoch();
+    error FDNotAdmin();
+    error FDEpochLengthMismatch();
+    error FDUserSharesNotUpdatedToEpoch(uint256 userEpoch, uint256 epoch);
+    error FDAlreadyExists(address pool, address distributor);
+    error FDInvalidEpoch(uint256 epoch, uint256 startTime, uint256 currentWeekStart);
     error FDFactoryDistributorAlreadyExisted(address pool, address distributor);
+
+    error BDInvalidEpoch(uint256 epoch, uint256 startTime);
 
     // Cross-Chain
     error MsgNotFromSendEndpoint(uint16 srcChainId, bytes path);

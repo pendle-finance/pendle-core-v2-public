@@ -2,13 +2,15 @@
 pragma solidity 0.8.17;
 
 interface IPFeeDistributorFactory {
-    function lastFinishedEpoch() external returns (uint256);
+    event UpgradedBeacon(address indexed implementation);
 
-    function updateUserShare(address user, address pool) external;
+    function updateShares(address user, address pool) external;
 
     function getUserAndTotalSharesAt(
         address user,
         address pool,
         uint256 epoch
     ) external view returns (uint256 userShare, uint256 totalShare);
+
+    function isAdmin(address addr) external view returns (bool);
 }

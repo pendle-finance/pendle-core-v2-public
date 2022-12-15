@@ -11,7 +11,7 @@ interface IPFeeDistributor {
         uint256 totalReward
     );
 
-    function fund(uint256[] calldata rewardsForEpoch) external;
+    function fund(uint256[] calldata epochs, uint256[] calldata rewardsForEpoch) external;
 
     function claimReward(address user) external returns (uint256 amountRewardOut);
 
