@@ -99,8 +99,12 @@ abstract contract PendleBalancerCommonPoolSY is PendleBalancerLPSY {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    PREVIEWS
+                    ABSTRACTS
     //////////////////////////////////////////////////////////////*/
+
+    function getTokensIn() public view virtual override returns (address[] memory res);
+
+    function getTokensOut() public view virtual override returns (address[] memory res);
 
     function _previewDepositToBalancerSingleToken(
         address token,

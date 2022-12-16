@@ -23,7 +23,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
 
     address public immutable balancerLp;
-    bytes32 public immutable poolId;
+    bytes32 public immutable balancerPoolId;
     uint256 public immutable auraPid;
     address public immutable auraRewardManager;
 
@@ -33,7 +33,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
         address _balancerLp,
         uint256 _auraPid
     ) SYBaseWithRewards(_name, _symbol, _balancerLp) {
-        poolId = IBasePool(_balancerLp).getPoolId();
+        balancerPoolId = IBasePool(_balancerLp).getPoolId();
         auraPid = _auraPid;
 
         (balancerLp, auraRewardManager) = _getPoolInfo(_auraPid);
@@ -123,29 +123,18 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
                     MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function getTokensIn() public view virtual override returns (address[] memory res) {
-        address[] memory tokens = _getPoolTokens();
+    /**
+     * @dev this is made abstract because getPoolTokens() for the WSTETH-RETH-FRXETH pool also 
+     * returns the BPT itself along with the three pool tokens. This is not the case for most other
+     * Balancer pools.
+     */
+    function getTokensIn() public view virtual override returns (address[] memory res);
 
-        res = new address[](tokens.length + 1);
-        for (uint i = 0; i < tokens.length; ++i) {
-            res[i] = address(tokens[i]);
-        }
-        res[tokens.length] = balancerLp;
-    }
-
-    function getTokensOut() public view virtual override returns (address[] memory res) {
-        address[] memory tokens = _getPoolTokens();
-
-        res = new address[](tokens.length + 1);
-        for (uint i = 0; i < tokens.length; ++i) {
-            res[i] = address(tokens[i]);
-        }
-        res[tokens.length] = balancerLp;
-    }
+    function getTokensOut() public view virtual override returns (address[] memory res);
 
     function _getPoolTokens() internal view virtual returns (address[] memory res) {
         IERC20[] memory tokens;
-        (tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(poolId);
+        (tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(balancerPoolId);
 
         res = new address[](tokens.length);
         for (uint i = 0; i < tokens.length; ++i) {
