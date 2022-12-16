@@ -32,4 +32,6 @@ contract FeeDistributor is DistributorBase {
             revert Errors.FDInvalidEpoch(epoch, startEpoch, currentWeekStart);
         }
     }
+
+    uint256[100] private _gaps;
 }

@@ -16,4 +16,6 @@ contract BribeDistributor is DistributorBase {
             revert Errors.BDInvalidEpoch(epoch, startEpoch);
         }
     }
+
+    uint256[100] private _gaps;
 }

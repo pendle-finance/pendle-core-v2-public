@@ -91,4 +91,6 @@ abstract contract DistributorBase is IPFeeDistributor, Initializable {
     function _getLastFinishedEpoch() internal view virtual returns (uint256);
 
     function _ensureFundingValidEpoch(uint256 epoch) internal view virtual;
+
+    uint256[100] private _gaps;
 }
