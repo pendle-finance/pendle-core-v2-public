@@ -57,7 +57,7 @@ abstract contract PendleBalancerCommonPoolSY is PendleBalancerLPSY {
         // transfer directly to the vault to use internal balance
         IERC20(tokenIn).safeTransfer(BALANCER_VAULT, amountTokenToDeposit);
         
-        IVault(BALANCER_VAULT).joinPool(poolId, address(this), address(this), request);
+        IVault(BALANCER_VAULT).joinPool(balancerPoolId, address(this), address(this), request);
 
         // calculate shares received and return
         uint256 balanceAfter = IERC20(balancerLp).balanceOf(address(this));
@@ -92,7 +92,7 @@ abstract contract PendleBalancerCommonPoolSY is PendleBalancerLPSY {
             false
         );
 
-        IVault(BALANCER_VAULT).exitPool(poolId, address(this), payable(address(this)), request);
+        IVault(BALANCER_VAULT).exitPool(balancerPoolId, address(this), payable(address(this)), request);
 
         // tokens received = tokens out
         return IERC20(tokenOut).balanceOf(address(this));
