@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IMultihopRouter.sol";
+import "./IMultihopRouterEthereum.sol";
 import "./IAggregatorRouterHelper.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
@@ -40,8 +40,7 @@ contract AggregationRouterHelper is
         BALANCERV2,
         KYBERRFQ,
         DODO,
-        VELODROME,
-        PLATYPUS
+        WSTETH
     }
 
     struct SwapDescription {
@@ -65,7 +64,7 @@ contract AggregationRouterHelper is
     }
 
     struct SwapExecutorDescription {
-        IMultihopRouter.Swap[][] swapSequences;
+        IMultihopRouterEthereum.Swap[][] swapSequences;
         address tokenIn;
         address tokenOut;
         uint256 minTotalAmountOut;
@@ -178,7 +177,7 @@ contract AggregationRouterHelper is
 
         uint256 newTotalSwapAmount;
         for (uint256 i = 0; i < swapExecutorDescription.swapSequences.length; i++) {
-            IMultihopRouter.Swap memory swap = swapExecutorDescription.swapSequences[i][0];
+            IMultihopRouterEthereum.Swap memory swap = swapExecutorDescription.swapSequences[i][0];
             uint8 dexType = uint8(swap.dexOption >> 8);
             uint256 value;
             if (i == swapExecutorDescription.swapSequences.length - 1)
@@ -200,8 +199,8 @@ contract AggregationRouterHelper is
                 revert("kyber: can't scale kyberrfq");
             } else if (dexType == uint8(DexType.DODO)) {
                 (swap.data, value) = _newDODOSwap(swap.data, value, oldAmount, newAmount);
-            } else if (dexType == uint8(DexType.VELODROME)) {
-                (swap.data, value) = _newVelodromeSwap(swap.data, value, oldAmount, newAmount);
+            } else if (dexType == uint8(DexType.WSTETH)) {
+                (swap.data, value) = _newWrappedstETHSwap(swap.data, value, oldAmount, newAmount);
             } else {
                 revert("AggregationExecutor: Dex type not supported");
             }
@@ -216,7 +215,10 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.UniSwap memory uniSwap = abi.decode(data, (IMultihopRouter.UniSwap));
+        IMultihopRouterEthereum.UniSwap memory uniSwap = abi.decode(
+            data,
+            (IMultihopRouterEthereum.UniSwap)
+        );
         if (value > 0) uniSwap.collectAmount = value;
         else uniSwap.collectAmount = (uniSwap.collectAmount * newAmount) / oldAmount;
         return (abi.encode(uniSwap), uniSwap.collectAmount);
@@ -228,9 +230,9 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.StableSwap memory stableSwap = abi.decode(
+        IMultihopRouterEthereum.StableSwap memory stableSwap = abi.decode(
             data,
-            (IMultihopRouter.StableSwap)
+            (IMultihopRouterEthereum.StableSwap)
         );
         if (value > 0) stableSwap.dx = value;
         else stableSwap.dx = (stableSwap.dx * newAmount) / oldAmount;
@@ -243,7 +245,10 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.CurveSwap memory curveSwap = abi.decode(data, (IMultihopRouter.CurveSwap));
+        IMultihopRouterEthereum.CurveSwap memory curveSwap = abi.decode(
+            data,
+            (IMultihopRouterEthereum.CurveSwap)
+        );
         if (value > 0) curveSwap.dx = value;
         else curveSwap.dx = (curveSwap.dx * newAmount) / oldAmount;
         return (abi.encode(curveSwap), curveSwap.dx);
@@ -255,7 +260,10 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.UniSwap memory kyberDMMSwap = abi.decode(data, (IMultihopRouter.UniSwap));
+        IMultihopRouterEthereum.UniSwap memory kyberDMMSwap = abi.decode(
+            data,
+            (IMultihopRouterEthereum.UniSwap)
+        );
         if (value > 0) kyberDMMSwap.collectAmount = value;
         else kyberDMMSwap.collectAmount = (kyberDMMSwap.collectAmount * newAmount) / oldAmount;
         return (abi.encode(kyberDMMSwap), kyberDMMSwap.collectAmount);
@@ -267,9 +275,9 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.UniSwapV3ProMM memory uniSwapV3ProMM = abi.decode(
+        IMultihopRouterEthereum.UniSwapV3ProMM memory uniSwapV3ProMM = abi.decode(
             data,
-            (IMultihopRouter.UniSwapV3ProMM)
+            (IMultihopRouterEthereum.UniSwapV3ProMM)
         );
         if (value > 0) uniSwapV3ProMM.swapAmount = value;
         else uniSwapV3ProMM.swapAmount = (uniSwapV3ProMM.swapAmount * newAmount) / oldAmount;
@@ -282,9 +290,9 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.BalancerV2 memory balancerV2 = abi.decode(
+        IMultihopRouterEthereum.BalancerV2 memory balancerV2 = abi.decode(
             data,
-            (IMultihopRouter.BalancerV2)
+            (IMultihopRouterEthereum.BalancerV2)
         );
         if (value > 0) balancerV2.amount = value;
         else balancerV2.amount = (balancerV2.amount * newAmount) / oldAmount;
@@ -297,21 +305,27 @@ contract AggregationRouterHelper is
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.DODO memory dodo = abi.decode(data, (IMultihopRouter.DODO));
+        IMultihopRouterEthereum.DODO memory dodo = abi.decode(
+            data,
+            (IMultihopRouterEthereum.DODO)
+        );
         if (value > 0) dodo.amount = value;
         else dodo.amount = (dodo.amount * newAmount) / oldAmount;
         return (abi.encode(dodo), dodo.amount);
     }
 
-    function _newVelodromeSwap(
+    function _newWrappedstETHSwap(
         bytes memory data,
         uint256 value,
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory, uint256) {
-        IMultihopRouter.UniSwap memory velodrome = abi.decode(data, (IMultihopRouter.UniSwap));
-        if (value > 0) velodrome.collectAmount = value;
-        else velodrome.collectAmount = (velodrome.collectAmount * newAmount) / oldAmount;
-        return (abi.encode(velodrome), velodrome.collectAmount);
+        IMultihopRouterEthereum.WSTETH memory wstEthData = abi.decode(
+            data,
+            (IMultihopRouterEthereum.WSTETH)
+        );
+        if (value > 0) wstEthData.amount = value;
+        else wstEthData.amount = (wstEthData.amount * newAmount) / oldAmount;
+        return (abi.encode(wstEthData), wstEthData.amount);
     }
 }

@@ -1,10 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.6;
+pragma solidity 0.8.17;
 
-pragma abicoder v2;
-
-interface IMultihopRouter {
+interface IMultihopRouterEthereum {
     enum DexType {
         UNI,
         STABLESWAP,
@@ -15,8 +13,7 @@ interface IMultihopRouter {
         BALANCERV2,
         KYBERRFQ,
         DODO,
-        VELODROME,
-        PLATYPUS
+        WSTETH
     }
 
     event Exchange(address pair, uint256 amountOut, address output);
@@ -32,11 +29,16 @@ interface IMultihopRouter {
         //  6: balancerv2
         //  7: kyber RFQ
         //  8: dodo
-        //  9: velodrome
-        //  10: platypus
+        //  9: wstETH: Lido wrapped stETH
         //dexId:
         //  0: firebird
         uint16 dexOption; //dexType(8bit) + dexId(8bit)
+    }
+
+    struct WSTETH {
+        address pool;
+        uint256 amount;
+        bool isWrapping;
     }
 
     struct UniSwap {
