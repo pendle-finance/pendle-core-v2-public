@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../EpochResultManager.sol";
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../../core/libraries/Errors.sol";
+import "../../../interfaces/IPFeeDistributorFactory.sol";
 
 contract PendleFeeDistributorFactory is
     UUPSUpgradeable,
     BoringOwnableUpgradeable,
-    IPFeeDistributorFactory,
-    EpochResultManager
+    IPFeeDistributorFactory
 {
-    using Math for uint256;
-
     address public implementation;
     address public immutable rewardToken;
+    address public immutable vePendle;
+    address public immutable votingController;
 
     struct FeeDistributorInfo {
         address distributor;
@@ -28,7 +29,9 @@ contract PendleFeeDistributorFactory is
         address _votingController,
         address _vePendle,
         address _rewardToken
-    ) EpochResultManager(_votingController, _vePendle) initializer {
+    ) initializer {
+        votingController = _votingController;
+        vePendle = _vePendle;
         rewardToken = _rewardToken;
     }
 
@@ -49,7 +52,9 @@ contract PendleFeeDistributorFactory is
             revert Errors.FDAlreadyExists(pool, feeDistributors[pool].distributor);
 
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,uint256,address)",
+            "initialize(address,address,address,address,uint256,address)",
+            votingController,
+            vePendle,
             pool,
             rewardToken,
             startTime,
@@ -63,10 +68,6 @@ contract PendleFeeDistributorFactory is
         });
 
         return distributor;
-    }
-
-    function _getPoolStartTime(address pool) internal view virtual override returns (uint64) {
-        return feeDistributors[pool].startTime;
     }
 
     function isAdmin(address addr) public view override returns (bool) {

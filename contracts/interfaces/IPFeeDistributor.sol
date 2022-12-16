@@ -6,9 +6,8 @@ interface IPFeeDistributor {
 
     event ClaimReward(
         address indexed user,
-        address indexed rewardToken,
-        uint256 lastEpochClaimed,
-        uint256 totalReward
+        uint256 epoch,
+        uint256 amountReward
     );
 
     function fund(uint256[] calldata epochs, uint256[] calldata rewardsForEpoch) external;
