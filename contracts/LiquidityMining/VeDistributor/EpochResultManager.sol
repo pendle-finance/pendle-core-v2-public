@@ -76,7 +76,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
         uint256 iter = userInfo[user][pool].iter;
         Checkpoint memory checkpoint = _getUserCheckpointAt(user, pool, iter);
 
-        while (userEpoch < latestEpoch) {
+        while (userEpoch <= latestEpoch) {
             if (iter + 1 < length) {
                 // We have at most 1 checkpoint per week, so while loop is not needed
                 Checkpoint memory nextCheckpoint = _getUserCheckpointAt(user, pool, iter + 1);
@@ -94,7 +94,7 @@ abstract contract EpochResultManager is IPFeeDistributorFactory {
             userEpoch += WeekMath.WEEK;
         }
 
-        userInfo[user][pool] = UserInfo({ timestamp: latestEpoch, iter: uint128(iter) });
+        userInfo[user][pool] = UserInfo({ timestamp: userEpoch, iter: uint128(iter) });
     }
 
     function _updatePool(address pool) internal {

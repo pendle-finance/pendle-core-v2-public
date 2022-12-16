@@ -65,7 +65,7 @@ abstract contract DistributorBase is IPFeeDistributor, Initializable {
         uint256 finishedEpoch = _getLastFinishedEpoch();
         uint256 userEpoch = userUnclaimedEpoch[user];
 
-        if (userEpoch == finishedEpoch) return 0;
+        if (userEpoch > finishedEpoch) return 0;
 
         // Since totalShare should strictly be 0 by startEpoch. We can skip this epoch.
         if (userEpoch == 0) userEpoch = startEpoch + WeekMath.WEEK;
@@ -75,13 +75,12 @@ abstract contract DistributorBase is IPFeeDistributor, Initializable {
             (uint256 userShare, uint256 totalShare) = IPFeeDistributorFactory(factory)
                 .getUserAndTotalSharesAt(user, pool, userEpoch);
 
-            if (userShare == 0) continue;
-
-            amountRewardOut += (userShare * incentive) / totalShare;
             userEpoch += WeekMath.WEEK;
+            if (userShare == 0) continue;
+            amountRewardOut += (userShare * incentive) / totalShare;
         }
 
-        userUnclaimedEpoch[user] = finishedEpoch;
+        userUnclaimedEpoch[user] = userEpoch;
         if (amountRewardOut > 0) {
             IERC20(rewardToken).safeTransfer(user, amountRewardOut);
         }
