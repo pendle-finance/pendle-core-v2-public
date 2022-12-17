@@ -12,7 +12,7 @@ import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../libraries/ArrayLib.sol";
 
-abstract contract PendleBalancerLPSY is SYBaseWithRewards {
+abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
 

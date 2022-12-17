@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./base/PendleBalancerLPSY.sol";
+import "./base/PendleAuraBalancerLPSY.sol";
 import "../../../../interfaces/Balancer/IVault.sol";
 import "../../../../interfaces/Balancer/IBasePool.sol";
 import "./base/StableMath.sol";
@@ -10,7 +10,7 @@ import "./base/StablePoolUserData.sol";
 import "./base/Balancer3EthPoolHelper.sol";
 
 // TODO support recovery mode
-contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
+contract PendleAuraWstEthREthFrxEthSY is PendleAuraBalancerLPSY {
     using SafeERC20 for IERC20;
 
     uint256 constant PID = 13;
@@ -19,7 +19,7 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
     constructor(
         string memory _name,
         string memory _symbol
-    ) PendleBalancerLPSY(_name, _symbol, POOL, PID) {}
+    ) PendleAuraBalancerLPSY(_name, _symbol, POOL, PID) {}
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
         return _getPoolTokens();
