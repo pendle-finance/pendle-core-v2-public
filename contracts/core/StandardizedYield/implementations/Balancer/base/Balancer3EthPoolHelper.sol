@@ -48,6 +48,15 @@ library Balancer3EthPoolHelper {
         amountBptOut = _joinOrExit(0, poolId, sender, recipient, _toPoolBalanceChange(request));
     }
 
+    function exitPoolPreview(
+        bytes32 poolId,
+        address sender,
+        address recipient,
+        IVault.ExitPoolRequest memory request
+    ) internal view returns (uint256 amountTokenOut) {
+        amountTokenOut = _joinOrExit(1, poolId, sender, recipient, _toPoolBalanceChange(request));
+    }
+
     function _joinOrExit(
         uint256 kind,
         bytes32 poolId,
@@ -144,6 +153,15 @@ library Balancer3EthPoolHelper {
 
     function _toPoolBalanceChange(
         IVault.JoinPoolRequest memory request
+    ) private pure returns (PoolBalanceChange memory change) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            change := request
+        }
+    }
+
+    function _toPoolBalanceChange(
+        IVault.ExitPoolRequest memory request
     ) private pure returns (PoolBalanceChange memory change) {
         // solhint-disable-next-line no-inline-assembly
         assembly {

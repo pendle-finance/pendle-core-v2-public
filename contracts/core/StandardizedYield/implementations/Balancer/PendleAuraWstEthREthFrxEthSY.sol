@@ -6,6 +6,8 @@ import "./base/PendleBalancerLPSY.sol";
 import "../../../../interfaces/Balancer/IVault.sol";
 import "../../../../interfaces/Balancer/IBasePool.sol";
 import "./base/StableMath.sol";
+import "./base/StablePoolUserData.sol";
+import "./base/Balancer3EthPoolHelper.sol";
 
 // TODO support recovery mode
 contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
@@ -27,18 +29,58 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
         return _getPoolTokens();
     }
 
+    /*///////////////////////////////////////////////////////////////
+                    DEPOSIT/JOIN
+    //////////////////////////////////////////////////////////////*/
+
     function _depositToBalancerSingleToken(
         address tokenIn,
         uint256 amountTokenToDeposit
     ) internal virtual override returns (uint256) {
         uint256 balanceBefore = IERC20(balancerLp).balanceOf(address(this));
 
-        // prepare to deposit
+        // transfer directly to the vault to use internal balance
+        IVault.JoinPoolRequest memory request = _assembleJoinRequest(
+            tokenIn,
+            amountTokenToDeposit
+        );
+
+        IERC20(tokenIn).safeTransfer(BALANCER_VAULT, amountTokenToDeposit);
+        IVault(BALANCER_VAULT).joinPool(balancerPoolId, address(this), address(this), request);
+
+        // calculate shares received and return
+        uint256 balanceAfter = IERC20(balancerLp).balanceOf(address(this));
+        return balanceAfter - balanceBefore;
+    }
+
+    function _previewDepositToBalancerSingleToken(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountLpOut) {
+        IVault.JoinPoolRequest memory request = _assembleJoinRequest(
+            tokenIn,
+            amountTokenToDeposit
+        );
+        amountLpOut = Balancer3EthPoolHelper.joinPoolPreview(
+            balancerPoolId,
+            address(this),
+            address(this),
+            request
+        );
+    }
+
+    function _assembleJoinRequest(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view returns (IVault.JoinPoolRequest memory request) {
+        // max amounts in
         address[] memory assets = _getPoolTokens();
         uint256[] memory maxAmountsIn = new uint256[](assets.length);
 
         // encode user data
-        uint256 joinKind = 1; // EXACT_TOKENS_IN_FOR_BPT_OUT
+        StablePoolUserData.JoinKind joinKind = StablePoolUserData
+            .JoinKind
+            .EXACT_TOKENS_IN_FOR_BPT_OUT;
         uint256[] memory amountsIn = new uint256[](assets.length);
         uint256 minimumBPT = 0;
         for (uint256 i = 0; i < assets.length; ++i) {
@@ -47,36 +89,64 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
                 break;
             }
         }
-
         bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
 
         // assemble joinpoolrequest
-        IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest(
-            assets,
-            maxAmountsIn,
-            userData,
-            true
-        );
-
-        // transfer directly to the vault to use internal balance
-        IERC20(tokenIn).safeTransfer(BALANCER_VAULT, amountTokenToDeposit);
-        
-        IVault(BALANCER_VAULT).joinPool(balancerPoolId, address(this), address(this), request);
-
-        // calculate shares received and return
-        uint256 balanceAfter = IERC20(balancerLp).balanceOf(address(this));
-        return balanceAfter - balanceBefore;
+        request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, true);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    REDEEM/EXIT
+    //////////////////////////////////////////////////////////////*/
 
     function _redeemFromBalancerSingleToken(
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal virtual override returns (uint256) {
+        IVault.ExitPoolRequest memory request = _assembleExitRequest(
+            tokenOut,
+            amountLpToRedeem
+        );
+
+        IVault(BALANCER_VAULT).exitPool(
+            balancerPoolId,
+            address(this),
+            payable(address(this)),
+            request
+        );
+
+        // tokens received = tokens out
+        return IERC20(tokenOut).balanceOf(address(this));
+    }
+
+    function _previewRedeemFromBalancerSingleToken(
+        address tokenOut,
+        uint256 amountLpToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
+        IVault.ExitPoolRequest memory request = _assembleExitRequest(
+            tokenOut,
+            amountLpToRedeem
+        );
+
+        amountTokenOut = Balancer3EthPoolHelper.exitPoolPreview(
+            balancerPoolId,
+            address(this),
+            address(this),
+            request
+        );
+    }
+
+    function _assembleExitRequest(
+        address tokenOut,
+        uint256 amountLpToRedeem
+    ) internal view returns (IVault.ExitPoolRequest memory request) {
         address[] memory assets = _getPoolTokens();
         uint256[] memory minAmountsOut = new uint256[](assets.length);
 
         // encode user data
-        uint256 exitKind = 0; // EXACT_BPT_IN_FOR_ONE_TOKEN_OUT
+        StablePoolUserData.ExitKind exitKind = StablePoolUserData
+            .ExitKind
+            .EXACT_BPT_IN_FOR_ONE_TOKEN_OUT;
         uint256 bptAmountIn = amountLpToRedeem;
         uint256 exitTokenIndex;
         for (uint256 i = 0; i < assets.length; ++i) {
@@ -89,32 +159,11 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
         bytes memory userData = abi.encode(exitKind, bptAmountIn, exitTokenIndex);
 
         // assemble exitpoolrequest
-        IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest(
+        request = IVault.ExitPoolRequest(
             assets,
             minAmountsOut,
             userData,
             false
         );
-
-        IVault(BALANCER_VAULT).exitPool(balancerPoolId, address(this), payable(address(this)), request);
-
-        // tokens received = tokens out
-        return IERC20(tokenOut).balanceOf(address(this));
-    }
-
-    function _previewDepositToBalancerSingleToken(
-        address token,
-        uint256 amountTokenToDeposit
-    ) internal view virtual override returns (uint256 amountLpOut) {
-        // TODO
-        return 0;
-    }
-
-    function _previewRedeemFromBalancerSingleToken(
-        address token,
-        uint256 amountLpToRedeem
-    ) internal view virtual override returns (uint256 amountTokenOut) {
-        // TODO
-        return 0;
     }
 }
