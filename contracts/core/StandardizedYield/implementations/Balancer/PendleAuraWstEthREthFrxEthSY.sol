@@ -103,10 +103,7 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal virtual override returns (uint256) {
-        IVault.ExitPoolRequest memory request = _assembleExitRequest(
-            tokenOut,
-            amountLpToRedeem
-        );
+        IVault.ExitPoolRequest memory request = _assembleExitRequest(tokenOut, amountLpToRedeem);
 
         IVault(BALANCER_VAULT).exitPool(
             balancerPoolId,
@@ -123,10 +120,7 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal view virtual override returns (uint256 amountTokenOut) {
-        IVault.ExitPoolRequest memory request = _assembleExitRequest(
-            tokenOut,
-            amountLpToRedeem
-        );
+        IVault.ExitPoolRequest memory request = _assembleExitRequest(tokenOut, amountLpToRedeem);
 
         amountTokenOut = Balancer3EthPoolHelper.exitPoolPreview(
             balancerPoolId,
@@ -159,11 +153,6 @@ contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
         bytes memory userData = abi.encode(exitKind, bptAmountIn, exitTokenIndex);
 
         // assemble exitpoolrequest
-        request = IVault.ExitPoolRequest(
-            assets,
-            minAmountsOut,
-            userData,
-            false
-        );
+        request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
     }
 }

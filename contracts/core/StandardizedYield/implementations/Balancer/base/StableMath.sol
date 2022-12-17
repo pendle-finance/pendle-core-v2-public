@@ -15,14 +15,13 @@ library StableMath {
     uint256 internal constant _MAX_STABLE_TOKENS = 5;
 
     function divUp(uint256 a, uint256 b) public pure returns (uint256) {
-        return (a+b-1)/b;
+        return (a + b - 1) / b;
     }
 
-    function _calculateInvariant(uint256 amplificationParameter, uint256[] memory balances)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _calculateInvariant(
+        uint256 amplificationParameter,
+        uint256[] memory balances
+    ) internal pure returns (uint256) {
         /**********************************************************************************************
         // invariant                                                                                 //
         // D = invariant                                                  D^(n+1)                    //
@@ -56,8 +55,12 @@ library StableMath {
 
             prevInvariant = invariant;
 
-            invariant = ((ampTimesTotal * sum) / _AMP_PRECISION + D_P * numTokens * invariant)
-                /(((ampTimesTotal - _AMP_PRECISION) * invariant) / _AMP_PRECISION + (numTokens + 1) * D_P);
+            invariant =
+                ((ampTimesTotal * sum) / _AMP_PRECISION + D_P * numTokens * invariant) /
+                (((ampTimesTotal - _AMP_PRECISION) * invariant) /
+                    _AMP_PRECISION +
+                    (numTokens + 1) *
+                    D_P);
 
             if (invariant > prevInvariant) {
                 if (invariant - prevInvariant <= 1) {
@@ -95,7 +98,9 @@ library StableMath {
         for (uint256 i = 0; i < balances.length; i++) {
             uint256 currentWeight = balances[i].divDown(sumBalances);
             balanceRatiosWithFee[i] = balances[i].add(amountsIn[i]).divDown(balances[i]);
-            invariantRatioWithFees = invariantRatioWithFees.add(balanceRatiosWithFee[i].mulDown(currentWeight));
+            invariantRatioWithFees = invariantRatioWithFees.add(
+                balanceRatiosWithFee[i].mulDown(currentWeight)
+            );
         }
 
         // Second loop calculates new amounts in, taking into account the fee on the percentage excess
@@ -105,10 +110,14 @@ library StableMath {
 
             // Check if the balance ratio is greater than the ideal ratio to charge fees or not
             if (balanceRatiosWithFee[i] > invariantRatioWithFees) {
-                uint256 nonTaxableAmount = balances[i].mulDown(invariantRatioWithFees.sub(FixedPoint.ONE));
+                uint256 nonTaxableAmount = balances[i].mulDown(
+                    invariantRatioWithFees.sub(FixedPoint.ONE)
+                );
                 uint256 taxableAmount = amountsIn[i].sub(nonTaxableAmount);
                 // No need to use checked arithmetic for the swap fee, it is guaranteed to be lower than 50%
-                amountInWithoutFee = nonTaxableAmount.add(taxableAmount.mulDown(FixedPoint.ONE - swapFeePercentage));
+                amountInWithoutFee = nonTaxableAmount.add(
+                    taxableAmount.mulDown(FixedPoint.ONE - swapFeePercentage)
+                );
             } else {
                 amountInWithoutFee = amountsIn[i];
             }
@@ -138,7 +147,9 @@ library StableMath {
     ) internal pure returns (uint256) {
         // Token out, so we round down overall.
 
-        uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(currentInvariant);
+        uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(
+            currentInvariant
+        );
 
         // Calculate amount out without fee
         uint256 newBalanceTokenIndex = _getTokenBalanceGivenInvariantAndAllOtherBalances(
@@ -184,7 +195,7 @@ library StableMath {
         uint256 sum = balances[0];
         uint256 P_D = balances[0] * balances.length;
         for (uint256 j = 1; j < balances.length; j++) {
-            P_D = P_D * balances[j] * balances.length/invariant;
+            P_D = (P_D * balances[j] * balances.length) / invariant;
             sum = sum.add(balances[j]);
         }
         // No need to use safe math, based on the loop above `sum` is greater than or equal to `balances[tokenIndex]`
@@ -193,7 +204,7 @@ library StableMath {
         uint256 inv2 = invariant * invariant;
         // We remove the balance from c by multiplying it
         uint256 c = divUp(inv2, ampTimesTotal * P_D) * _AMP_PRECISION * balances[tokenIndex];
-        uint256 b = sum.add((invariant/ampTimesTotal) * _AMP_PRECISION);
+        uint256 b = sum.add((invariant / ampTimesTotal) * _AMP_PRECISION);
 
         // We iterate to find the balance
         uint256 prevTokenBalance = 0;

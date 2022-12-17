@@ -13,15 +13,15 @@ library FixedPoint {
     uint256 internal constant FOUR = 4 * ONE;
 
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a+b;
+        return a + b;
     }
 
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a-b;
+        return a - b;
     }
 
     function mulDown(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a*b / ONE;
+        return (a * b) / ONE;
     }
 
     function mulUp(uint256 a, uint256 b) internal pure returns (uint256) {

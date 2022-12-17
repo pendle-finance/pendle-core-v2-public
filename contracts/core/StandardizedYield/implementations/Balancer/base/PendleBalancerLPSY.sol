@@ -46,11 +46,9 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
         _safeApproveInf(_balancerLp, AURA_BOOSTER);
     }
 
-    function _getPoolInfo(uint256 _auraPid)
-        internal
-        view
-        returns (address _auraLp, address _auraRewardManager)
-    {
+    function _getPoolInfo(
+        uint256 _auraPid
+    ) internal view returns (address _auraLp, address _auraRewardManager) {
         if (_auraPid > IBooster(AURA_BOOSTER).poolLength()) revert Errors.SYBalancerInvalidPid();
 
         (_auraLp, , , _auraRewardManager, , ) = IBooster(AURA_BOOSTER).poolInfo(_auraPid);
@@ -99,7 +97,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * 
+     *
      */
     function exchangeRate() public view virtual override returns (uint256) {
         // TODO
@@ -124,7 +122,7 @@ abstract contract PendleBalancerLPSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev this is made abstract because getPoolTokens() for the WSTETH-RETH-FRXETH pool also 
+     * @dev this is made abstract because getPoolTokens() for the WSTETH-RETH-FRXETH pool also
      * returns the BPT itself along with the three pool tokens. This is not the case for most other
      * Balancer pools.
      */
