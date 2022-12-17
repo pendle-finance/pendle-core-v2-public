@@ -39,4 +39,10 @@ interface IVault {
         external
         view
         returns (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock);
+
+    function WETH() external view returns (IERC20);
+
+    function getPool(bytes32 poolId) external view returns (address);
+
+    function getProtocolFeesCollector() external view returns (address);
 }

@@ -7,9 +7,10 @@ import "../../../../interfaces/Balancer/IVault.sol";
 import "../../../../interfaces/Balancer/IBasePool.sol";
 import "./base/StableMath.sol";
 
+// TODO support recovery mode
 contract PendleAuraWstEthREthFrxEthSY is PendleBalancerLPSY {
     using SafeERC20 for IERC20;
-    
+
     uint256 constant PID = 13;
     address constant POOL = 0x8e85e97ed19C0fa13B2549309965291fbbc0048b;
 
