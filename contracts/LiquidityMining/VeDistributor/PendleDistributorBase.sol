@@ -14,7 +14,7 @@ import "../../interfaces/IPFeeDistributorFactory.sol";
 import "../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
 
-abstract contract DistributorBase is IPFeeDistributor, Initializable {
+abstract contract PendleDistributorBase is IPFeeDistributor, Initializable {
     using Math for uint256;
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../DistributorBase.sol";
+import "./PendleDistributorBase.sol";
 
 /**
  * @dev Fee distributor aims to distribute governance's fee in USDC
  * Thus there might be a delay in governance's action for fee accounting
- * 
+ *
  * Hence, governance reserves the permission to set which epoch is finished
  */
-contract FeeDistributor is DistributorBase {
+contract PendleFeeDistributor is PendleDistributorBase {
     uint256 public lastFinishedEpoch;
 
     function setLastFinishedEpoch(uint256 newLastFinishedEpoch) external {
@@ -23,9 +23,7 @@ contract FeeDistributor is DistributorBase {
         return lastFinishedEpoch;
     }
 
-    function _ensureFundingValidEpoch(
-        uint256 epoch
-    ) internal view virtual override {
+    function _ensureFundingValidEpoch(uint256 epoch) internal view virtual override {
         uint256 currentWeekStart = WeekMath.getCurrentWeekStart();
         // There should not be reward for current week yet
         if (epoch < startEpoch || epoch > currentWeekStart || !WeekMath.isValidWTime(epoch)) {

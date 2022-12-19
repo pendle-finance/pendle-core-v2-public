@@ -4,9 +4,9 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../../../core/libraries/BoringOwnableUpgradeable.sol";
-import "../../../core/libraries/Errors.sol";
-import "../../../interfaces/IPFeeDistributorFactory.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/Errors.sol";
+import "../../interfaces/IPFeeDistributorFactory.sol";
 
 contract PendleFeeDistributorFactory is
     UUPSUpgradeable,
