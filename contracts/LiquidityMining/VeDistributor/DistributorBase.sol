@@ -73,8 +73,8 @@ abstract contract DistributorBase is IPFeeDistributor, Initializable {
     }
 
     function claimReward(address user) external returns (uint256 amountRewardOut) {
+        _updatePool();
         amountRewardOut = _accumulateUserReward(user);
-        uint256 lastClaimedEpoch = _getLastFinishedEpoch();
         IERC20(rewardToken).safeTransfer(user, amountRewardOut);
     }
 
