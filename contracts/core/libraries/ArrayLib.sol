@@ -13,6 +13,15 @@ library ArrayLib {
         return value;
     }
 
+    function max(uint256[] memory input) internal pure returns (uint256 value) {
+        for (uint256 i = 0; i < input.length; ) {
+            if (input[i] > value) value = input[i];
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     function contains(address[] memory array, address element) internal pure returns (bool) {
         uint256 length = array.length;
         for (uint256 i = 0; i < length; ) {

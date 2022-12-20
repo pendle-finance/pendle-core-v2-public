@@ -10,6 +10,7 @@ import "../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
 import "../libraries/WeekMath.sol";
 import "../libraries/VeHistoryLib.sol";
+import "../../core/libraries/ArrayLib.sol";
 
 contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFeeDistributor {
     using SafeERC20 for IERC20;
@@ -17,22 +18,22 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
 
     address public immutable votingController;
     address public immutable vePendle;
-    address public immutable rewardToken;
+    address public immutable token;
 
-    // [pool] => lastFinishedEpoch
-    mapping(address => uint256) public lastFinishedEpoch;
+    // [pool] => lastFundedWeek
+    mapping(address => uint256) public lastFundedWeek;
 
     // [pool] => startTime
-    mapping(address => uint256) public startEpoch;
+    mapping(address => uint256) public startWeek;
 
     // [pool, user] => UserInfo
     mapping(address => mapping(address => UserInfo)) public userInfo;
 
-    // [pool, epoch] => [incentive]
-    mapping(address => mapping(uint256 => uint256)) public incentivesForEpoch;
+    // [pool, epoch] => [fee]
+    mapping(address => mapping(uint256 => uint256)) public fees;
 
     modifier ensureValidPool(address pool) {
-        if (startEpoch[pool] == 0) revert Errors.FDInvalidPool(pool);
+        if (startWeek[pool] == 0) revert Errors.FDInvalidPool(pool);
         _;
     }
 
@@ -43,59 +44,53 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     ) initializer {
         votingController = _votingController;
         vePendle = _vePendle;
-        rewardToken = _rewardToken;
+        token = _rewardToken;
     }
 
-    function addPool(address pool, uint256 _startEpoch) external onlyOwner {
-        if (!WeekMath.isValidWTime(_startEpoch) || _startEpoch == 0)
-            revert Errors.FDInvalidStartEpoch(_startEpoch);
-        if (startEpoch[pool] != 0) revert Errors.FDPoolAlreadyExists(pool, startEpoch[pool]);
+    function addPool(address pool, uint256 _startWeek) external onlyOwner {
+        if (!WeekMath.isValidWTime(_startWeek) || _startWeek == 0)
+            revert Errors.FDInvalidStartEpoch(_startWeek);
+        if (startWeek[pool] != 0) revert Errors.FDPoolAlreadyExists(pool, startWeek[pool]);
 
-        startEpoch[pool] = _startEpoch;
-        lastFinishedEpoch[pool] = _startEpoch - WeekMath.WEEK;
-    }
-
-    function setLastFinishedEpoch(address pool, uint256 _newLastFinishedEpoch)
-        external
-        onlyOwner
-        ensureValidPool(pool)
-    {
-        if (lastFinishedEpoch[pool] >= _newLastFinishedEpoch)
-            revert Errors.FDInvalidNewFinishedEpoch(
-                lastFinishedEpoch[pool],
-                _newLastFinishedEpoch
-            );
-        lastFinishedEpoch[pool] = _newLastFinishedEpoch;
+        startWeek[pool] = _startWeek;
+        lastFundedWeek[pool] = _startWeek - WeekMath.WEEK;
     }
 
     function fund(
         address pool,
-        uint256[] calldata epochs,
-        uint256[] calldata rewardsForEpoch
+        uint256[] calldata wTimes,
+        uint256[] calldata amounts
     ) external ensureValidPool(pool) {
-        if (epochs.length != rewardsForEpoch.length) revert Errors.FDEpochLengthMismatch();
+        if (wTimes.length != amounts.length) revert Errors.FDEpochLengthMismatch();
 
         uint256 totalRewardFunding = 0;
-        for (uint256 i = 0; i < rewardsForEpoch.length; ++i) {
-            uint256 epoch = epochs[i];
-            uint256 incentive = rewardsForEpoch[i];
-            incentivesForEpoch[pool][epoch] += incentive;
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            uint256 wTime = wTimes[i];
+            uint256 amount = amounts[i];
 
-            emit Fund(pool, epoch, incentive);
+            if (!WeekMath.isValidWTime(wTime)) revert Errors.InvalidWTime(wTime);
 
-            totalRewardFunding += incentive;
+            fees[pool][wTime] += amount;
+            totalRewardFunding += amount;
+
+            emit Fund(pool, wTime, amount);
         }
-        IERC20(rewardToken).transferFrom(msg.sender, address(this), totalRewardFunding);
+
+        IERC20(token).transferFrom(msg.sender, address(this), totalRewardFunding);
+        lastFundedWeek[pool] = ArrayLib.max(wTimes);
     }
 
     function claimReward(address user, address[] calldata pools)
         external
         returns (uint256 amountRewardOut)
     {
-        for (uint256 i = 0; i < pools.length; ++i) {
+        for (uint256 i = 0; i < pools.length; ) {
             amountRewardOut += _accumulateUserReward(pools[i], user);
+            unchecked {
+                i++;
+            }
         }
-        IERC20(rewardToken).safeTransfer(user, amountRewardOut);
+        IERC20(token).safeTransfer(user, amountRewardOut);
     }
 
     function _accumulateUserReward(address pool, address user)
@@ -103,59 +98,54 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         ensureValidPool(pool)
         returns (uint256 totalReward)
     {
-        uint256 finishedEpoch = lastFinishedEpoch[pool];
-        uint256 userEpoch = userInfo[pool][user].epoch;
+        uint256 fundedWeek = lastFundedWeek[pool];
+        uint256 wTime = userInfo[pool][user].wTime;
         uint256 iter = userInfo[pool][user].iter;
 
-        if (userEpoch > finishedEpoch) return 0;
-        if (userEpoch == 0) userEpoch = startEpoch[pool];
+        if (wTime > fundedWeek) return 0;
+        if (wTime == 0) wTime = startWeek[pool];
 
         uint256 length = _getUserCheckpointLength(pool, user);
         if (length == 0) {
-            userInfo[pool][user].epoch = uint128(finishedEpoch);
+            userInfo[pool][user].wTime = uint128(fundedWeek);
             return 0;
         }
 
         Checkpoint memory checkpoint = _getUserCheckpointAt(pool, user, iter);
         Checkpoint memory nextCheckpoint;
 
-        while (userEpoch <= finishedEpoch) {
+        while (wTime <= fundedWeek) {
             if (iter + 1 < length) {
                 // We have at most 1 checkpoint per week, so while loop is not needed
                 if (nextCheckpoint.timestamp <= checkpoint.timestamp) {
                     nextCheckpoint = _getUserCheckpointAt(pool, user, iter + 1);
                 }
-                if (nextCheckpoint.timestamp < userEpoch) {
+                if (nextCheckpoint.timestamp < wTime) {
                     iter++;
                     checkpoint = nextCheckpoint;
                 }
             }
 
-            if (checkpoint.timestamp < userEpoch) {
-                uint256 userShare = checkpoint.value.getValueAt(uint128(userEpoch));
-                uint256 totalShare = _getPoolTotalSharesAt(pool, uint128(userEpoch));
+            if (checkpoint.timestamp < wTime) {
+                uint256 userShare = checkpoint.value.getValueAt(uint128(wTime));
+                uint256 totalShare = _getPoolTotalSharesAt(pool, uint128(wTime));
                 if (userShare > 0) {
-                    uint256 amountRewardOut = (userShare * incentivesForEpoch[pool][userEpoch]) /
-                        totalShare;
+                    uint256 amountRewardOut = (userShare * fees[pool][wTime]) / totalShare;
                     totalReward += amountRewardOut;
-                    emit ClaimReward(pool, user, userEpoch, amountRewardOut);
+                    emit ClaimReward(pool, user, wTime, amountRewardOut);
                 }
             }
-            userEpoch += WeekMath.WEEK;
+            wTime += WeekMath.WEEK;
         }
 
-        userInfo[pool][user] = UserInfo({ epoch: uint128(userEpoch), iter: uint128(iter) });
+        userInfo[pool][user] = UserInfo({ wTime: uint128(wTime), iter: uint128(iter) });
     }
 
-    function _getPoolTotalSharesAt(address pool, uint128 timestamp)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getPoolTotalSharesAt(address pool, uint128 wTime) internal view returns (uint256) {
         if (pool == vePendle) {
-            return IPVotingEscrowMainchain(vePendle).totalSupplyAt(timestamp);
+            return IPVotingEscrowMainchain(vePendle).totalSupplyAt(wTime);
         } else {
-            return IPVotingController(votingController).getPoolTotalVoteAt(pool, timestamp);
+            return IPVotingController(votingController).getPoolTotalVoteAt(pool, wTime);
         }
     }
 
