@@ -93,7 +93,7 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         returns (uint256 amountRewardOut)
     {
         for (uint256 i = 0; i < pools.length; ++i) {
-            amountRewardOut = _accumulateUserReward(pools[i], user);
+            amountRewardOut += _accumulateUserReward(pools[i], user);
         }
         IERC20(rewardToken).safeTransfer(user, amountRewardOut);
     }
