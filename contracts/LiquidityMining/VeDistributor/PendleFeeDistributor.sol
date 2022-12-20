@@ -11,11 +11,7 @@ import "../../interfaces/IPVotingController.sol";
 import "../libraries/WeekMath.sol";
 import "../libraries/VeHistoryLib.sol";
 
-contract PendleFeeDistributor is
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable,
-    IPFeeDistributor
-{
+contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFeeDistributor {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
 
@@ -121,11 +117,14 @@ contract PendleFeeDistributor is
         }
 
         Checkpoint memory checkpoint = _getUserCheckpointAt(pool, user, iter);
+        Checkpoint memory nextCheckpoint;
 
         while (userEpoch <= finishedEpoch) {
             if (iter + 1 < length) {
                 // We have at most 1 checkpoint per week, so while loop is not needed
-                Checkpoint memory nextCheckpoint = _getUserCheckpointAt(pool, user, iter + 1);
+                if (nextCheckpoint.timestamp <= checkpoint.timestamp) {
+                    nextCheckpoint = _getUserCheckpointAt(pool, user, iter + 1);
+                }
                 if (nextCheckpoint.timestamp < userEpoch) {
                     iter++;
                     checkpoint = nextCheckpoint;
