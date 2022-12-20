@@ -138,12 +138,12 @@ library Errors {
     error ExpiryInThePast(uint256 expiry);
     error ChainNotSupported(uint256 chainId);
 
-    error FDNotAdmin();
+
     error FDEpochLengthMismatch();
-    error FDUserSharesNotUpdatedToEpoch(uint256 userEpoch, uint256 epoch);
-    error FDAlreadyExists(address pool, address distributor);
-    error FDInvalidEpoch(uint256 epoch, uint256 startTime, uint256 currentWeekStart);
-    error FDFactoryDistributorAlreadyExisted(address pool, address distributor);
+    error FDInvalidPool(address pool);
+    error FDPoolAlreadyExists(address pool, uint256 startEpoch);
+    error FDInvalidNewFinishedEpoch(uint256 oldFinishedEpoch, uint256 newFinishedEpoch);
+    error FDInvalidStartEpoch(uint256 startEpoch);
 
     error BDInvalidEpoch(uint256 epoch, uint256 startTime);
 

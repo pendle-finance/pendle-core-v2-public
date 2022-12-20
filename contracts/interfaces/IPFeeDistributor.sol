@@ -2,17 +2,21 @@
 pragma solidity 0.8.17;
 
 interface IPFeeDistributor {
-    event Fund(uint256 indexed epoch, uint256 incentive);
+    event Fund(address indexed pool, uint256 indexed epoch, uint256 incentive);
 
     event ClaimReward(
+        address indexed pool,
         address indexed user,
         uint256 epoch,
         uint256 amountReward
     );
 
-    function fund(uint256[] calldata epochs, uint256[] calldata rewardsForEpoch) external;
+    struct UserInfo {
+        uint128 epoch; // Last accounted epoch for each user
+        uint128 iter;
+    }
 
-    function claimReward(address user) external returns (uint256 amountRewardOut);
-
-    function incentivesForEpoch(uint256 epoch) external returns (uint256);
+    function claimReward(address user, address[] calldata pools)
+        external
+        returns (uint256 amountRewardOut);
 }
