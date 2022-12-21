@@ -15,6 +15,7 @@ import "../../core/libraries/ArrayLib.sol";
 contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFeeDistributor {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
+    using ArrayLib for uint256[];
 
     address public immutable votingController;
     address public immutable vePendle;
@@ -59,38 +60,36 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     function fund(
         address pool,
         uint256[] calldata wTimes,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        uint256 expectedTotalAmount
     ) external ensureValidPool(pool) {
         if (wTimes.length != amounts.length) revert Errors.FDEpochLengthMismatch();
+        _validateTotalAmountToFund(amounts, expectedTotalAmount);
 
-        uint256 totalRewardFunding = 0;
         for (uint256 i = 0; i < amounts.length; ++i) {
             uint256 wTime = wTimes[i];
             uint256 amount = amounts[i];
-
             if (!WeekMath.isValidWTime(wTime)) revert Errors.InvalidWTime(wTime);
-
             fees[pool][wTime] += amount;
-            totalRewardFunding += amount;
-
             emit Fund(pool, wTime, amount);
         }
 
-        IERC20(token).transferFrom(msg.sender, address(this), totalRewardFunding);
-        lastFundedWeek[pool] = ArrayLib.max(wTimes);
+        IERC20(token).transferFrom(msg.sender, address(this), expectedTotalAmount);
+        lastFundedWeek[pool] = wTimes.max();
     }
 
     function claimReward(address user, address[] calldata pools)
         external
-        returns (uint256 amountRewardOut)
+        returns (uint256[] memory amountRewardOut)
     {
+        amountRewardOut = new uint256[](pools.length);
         for (uint256 i = 0; i < pools.length; ) {
-            amountRewardOut += _accumulateUserReward(pools[i], user);
+            amountRewardOut[i] = _accumulateUserReward(pools[i], user);
             unchecked {
                 i++;
             }
         }
-        IERC20(token).safeTransfer(user, amountRewardOut);
+        IERC20(token).safeTransfer(user, amountRewardOut.sum());
     }
 
     function _accumulateUserReward(address pool, address user)
@@ -166,6 +165,16 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
             return IPVotingEscrowMainchain(vePendle).getUserHistoryLength(user);
         } else {
             return IPVotingController(votingController).getUserPoolHistoryLength(user, pool);
+        }
+    }
+
+    function _validateTotalAmountToFund(uint256[] memory amounts, uint256 expectedTotalAmount)
+        internal
+        pure
+    {
+        uint256 actualTotalAmount = amounts.sum();
+        if (expectedTotalAmount != actualTotalAmount) {
+            revert Errors.FDTotalAmountFundedNotMatch(expectedTotalAmount, actualTotalAmount);
         }
     }
 

@@ -13,5 +13,5 @@ interface IPFeeDistributor {
 
     function claimReward(address user, address[] calldata pools)
         external
-        returns (uint256 amountRewardOut);
+        returns (uint256[] memory amountRewardOut);
 }

@@ -139,6 +139,7 @@ library Errors {
     error ChainNotSupported(uint256 chainId);
 
 
+    error FDTotalAmountFundedNotMatch(uint256 expectedTotalAmount, uint256 actualTotalAmount);
     error FDEpochLengthMismatch();
     error FDInvalidPool(address pool);
     error FDPoolAlreadyExists(address pool, uint256 startEpoch);
