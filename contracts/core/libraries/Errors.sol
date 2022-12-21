@@ -138,13 +138,13 @@ library Errors {
     error ExpiryInThePast(uint256 expiry);
     error ChainNotSupported(uint256 chainId);
 
-
-    error FDTotalAmountFundedNotMatch(uint256 expectedTotalAmount, uint256 actualTotalAmount);
+    error FDTotalAmountFundedNotMatch(uint256 actualTotalAmount, uint256 expectedTotalAmount);
     error FDEpochLengthMismatch();
     error FDInvalidPool(address pool);
-    error FDPoolAlreadyExists(address pool, uint256 startEpoch);
+    error FDPoolAlreadyExists(address pool);
     error FDInvalidNewFinishedEpoch(uint256 oldFinishedEpoch, uint256 newFinishedEpoch);
     error FDInvalidStartEpoch(uint256 startEpoch);
+    error FDInvalidWTimeFund(uint256 lastFunded, uint256 wTime);
 
     error BDInvalidEpoch(uint256 epoch, uint256 startTime);
 

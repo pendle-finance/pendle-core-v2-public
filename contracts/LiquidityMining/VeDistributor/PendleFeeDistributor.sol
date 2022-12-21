@@ -24,9 +24,6 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     // [pool] => lastFundedWeek
     mapping(address => uint256) public lastFundedWeek;
 
-    // [pool] => startTime
-    mapping(address => uint256) public startWeek;
-
     // [pool, user] => UserInfo
     mapping(address => mapping(address => UserInfo)) public userInfo;
 
@@ -34,7 +31,7 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     mapping(address => mapping(uint256 => uint256)) public fees;
 
     modifier ensureValidPool(address pool) {
-        if (startWeek[pool] == 0) revert Errors.FDInvalidPool(pool);
+        if (lastFundedWeek[pool] == 0) revert Errors.FDInvalidPool(pool);
         _;
     }
 
@@ -51,31 +48,57 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     function addPool(address pool, uint256 _startWeek) external onlyOwner {
         if (!WeekMath.isValidWTime(_startWeek) || _startWeek == 0)
             revert Errors.FDInvalidStartEpoch(_startWeek);
-        if (startWeek[pool] != 0) revert Errors.FDPoolAlreadyExists(pool, startWeek[pool]);
 
-        startWeek[pool] = _startWeek;
+        if (lastFundedWeek[pool] != 0) revert Errors.FDPoolAlreadyExists(pool);
+
         lastFundedWeek[pool] = _startWeek - WeekMath.WEEK;
     }
 
     function fund(
+        address[] calldata pools,
+        uint256[][] calldata wTimes,
+        uint256[][] calldata amounts,
+        uint256 totalAmountToFund
+    ) external onlyOwner {
+        uint256 length = pools.length;
+        if (wTimes.length != length || amounts.length != length)
+            revert Errors.ArrayLengthMismatch();
+
+        uint256 totalFunded = 0;
+        for (uint256 i = 0; i < length; ++i) {
+            _fund(pools[i], wTimes[i], amounts[i]);
+            totalFunded += amounts[i].sum();
+        }
+
+        if (totalFunded != totalAmountToFund)
+            revert Errors.FDTotalAmountFundedNotMatch(totalFunded, totalAmountToFund);
+
+        IERC20(token).transferFrom(msg.sender, address(this), totalFunded);
+    }
+
+    function _fund(
         address pool,
         uint256[] calldata wTimes,
-        uint256[] calldata amounts,
-        uint256 expectedTotalAmount
-    ) external ensureValidPool(pool) {
+        uint256[] calldata amounts
+    ) internal ensureValidPool(pool) {
         if (wTimes.length != amounts.length) revert Errors.FDEpochLengthMismatch();
-        _validateTotalAmountToFund(amounts, expectedTotalAmount);
+
+        uint256 lastFunded = lastFundedWeek[pool];
 
         for (uint256 i = 0; i < amounts.length; ++i) {
             uint256 wTime = wTimes[i];
             uint256 amount = amounts[i];
-            if (!WeekMath.isValidWTime(wTime)) revert Errors.InvalidWTime(wTime);
+
+            if (wTime != lastFunded + WeekMath.WEEK)
+                revert Errors.FDInvalidWTimeFund(lastFunded, wTime);
+
             fees[pool][wTime] += amount;
-            emit Fund(pool, wTime, amount);
+            lastFunded += WeekMath.WEEK;
+
+            emit UpdateFee(pool, wTime, amount);
         }
 
-        IERC20(token).transferFrom(msg.sender, address(this), expectedTotalAmount);
-        lastFundedWeek[pool] = wTimes.max();
+        lastFundedWeek[pool] = lastFunded;
     }
 
     function claimReward(address user, address[] calldata pools)
@@ -97,47 +120,53 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         ensureValidPool(pool)
         returns (uint256 totalReward)
     {
-        uint256 fundedWeek = lastFundedWeek[pool];
-        uint256 wTime = userInfo[pool][user].wTime;
+        uint256 length = _getUserCheckpointLength(pool, user);
+        if (length == 0) return 0;
+
+        uint256 lastWeek = lastFundedWeek[pool];
+        uint256 curWeek = userInfo[pool][user].firstUnclaimedWeek;
         uint256 iter = userInfo[pool][user].iter;
 
-        if (wTime > fundedWeek) return 0;
-        if (wTime == 0) wTime = startWeek[pool];
-
-        uint256 length = _getUserCheckpointLength(pool, user);
-        if (length == 0) {
-            userInfo[pool][user].wTime = uint128(fundedWeek);
-            return 0;
-        }
+        if (curWeek > lastWeek) return 0; // nothing to account
 
         Checkpoint memory checkpoint = _getUserCheckpointAt(pool, user, iter);
-        Checkpoint memory nextCheckpoint;
+        Checkpoint memory nextCheckpoint = checkpoint;
 
-        while (wTime <= fundedWeek) {
+        if (curWeek == 0) curWeek = checkpoint.timestamp + WeekMath.WEEK;
+
+        while (curWeek <= lastWeek) {
+            // we have at most one checkpoint per week
             if (iter + 1 < length) {
-                // We have at most 1 checkpoint per week, so while loop is not needed
-                if (nextCheckpoint.timestamp <= checkpoint.timestamp) {
+                if (nextCheckpoint.timestamp == checkpoint.timestamp) {
+                    // next have been assigned to current checkpoint, so we need to get the next one
                     nextCheckpoint = _getUserCheckpointAt(pool, user, iter + 1);
                 }
-                if (nextCheckpoint.timestamp < wTime) {
+
+                if (nextCheckpoint.timestamp < curWeek) {
                     iter++;
                     checkpoint = nextCheckpoint;
                 }
+                // Important invariant: checkpoint[iter] < curWeek <= checkpoint[iter+1]
             }
 
-            if (checkpoint.timestamp < wTime) {
-                uint256 userShare = checkpoint.value.getValueAt(uint128(wTime));
-                uint256 totalShare = _getPoolTotalSharesAt(pool, uint128(wTime));
-                if (userShare > 0) {
-                    uint256 amountRewardOut = (userShare * fees[pool][wTime]) / totalShare;
-                    totalReward += amountRewardOut;
-                    emit ClaimReward(pool, user, wTime, amountRewardOut);
-                }
+            // assert(checkpoint.timestamp < curWeek); should always hold
+
+            uint256 userShare = checkpoint.value.getValueAt(uint128(curWeek));
+            if (userShare != 0) {
+                uint256 totalShare = _getPoolTotalSharesAt(pool, uint128(curWeek));
+                // userShare != 0 => totalShare != 0
+                uint256 amountRewardOut = (userShare * fees[pool][curWeek]) / totalShare;
+                totalReward += amountRewardOut;
+                emit ClaimReward(pool, user, curWeek, amountRewardOut);
             }
-            wTime += WeekMath.WEEK;
+
+            curWeek += WeekMath.WEEK;
         }
 
-        userInfo[pool][user] = UserInfo({ wTime: uint128(wTime), iter: uint128(iter) });
+        userInfo[pool][user] = UserInfo({
+            firstUnclaimedWeek: uint128(curWeek),
+            iter: uint128(iter)
+        });
     }
 
     function _getPoolTotalSharesAt(address pool, uint128 wTime) internal view returns (uint256) {
@@ -165,16 +194,6 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
             return IPVotingEscrowMainchain(vePendle).getUserHistoryLength(user);
         } else {
             return IPVotingController(votingController).getUserPoolHistoryLength(user, pool);
-        }
-    }
-
-    function _validateTotalAmountToFund(uint256[] memory amounts, uint256 expectedTotalAmount)
-        internal
-        pure
-    {
-        uint256 actualTotalAmount = amounts.sum();
-        if (expectedTotalAmount != actualTotalAmount) {
-            revert Errors.FDTotalAmountFundedNotMatch(expectedTotalAmount, actualTotalAmount);
         }
     }
 
