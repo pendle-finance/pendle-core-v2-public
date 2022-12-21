@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
 import "./FixedPoint.sol";
@@ -18,10 +19,11 @@ library StableMath {
         return (a + b - 1) / b;
     }
 
-    function _calculateInvariant(
-        uint256 amplificationParameter,
-        uint256[] memory balances
-    ) internal pure returns (uint256) {
+    function _calculateInvariant(uint256 amplificationParameter, uint256[] memory balances)
+        public
+        pure
+        returns (uint256)
+    {
         /**********************************************************************************************
         // invariant                                                                                 //
         // D = invariant                                                  D^(n+1)                    //
@@ -71,7 +73,7 @@ library StableMath {
             }
         }
 
-        revert("Stable invariant did not converge");
+        revert("Did not converge");
     }
 
     function _calcBptOutGivenExactTokensIn(
@@ -81,7 +83,7 @@ library StableMath {
         uint256 bptTotalSupply,
         uint256 currentInvariant,
         uint256 swapFeePercentage
-    ) internal pure returns (uint256) {
+    ) public pure returns (uint256) {
         // BPT out, so we round down overall.
 
         // First loop calculates the sum of all token balances, which will be used to calculate
@@ -144,7 +146,7 @@ library StableMath {
         uint256 bptTotalSupply,
         uint256 currentInvariant,
         uint256 swapFeePercentage
-    ) internal pure returns (uint256) {
+    ) public pure returns (uint256) {
         // Token out, so we round down overall.
 
         uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(

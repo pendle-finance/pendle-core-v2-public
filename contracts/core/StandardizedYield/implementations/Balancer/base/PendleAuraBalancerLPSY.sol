@@ -39,10 +39,6 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
         (balancerLp, auraRewardManager) = _getPoolInfo(_auraPid);
         if (balancerLp != _balancerLp) revert Errors.SYBalancerInvalidPid();
 
-        address[] memory tokens = _getPoolTokens();
-        for (uint i = 0; i < tokens.length; ++i) {
-            _safeApproveInf(tokens[i], BALANCER_VAULT);
-        }
         _safeApproveInf(_balancerLp, AURA_BOOSTER);
     }
 
@@ -50,7 +46,6 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
         uint256 _auraPid
     ) internal view returns (address _auraLp, address _auraRewardManager) {
         if (_auraPid > IBooster(AURA_BOOSTER).poolLength()) revert Errors.SYBalancerInvalidPid();
-
         (_auraLp, , , _auraRewardManager, , ) = IBooster(AURA_BOOSTER).poolInfo(_auraPid);
     }
 
@@ -76,6 +71,7 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
 
     /**
      * @notice Either unwraps LP, or also exits pool using exact LP for only `tokenOut`
+     * @dev Redeems straight to receiver without
      */
     function _redeem(
         address receiver,
@@ -86,21 +82,14 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
 
         if (tokenOut == balancerLp) {
             amountTokenOut = amountSharesToRedeem;
+            _transferOut(tokenOut, receiver, amountTokenOut);
         } else {
-            amountTokenOut = _redeemFromBalancerSingleToken(tokenOut, amountSharesToRedeem);
+            amountTokenOut = _redeemFromBalancerSingleToken(
+                receiver,
+                tokenOut,
+                amountSharesToRedeem
+            );
         }
-        _transferOut(tokenOut, receiver, amountTokenOut);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                               EXCHANGE-RATE
-    //////////////////////////////////////////////////////////////*/
-
-    /**
-     *
-     */
-    function exchangeRate() public view virtual override returns (uint256) {
-        // TODO
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -121,24 +110,9 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
                     MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @dev this is made abstract because getPoolTokens() for the WSTETH-RETH-FRXETH pool also
-     * returns the BPT itself along with the three pool tokens. This is not the case for most other
-     * Balancer pools.
-     */
     function getTokensIn() public view virtual override returns (address[] memory res);
 
     function getTokensOut() public view virtual override returns (address[] memory res);
-
-    function _getPoolTokens() internal view virtual returns (address[] memory res) {
-        IERC20[] memory tokens;
-        (tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(balancerPoolId);
-
-        res = new address[](tokens.length);
-        for (uint i = 0; i < tokens.length; ++i) {
-            res[i] = address(tokens[i]);
-        }
-    }
 
     function _previewDeposit(
         address tokenIn,
@@ -162,15 +136,9 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
         }
     }
 
-    function isValidTokenIn(address token) public view virtual override returns (bool) {
-        address[] memory tokensIn = getTokensIn();
-        return tokensIn.contains(token);
-    }
+    function isValidTokenIn(address token) public view virtual override returns (bool);
 
-    function isValidTokenOut(address token) public view virtual override returns (bool) {
-        address[] memory tokensIn = getTokensOut();
-        return tokensIn.contains(token);
-    }
+    function isValidTokenOut(address token) public view virtual override returns (bool);
 
     function _depositToBalancerSingleToken(
         address tokenIn,
@@ -178,6 +146,7 @@ abstract contract PendleAuraBalancerLPSY is SYBaseWithRewards {
     ) internal virtual returns (uint256);
 
     function _redeemFromBalancerSingleToken(
+        address receiver,
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal virtual returns (uint256);

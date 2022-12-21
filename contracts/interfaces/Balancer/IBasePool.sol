@@ -10,6 +10,8 @@ interface IBasePool {
 
     function getLastJoinExitData() external view returns (uint256, uint256);
 
+    function getActualSupply() external view returns (uint256);
+
     function getAmplificationParameter() external view returns (uint256, bool, uint256);
 
     function getScalingFactors() external view returns (uint256[] memory);
