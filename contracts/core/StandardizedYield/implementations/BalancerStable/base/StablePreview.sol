@@ -2,52 +2,31 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./FixedPoint.sol";
-import "./StableMath.sol";
-import "./StablePoolUserData.sol";
-import "./BasePoolUserData.sol";
-import "./BalancerPreviewVaultHelper.sol";
+import "../library/FixedPoint.sol";
+import "../library/StableMath.sol";
+import "../library/StablePoolUserData.sol";
+import "../library/BasePoolUserData.sol";
+import "./VaultPreview.sol";
 import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IBalancerFees.sol";
+import "./VaultPreview.sol";
 
-/**
- * @dev Because of large bytecode size, the preview functions are separated into its own library
- * If this library is ever reused for another Balancer Stable Pool, please pay attention to the
- * defined constants
- */
-
-library BalancerPreviewComposableStablePoolHelper {
+contract StablePreview is VaultPreview {
     using FixedPoint for uint256;
     using StableMath for uint256;
     using StablePoolUserData for bytes;
     using BasePoolUserData for bytes;
 
-    address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-    address internal constant LP = 0x8e85e97ed19C0fa13B2549309965291fbbc0048b;
-    bytes32 internal constant POOL_ID =
-        0x8e85e97ed19c0fa13b2549309965291fbbc0048b0000000000000000000003ba;
+    address public immutable LP;
+    bytes32 public immutable POOL_ID;
 
-    /*///////////////////////////////////////////////////////////////
-                    EXCHANGE RATE
-    //////////////////////////////////////////////////////////////*/
-
-    function getVirtualPrice() public view returns (uint256) {
-        (uint256 currentAmp, , ) = IBasePool(LP).getAmplificationParameter();
-        (, uint256[] memory balances, ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        (, balances) = _dropBptItemFromBalances(balances);
-
-        uint256 D = currentAmp._calculateInvariant(balances);
-        uint256 totalSupply = IBasePool(LP).getActualSupply();
-
-        return (D * 1e18) / totalSupply;
+    constructor(address _LP, bytes32 _POOL_ID) {
+        LP = _LP;
+        POOL_ID = _POOL_ID;
     }
 
-    /*///////////////////////////////////////////////////////////////
-                    PREVIEW FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    function onJoinPoolPreview(
+    function onJoinPool(
         bytes32 poolId,
         address sender,
         address recipient,
@@ -55,7 +34,7 @@ library BalancerPreviewComposableStablePoolHelper {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData
-    ) public view returns (uint256 bptAmountOut) {
+    ) internal view override returns (uint256 bptAmountOut) {
         (bool paused, , ) = IBasePool(LP).getPausedState();
         require(!paused, "Pool is paused");
 
@@ -74,7 +53,7 @@ library BalancerPreviewComposableStablePoolHelper {
         );
     }
 
-    function onExitPoolPreview(
+    function onExitPool(
         bytes32 poolId,
         address sender,
         address recipient,
@@ -82,7 +61,7 @@ library BalancerPreviewComposableStablePoolHelper {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData
-    ) public view returns (uint256 amountTokenOut) {
+    ) internal view override returns (uint256 amountTokenOut) {
         uint256 bptAmountIn;
         uint256[] memory amountsOut;
 
@@ -154,10 +133,11 @@ library BalancerPreviewComposableStablePoolHelper {
         }
     }
 
-    function _addBptItem(
-        uint256[] memory amounts,
-        uint256 bptAmount
-    ) internal view returns (uint256[] memory registeredTokenAmounts) {
+    function _addBptItem(uint256[] memory amounts, uint256 bptAmount)
+        internal
+        view
+        returns (uint256[] memory registeredTokenAmounts)
+    {
         registeredTokenAmounts = new uint256[](amounts.length + 1);
         for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
             registeredTokenAmounts[i] = i == IBasePool(LP).getBptIndex()
@@ -269,7 +249,7 @@ library BalancerPreviewComposableStablePoolHelper {
         uint256 currentAmp,
         uint256 preJoinExitSupply,
         uint256 preJoinExitInvariant,
-        uint256[] memory /*scalingFactors*/,
+        uint256[] memory, /*scalingFactors*/
         bytes memory userData
     ) internal view returns (uint256, uint256[] memory) {
         //if (kind == StablePoolUserData.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT)
@@ -306,10 +286,10 @@ library BalancerPreviewComposableStablePoolHelper {
         return (bptAmountIn, amountsOut);
     }
 
-    function _upscaleArray(
-        uint256[] memory amounts,
-        uint256[] memory scalingFactors
-    ) internal pure {
+    function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors)
+        internal
+        pure
+    {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -318,10 +298,10 @@ library BalancerPreviewComposableStablePoolHelper {
         }
     }
 
-    function _downscaleDownArray(
-        uint256[] memory amounts,
-        uint256[] memory scalingFactors
-    ) internal pure {
+    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors)
+        internal
+        pure
+    {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -330,9 +310,16 @@ library BalancerPreviewComposableStablePoolHelper {
         }
     }
 
-    function _beforeJoinExit(
-        uint256[] memory registeredBalances
-    ) internal view returns (uint256, uint256[] memory, uint256, uint256) {
+    function _beforeJoinExit(uint256[] memory registeredBalances)
+        internal
+        view
+        returns (
+            uint256,
+            uint256[] memory,
+            uint256,
+            uint256
+        )
+    {
         (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IBasePool(LP)
             .getLastJoinExitData();
 
@@ -358,7 +345,15 @@ library BalancerPreviewComposableStablePoolHelper {
         uint256[] memory registeredBalances,
         uint256 lastJoinExitAmp,
         uint256 lastPostJoinExitInvariant
-    ) internal view returns (uint256, uint256[] memory, uint256) {
+    )
+        internal
+        view
+        returns (
+            uint256,
+            uint256[] memory,
+            uint256
+        )
+    {
         (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(
             registeredBalances
         );
@@ -380,10 +375,11 @@ library BalancerPreviewComposableStablePoolHelper {
         return (virtualSupply + protocolFeeAmount, balances, currentInvariantWithLastJoinExitAmp);
     }
 
-    function _calculateAdjustedProtocolFeeAmount(
-        uint256 supply,
-        uint256 basePercentage
-    ) internal pure returns (uint256) {
+    function _calculateAdjustedProtocolFeeAmount(uint256 supply, uint256 basePercentage)
+        internal
+        pure
+        returns (uint256)
+    {
         return supply.mulDown(basePercentage).divDown(basePercentage.complement());
     }
 
@@ -423,10 +419,7 @@ library BalancerPreviewComposableStablePoolHelper {
         return (protocolSwapFeePercentage + protocolYieldPercentage, totalGrowthInvariant);
     }
 
-    function _getGrowthInvariants(
-        uint256[] memory balances,
-        uint256 lastJoinExitAmp
-    )
+    function _getGrowthInvariants(uint256[] memory balances, uint256 lastJoinExitAmp)
         internal
         view
         returns (
@@ -456,7 +449,7 @@ library BalancerPreviewComposableStablePoolHelper {
 
     function _areNoTokensExempt() internal view returns (bool) {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        for (uint i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokens.length; i++) {
             if (IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[i])) {
                 return false;
             }
@@ -466,7 +459,7 @@ library BalancerPreviewComposableStablePoolHelper {
 
     function _areAllTokensExempt() internal view returns (bool) {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        for (uint i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokens.length; i++) {
             if (!IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[i])) {
                 return false;
             }
@@ -474,10 +467,11 @@ library BalancerPreviewComposableStablePoolHelper {
         return true;
     }
 
-    function _getAdjustedBalances(
-        uint256[] memory balances,
-        bool ignoreExemptFlags
-    ) internal view returns (uint256[] memory) {
+    function _getAdjustedBalances(uint256[] memory balances, bool ignoreExemptFlags)
+        internal
+        view
+        returns (uint256[] memory)
+    {
         uint256 totalTokensWithoutBpt = balances.length;
         uint256[] memory adjustedBalances = new uint256[](totalTokensWithoutBpt);
 
@@ -492,10 +486,11 @@ library BalancerPreviewComposableStablePoolHelper {
         return adjustedBalances;
     }
 
-    function _adjustedBalance(
-        uint256 balance,
-        uint256 registeredTokenIndex
-    ) private view returns (uint256) {
+    function _adjustedBalance(uint256 balance, uint256 registeredTokenIndex)
+        private
+        view
+        returns (uint256)
+    {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
 
         (uint256 currentRate, uint256 oldRate, , ) = IBasePool(LP).getTokenRateCache(
@@ -509,16 +504,20 @@ library BalancerPreviewComposableStablePoolHelper {
         return rateProviders[registeredTokenIndex] != address(0);
     }
 
-    function _isTokenExemptFromYieldProtocolFee(
-        uint256 registeredTokenIndex
-    ) internal view returns (bool) {
+    function _isTokenExemptFromYieldProtocolFee(uint256 registeredTokenIndex)
+        internal
+        view
+        returns (bool)
+    {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
         return IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[registeredTokenIndex]);
     }
 
-    function _dropBptItemFromBalances(
-        uint256[] memory registeredBalances
-    ) internal view returns (uint256, uint256[] memory) {
+    function _dropBptItemFromBalances(uint256[] memory registeredBalances)
+        internal
+        view
+        returns (uint256, uint256[] memory)
+    {
         return (
             _getVirtualSupply(registeredBalances[IBasePool(LP).getBptIndex()]),
             _dropBptItem(registeredBalances)
