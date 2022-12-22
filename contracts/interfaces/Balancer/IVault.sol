@@ -42,7 +42,7 @@ interface IVault {
 
     function WETH() external view returns (IERC20);
 
-    function getPool(bytes32 poolId) external view returns (address);
+    function getPool(bytes32 poolId) external view returns (address, uint8);
 
     function getProtocolFeesCollector() external view returns (address);
 }

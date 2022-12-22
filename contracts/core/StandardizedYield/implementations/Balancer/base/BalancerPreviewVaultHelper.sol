@@ -29,7 +29,7 @@ library BalancerPreviewVaultHelper {
         address recipient,
         IVault.JoinPoolRequest memory request
     ) internal view returns (uint256 amountBptOut) {
-        address LP = IVault(BALANCER_VAULT).getPool(poolId);
+        (address LP,) = IVault(BALANCER_VAULT).getPool(poolId);
 
         (bool paused, , ) = IBasePool(LP).getPausedState();
         require(!paused, "Pool is paused");
@@ -107,7 +107,7 @@ library BalancerPreviewVaultHelper {
 
     function _validateTokensAndGetBalances(
         bytes32 poolId,
-        IERC20[] memory expectedTokens
+        IERC20[] memory //expectedTokens
     ) private view returns (uint256[] memory, uint256) {
         (
             ,
