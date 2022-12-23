@@ -21,6 +21,8 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
     address public immutable vePendle;
     address public immutable token;
 
+    address[] public allPools;
+
     // [pool] => lastFundedWeek
     mapping(address => uint256) public lastFundedWeek;
 
@@ -52,6 +54,11 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         if (lastFundedWeek[pool] != 0) revert Errors.FDPoolAlreadyExists(pool);
 
         lastFundedWeek[pool] = _startWeek - WeekMath.WEEK;
+        allPools.push(pool);
+    }
+
+    function getAllPools() external view returns (address[] memory) {
+        return allPools;
     }
 
     function fund(
