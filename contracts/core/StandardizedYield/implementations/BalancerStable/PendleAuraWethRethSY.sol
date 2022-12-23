@@ -6,18 +6,16 @@ import "./base/PendleAuraBalancerStableLPSY.sol";
 
 /**
  * @dev open TODO:
- * - If tokenIn is NATIVE, convert to WETH or WSTETH (or don't support NATIVE at all)?
- * - To do after item 1: Override deposit/redeem to also (un)wrap STETH/ETH
+ * - Override deposit/redeem to also (un)wrap ETH
  */
-contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
+contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     using SafeERC20 for IERC20;
 
-    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+    address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
 
-    uint256 internal constant AURA_PID = 29;
-    address internal constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
+    uint256 internal constant AURA_PID = 15;
+    address internal constant LP = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
 
     constructor(
         string memory _name,
@@ -33,33 +31,31 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
         returns (address[] memory res)
     {
         res = new address[](2);
-        res[0] = WSTETH;
+        res[0] = RETH;
         res[1] = WETH;
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](5);
+        res = new address[](4);
         res[0] = LP;
-        res[1] = WSTETH;
+        res[1] = RETH;
         res[2] = WETH;
-        res[3] = STETH;
-        res[4] = NATIVE;
+        res[3] = NATIVE;
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
-        res = new address[](5);
+        res = new address[](4);
         res[0] = LP;
-        res[1] = WSTETH;
+        res[1] = RETH;
         res[2] = WETH;
-        res[3] = STETH;
-        res[4] = NATIVE;
+        res[3] = NATIVE;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
+        return (token == LP || token == RETH || token == WETH || token == NATIVE);
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
+        return (token == LP || token == RETH || token == WETH || token == NATIVE);
     }
 }

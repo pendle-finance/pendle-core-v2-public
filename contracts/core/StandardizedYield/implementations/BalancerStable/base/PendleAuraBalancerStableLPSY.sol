@@ -222,7 +222,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         // assemble exitpoolrequest
         request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
     }
-
+    
+    /// @dev this should return tokens in the same order as `IVault.getPoolTokens()`
     function _getPoolTokenAddresses() internal view virtual returns (address[] memory res);
 
     /*///////////////////////////////////////////////////////////////
