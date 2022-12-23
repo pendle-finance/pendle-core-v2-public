@@ -139,8 +139,6 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         virtual
         returns (uint256)
     {
-        uint256 balanceBefore = IERC20(balLp).balanceOf(address(this));
-
         // transfer directly to the vault to use internal balance
         IVault.JoinPoolRequest memory request = _assembleJoinRequest(
             tokenIn,
@@ -150,9 +148,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         IERC20(tokenIn).safeTransfer(BALANCER_VAULT, amountTokenToDeposit);
         IVault(BALANCER_VAULT).joinPool(balPoolId, address(this), address(this), request);
 
-        // calculate shares received and return
-        uint256 balanceAfter = IERC20(balLp).balanceOf(address(this));
-        return balanceAfter - balanceBefore;
+        // amount shares out = amount LP received
+        return IERC20(balLp).balanceOf(address(this));
     }
 
     function _assembleJoinRequest(address tokenIn, uint256 amountTokenToDeposit)
@@ -188,12 +185,14 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal virtual returns (uint256) {
-        IVault.ExitPoolRequest memory request = _assembleExitRequest(tokenOut, amountLpToRedeem);
+        uint256 balanceBefore = IERC20(tokenOut).balanceOf(receiver);
 
+        IVault.ExitPoolRequest memory request = _assembleExitRequest(tokenOut, amountLpToRedeem);
         IVault(BALANCER_VAULT).exitPool(balPoolId, address(this), payable(receiver), request);
 
-        // tokens received = tokens out
-        return IERC20(tokenOut).balanceOf(address(this));
+        // calculate amount of tokens out
+        uint256 balanceAfter = IERC20(tokenOut).balanceOf(receiver);
+        return balanceAfter - balanceBefore;
     }
 
     function _assembleExitRequest(address tokenOut, uint256 amountLpToRedeem)
