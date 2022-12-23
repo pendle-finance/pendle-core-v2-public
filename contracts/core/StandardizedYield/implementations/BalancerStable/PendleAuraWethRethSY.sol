@@ -3,11 +3,9 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PendleAuraBalancerStableLPSY.sol";
+import "../../../../interfaces/IWETH.sol";
+import "../../../libraries/Errors.sol";
 
-/**
- * @dev open TODO:
- * - Override deposit/redeem to also (un)wrap ETH
- */
 contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     using SafeERC20 for IERC20;
 
@@ -22,6 +20,55 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         string memory _symbol,
         StablePreview _stablePreview
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _stablePreview) {}
+
+    function _deposit(
+        address tokenIn,
+        uint256 amount
+    ) internal virtual override returns (uint256 amountSharesOut) {
+        if (tokenIn == NATIVE) {
+            IWETH(WETH).deposit{ value: msg.value }();
+            tokenIn = WETH;
+        }
+        amountSharesOut = super._deposit(tokenIn, amount);
+    }
+
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
+        if (tokenOut == NATIVE) {
+            amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
+            IWETH(WETH).withdraw(amountTokenOut);
+
+            (bool sent, ) = payable(receiver).call{ value: amountTokenOut }("");
+            if (!sent) revert Errors.FailedToSendEther();
+        } else {
+            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
+        }
+    }
+
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountSharesOut) {
+        if (tokenIn == NATIVE) {
+            amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
+        } else {
+            amountSharesOut = super._previewDeposit(tokenIn, amountTokenToDeposit);
+        }
+    }
+
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
+        if (tokenOut == NATIVE) {
+            amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
+        } else {
+            amountTokenOut = super._previewRedeem(tokenOut, amountSharesToRedeem);
+        }
+    }
 
     function _getPoolTokenAddresses()
         internal

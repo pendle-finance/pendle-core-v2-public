@@ -162,6 +162,7 @@ library Errors {
     error ArrayEmpty();
     error ArrayOutOfBounds();
     error ZeroAddress();
+    error FailedToSendEther();
 
     error OnlyLayerZeroEndpoint();
     error OnlyYT();
