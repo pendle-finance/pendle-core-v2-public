@@ -48,28 +48,38 @@ library StableMath {
         uint256 invariant = sum; // D in the Curve version
         uint256 ampTimesTotal = amplificationParameter * numTokens; // Ann in the Curve version
 
-        for (uint256 i = 0; i < 255; i++) {
+        uint256 numTokensPlus1 = numTokens + 1;
+        uint256 ampTimesTotalSubAmpPrecision = ampTimesTotal - _AMP_PRECISION;
+
+        for (uint256 i = 0; i < 255; ) {
             uint256 D_P = invariant;
 
-            for (uint256 j = 0; j < numTokens; j++) {
+            for (uint256 j = 0; j < numTokens; ) {
                 D_P = (D_P * invariant) / (balances[j] * numTokens);
+                unchecked {
+                    j++;
+                }
             }
 
             prevInvariant = invariant;
 
             invariant =
                 ((ampTimesTotal * sum) / _AMP_PRECISION + D_P * numTokens * invariant) /
-                (((ampTimesTotal - _AMP_PRECISION) * invariant) /
+                (((ampTimesTotalSubAmpPrecision) * invariant) /
                     _AMP_PRECISION +
-                    (numTokens + 1) *
+                    (numTokensPlus1) *
                     D_P);
 
-            if (invariant > prevInvariant) {
-                if (invariant - prevInvariant <= 1) {
+            unchecked {
+                if (invariant > prevInvariant) {
+                    if (invariant - prevInvariant <= 1) {
+                        return invariant;
+                    }
+                } else if (prevInvariant - invariant <= 1) {
                     return invariant;
                 }
-            } else if (prevInvariant - invariant <= 1) {
-                return invariant;
+
+                i++;
             }
         }
 

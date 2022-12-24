@@ -30,7 +30,9 @@ library FixedPoint {
         if (product == 0) {
             return 0;
         } else {
-            return ((product - 1) / ONE) + 1;
+            unchecked {
+                return ((product - 1) / ONE) + 1;
+            }
         }
     }
 
@@ -52,11 +54,15 @@ library FixedPoint {
             return 0;
         } else {
             uint256 aInflated = a * ONE;
-            return ((aInflated - 1) / b) + 1;
+            unchecked {
+                return ((aInflated - 1) / b) + 1;
+            }
         }
     }
 
     function complement(uint256 x) internal pure returns (uint256) {
-        return (x < ONE) ? (ONE - x) : 0;
+        unchecked {
+            return (x < ONE) ? (ONE - x) : 0;
+        }
     }
 }
