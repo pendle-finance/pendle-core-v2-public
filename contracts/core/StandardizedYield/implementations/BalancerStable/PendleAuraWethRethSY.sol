@@ -9,7 +9,6 @@ import "../../../libraries/Errors.sol";
 contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     using SafeERC20 for IERC20;
 
-    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
 
     uint256 internal constant AURA_PID = 15;
@@ -20,35 +19,6 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         string memory _symbol,
         StablePreview _stablePreview
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _stablePreview) {}
-
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
-        if (tokenIn == NATIVE) {
-            IWETH(WETH).deposit{ value: msg.value }();
-            tokenIn = WETH;
-        }
-        amountSharesOut = super._deposit(tokenIn, amount);
-    }
-
-    function _redeem(
-        address receiver,
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal virtual override returns (uint256 amountTokenOut) {
-        if (tokenOut == NATIVE) {
-            amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
-            IWETH(WETH).withdraw(amountTokenOut);
-
-            (bool sent, ) = payable(receiver).call{ value: amountTokenOut }("");
-            if (!sent) revert Errors.FailedToSendEther();
-        } else {
-            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
-        }
-    }
 
     function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
         internal

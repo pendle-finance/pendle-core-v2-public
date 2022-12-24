@@ -12,6 +12,7 @@ import "../../../../../interfaces/Balancer/IAsset.sol";
 import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
+import "../../../../../interfaces/IWETH.sol";
 import "../../../../libraries/ArrayLib.sol";
 import "./StablePreview.sol";
 
@@ -24,6 +25,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address public constant AURA_BOOSTER = 0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     address public immutable balLp;
     bytes32 public immutable balPoolId;
@@ -79,6 +81,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         if (tokenIn == balLp) {
             amountSharesOut = amount;
         } else {
+            if (tokenIn == NATIVE) {
+                IWETH(WETH).deposit{ value: msg.value }();
+                tokenIn = WETH;
+            }
             amountSharesOut = _depositToBalancer(tokenIn, amount);
         }
 
@@ -100,7 +106,15 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountTokenOut = amountSharesToRedeem;
             _transferOut(tokenOut, receiver, amountTokenOut);
         } else {
-            amountTokenOut = _redeemFromBalancer(receiver, tokenOut, amountSharesToRedeem);
+            if (tokenOut == NATIVE) {
+                amountTokenOut = _redeemFromBalancer(address(this), WETH, amountSharesToRedeem);
+                IWETH(WETH).withdraw(amountTokenOut);
+
+                (bool success, ) = payable(receiver).call{ value: amountTokenOut }("");
+                if (!success) revert Errors.FailedToSendEther();
+            } else {
+                amountTokenOut = _redeemFromBalancer(receiver, tokenOut, amountSharesToRedeem);
+            }
         }
     }
 

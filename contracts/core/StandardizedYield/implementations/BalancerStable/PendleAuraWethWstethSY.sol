@@ -13,7 +13,6 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
     using SafeERC20 for IERC20;
 
     address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
-    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
 
     uint256 internal constant AURA_PID = 29;
@@ -56,10 +55,18 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
+        return (token == LP ||
+            token == WSTETH ||
+            token == WETH ||
+            token == STETH ||
+            token == NATIVE);
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
+        return (token == LP ||
+            token == WSTETH ||
+            token == WETH ||
+            token == STETH ||
+            token == NATIVE);
     }
 }
