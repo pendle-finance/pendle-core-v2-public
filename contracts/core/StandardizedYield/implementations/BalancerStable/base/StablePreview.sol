@@ -579,7 +579,7 @@ contract StablePreview is VaultPreview {
         if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
             return IBasePool(LP).isTokenExemptFromYieldProtocolFee(token);
         } else {
-            return false
+            return false;
         }
     }
 
@@ -589,6 +589,6 @@ contract StablePreview is VaultPreview {
         uint256 duration, 
         uint256 expires
     ) {
-        
+        // TODO
     }
 }
