@@ -8,11 +8,26 @@ interface IBasePool {
 
     function getSwapFeePercentage() external view returns (uint256);
 
-    function getLastJoinExitData() external view returns (uint256, uint256);
+    function getLastJoinExitData()
+        external
+        view
+        returns (uint256 lastJoinExitAmplification, uint256 lastPostJoinExitInvariant);
+
+    function getLastInvariant()
+        external
+        view
+        returns (uint256 lastInvariant, uint256 lastInvariantAmp);
 
     function getActualSupply() external view returns (uint256);
 
-    function getAmplificationParameter() external view returns (uint256, bool, uint256);
+    function getAmplificationParameter()
+        external
+        view
+        returns (
+            uint256,
+            bool,
+            uint256
+        );
 
     function getScalingFactors() external view returns (uint256[] memory);
 
@@ -22,13 +37,26 @@ interface IBasePool {
 
     function getRateProviders() external view returns (address[] memory);
 
-    function getTokenRateCache(
-        IERC20 token
-    ) external view returns (uint256 rate, uint256 oldRate, uint256 duration, uint256 expires);
+    function getTokenRateCache(IERC20 token)
+        external
+        view
+        returns (
+            uint256 rate,
+            uint256 oldRate,
+            uint256 duration,
+            uint256 expires
+        );
 
     function getProtocolFeePercentageCache(uint256 feeType) external view returns (uint256);
 
-    function getPausedState() external view returns (bool, uint256, uint256);
+    function getPausedState()
+        external
+        view
+        returns (
+            bool,
+            uint256,
+            uint256
+        );
 
     function inRecoveryMode() external view returns (bool);
 }

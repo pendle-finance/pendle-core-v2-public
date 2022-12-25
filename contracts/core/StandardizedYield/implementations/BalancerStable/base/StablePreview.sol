@@ -18,12 +18,19 @@ contract StablePreview is VaultPreview {
     using StablePoolUserData for bytes;
     using BasePoolUserData for bytes;
 
+    enum StablePoolType {
+        COMPOSABLE_STABLE_POOL,
+        META_STABLE_POOL
+    }
+
     address public immutable LP;
     bytes32 public immutable POOL_ID;
+    StablePoolType public immutable POOL_TYPE;
 
-    constructor(address _LP, bytes32 _POOL_ID) {
+    constructor(address _LP, bytes32 _POOL_ID, StablePoolType _POOL_TYPE) {
         LP = _LP;
         POOL_ID = _POOL_ID;
+        POOL_TYPE = _POOL_TYPE;
     }
 
     function onJoinPool(
@@ -47,7 +54,7 @@ contract StablePreview is VaultPreview {
             recipient,
             balances,
             lastChangeBlock,
-            IBasePool(LP).inRecoveryMode() ? 0 : protocolSwapFeePercentage,
+            _inRecoveryMode() ? 0 : protocolSwapFeePercentage,
             scalingFactors,
             userData
         );
@@ -66,15 +73,14 @@ contract StablePreview is VaultPreview {
         uint256[] memory amountsOut;
 
         if (userData.isRecoveryModeExitKind()) {
-            require(IBasePool(LP).inRecoveryMode(), "Only recovery mode");
+            require(_inRecoveryMode(), "Only recovery mode");
             (bptAmountIn, amountsOut) = _doRecoveryModeExit(
                 balances,
                 IERC20(LP).totalSupply(),
                 userData
             );
         } else {
-            bool paused;
-            (paused, , ) = IBasePool(LP).getPausedState();
+            (bool paused, , ) = IBasePool(LP).getPausedState();
             require(!paused, "Pool is paused");
 
             uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
@@ -86,7 +92,7 @@ contract StablePreview is VaultPreview {
                 recipient,
                 balances,
                 lastChangeBlock,
-                IBasePool(LP).inRecoveryMode() ? 0 : protocolSwapFeePercentage,
+                _inRecoveryMode() ? 0 : protocolSwapFeePercentage,
                 scalingFactors,
                 userData
             );
@@ -140,9 +146,9 @@ contract StablePreview is VaultPreview {
     {
         registeredTokenAmounts = new uint256[](amounts.length + 1);
         for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
-            registeredTokenAmounts[i] = i == IBasePool(LP).getBptIndex()
+            registeredTokenAmounts[i] = i == _getBptIndex()
                 ? bptAmount
-                : amounts[i < IBasePool(LP).getBptIndex() ? i : i - 1];
+                : amounts[i < _getBptIndex() ? i : i - 1];
         }
     }
 
@@ -320,8 +326,7 @@ contract StablePreview is VaultPreview {
             uint256
         )
     {
-        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IBasePool(LP)
-            .getLastJoinExitData();
+        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = _getLastJoinExitData();
 
         (
             uint256 preJoinExitSupply,
@@ -450,7 +455,7 @@ contract StablePreview is VaultPreview {
     function _areNoTokensExempt() internal view returns (bool) {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[i])) {
+            if (_isTokenExemptFromYieldProtocolFee(tokens[i])) {
                 return false;
             }
         }
@@ -460,7 +465,7 @@ contract StablePreview is VaultPreview {
     function _areAllTokensExempt() internal view returns (bool) {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (!IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[i])) {
+            if (!_isTokenExemptFromYieldProtocolFee(tokens[i])) {
                 return false;
             }
         }
@@ -476,7 +481,7 @@ contract StablePreview is VaultPreview {
         uint256[] memory adjustedBalances = new uint256[](totalTokensWithoutBpt);
 
         for (uint256 i = 0; i < totalTokensWithoutBpt; ++i) {
-            uint256 skipBptIndex = i >= IBasePool(LP).getBptIndex() ? i + 1 : i;
+            uint256 skipBptIndex = i >= _getBptIndex() ? i + 1 : i;
             adjustedBalances[i] = _isTokenExemptFromYieldProtocolFee(skipBptIndex) ||
                 (ignoreExemptFlags && _hasRateProvider(skipBptIndex))
                 ? _adjustedBalance(balances[i], skipBptIndex)
@@ -500,8 +505,13 @@ contract StablePreview is VaultPreview {
     }
 
     function _hasRateProvider(uint256 registeredTokenIndex) internal view returns (bool) {
-        address[] memory rateProviders = IBasePool(LP).getRateProviders();
-        return rateProviders[registeredTokenIndex] != address(0);
+        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL ||
+            POOL_TYPE == StablePoolType.META_STABLE_POOL) {
+            address[] memory rateProviders = IBasePool(LP).getRateProviders();
+            return rateProviders[registeredTokenIndex] != address(0);
+        } else {
+            return false;
+        }
     }
 
     function _isTokenExemptFromYieldProtocolFee(uint256 registeredTokenIndex)
@@ -510,7 +520,7 @@ contract StablePreview is VaultPreview {
         returns (bool)
     {
         (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        return IBasePool(LP).isTokenExemptFromYieldProtocolFee(tokens[registeredTokenIndex]);
+        return _isTokenExemptFromYieldProtocolFee(tokens[registeredTokenIndex]);
     }
 
     function _dropBptItemFromBalances(uint256[] memory registeredBalances)
@@ -519,7 +529,7 @@ contract StablePreview is VaultPreview {
         returns (uint256, uint256[] memory)
     {
         return (
-            _getVirtualSupply(registeredBalances[IBasePool(LP).getBptIndex()]),
+            _getVirtualSupply(registeredBalances[_getBptIndex()]),
             _dropBptItem(registeredBalances)
         );
     }
@@ -527,7 +537,7 @@ contract StablePreview is VaultPreview {
     function _dropBptItem(uint256[] memory amounts) internal view returns (uint256[] memory) {
         uint256[] memory amountsWithoutBpt = new uint256[](amounts.length - 1);
         for (uint256 i = 0; i < amountsWithoutBpt.length; i++) {
-            amountsWithoutBpt[i] = amounts[i < IBasePool(LP).getBptIndex() ? i : i + 1];
+            amountsWithoutBpt[i] = amounts[i < _getBptIndex() ? i : i + 1];
         }
 
         return amountsWithoutBpt;
@@ -535,5 +545,50 @@ contract StablePreview is VaultPreview {
 
     function _getVirtualSupply(uint256 bptBalance) internal view returns (uint256) {
         return (IERC20(LP).totalSupply()).sub(bptBalance);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    POOL-SPECIFIC EXTERNAL READS
+    //////////////////////////////////////////////////////////////*/
+
+    function _inRecoveryMode() internal view returns (bool) {
+        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
+            return IBasePool(LP).inRecoveryMode();
+        } else {
+            return false; // no recovery mode available
+        }
+    }
+
+    function _getBptIndex() internal view returns (uint256) {
+        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
+            return IBasePool(LP).getBptIndex();
+        } else {
+            return type(uint256).max; // no such index
+        }
+    }
+
+    function _getLastJoinExitData() internal view returns (uint256 lastInvariant, uint256 lastAmp) {
+        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
+            (lastInvariant, lastAmp) = IBasePool(LP).getLastJoinExitData();
+        } else {
+            (lastAmp, lastInvariant) = IBasePool(LP).getLastInvariant();
+        }
+    }
+
+    function _isTokenExemptFromYieldProtocolFee(IERC20 token) internal view returns (bool) {
+        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
+            return IBasePool(LP).isTokenExemptFromYieldProtocolFee(token);
+        } else {
+            return false
+        }
+    }
+
+    function _getTokenRateCache(IERC20 token) internal view returns (
+        uint256 rate, 
+        uint256 oldRate, 
+        uint256 duration, 
+        uint256 expires
+    ) {
+        
     }
 }
