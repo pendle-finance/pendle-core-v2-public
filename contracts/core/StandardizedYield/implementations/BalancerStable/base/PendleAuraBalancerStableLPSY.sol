@@ -45,9 +45,13 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         if (balLp != _balLp) revert Errors.SYBalancerInvalidPid();
 
         _safeApproveInf(_balLp, AURA_BOOSTER);
+        address[] memory tokens = _getPoolTokenAddresses();
+        for (uint i = 0; i < tokens.length; ++i) {
+            _safeApproveInf(tokens[i], BALANCER_VAULT);
+        }
 
         stablePreview = _stablePreview;
-        assert(stablePreview.LP() == balLp && stablePreview.POOL_ID() == balPoolId);
+        require(stablePreview.LP() == balLp && stablePreview.POOL_ID() == balPoolId);
     }
 
     function _getPoolInfo(uint256 _auraPid)
@@ -139,13 +143,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         virtual
         returns (uint256)
     {
-        // transfer directly to the vault to use internal balance
         IVault.JoinPoolRequest memory request = _assembleJoinRequest(
             tokenIn,
             amountTokenToDeposit
         );
-
-        IERC20(tokenIn).safeTransfer(BALANCER_VAULT, amountTokenToDeposit);
         IVault(BALANCER_VAULT).joinPool(balPoolId, address(this), address(this), request);
 
         // amount shares out = amount LP received
@@ -170,6 +171,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         uint256 minimumBPT = 0;
         for (uint256 i = 0; i < assets.length; ++i) {
             if (assets[i] == tokenIn) {
+                maxAmountsIn[i] = amountTokenToDeposit;
                 amountsIn[i] = amountTokenToDeposit;
                 break;
             }
@@ -177,7 +179,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
 
         // assemble joinpoolrequest
-        request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, true);
+        request = IVault.JoinPoolRequest(assets, maxAmountsIn, userData, false);
     }
 
     function _redeemFromBalancer(
@@ -222,7 +224,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         // assemble exitpoolrequest
         request = IVault.ExitPoolRequest(assets, minAmountsOut, userData, false);
     }
-    
+
     /// @dev this should return tokens in the same order as `IVault.getPoolTokens()`
     function _getPoolTokenAddresses() internal view virtual returns (address[] memory res);
 
