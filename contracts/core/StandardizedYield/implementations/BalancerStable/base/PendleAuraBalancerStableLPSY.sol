@@ -4,23 +4,20 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../../SYBaseWithRewards.sol";
-import "../../../../../interfaces/Balancer/ILiquidityGaugeFactory.sol";
-import "../../../../../interfaces/Balancer/IGauge.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
-import "../../../../../interfaces/Balancer/IAsset.sol";
 import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IStableRate.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/IWETH.sol";
+
 import "../../../../libraries/ArrayLib.sol";
+import "../../../SYBaseWithRewards.sol";
 import "./StablePreview.sol";
 
 abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
-    using StableMath for uint256;
 
     address public constant BAL_TOKEN = 0xba100000625a3754423978a60c9317c58a424e3D;
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
@@ -30,8 +27,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
     address public immutable balLp;
     bytes32 public immutable balPoolId;
+
     uint256 public immutable auraPid;
     address public immutable auraRewardManager;
+
     StablePreview public immutable stablePreview;
 
     constructor(
@@ -150,21 +149,19 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     {
         // max amounts in
         address[] memory assets = _getPoolTokenAddresses();
+
+        uint256[] memory amountsIn = new uint256[](assets.length);
         uint256[] memory maxAmountsIn = new uint256[](assets.length);
+
+        uint256 index = assets.find(tokenIn);
+        maxAmountsIn[index] = amountsIn[index] = amountTokenToDeposit;
 
         // encode user data
         StablePoolUserData.JoinKind joinKind = StablePoolUserData
             .JoinKind
             .EXACT_TOKENS_IN_FOR_BPT_OUT;
-        uint256[] memory amountsIn = new uint256[](assets.length);
         uint256 minimumBPT = 0;
-        for (uint256 i = 0; i < assets.length; ++i) {
-            if (assets[i] == tokenIn) {
-                maxAmountsIn[i] = amountTokenToDeposit;
-                amountsIn[i] = amountTokenToDeposit;
-                break;
-            }
-        }
+
         bytes memory userData = abi.encode(joinKind, amountsIn, minimumBPT);
 
         // assemble joinpoolrequest
@@ -200,13 +197,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             .ExitKind
             .EXACT_BPT_IN_FOR_ONE_TOKEN_OUT;
         uint256 bptAmountIn = amountLpToRedeem;
-        uint256 exitTokenIndex;
-        for (uint256 i = 0; i < assets.length; ++i) {
-            if (assets[i] == tokenOut) {
-                exitTokenIndex = i;
-                break;
-            }
-        }
+        uint256 exitTokenIndex = assets.find(tokenOut);
 
         bytes memory userData = abi.encode(exitKind, bptAmountIn, exitTokenIndex);
 
