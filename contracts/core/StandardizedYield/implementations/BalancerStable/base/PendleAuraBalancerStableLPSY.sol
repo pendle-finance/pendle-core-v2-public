@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../../../../../interfaces/Balancer/IVault.sol";
-import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IStableRate.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
@@ -53,7 +52,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         }
 
         stablePreview = _stablePreview;
-        require(stablePreview.LP() == balLp && stablePreview.POOL_ID() == balPoolId);
+        require(stablePreview.LP() == balLp);
     }
 
     function _getPoolInfo(uint256 _auraPid)

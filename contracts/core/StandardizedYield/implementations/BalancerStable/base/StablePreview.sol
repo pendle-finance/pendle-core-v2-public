@@ -5,32 +5,21 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../library/FixedPoint.sol";
 import "../library/StableMath.sol";
 import "../library/StablePoolUserData.sol";
-import "../library/BasePoolUserData.sol";
 import "./VaultPreview.sol";
-import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IBalancerFees.sol";
+import "../../../../../interfaces/Balancer/IMetaStablePool.sol";
 import "./VaultPreview.sol";
 
 contract StablePreview is VaultPreview {
     using FixedPoint for uint256;
     using StableMath for uint256;
     using StablePoolUserData for bytes;
-    using BasePoolUserData for bytes;
-
-    enum StablePoolType {
-        COMPOSABLE_STABLE_POOL,
-        META_STABLE_POOL
-    }
 
     address public immutable LP;
-    bytes32 public immutable POOL_ID;
-    StablePoolType public immutable POOL_TYPE;
 
-    constructor(address _LP, bytes32 _POOL_ID, StablePoolType _POOL_TYPE) {
+    constructor(address _LP) {
         LP = _LP;
-        POOL_ID = _POOL_ID;
-        POOL_TYPE = _POOL_TYPE;
     }
 
     function onJoinPool(
@@ -42,19 +31,16 @@ contract StablePreview is VaultPreview {
         uint256 protocolSwapFeePercentage,
         bytes memory userData
     ) internal view override returns (uint256 bptAmountOut) {
-        (bool paused, , ) = IBasePool(LP).getPausedState();
-        require(!paused, "Pool is paused");
-
         uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
         _upscaleArray(balances, scalingFactors);
 
-        (bptAmountOut, ) = _onJoinPool(
+        (bptAmountOut, , ) = _onJoinPool(
             poolId,
             sender,
             recipient,
             balances,
             lastChangeBlock,
-            _inRecoveryMode() ? 0 : protocolSwapFeePercentage,
+            protocolSwapFeePercentage,
             scalingFactors,
             userData
         );
@@ -68,37 +54,23 @@ contract StablePreview is VaultPreview {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData
-    ) internal view override returns (uint256 amountTokenOut) {
-        uint256 bptAmountIn;
-        uint256[] memory amountsOut;
+    ) internal view virtual override returns (uint256 amountTokenOut) {
+        uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
+        _upscaleArray(balances, scalingFactors);
 
-        if (userData.isRecoveryModeExitKind()) {
-            require(_inRecoveryMode(), "Only recovery mode");
-            (bptAmountIn, amountsOut) = _doRecoveryModeExit(
-                balances,
-                IERC20(LP).totalSupply(),
-                userData
-            );
-        } else {
-            (bool paused, , ) = IBasePool(LP).getPausedState();
-            require(!paused, "Pool is paused");
+        (, uint256[] memory amountsOut, ) = _onExitPool(
+            poolId,
+            sender,
+            recipient,
+            balances,
+            lastChangeBlock,
+            protocolSwapFeePercentage,
+            scalingFactors,
+            userData
+        );
 
-            uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
-            _upscaleArray(balances, scalingFactors);
-
-            (bptAmountIn, amountsOut) = _onExitPool(
-                poolId,
-                sender,
-                recipient,
-                balances,
-                lastChangeBlock,
-                _inRecoveryMode() ? 0 : protocolSwapFeePercentage,
-                scalingFactors,
-                userData
-            );
-
-            _downscaleDownArray(amountsOut, scalingFactors);
-        }
+        // amountsOut are amounts exiting the Pool, so we round down.
+        _downscaleDownArray(amountsOut, scalingFactors);
 
         for (uint256 i = 0; i < amountsOut.length; i++) {
             if (amountsOut[i] > 0) {
@@ -107,186 +79,211 @@ contract StablePreview is VaultPreview {
         }
     }
 
-    function _doRecoveryModeExit(
-        uint256[] memory registeredBalances,
-        uint256,
-        bytes memory userData
-    ) internal view returns (uint256, uint256[] memory) {
-        (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(
-            registeredBalances
-        );
-
-        uint256 bptAmountIn = userData.recoveryModeExit();
-        uint256[] memory amountsOut = _computeProportionalAmountsOut(
-            balances,
-            virtualSupply,
-            bptAmountIn
-        );
-
-        return (bptAmountIn, _addBptItem(amountsOut, 0));
-    }
-
-    function _computeProportionalAmountsOut(
-        uint256[] memory balances,
-        uint256 totalSupply,
-        uint256 bptAmountIn
-    ) internal pure returns (uint256[] memory amountsOut) {
-        uint256 bptRatio = bptAmountIn.divDown(totalSupply);
-
-        amountsOut = new uint256[](balances.length);
-        for (uint256 i = 0; i < balances.length; i++) {
-            amountsOut[i] = balances[i].mulDown(bptRatio);
-        }
-    }
-
-    function _addBptItem(uint256[] memory amounts, uint256 bptAmount)
-        internal
-        view
-        returns (uint256[] memory registeredTokenAmounts)
-    {
-        registeredTokenAmounts = new uint256[](amounts.length + 1);
-        for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
-            registeredTokenAmounts[i] = i == _getBptIndex()
-                ? bptAmount
-                : amounts[i < _getBptIndex() ? i : i - 1];
-        }
-    }
-
+    // bypass pause check since the pool is not pausable past 90 days
     function _onJoinPool(
         bytes32,
         address,
         address,
-        uint256[] memory registeredBalances,
+        uint256[] memory balances,
         uint256,
-        uint256,
+        uint256 protocolSwapFeePercentage,
         uint256[] memory scalingFactors,
         bytes memory userData
-    ) internal view returns (uint256, uint256[] memory) {
-        return _onJoinExitPool(true, registeredBalances, scalingFactors, userData);
+    )
+        internal
+        view
+        returns (
+            uint256,
+            uint256[] memory,
+            uint256[] memory
+        )
+    {
+        // Due protocol swap fee amounts are computed by measuring the growth of the invariant between the previous join
+        // or exit event and now - the invariant's growth is due exclusively to swap fees. This avoids spending gas to
+        // calculate the fee amounts during each individual swap.
+        uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
+            balances,
+            protocolSwapFeePercentage
+        );
+
+        // Update current balances by subtracting the protocol fee amounts
+        _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
+        (uint256 bptAmountOut, uint256[] memory amountsIn) = _doJoin(
+            balances,
+            scalingFactors,
+            userData
+        );
+
+        // Update the invariant with the balances the Pool will have after the join, in order to compute the
+        // protocol swap fee amounts due in future joins and exits.
+        // _updateInvariantAfterJoin(balances, amountsIn); // bypass this
+
+        return (bptAmountOut, amountsIn, dueProtocolFeeAmounts);
     }
 
     function _onExitPool(
         bytes32,
         address,
         address,
-        uint256[] memory registeredBalances,
+        uint256[] memory balances,
         uint256,
-        uint256,
+        uint256 protocolSwapFeePercentage,
         uint256[] memory scalingFactors,
         bytes memory userData
-    ) internal view returns (uint256, uint256[] memory) {
-        return _onJoinExitPool(false, registeredBalances, scalingFactors, userData);
+    )
+        internal
+        view
+        virtual
+        returns (
+            uint256 bptAmountIn,
+            uint256[] memory amountsOut,
+            uint256[] memory dueProtocolFeeAmounts
+        )
+    {
+        // Exits are not completely disabled while the contract is paused: proportional exits (exact BPT in for tokens
+        // out) remain functional.
+
+        // Due protocol swap fee amounts are computed by measuring the growth of the invariant between the previous
+        // join or exit event and now - the invariant's growth is due exclusively to swap fees. This avoids
+        // spending gas calculating fee amounts during each individual swap
+        dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(balances, protocolSwapFeePercentage);
+
+        // Update current balances by subtracting the protocol fee amounts
+        _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
+
+        (bptAmountIn, amountsOut) = _doExit(balances, scalingFactors, userData);
+
+        // Update the invariant with the balances the Pool will have after the exit, in order to compute the
+        // protocol swap fee amounts due in future joins and exits.
+        // _updateInvariantAfterExit(balances, amountsOut);
+
+        return (bptAmountIn, amountsOut, dueProtocolFeeAmounts);
     }
 
-    function _onJoinExitPool(
-        bool isJoin,
-        uint256[] memory registeredBalances,
-        uint256[] memory scalingFactors,
-        bytes memory userData
-    ) internal view returns (uint256 bptAmount, uint256[] memory amountsDelta) {
-        (
-            uint256 preJoinExitSupply,
-            uint256[] memory balances,
-            uint256 currentAmp,
-            uint256 preJoinExitInvariant
-        ) = _beforeJoinExit(registeredBalances);
+    function _mutateAmounts(
+        uint256[] memory toMutate,
+        uint256[] memory arguments,
+        function(uint256, uint256) pure returns (uint256) mutation
+    ) private view {
+        for (uint256 i = 0; i < _getTotalTokens(); ++i) {
+            toMutate[i] = mutation(toMutate[i], arguments[i]);
+        }
+    }
 
-        function(uint256[] memory, uint256, uint256, uint256, uint256[] memory, bytes memory)
-            internal
-            view
-            returns (uint256, uint256[] memory) _doJoinOrExit = (isJoin ? _doJoin : _doExit);
+    function _getDueProtocolFeeAmounts(
+        uint256[] memory balances,
+        uint256 protocolSwapFeePercentage
+    ) private view returns (uint256[] memory) {
+        // Initialize with zeros
+        uint256[] memory dueProtocolFeeAmounts = new uint256[](2);
 
-        (bptAmount, amountsDelta) = _doJoinOrExit(
+        // Early return if the protocol swap fee percentage is zero, saving gas.
+        if (protocolSwapFeePercentage == 0) {
+            return dueProtocolFeeAmounts;
+        }
+
+        // Instead of paying the protocol swap fee in all tokens proportionally, we will pay it in a single one. This
+        // will reduce gas costs for single asset joins and exits, as at most only two Pool balances will change (the
+        // token joined/exited, and the token in which fees will be paid).
+
+        // The protocol fee is charged using the token with the highest balance in the pool.
+        uint256 chosenTokenIndex = 0;
+        uint256 maxBalance = balances[0];
+        for (uint256 i = 1; i < _getTotalTokens(); ++i) {
+            uint256 currentBalance = balances[i];
+            if (currentBalance > maxBalance) {
+                chosenTokenIndex = i;
+                maxBalance = currentBalance;
+            }
+        }
+
+        (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(LP)
+            .getLastInvariant();
+        // Set the fee amount to pay in the selected token
+        dueProtocolFeeAmounts[chosenTokenIndex] = StableMath._calcDueTokenProtocolSwapFeeAmount(
+            _lastInvariantAmp,
             balances,
-            currentAmp,
-            preJoinExitSupply,
-            preJoinExitInvariant,
-            scalingFactors,
-            userData
+            _lastInvariant,
+            chosenTokenIndex,
+            protocolSwapFeePercentage
         );
+
+        return dueProtocolFeeAmounts;
     }
 
     function _doJoin(
         uint256[] memory balances,
-        uint256 currentAmp,
-        uint256 preJoinExitSupply,
-        uint256 preJoinExitInvariant,
         uint256[] memory scalingFactors,
         bytes memory userData
-    ) internal view returns (uint256, uint256[] memory) {
-        // this is always true given Pendle SY context
-        // if (kind == StablePoolUserData.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT)
-        return
-            _joinExactTokensInForBPTOut(
-                preJoinExitSupply,
-                preJoinExitInvariant,
-                currentAmp,
-                balances,
-                scalingFactors,
-                userData
-            );
+    ) private view returns (uint256, uint256[] memory) {
+        StablePoolUserData.JoinKind kind = userData.joinKind();
+        assert(kind == StablePoolUserData.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT); // this stable preview will only be used this way
+
+        return _joinExactTokensInForBPTOut(balances, scalingFactors, userData);
     }
 
     function _joinExactTokensInForBPTOut(
-        uint256 actualSupply,
-        uint256 preJoinExitInvariant,
-        uint256 currentAmp,
         uint256[] memory balances,
         uint256[] memory scalingFactors,
         bytes memory userData
     ) private view returns (uint256, uint256[] memory) {
         (uint256[] memory amountsIn, ) = userData.exactTokensInForBptOut();
+        // InputHelpers.ensureInputLengthMatch(_getTotalTokens(), amountsIn.length);
 
-        // The user-provided amountsIn is unscaled, so we address that.
-        _upscaleArray(amountsIn, _dropBptItem(scalingFactors));
+        _upscaleArray(amountsIn, scalingFactors);
 
-        uint256 bptAmountOut = currentAmp._calcBptOutGivenExactTokensIn(
+        (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
+        uint256 bptAmountOut = StableMath._calcBptOutGivenExactTokensIn(
+            currentAmp,
             balances,
             amountsIn,
-            actualSupply,
-            preJoinExitInvariant,
-            IBasePool(LP).getSwapFeePercentage()
+            IMetaStablePool(LP).totalSupply(),
+            IMetaStablePool(LP).getSwapFeePercentage()
         );
+
         return (bptAmountOut, amountsIn);
+    }
+
+    function _getTotalTokens() internal view returns (uint256) {
+        return 2;
     }
 
     function _doExit(
         uint256[] memory balances,
-        uint256 currentAmp,
-        uint256 preJoinExitSupply,
-        uint256 preJoinExitInvariant,
-        uint256[] memory, /*scalingFactors*/
-        bytes memory userData
-    ) internal view returns (uint256, uint256[] memory) {
-        //if (kind == StablePoolUserData.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT)
-        return
-            _exitExactBPTInForTokenOut(
-                preJoinExitSupply,
-                preJoinExitInvariant,
-                currentAmp,
-                balances,
-                userData
-            );
-    }
-
-    function _exitExactBPTInForTokenOut(
-        uint256 actualSupply,
-        uint256 preJoinExitInvariant,
-        uint256 currentAmp,
-        uint256[] memory balances,
+        uint256[] memory scalingFactors,
         bytes memory userData
     ) private view returns (uint256, uint256[] memory) {
+        StablePoolUserData.ExitKind kind = userData.exitKind();
+
+        assert(kind == StablePoolUserData.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT); // this stable preview will only be used this way
+
+        return _exitExactBPTInForTokenOut(balances, userData);
+    }
+
+    function _exitExactBPTInForTokenOut(uint256[] memory balances, bytes memory userData)
+        private
+        view
+        returns (uint256, uint256[] memory)
+    {
+        // This exit function is disabled if the contract is paused.
+
         (uint256 bptAmountIn, uint256 tokenIndex) = userData.exactBptInForTokenOut();
+        // Note that there is no minimum amountOut parameter: this is handled by `IVault.exitPool`.
 
-        uint256[] memory amountsOut = new uint256[](balances.length);
+        require(tokenIndex < _getTotalTokens());
 
-        amountsOut[tokenIndex] = currentAmp._calcTokenOutGivenExactBptIn(
+        // We exit in a single token, so initialize amountsOut with zeros
+        uint256[] memory amountsOut = new uint256[](_getTotalTokens());
+
+        // And then assign the result to the selected token
+        (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
+        amountsOut[tokenIndex] = StableMath._calcTokenOutGivenExactBptIn(
+            currentAmp,
             balances,
             tokenIndex,
             bptAmountIn,
-            actualSupply,
-            preJoinExitInvariant,
-            IBasePool(LP).getSwapFeePercentage()
+            IMetaStablePool(LP).totalSupply(),
+            IMetaStablePool(LP).getSwapFeePercentage()
         );
 
         return (bptAmountIn, amountsOut);
@@ -314,281 +311,5 @@ contract StablePreview is VaultPreview {
         for (uint256 i = 0; i < length; ++i) {
             amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
         }
-    }
-
-    function _beforeJoinExit(uint256[] memory registeredBalances)
-        internal
-        view
-        returns (
-            uint256,
-            uint256[] memory,
-            uint256,
-            uint256
-        )
-    {
-        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = _getLastJoinExitData();
-
-        (
-            uint256 preJoinExitSupply,
-            uint256[] memory balances,
-            uint256 oldAmpPreJoinExitInvariant
-        ) = _payProtocolFeesBeforeJoinExit(
-                registeredBalances,
-                lastJoinExitAmp,
-                lastPostJoinExitInvariant
-            );
-
-        (uint256 currentAmp, , ) = IBasePool(LP).getAmplificationParameter();
-        uint256 preJoinExitInvariant = currentAmp == lastJoinExitAmp
-            ? oldAmpPreJoinExitInvariant
-            : currentAmp._calculateInvariant(balances);
-
-        return (preJoinExitSupply, balances, currentAmp, preJoinExitInvariant);
-    }
-
-    function _payProtocolFeesBeforeJoinExit(
-        uint256[] memory registeredBalances,
-        uint256 lastJoinExitAmp,
-        uint256 lastPostJoinExitInvariant
-    )
-        internal
-        view
-        returns (
-            uint256,
-            uint256[] memory,
-            uint256
-        )
-    {
-        (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(
-            registeredBalances
-        );
-
-        (
-            uint256 expectedProtocolOwnershipPercentage,
-            uint256 currentInvariantWithLastJoinExitAmp
-        ) = _getProtocolPoolOwnershipPercentage(
-                balances,
-                lastJoinExitAmp,
-                lastPostJoinExitInvariant
-            );
-
-        uint256 protocolFeeAmount = _calculateAdjustedProtocolFeeAmount(
-            virtualSupply,
-            expectedProtocolOwnershipPercentage
-        );
-
-        return (virtualSupply + protocolFeeAmount, balances, currentInvariantWithLastJoinExitAmp);
-    }
-
-    function _calculateAdjustedProtocolFeeAmount(uint256 supply, uint256 basePercentage)
-        internal
-        pure
-        returns (uint256)
-    {
-        return supply.mulDown(basePercentage).divDown(basePercentage.complement());
-    }
-
-    function _getProtocolPoolOwnershipPercentage(
-        uint256[] memory balances,
-        uint256 lastJoinExitAmp,
-        uint256 lastPostJoinExitInvariant
-    ) internal view returns (uint256, uint256) {
-        (
-            uint256 swapFeeGrowthInvariant,
-            uint256 totalNonExemptGrowthInvariant,
-            uint256 totalGrowthInvariant
-        ) = _getGrowthInvariants(balances, lastJoinExitAmp);
-
-        uint256 swapFeeGrowthInvariantDelta = (swapFeeGrowthInvariant > lastPostJoinExitInvariant)
-            ? swapFeeGrowthInvariant - lastPostJoinExitInvariant
-            : 0;
-        uint256 nonExemptYieldGrowthInvariantDelta = (totalNonExemptGrowthInvariant >
-            swapFeeGrowthInvariant)
-            ? totalNonExemptGrowthInvariant - swapFeeGrowthInvariant
-            : 0;
-
-        uint256 protocolSwapFeePercentage = swapFeeGrowthInvariantDelta
-            .divDown(totalGrowthInvariant)
-            .mulDown(
-                IBasePool(LP).getProtocolFeePercentageCache(0) // ProtocolFeeType.SWAP
-            );
-
-        uint256 protocolYieldPercentage = nonExemptYieldGrowthInvariantDelta
-            .divDown(totalGrowthInvariant)
-            .mulDown(
-                IBasePool(LP).getProtocolFeePercentageCache(2) // ProtocolFeeType.YIELD
-            );
-
-        // These percentages can then be simply added to compute the total protocol Pool ownership percentage.
-        // This is naturally bounded above by FixedPoint.ONE so this addition cannot overflow.
-        return (protocolSwapFeePercentage + protocolYieldPercentage, totalGrowthInvariant);
-    }
-
-    function _getGrowthInvariants(uint256[] memory balances, uint256 lastJoinExitAmp)
-        internal
-        view
-        returns (
-            uint256 swapFeeGrowthInvariant,
-            uint256 totalNonExemptGrowthInvariant,
-            uint256 totalGrowthInvariant
-        )
-    {
-        swapFeeGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-            _getAdjustedBalances(balances, true)
-        );
-
-        if (_areNoTokensExempt()) {
-            totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
-            totalGrowthInvariant = totalNonExemptGrowthInvariant;
-        } else if (_areAllTokensExempt()) {
-            totalNonExemptGrowthInvariant = swapFeeGrowthInvariant;
-            totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
-        } else {
-            totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-                _getAdjustedBalances(balances, false)
-            );
-
-            totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
-        }
-    }
-
-    function _areNoTokensExempt() internal view returns (bool) {
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (_isTokenExemptFromYieldProtocolFee(tokens[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    function _areAllTokensExempt() internal view returns (bool) {
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (!_isTokenExemptFromYieldProtocolFee(tokens[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    function _getAdjustedBalances(uint256[] memory balances, bool ignoreExemptFlags)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        uint256 totalTokensWithoutBpt = balances.length;
-        uint256[] memory adjustedBalances = new uint256[](totalTokensWithoutBpt);
-
-        for (uint256 i = 0; i < totalTokensWithoutBpt; ++i) {
-            uint256 skipBptIndex = i >= _getBptIndex() ? i + 1 : i;
-            adjustedBalances[i] = _isTokenExemptFromYieldProtocolFee(skipBptIndex) ||
-                (ignoreExemptFlags && _hasRateProvider(skipBptIndex))
-                ? _adjustedBalance(balances[i], skipBptIndex)
-                : balances[i];
-        }
-
-        return adjustedBalances;
-    }
-
-    function _adjustedBalance(uint256 balance, uint256 registeredTokenIndex)
-        private
-        view
-        returns (uint256)
-    {
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-
-        (uint256 currentRate, uint256 oldRate, , ) = IBasePool(LP).getTokenRateCache(
-            tokens[registeredTokenIndex]
-        );
-        return (balance * oldRate) / currentRate;
-    }
-
-    function _hasRateProvider(uint256 registeredTokenIndex) internal view returns (bool) {
-        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL ||
-            POOL_TYPE == StablePoolType.META_STABLE_POOL) {
-            address[] memory rateProviders = IBasePool(LP).getRateProviders();
-            return rateProviders[registeredTokenIndex] != address(0);
-        } else {
-            return false;
-        }
-    }
-
-    function _isTokenExemptFromYieldProtocolFee(uint256 registeredTokenIndex)
-        internal
-        view
-        returns (bool)
-    {
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-        return _isTokenExemptFromYieldProtocolFee(tokens[registeredTokenIndex]);
-    }
-
-    function _dropBptItemFromBalances(uint256[] memory registeredBalances)
-        internal
-        view
-        returns (uint256, uint256[] memory)
-    {
-        return (
-            _getVirtualSupply(registeredBalances[_getBptIndex()]),
-            _dropBptItem(registeredBalances)
-        );
-    }
-
-    function _dropBptItem(uint256[] memory amounts) internal view returns (uint256[] memory) {
-        uint256[] memory amountsWithoutBpt = new uint256[](amounts.length - 1);
-        for (uint256 i = 0; i < amountsWithoutBpt.length; i++) {
-            amountsWithoutBpt[i] = amounts[i < _getBptIndex() ? i : i + 1];
-        }
-
-        return amountsWithoutBpt;
-    }
-
-    function _getVirtualSupply(uint256 bptBalance) internal view returns (uint256) {
-        return (IERC20(LP).totalSupply()).sub(bptBalance);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                    POOL-SPECIFIC EXTERNAL READS
-    //////////////////////////////////////////////////////////////*/
-
-    function _inRecoveryMode() internal view returns (bool) {
-        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
-            return IBasePool(LP).inRecoveryMode();
-        } else {
-            return false; // no recovery mode available
-        }
-    }
-
-    function _getBptIndex() internal view returns (uint256) {
-        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
-            return IBasePool(LP).getBptIndex();
-        } else {
-            return type(uint256).max; // no such index
-        }
-    }
-
-    function _getLastJoinExitData() internal view returns (uint256 lastInvariant, uint256 lastAmp) {
-        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
-            (lastInvariant, lastAmp) = IBasePool(LP).getLastJoinExitData();
-        } else {
-            (lastAmp, lastInvariant) = IBasePool(LP).getLastInvariant();
-        }
-    }
-
-    function _isTokenExemptFromYieldProtocolFee(IERC20 token) internal view returns (bool) {
-        if (POOL_TYPE == StablePoolType.COMPOSABLE_STABLE_POOL) {
-            return IBasePool(LP).isTokenExemptFromYieldProtocolFee(token);
-        } else {
-            return false;
-        }
-    }
-
-    function _getTokenRateCache(IERC20 token) internal view returns (
-        uint256 rate, 
-        uint256 oldRate, 
-        uint256 duration, 
-        uint256 expires
-    ) {
-        // TODO
     }
 }

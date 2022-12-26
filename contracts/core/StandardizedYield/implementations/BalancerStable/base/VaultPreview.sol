@@ -5,9 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../library/FixedPoint.sol";
 import "../library/StableMath.sol";
 import "../library/StablePoolUserData.sol";
-import "../library/BasePoolUserData.sol";
 import "./StablePreview.sol";
-import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IBalancerFees.sol";
 
