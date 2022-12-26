@@ -9,6 +9,7 @@ import "../../../../../interfaces/Balancer/IStableRate.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/IWETH.sol";
+import "../../../../../interfaces/IWstETH.sol";
 
 import "../../../../libraries/ArrayLib.sol";
 import "../../../SYBaseWithRewards.sol";
@@ -22,7 +23,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address public constant AURA_BOOSTER = 0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     address public immutable balLp;
     bytes32 public immutable balPoolId;
@@ -46,9 +50,13 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         if (balLp != _balLp) revert Errors.SYBalancerInvalidPid();
 
         _safeApproveInf(_balLp, AURA_BOOSTER);
+
         address[] memory tokens = _getPoolTokenAddresses();
         for (uint256 i = 0; i < tokens.length; ++i) {
             _safeApproveInf(tokens[i], BALANCER_VAULT);
+            if (tokens[i] == WSTETH) {
+                _safeApproveInf(STETH, WSTETH);
+            }
         }
 
         stablePreview = _stablePreview;
@@ -83,6 +91,9 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             if (tokenIn == NATIVE) {
                 IWETH(WETH).deposit{ value: msg.value }();
                 tokenIn = WETH;
+            } else if (tokenIn == STETH) {
+                amount = IWstETH(WSTETH).wrap(amount);
+                tokenIn = WSTETH;
             }
             amountSharesOut = _depositToBalancer(tokenIn, amount);
         }
@@ -92,7 +103,6 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
     /**
      * @notice Either unwraps LP, or also exits pool using exact LP for only `tokenOut`
-     * @dev Redeems straight to receiver without
      */
     function _redeem(
         address receiver,
@@ -111,7 +121,11 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
                 (bool success, ) = payable(receiver).call{ value: amountTokenOut }("");
                 if (!success) revert Errors.FailedToSendEther();
-            } else {
+            } else if (tokenOut == STETH) {
+                uint256 amountWstEth = _redeemFromBalancer(address(this), WSTETH, amountSharesToRedeem);
+                amountTokenOut = IWstETH(WSTETH).unwrap(amountWstEth);
+                _transferOut(tokenOut, receiver, amountTokenOut);
+            } else {    
                 amountTokenOut = _redeemFromBalancer(receiver, tokenOut, amountSharesToRedeem);
             }
         }

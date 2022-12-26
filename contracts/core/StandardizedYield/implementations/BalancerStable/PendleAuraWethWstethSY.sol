@@ -4,16 +4,8 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PendleAuraBalancerStableLPSY.sol";
 
-/**
- * @dev open TODO:
- * - If tokenIn is NATIVE, convert to WETH or WSTETH (or don't support NATIVE at all)?
- * - To do after item 1: Override deposit/redeem to also (un)wrap STETH/ETH
- */
 contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
     using SafeERC20 for IERC20;
-
-    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
-    address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
 
     uint256 internal constant AURA_PID = 29;
     address internal constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
