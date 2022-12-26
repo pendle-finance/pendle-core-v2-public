@@ -20,34 +20,6 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         StablePreview _stablePreview
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _stablePreview) {}
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
-        if (tokenIn == NATIVE) {
-            amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
-        } else {
-            amountSharesOut = super._previewDeposit(tokenIn, amountTokenToDeposit);
-        }
-    }
-
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
-        if (tokenOut == NATIVE) {
-            amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
-        } else {
-            amountTokenOut = super._previewRedeem(tokenOut, amountSharesToRedeem);
-        }
-    }
-
     function _getPoolTokenAddresses()
         internal
         view

@@ -48,7 +48,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
         _safeApproveInf(_balLp, AURA_BOOSTER);
         address[] memory tokens = _getPoolTokenAddresses();
-        for (uint i = 0; i < tokens.length; ++i) {
+        for (uint256 i = 0; i < tokens.length; ++i) {
             _safeApproveInf(tokens[i], BALANCER_VAULT);
         }
 
@@ -257,7 +257,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountSharesOut = amountTokenToDeposit;
         } else {
             IVault.JoinPoolRequest memory request = _assembleJoinRequest(
-                tokenIn,
+                tokenIn == NATIVE ? WETH : tokenIn,
                 amountTokenToDeposit
             );
             amountSharesOut = stablePreview.joinPoolPreview(
@@ -280,7 +280,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountTokenOut = amountSharesToRedeem;
         } else {
             IVault.ExitPoolRequest memory request = _assembleExitRequest(
-                tokenOut,
+                tokenOut == NATIVE ? WETH : tokenOut,
                 amountSharesToRedeem
             );
 
