@@ -10,6 +10,7 @@ import "../../../../../interfaces/Balancer/IGauge.sol";
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IAsset.sol";
 import "../../../../../interfaces/Balancer/IBasePool.sol";
+import "../../../../../interfaces/Balancer/IStableRate.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/IWETH.sol";
@@ -118,34 +119,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         }
     }
 
-    function exchangeRate() external view override returns (uint256 res) {
-        (uint256 currentAmp, , ) = IBasePool(balLp).getAmplificationParameter();
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVault(BALANCER_VAULT)
-            .getPoolTokens(balPoolId);
-        balances = _dropBptItem(tokens, balances);
-
-        uint256 D = currentAmp._calculateInvariant(balances);
-        uint256 totalSupply = IBasePool(balLp).getActualSupply();
-
-        return (D * 1e18) / totalSupply;
-    }
-
-    function _dropBptItem(IERC20[] memory tokens, uint256[] memory amounts)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        unchecked {
-            uint256[] memory amountsWithoutBpt = new uint256[](amounts.length - 1);
-            uint256 last = 0;
-            for (uint256 i = 0; i < amountsWithoutBpt.length; i++) {
-                if (address(tokens[i]) == balLp) continue;
-                amountsWithoutBpt[last] = amounts[i];
-                last++;
-            }
-
-            return amountsWithoutBpt;
-        }
+    function exchangeRate() external view override returns (uint256) {
+        return IStableRate(balLp).getRate();
     }
 
     /*///////////////////////////////////////////////////////////////
