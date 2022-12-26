@@ -2,16 +2,16 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../library/FixedPoint.sol";
-import "../library/StableMath.sol";
-import "../library/StablePoolUserData.sol";
-import "./VaultPreview.sol";
-import "../../../../../interfaces/Balancer/IVault.sol";
-import "../../../../../interfaces/Balancer/IBalancerFees.sol";
-import "../../../../../interfaces/Balancer/IMetaStablePool.sol";
-import "./VaultPreview.sol";
+import "../../../../../../interfaces/Balancer/IMetaStablePool.sol";
+import "../../../../../../interfaces/Balancer/IRateProvider.sol";
 
-contract StablePreview is VaultPreview {
+import "../FixedPoint.sol";
+import "./StableMath.sol";
+import "../StablePoolUserData.sol";
+
+import "../VaultPreview.sol";
+
+contract MetaStablePreview is VaultPreview {
     using FixedPoint for uint256;
     using StableMath for uint256;
     using StablePoolUserData for bytes;
@@ -29,11 +29,16 @@ contract StablePreview is VaultPreview {
         uint256[] memory balances,
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
-        bytes memory userData
+        bytes memory userData,
+        StablePoolData calldata poolData
     ) internal view override returns (uint256 bptAmountOut) {
-        uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
-        _upscaleArray(balances, scalingFactors);
+        uint256[] memory caches = _cachePriceRatesIfNecessary(poolData);
 
+        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
+
+        // skip totalSupply == 0 case
+
+        _upscaleArray(balances, scalingFactors);
         (bptAmountOut, , ) = _onJoinPool(
             poolId,
             sender,
@@ -44,6 +49,8 @@ contract StablePreview is VaultPreview {
             scalingFactors,
             userData
         );
+
+        // skip _mintPoolTokens, _downscale
     }
 
     function onExitPool(
@@ -53,9 +60,12 @@ contract StablePreview is VaultPreview {
         uint256[] memory balances,
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
-        bytes memory userData
+        bytes memory userData,
+        StablePoolData calldata poolData
     ) internal view virtual override returns (uint256 amountTokenOut) {
-        uint256[] memory scalingFactors = IBasePool(LP).getScalingFactors();
+        uint256[] memory caches = _cachePriceRatesIfNecessary(poolData);
+
+        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
         _upscaleArray(balances, scalingFactors);
 
         (, uint256[] memory amountsOut, ) = _onExitPool(
@@ -69,8 +79,10 @@ contract StablePreview is VaultPreview {
             userData
         );
 
-        // amountsOut are amounts exiting the Pool, so we round down.
+        // skip burnPoolTokens
+
         _downscaleDownArray(amountsOut, scalingFactors);
+        // skip _downscaleDownArray of dueProtocolFeeAmounts
 
         for (uint256 i = 0; i < amountsOut.length; i++) {
             if (amountsOut[i] > 0) {
@@ -79,7 +91,6 @@ contract StablePreview is VaultPreview {
         }
     }
 
-    // bypass pause check since the pool is not pausable past 90 days
     function _onJoinPool(
         bytes32,
         address,
@@ -98,15 +109,13 @@ contract StablePreview is VaultPreview {
             uint256[] memory
         )
     {
-        // Due protocol swap fee amounts are computed by measuring the growth of the invariant between the previous join
-        // or exit event and now - the invariant's growth is due exclusively to swap fees. This avoids spending gas to
-        // calculate the fee amounts during each individual swap.
+        // skip _updateOracle
+
         uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
             balances,
             protocolSwapFeePercentage
         );
 
-        // Update current balances by subtracting the protocol fee amounts
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
         (uint256 bptAmountOut, uint256[] memory amountsIn) = _doJoin(
             balances,
@@ -114,9 +123,7 @@ contract StablePreview is VaultPreview {
             userData
         );
 
-        // Update the invariant with the balances the Pool will have after the join, in order to compute the
-        // protocol swap fee amounts due in future joins and exits.
-        // _updateInvariantAfterJoin(balances, amountsIn); // bypass this
+        // skip _updateInvariantAfterJoin
 
         return (bptAmountOut, amountsIn, dueProtocolFeeAmounts);
     }
@@ -140,56 +147,34 @@ contract StablePreview is VaultPreview {
             uint256[] memory dueProtocolFeeAmounts
         )
     {
-        // Exits are not completely disabled while the contract is paused: proportional exits (exact BPT in for tokens
-        // out) remain functional.
+        // skip _updateOracle
 
-        // Due protocol swap fee amounts are computed by measuring the growth of the invariant between the previous
-        // join or exit event and now - the invariant's growth is due exclusively to swap fees. This avoids
-        // spending gas calculating fee amounts during each individual swap
         dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(balances, protocolSwapFeePercentage);
 
-        // Update current balances by subtracting the protocol fee amounts
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
 
         (bptAmountIn, amountsOut) = _doExit(balances, scalingFactors, userData);
 
-        // Update the invariant with the balances the Pool will have after the exit, in order to compute the
-        // protocol swap fee amounts due in future joins and exits.
-        // _updateInvariantAfterExit(balances, amountsOut);
+        // skip pause case
+
+        // skip _updateInvariantAfterExit
 
         return (bptAmountIn, amountsOut, dueProtocolFeeAmounts);
-    }
-
-    function _mutateAmounts(
-        uint256[] memory toMutate,
-        uint256[] memory arguments,
-        function(uint256, uint256) pure returns (uint256) mutation
-    ) private view {
-        for (uint256 i = 0; i < _getTotalTokens(); ++i) {
-            toMutate[i] = mutation(toMutate[i], arguments[i]);
-        }
     }
 
     function _getDueProtocolFeeAmounts(
         uint256[] memory balances,
         uint256 protocolSwapFeePercentage
     ) private view returns (uint256[] memory) {
-        // Initialize with zeros
         uint256[] memory dueProtocolFeeAmounts = new uint256[](2);
 
-        // Early return if the protocol swap fee percentage is zero, saving gas.
         if (protocolSwapFeePercentage == 0) {
             return dueProtocolFeeAmounts;
         }
 
-        // Instead of paying the protocol swap fee in all tokens proportionally, we will pay it in a single one. This
-        // will reduce gas costs for single asset joins and exits, as at most only two Pool balances will change (the
-        // token joined/exited, and the token in which fees will be paid).
-
-        // The protocol fee is charged using the token with the highest balance in the pool.
         uint256 chosenTokenIndex = 0;
         uint256 maxBalance = balances[0];
-        for (uint256 i = 1; i < _getTotalTokens(); ++i) {
+        for (uint256 i = 1; i < 2; ++i) {
             uint256 currentBalance = balances[i];
             if (currentBalance > maxBalance) {
                 chosenTokenIndex = i;
@@ -199,7 +184,6 @@ contract StablePreview is VaultPreview {
 
         (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(LP)
             .getLastInvariant();
-        // Set the fee amount to pay in the selected token
         dueProtocolFeeAmounts[chosenTokenIndex] = StableMath._calcDueTokenProtocolSwapFeeAmount(
             _lastInvariantAmp,
             balances,
@@ -216,9 +200,6 @@ contract StablePreview is VaultPreview {
         uint256[] memory scalingFactors,
         bytes memory userData
     ) private view returns (uint256, uint256[] memory) {
-        StablePoolUserData.JoinKind kind = userData.joinKind();
-        assert(kind == StablePoolUserData.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT); // this stable preview will only be used this way
-
         return _joinExactTokensInForBPTOut(balances, scalingFactors, userData);
     }
 
@@ -228,7 +209,6 @@ contract StablePreview is VaultPreview {
         bytes memory userData
     ) private view returns (uint256, uint256[] memory) {
         (uint256[] memory amountsIn, ) = userData.exactTokensInForBptOut();
-        // InputHelpers.ensureInputLengthMatch(_getTotalTokens(), amountsIn.length);
 
         _upscaleArray(amountsIn, scalingFactors);
 
@@ -244,19 +224,11 @@ contract StablePreview is VaultPreview {
         return (bptAmountOut, amountsIn);
     }
 
-    function _getTotalTokens() internal view returns (uint256) {
-        return 2;
-    }
-
     function _doExit(
         uint256[] memory balances,
-        uint256[] memory scalingFactors,
+        uint256[] memory,
         bytes memory userData
     ) private view returns (uint256, uint256[] memory) {
-        StablePoolUserData.ExitKind kind = userData.exitKind();
-
-        assert(kind == StablePoolUserData.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT); // this stable preview will only be used this way
-
         return _exitExactBPTInForTokenOut(balances, userData);
     }
 
@@ -270,10 +242,8 @@ contract StablePreview is VaultPreview {
         (uint256 bptAmountIn, uint256 tokenIndex) = userData.exactBptInForTokenOut();
         // Note that there is no minimum amountOut parameter: this is handled by `IVault.exitPool`.
 
-        require(tokenIndex < _getTotalTokens());
-
         // We exit in a single token, so initialize amountsOut with zeros
-        uint256[] memory amountsOut = new uint256[](_getTotalTokens());
+        uint256[] memory amountsOut = new uint256[](2);
 
         // And then assign the result to the selected token
         (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
@@ -282,12 +252,67 @@ contract StablePreview is VaultPreview {
             balances,
             tokenIndex,
             bptAmountIn,
-            IMetaStablePool(LP).totalSupply(),
+            IMetaStablePool(LP).totalSupply(), // this totalSupply is reliable since we didn't mint LP
             IMetaStablePool(LP).getSwapFeePercentage()
         );
 
         return (bptAmountIn, amountsOut);
     }
+
+    function _scalingFactors(StablePoolData calldata poolData, uint256[] memory caches)
+        internal
+        view
+        virtual
+        returns (uint256[] memory)
+    {
+        uint256[] memory scalingFactors = new uint256[](2);
+
+        for (uint256 i = 0; i < 2; ++i) {
+            scalingFactors[i] = poolData.rawScalingFactors[i].mulDown(_priceRate(caches, i));
+        }
+
+        return scalingFactors;
+    }
+
+    function _priceRate(uint256[] memory caches, uint256 index)
+        internal
+        view
+        virtual
+        returns (uint256)
+    {
+        return caches[index] == 0 ? FixedPoint.ONE : caches[index];
+    }
+
+    function _cachePriceRatesIfNecessary(StablePoolData calldata poolData)
+        internal
+        view
+        returns (uint256[] memory res)
+    {
+        res = new uint256[](2);
+        res[0] = _cachePriceRateIfNecessary(0, poolData);
+        res[1] = _cachePriceRateIfNecessary(1, poolData);
+    }
+
+    function _cachePriceRateIfNecessary(uint256 index, StablePoolData calldata poolData)
+        internal
+        view
+        returns (uint256 res)
+    {
+        if (!_hasRateProvider(poolData, index)) return res;
+
+        uint256 expires;
+        (res, , expires) = IMetaStablePool(LP).getPriceRateCache(
+            IERC20(poolData.poolTokens[index])
+        );
+
+        if (block.timestamp > expires) {
+            res = IRateProvider(poolData.rateProviders[index]).getRate();
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                               Helpers functions
+    //////////////////////////////////////////////////////////////*/
 
     function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors)
         internal
@@ -310,6 +335,16 @@ contract StablePreview is VaultPreview {
         uint256 length = amounts.length;
         for (uint256 i = 0; i < length; ++i) {
             amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
+        }
+    }
+
+    function _mutateAmounts(
+        uint256[] memory toMutate,
+        uint256[] memory arguments,
+        function(uint256, uint256) pure returns (uint256) mutation
+    ) private pure {
+        for (uint256 i = 0; i < 2; ++i) {
+            toMutate[i] = mutation(toMutate[i], arguments[i]);
         }
     }
 }

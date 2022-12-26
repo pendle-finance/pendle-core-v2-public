@@ -19,4 +19,13 @@ interface IMetaStablePool is IBasePool {
         );
 
     function getSwapFeePercentage() external view returns (uint256);
+
+    function getPriceRateCache(IERC20 token)
+        external
+        view
+        returns (
+            uint256 rate,
+            uint256 duration,
+            uint256 expires
+        );
 }

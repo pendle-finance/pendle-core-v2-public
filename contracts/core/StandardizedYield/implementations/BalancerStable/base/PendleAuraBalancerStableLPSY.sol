@@ -5,15 +5,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../../../../../interfaces/Balancer/IVault.sol";
-import "../../../../../interfaces/Balancer/IStableRate.sol";
+import "../../../../../interfaces/Balancer/IRateProvider.sol";
+import "../../../../../interfaces/Balancer/IBasePool.sol";
+import "../../../../../interfaces/Balancer/IBalancerStablePreview.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
 import "../../../../../interfaces/IWETH.sol";
 import "../../../../../interfaces/IWstETH.sol";
 
+import "./StablePoolUserData.sol";
 import "../../../../libraries/ArrayLib.sol";
 import "../../../SYBaseWithRewards.sol";
-import "./StablePreview.sol";
 
 abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     using SafeERC20 for IERC20;
@@ -34,14 +36,14 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     uint256 public immutable auraPid;
     address public immutable auraRewardManager;
 
-    StablePreview public immutable stablePreview;
+    IBalancerStablePreview public immutable previewHelper;
 
     constructor(
         string memory _name,
         string memory _symbol,
         address _balLp,
         uint256 _auraPid,
-        StablePreview _stablePreview
+        IBalancerStablePreview _previewHelper
     ) SYBaseWithRewards(_name, _symbol, _balLp) {
         balPoolId = IBasePool(_balLp).getPoolId();
         auraPid = _auraPid;
@@ -59,8 +61,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             }
         }
 
-        stablePreview = _stablePreview;
-        require(stablePreview.LP() == balLp);
+        previewHelper = _previewHelper;
+        require(previewHelper.LP() == balLp);
     }
 
     function _getPoolInfo(uint256 _auraPid)
@@ -132,7 +134,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     }
 
     function exchangeRate() external view override returns (uint256) {
-        return IStableRate(balLp).getRate();
+        return IRateProvider(balLp).getRate();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -239,11 +241,12 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
                 tokenIn == NATIVE ? WETH : tokenIn,
                 amountTokenToDeposit
             );
-            amountSharesOut = stablePreview.joinPoolPreview(
+            amountSharesOut = previewHelper.joinPoolPreview(
                 balPoolId,
                 address(this),
                 address(this),
-                request
+                request,
+                _getImmutablePoolData()
             );
         }
     }
@@ -263,14 +266,21 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
                 amountSharesToRedeem
             );
 
-            amountTokenOut = stablePreview.exitPoolPreview(
+            amountTokenOut = previewHelper.exitPoolPreview(
                 balPoolId,
                 address(this),
                 address(this),
-                request
+                request,
+                _getImmutablePoolData()
             );
         }
     }
+
+    function _getImmutablePoolData()
+        internal
+        view
+        virtual
+        returns (IBalancerStablePreview.StablePoolData memory);
 
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED

@@ -17,8 +17,8 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     constructor(
         string memory _name,
         string memory _symbol,
-        StablePreview _stablePreview
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _stablePreview) {}
+        IBalancerStablePreview _previewHelper
+    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
     function _getPoolTokenAddresses()
         internal
@@ -30,6 +30,31 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         res = new address[](2);
         res[0] = RETH;
         res[1] = WETH;
+    }
+
+    function _getRateProviders() internal view virtual returns (address[] memory res) {
+        res = new address[](2);
+        res[0] = 0x1a8F81c256aee9C640e14bB0453ce247ea0DFE6F;
+        res[1] = 0x0000000000000000000000000000000000000000;
+    }
+
+    function _getRawScalingFactors() internal view virtual returns (uint256[] memory res) {
+        res = new uint256[](2);
+        res[0] = 1e18;
+        res[1] = 1e18;
+    }
+
+    function _getImmutablePoolData()
+        internal
+        view
+        virtual
+        override
+        returns (IBalancerStablePreview.StablePoolData memory res)
+    {
+        res.poolTokens = _getPoolTokenAddresses();
+        res.rateProviders = _getRateProviders();
+        res.rawScalingFactors = _getRawScalingFactors();
+        // res.isExemptFromYieldProtocolFee is not filled
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

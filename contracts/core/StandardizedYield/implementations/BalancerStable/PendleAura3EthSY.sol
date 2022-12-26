@@ -16,8 +16,8 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY {
     constructor(
         string memory _name,
         string memory _symbol,
-        StablePreview _stablePreview
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _stablePreview) {}
+        IBalancerStablePreview _previewHelper
+    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
     function _getPoolTokenAddresses()
         internal
@@ -31,6 +31,43 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY {
         res[1] = LP;
         res[2] = SFRXETH;
         res[3] = RETH;
+    }
+
+    function _getRateProviders() internal view virtual returns (address[] memory res) {
+        res = new address[](4);
+        res[0] = 0x72D07D7DcA67b8A406aD1Ec34ce969c90bFEE768;
+        res[1] = 0x0000000000000000000000000000000000000000;
+        res[2] = 0x302013E7936a39c358d07A3Df55dc94EC417E3a1;
+        res[3] = 0x1a8F81c256aee9C640e14bB0453ce247ea0DFE6F;
+    }
+
+    function _getRawScalingFactors() internal view virtual returns (uint256[] memory res) {
+        res = new uint256[](4);
+        res[0] = 1e18;
+        res[1] = 1e18;
+        res[2] = 1e18;
+        res[3] = 1e18;
+    }
+
+    function _getExemption() internal view virtual returns (bool[] memory res) {
+        res = new bool[](4);
+        res[0] = false;
+        res[1] = false;
+        res[2] = false;
+        res[3] = false;
+    }
+
+    function _getImmutablePoolData()
+        internal
+        view
+        virtual
+        override
+        returns (IBalancerStablePreview.StablePoolData memory res)
+    {
+        res.poolTokens = _getPoolTokenAddresses();
+        res.rateProviders = _getRateProviders();
+        res.rawScalingFactors = _getRawScalingFactors();
+        res.isExemptFromYieldProtocolFee = _getExemption();
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

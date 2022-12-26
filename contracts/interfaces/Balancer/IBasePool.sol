@@ -26,7 +26,5 @@ interface IBasePool is IERC20 {
 
     function getPoolId() external view returns (bytes32);
 
-    function getScalingFactors() external view returns (uint256[] memory);
-
     function getSwapFeePercentage() external view returns (uint256);
 }
