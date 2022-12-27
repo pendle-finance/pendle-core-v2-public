@@ -18,17 +18,12 @@ import "../../../../libraries/ArrayLib.sol";
 import "../../../SYBaseWithRewards.sol";
 
 abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
-    using SafeERC20 for IERC20;
     using ArrayLib for address[];
 
     address public constant BAL_TOKEN = 0xba100000625a3754423978a60c9317c58a424e3D;
     address public constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address public constant AURA_BOOSTER = 0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
-
-    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     address public immutable balLp;
     bytes32 public immutable balPoolId;
@@ -56,9 +51,6 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         address[] memory tokens = _getPoolTokenAddresses();
         for (uint256 i = 0; i < tokens.length; ++i) {
             _safeApproveInf(tokens[i], BALANCER_VAULT);
-            if (tokens[i] == WSTETH) {
-                _safeApproveInf(STETH, WSTETH);
-            }
         }
 
         previewHelper = _previewHelper;
@@ -90,16 +82,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         if (tokenIn == balLp) {
             amountSharesOut = amount;
         } else {
-            if (tokenIn == NATIVE) {
-                IWETH(WETH).deposit{ value: msg.value }();
-                tokenIn = WETH;
-            } else if (tokenIn == STETH) {
-                amount = IWstETH(WSTETH).wrap(amount);
-                tokenIn = WSTETH;
-            }
             amountSharesOut = _depositToBalancer(tokenIn, amount);
         }
-
         IBooster(AURA_BOOSTER).deposit(auraPid, amountSharesOut, true);
     }
 
@@ -117,19 +101,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountTokenOut = amountSharesToRedeem;
             _transferOut(tokenOut, receiver, amountTokenOut);
         } else {
-            if (tokenOut == NATIVE) {
-                amountTokenOut = _redeemFromBalancer(address(this), WETH, amountSharesToRedeem);
-                IWETH(WETH).withdraw(amountTokenOut);
-
-                (bool success, ) = payable(receiver).call{ value: amountTokenOut }("");
-                if (!success) revert Errors.FailedToSendEther();
-            } else if (tokenOut == STETH) {
-                uint256 amountWstEth = _redeemFromBalancer(address(this), WSTETH, amountSharesToRedeem);
-                amountTokenOut = IWstETH(WSTETH).unwrap(amountWstEth);
-                _transferOut(tokenOut, receiver, amountTokenOut);
-            } else {    
-                amountTokenOut = _redeemFromBalancer(receiver, tokenOut, amountSharesToRedeem);
-            }
+            amountTokenOut = _redeemFromBalancer(receiver, tokenOut, amountSharesToRedeem);
         }
     }
 
@@ -153,7 +125,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         IVault(BALANCER_VAULT).joinPool(balPoolId, address(this), address(this), request);
 
         // amount shares out = amount LP received
-        return IERC20(balLp).balanceOf(address(this));
+        return _selfBalance(balLp);
     }
 
     function _assembleJoinRequest(address tokenIn, uint256 amountTokenToDeposit)
@@ -238,7 +210,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountSharesOut = amountTokenToDeposit;
         } else {
             IVault.JoinPoolRequest memory request = _assembleJoinRequest(
-                tokenIn == NATIVE ? WETH : tokenIn,
+                tokenIn,
                 amountTokenToDeposit
             );
             amountSharesOut = previewHelper.joinPoolPreview(
@@ -262,7 +234,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
             amountTokenOut = amountSharesToRedeem;
         } else {
             IVault.ExitPoolRequest memory request = _assembleExitRequest(
-                tokenOut == NATIVE ? WETH : tokenOut,
+                tokenOut,
                 amountSharesToRedeem
             );
 

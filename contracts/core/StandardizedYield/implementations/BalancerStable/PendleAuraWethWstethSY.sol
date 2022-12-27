@@ -3,18 +3,85 @@ pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PendleAuraBalancerStableLPSY.sol";
+import "../../StEthHelper.sol";
 
-contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY {
-    using SafeERC20 for IERC20;
-
-    uint256 internal constant AURA_PID = 29;
-    address internal constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
+contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
+    uint256 public constant AURA_PID = 29;
+    address public constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
 
     constructor(
         string memory _name,
         string memory _symbol,
         IBalancerStablePreview _previewHelper
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
+    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) StEthHelper() {}
+
+    function _deposit(address tokenIn, uint256 amount)
+        internal
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
+        if (tokenIn == NATIVE) {
+            IWETH(WETH).deposit{ value: amount }();
+            amountSharesOut = super._deposit(WETH, amount);
+        } else if (tokenIn == STETH) {
+            uint256 amountWstETH = _depositWstETH(STETH, amount);
+            amountSharesOut = super._deposit(WSTETH, amountWstETH);
+        } else {
+            amountSharesOut = super._deposit(tokenIn, amount);
+        }
+    }
+
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
+        if (tokenOut == NATIVE) {
+            amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
+            IWETH(WETH).withdraw(amountTokenOut);
+            _transferOut(NATIVE, receiver, amountTokenOut);
+        } else if (tokenOut == STETH) {
+            uint256 amountWstETH = super._redeem(address(this), WSTETH, amountSharesToRedeem);
+            amountTokenOut = _redeemWstETH(receiver, amountWstETH);
+        } else {
+            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
+        }
+    }
+
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
+        if (tokenIn == NATIVE) {
+            amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
+        } else if (tokenIn == STETH) {
+            uint256 amountWstETH = _previewDepositWstETH(STETH, amountTokenToDeposit);
+            amountSharesOut = super._previewDeposit(WSTETH, amountWstETH);
+        } else {
+            amountSharesOut = super._previewDeposit(tokenIn, amountTokenToDeposit);
+        }
+    }
+
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountTokenOut)
+    {
+        if (tokenOut == NATIVE) {
+            amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
+        } else if (tokenOut == STETH) {
+            uint256 amountWstETH = super._previewRedeem(WSTETH, amountSharesToRedeem);
+            amountTokenOut = _previewRedeemWstETH(amountWstETH);
+        } else {
+            amountTokenOut = super._previewRedeem(tokenOut, amountSharesToRedeem);
+        }
+    }
 
     function _getPoolTokenAddresses()
         internal
