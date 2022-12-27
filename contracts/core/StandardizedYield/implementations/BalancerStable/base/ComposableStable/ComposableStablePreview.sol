@@ -5,14 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../../../../../interfaces/Balancer/IComposableStable.sol";
 
 import "../FixedPoint.sol";
-import "./StableMath.sol";
+import "./ComposableStableMath.sol";
 import "../StablePoolUserData.sol";
 import "../BasePoolUserData.sol";
 
 import "../VaultPreview.sol";
 
 contract ComposableStablePreview is VaultPreview {
-    using StableMath for uint256;
+    using ComposableStableMath for uint256;
     using StablePoolUserData for bytes;
     using BasePoolUserData for bytes;
     using FixedPoint for uint256;

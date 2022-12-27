@@ -4,18 +4,18 @@ pragma solidity ^0.8.17;
 import "../FixedPoint.sol";
 
 // almost copy-paste from https://etherscan.io/token/0x1e19cf2d73a72ef1332c882f20534b6519be0276#code
-library StableMath {
+library ComposableStableMath {
     using FixedPoint for uint256;
 
     uint256 internal constant _MIN_AMP = 1;
     uint256 internal constant _MAX_AMP = 5000;
     uint256 internal constant _AMP_PRECISION = 1e3;
 
-    function _calculateInvariant(
-        uint256 amplificationParameter,
-        uint256[] memory balances,
-        bool roundUp
-    ) public pure returns (uint256) {
+    function _calculateInvariant(uint256 amplificationParameter, uint256[] memory balances)
+        internal
+        pure
+        returns (uint256)
+    {
         unchecked {
             /**********************************************************************************************
         // invariant                                                                                 //
@@ -25,9 +25,10 @@ library StableMath {
         // P = product of balances                                                                   //
         // n = number of tokens                                                                      //
         **********************************************************************************************/
-            // We support rounding up or down.
 
-            uint256 sum = 0;
+            // Always round down, to match Vyper's arithmetic (which always truncates).
+
+            uint256 sum = 0; // S in the Curve version
             uint256 numTokens = balances.length;
             for (uint256 i = 0; i < numTokens; i++) {
                 sum = sum.add(balances[i]);
@@ -36,25 +37,35 @@ library StableMath {
                 return 0;
             }
 
-            uint256 prevInvariant = 0;
-            uint256 invariant = sum;
-            uint256 ampTimesTotal = amplificationParameter * numTokens;
+            uint256 prevInvariant; // Dprev in the Curve version
+            uint256 invariant = sum; // D in the Curve version
+            uint256 ampTimesTotal = amplificationParameter * numTokens; // Ann in the Curve version
 
             for (uint256 i = 0; i < 255; i++) {
-                uint256 P_D = balances[0] * numTokens;
-                for (uint256 j = 1; j < numTokens; j++) {
-                    P_D = div(mul(mul(P_D, balances[j]), numTokens), invariant, roundUp);
+                uint256 D_P = invariant;
+
+                for (uint256 j = 0; j < numTokens; j++) {
+                    // (D_P * invariant) / (balances[j] * numTokens)
+                    D_P = divDown(mul(D_P, invariant), mul(balances[j], numTokens));
                 }
+
                 prevInvariant = invariant;
-                invariant = div(
-                    mul(mul(numTokens, invariant), invariant).add(
-                        div(mul(mul(ampTimesTotal, sum), P_D), _AMP_PRECISION, roundUp)
+
+                invariant = divDown(
+                    mul(
+                        // (ampTimesTotal * sum) / AMP_PRECISION + D_P * numTokens
+                        (
+                            divDown(mul(ampTimesTotal, sum), _AMP_PRECISION).add(
+                                mul(D_P, numTokens)
+                            )
+                        ),
+                        invariant
                     ),
-                    mul(numTokens + 1, invariant).add(
-                        // No need to use checked arithmetic for the amp precision, the amp is guaranteed to be at least 1
-                        div(mul(ampTimesTotal - _AMP_PRECISION, P_D), _AMP_PRECISION, !roundUp)
-                    ),
-                    roundUp
+                    // ((ampTimesTotal - _AMP_PRECISION) * invariant) / _AMP_PRECISION + (numTokens + 1) * D_P
+                    (
+                        divDown(mul((ampTimesTotal - _AMP_PRECISION), invariant), _AMP_PRECISION)
+                            .add(mul((numTokens + 1), D_P))
+                    )
                 );
 
                 if (invariant > prevInvariant) {
@@ -66,7 +77,7 @@ library StableMath {
                 }
             }
 
-            revert("Did not converge");
+            revert("Stable Invariant did not converge");
         }
     }
 
@@ -75,6 +86,7 @@ library StableMath {
         uint256[] memory balances,
         uint256[] memory amountsIn,
         uint256 bptTotalSupply,
+        uint256 currentInvariant,
         uint256 swapFeePercentage
     ) internal pure returns (uint256) {
         unchecked {
@@ -121,9 +133,7 @@ library StableMath {
                 newBalances[i] = balances[i].add(amountInWithoutFee);
             }
 
-            // Get current and new invariants, taking swap fees into account
-            uint256 currentInvariant = _calculateInvariant(amp, balances, true);
-            uint256 newInvariant = _calculateInvariant(amp, newBalances, false);
+            uint256 newInvariant = _calculateInvariant(amp, newBalances);
             uint256 invariantRatio = newInvariant.divDown(currentInvariant);
 
             // If the invariant didn't increase for any reason, we simply don't mint BPT
@@ -141,13 +151,12 @@ library StableMath {
         uint256 tokenIndex,
         uint256 bptAmountIn,
         uint256 bptTotalSupply,
+        uint256 currentInvariant,
         uint256 swapFeePercentage
     ) internal pure returns (uint256) {
         unchecked {
             // Token out, so we round down overall.
 
-            // Get the current and new invariants. Since we need a bigger new invariant, we round the current one up.
-            uint256 currentInvariant = _calculateInvariant(amp, balances, true);
             uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(
                 currentInvariant
             );
@@ -180,48 +189,6 @@ library StableMath {
 
             // No need to use checked arithmetic for the swap fee, it is guaranteed to be lower than 50%
             return nonTaxableAmount.add(taxableAmount.mulDown(FixedPoint.ONE - swapFeePercentage));
-        }
-    }
-
-    // The amplification parameter equals: A n^(n-1)
-    function _calcDueTokenProtocolSwapFeeAmount(
-        uint256 amplificationParameter,
-        uint256[] memory balances,
-        uint256 lastInvariant,
-        uint256 tokenIndex,
-        uint256 protocolSwapFeePercentage
-    ) internal pure returns (uint256) {
-        unchecked {
-            /**************************************************************************************************************
-        // oneTokenSwapFee - polynomial equation to solve                                                            //
-        // af = fee amount to calculate in one token                                                                 //
-        // bf = balance of fee token                                                                                 //
-        // f = bf - af (finalBalanceFeeToken)                                                                        //
-        // D = old invariant                                            D                     D^(n+1)                //
-        // A = amplification coefficient               f^2 + ( S - ----------  - D) * f -  ------------- = 0         //
-        // n = number of tokens                                    (A * n^n)               A * n^2n * P              //
-        // S = sum of final balances but f                                                                           //
-        // P = product of final balances but f                                                                       //
-        **************************************************************************************************************/
-
-            // Protocol swap fee amount, so we round down overall.
-
-            uint256 finalBalanceFeeToken = _getTokenBalanceGivenInvariantAndAllOtherBalances(
-                amplificationParameter,
-                balances,
-                lastInvariant,
-                tokenIndex
-            );
-
-            if (balances[tokenIndex] <= finalBalanceFeeToken) {
-                // This shouldn't happen outside of rounding errors, but have this safeguard nonetheless to prevent the Pool
-                // from entering a locked state in which joins and exits revert while computing accumulated swap fees.
-                return 0;
-            }
-
-            // Result is rounded down
-            uint256 accumulatedTokenSwapFees = balances[tokenIndex] - finalBalanceFeeToken;
-            return accumulatedTokenSwapFees.mulDown(protocolSwapFeePercentage);
         }
     }
 
@@ -297,18 +264,18 @@ library StableMath {
         uint256 a,
         uint256 b,
         bool roundUp
-    ) internal pure returns (uint256) {
+    ) private pure returns (uint256) {
         return roundUp ? divUp(a, b) : divDown(a, b);
     }
 
-    function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
+    function divDown(uint256 a, uint256 b) private pure returns (uint256) {
         unchecked {
             require(b != 0);
             return a / b;
         }
     }
 
-    function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
+    function divUp(uint256 a, uint256 b) private pure returns (uint256) {
         unchecked {
             require(b != 0);
 

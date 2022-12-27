@@ -6,14 +6,14 @@ import "../../../../../../interfaces/Balancer/IMetaStablePool.sol";
 import "../../../../../../interfaces/Balancer/IRateProvider.sol";
 
 import "../FixedPoint.sol";
-import "./StableMath.sol";
+import "./MetaStableMath.sol";
 import "../StablePoolUserData.sol";
 
 import "../VaultPreview.sol";
 
 contract MetaStablePreview is VaultPreview {
     using FixedPoint for uint256;
-    using StableMath for uint256;
+    using MetaStableMath for uint256;
     using StablePoolUserData for bytes;
 
     address public immutable LP;
@@ -184,13 +184,14 @@ contract MetaStablePreview is VaultPreview {
 
         (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(LP)
             .getLastInvariant();
-        dueProtocolFeeAmounts[chosenTokenIndex] = StableMath._calcDueTokenProtocolSwapFeeAmount(
-            _lastInvariantAmp,
-            balances,
-            _lastInvariant,
-            chosenTokenIndex,
-            protocolSwapFeePercentage
-        );
+        dueProtocolFeeAmounts[chosenTokenIndex] = MetaStableMath
+            ._calcDueTokenProtocolSwapFeeAmount(
+                _lastInvariantAmp,
+                balances,
+                _lastInvariant,
+                chosenTokenIndex,
+                protocolSwapFeePercentage
+            );
 
         return dueProtocolFeeAmounts;
     }
@@ -213,7 +214,7 @@ contract MetaStablePreview is VaultPreview {
         _upscaleArray(amountsIn, scalingFactors);
 
         (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
-        uint256 bptAmountOut = StableMath._calcBptOutGivenExactTokensIn(
+        uint256 bptAmountOut = MetaStableMath._calcBptOutGivenExactTokensIn(
             currentAmp,
             balances,
             amountsIn,
@@ -247,7 +248,7 @@ contract MetaStablePreview is VaultPreview {
 
         // And then assign the result to the selected token
         (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
-        amountsOut[tokenIndex] = StableMath._calcTokenOutGivenExactBptIn(
+        amountsOut[tokenIndex] = MetaStableMath._calcTokenOutGivenExactBptIn(
             currentAmp,
             balances,
             tokenIndex,
