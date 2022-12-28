@@ -6,7 +6,7 @@ import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IBalancerFees.sol";
 import "../../../../../interfaces/Balancer/IBalancerStablePreview.sol";
 
-abstract contract VaultPreview is IBalancerStablePreview {
+abstract contract StablePreviewBase is IBalancerStablePreview {
     address internal constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 

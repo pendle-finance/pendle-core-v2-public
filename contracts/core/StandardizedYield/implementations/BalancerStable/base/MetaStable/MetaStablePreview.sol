@@ -9,9 +9,9 @@ import "../FixedPoint.sol";
 import "./MetaStableMath.sol";
 import "../StablePoolUserData.sol";
 
-import "../VaultPreview.sol";
+import "../StablePreviewBase.sol";
 
-contract MetaStablePreview is VaultPreview {
+contract MetaStablePreview is StablePreviewBase {
     using FixedPoint for uint256;
     using MetaStableMath for uint256;
     using StablePoolUserData for bytes;

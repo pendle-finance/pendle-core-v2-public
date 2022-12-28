@@ -8,9 +8,9 @@ import "../FixedPoint.sol";
 import "./ComposableStableMath.sol";
 import "../StablePoolUserData.sol";
 
-import "../VaultPreview.sol";
+import "../StablePreviewBase.sol";
 
-contract ComposableStablePreview is VaultPreview {
+contract ComposableStablePreview is StablePreviewBase {
     using ComposableStableMath for uint256;
     using StablePoolUserData for bytes;
     using FixedPoint for uint256;
