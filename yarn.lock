@@ -643,16 +643,16 @@ __metadata:
     "@openzeppelin/contracts-upgradeable": 4.7.3
     "@typechain/ethers-v5": ^9.0.0
     "@typechain/hardhat": ^4.0.0
-    hardhat: ^2.12.2
+    hardhat: ^2.12.4
     hardhat-contract-sizer: ^2.6.1
     hardhat-storage-layout-diff: ^0.0.4
-    prettier: ^2.7.1
-    prettier-plugin-solidity: ^1.0.0-rc.1
+    prettier: ^2.8.1
+    prettier-plugin-solidity: ^1.1.0
     solc: ^0.8.17
     solhint: ^3.3.7
     ts-node: ^10.9.1
     typechain: ^8.1.1
-    typescript: ^4.9.3
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
@@ -1941,10 +1941,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"emoji-regex@npm:^10.1.0":
-  version: 10.1.0
-  resolution: "emoji-regex@npm:10.1.0"
-  checksum: 5bc780fc4d75f89369155a87c55f7e83a0bf72bcccda7df7f2c570cde4738d8b17d112d12afdadfec16647d1faef6501307b4304f81d35c823a938fe6547df0f
+"emoji-regex@npm:^10.2.1":
+  version: 10.2.1
+  resolution: "emoji-regex@npm:10.2.1"
+  checksum: 1aa2d16881c56531fdfc03d0b36f5c2b6221cc4097499a5665b88b711dc3fb4d5b8804f0ca6f00c56e5dcf89bac75f0487eee85da1da77df3a33accc6ecbe426
   languageName: node
   linkType: hard
 
@@ -2469,7 +2469,7 @@ __metadata:
 
 "fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -2600,9 +2600,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.12.2":
-  version: 2.12.2
-  resolution: "hardhat@npm:2.12.2"
+"hardhat@npm:^2.12.4":
+  version: 2.12.4
+  resolution: "hardhat@npm:2.12.4"
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -2664,7 +2664,7 @@ __metadata:
       optional: true
   bin:
     hardhat: internal/cli/cli.js
-  checksum: cd45bf9d4f15d967bd2d8154cc5bc60e7d0d4bab80caea909d36e3660437fc9f6b4faf41736ed3b75b11ff15ac9a9b68828eebb1026ed9fa8d9eb87242f061d2
+  checksum: 391ee2c62220957c6c9fcae62f94cf7943e429ec18aaac1ae00faf634cd4a29e0728efef6ddefa071c12a67befdd010bfba79d324a6ef067e77c0b5515aab768
   languageName: node
   linkType: hard
 
@@ -3863,19 +3863,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-solidity@npm:^1.0.0-rc.1":
-  version: 1.0.0-rc.1
-  resolution: "prettier-plugin-solidity@npm:1.0.0-rc.1"
+"prettier-plugin-solidity@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "prettier-plugin-solidity@npm:1.1.0"
   dependencies:
     "@solidity-parser/parser": ^0.14.5
-    emoji-regex: ^10.1.0
+    emoji-regex: ^10.2.1
     escape-string-regexp: ^4.0.0
-    semver: ^7.3.7
+    semver: ^7.3.8
     solidity-comments-extractor: ^0.0.7
     string-width: ^4.2.3
   peerDependencies:
     prettier: ^2.3.0
-  checksum: 8f8edc921b3d89048c688dcb3e6fef2bedcb94de622d5777e83de329d80caf76fc453b9c747bf91d2ad961d8577b10703bd8db259653bd6479c3cd1095973745
+  checksum: 85ac145e7deffe9749e05270e0271d7028fd36dd04c255d7709182845e2a7dfe54ac5bc90beea18c1879c2c30c1a01a1df0e63040a3a548cef1549a8339c841e
   languageName: node
   linkType: hard
 
@@ -3897,12 +3897,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.7.1":
-  version: 2.7.1
-  resolution: "prettier@npm:2.7.1"
+"prettier@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "prettier@npm:2.8.1"
   bin:
     prettier: bin-prettier.js
-  checksum: 55a4409182260866ab31284d929b3cb961e5fdb91fe0d2e099dac92eaecec890f36e524b4c19e6ceae839c99c6d7195817579cdffc8e2c80da0cb794463a748b
+  checksum: 4f21a0f1269f76fb36f54e9a8a1ea4c11e27478958bf860661fb4b6d7ac69aac1581f8724fa98ea3585e56d42a2ea317a17ff6e3324f40cb11ff9e20b73785cc
   languageName: node
   linkType: hard
 
@@ -4056,7 +4056,7 @@ __metadata:
 
 "resolve@patch:resolve@1.17.0#~builtin<compat/resolve>":
   version: 1.17.0
-  resolution: "resolve@patch:resolve@npm%3A1.17.0#~builtin<compat/resolve>::version=1.17.0&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.17.0#~builtin<compat/resolve>::version=1.17.0&hash=c3c19d"
   dependencies:
     path-parse: ^1.0.6
   checksum: 6fd799f282ddf078c4bc20ce863e3af01fa8cb218f0658d9162c57161a2dbafe092b13015b9a4c58d0e1e801cf7aa7a4f13115fea9db98c3f9a0c43e429bad6f
@@ -4228,14 +4228,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.7":
-  version: 7.3.7
-  resolution: "semver@npm:7.3.7"
+"semver@npm:^7.3.8":
+  version: 7.3.8
+  resolution: "semver@npm:7.3.8"
   dependencies:
     lru-cache: ^6.0.0
   bin:
     semver: bin/semver.js
-  checksum: 2fa3e877568cd6ce769c75c211beaed1f9fce80b28338cadd9d0b6c40f2e2862bafd62c19a6cff42f3d54292b7c623277bcab8816a2b5521cf15210d43e75232
+  checksum: ba9c7cbbf2b7884696523450a61fee1a09930d888b7a8d7579025ad93d459b2d1949ee5bbfeb188b2be5f4ac163544c5e98491ad6152df34154feebc2cc337c1
   languageName: node
   linkType: hard
 
@@ -4821,23 +4821,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.3":
-  version: 4.9.3
-  resolution: "typescript@npm:4.9.3"
+"typescript@npm:^4.9.4":
+  version: 4.9.4
+  resolution: "typescript@npm:4.9.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 17b8f816050b412403e38d48eef0e893deb6be522d6dc7caf105e54a72e34daf6835c447735fd2b28b66784e72bfbf87f627abb4818a8e43d1fa8106396128dc
+  checksum: e782fb9e0031cb258a80000f6c13530288c6d63f1177ed43f770533fdc15740d271554cdae86701c1dd2c83b082cea808b07e97fd68b38a172a83dbf9e0d0ef9
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
-  version: 4.9.3
-  resolution: "typescript@patch:typescript@npm%3A4.9.3#~builtin<compat/typescript>::version=4.9.3&hash=f456af"
+"typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
+  version: 4.9.4
+  resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ef65c22622d864497d0a0c5db693523329b3284c15fe632e93ad9aa059e8dc38ef3bd767d6f26b1e5ecf9446f49bd0f6c4e5714a2eeaf352805dc002479843d1
+  checksum: 1caaea6cb7f813e64345190fddc4e6c924d0b698ab81189b503763c4a18f7f5501c69362979d36e19c042d89d936443e768a78b0675690b35eb663d19e0eae71
   languageName: node
   linkType: hard
 
