@@ -2,7 +2,6 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../../../../../interfaces/Balancer/IVault.sol";
 import "../../../../../interfaces/Balancer/IRateProvider.sol";
@@ -10,8 +9,6 @@ import "../../../../../interfaces/Balancer/IBasePool.sol";
 import "../../../../../interfaces/Balancer/IBalancerStablePreview.sol";
 import "../../../../../interfaces/ConvexCurve/IBooster.sol";
 import "../../../../../interfaces/ConvexCurve/IRewards.sol";
-import "../../../../../interfaces/IWETH.sol";
-import "../../../../../interfaces/IWstETH.sol";
 
 import "./StablePoolUserData.sol";
 import "../../../../libraries/ArrayLib.sol";

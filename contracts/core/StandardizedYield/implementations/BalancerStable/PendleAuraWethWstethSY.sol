@@ -117,7 +117,7 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
-        // res.isExemptFromYieldProtocolFee is not filled
+        // res.isExemptFromYieldProtocolFee is not available in MetaStablePool
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

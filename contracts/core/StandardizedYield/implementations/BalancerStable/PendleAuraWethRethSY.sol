@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PendleAuraBalancerStableLPSY.sol";
 import "../../../../interfaces/IWETH.sol";
-import "../../../libraries/Errors.sol";
 
 contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
@@ -109,7 +107,7 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
-        // res.isExemptFromYieldProtocolFee is not filled
+        // res.isExemptFromYieldProtocolFee is not available in MetaStablePool
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

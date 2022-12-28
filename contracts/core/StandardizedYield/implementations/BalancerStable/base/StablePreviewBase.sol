@@ -137,13 +137,11 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
     }
 
     function _translateToIERC20(IAsset[] memory assets) internal pure returns (IERC20[] memory) {
-        unchecked {
-            IERC20[] memory tokens = new IERC20[](assets.length);
-            for (uint256 i = 0; i < assets.length; ++i) {
-                tokens[i] = _translateToIERC20(assets[i]);
-            }
-            return tokens;
+        IERC20[] memory tokens = new IERC20[](assets.length);
+        for (uint256 i = 0; i < assets.length; ++i) {
+            tokens[i] = _translateToIERC20(assets[i]);
         }
+        return tokens;
     }
 
     function _translateToIERC20(IAsset asset) internal pure returns (IERC20) {

@@ -27,12 +27,14 @@ contract ComposableStablePreview is StablePreviewBase {
     uint256 public immutable bptIndex;
     uint256 public immutable totalTokens;
 
-    constructor(address _LP, bytes32 _POOL_ID) {
+    constructor(address _LP) {
         LP = _LP;
+
+        bytes32 POOL_ID = IBasePool(LP).getPoolId();
 
         bptIndex = IComposableStable(LP).getBptIndex();
 
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(_POOL_ID);
+        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
 
         bool anyExempt = false;
         bool anyNonExempt = false;
@@ -125,9 +127,7 @@ contract ComposableStablePreview is StablePreviewBase {
         // skip burnPoolTokens
 
         for (uint256 i = 0; i < amountsOut.length; i++) {
-            if (amountsOut[i] > 0) {
-                amountTokenOut = amountsOut[i];
-            }
+            if (amountsOut[i] > 0) return amountsOut[i];
         }
     }
 
@@ -163,6 +163,10 @@ contract ComposableStablePreview is StablePreviewBase {
             _onJoinExitPool(false, registeredBalances, scalingFactors, userData, poolData, caches);
     }
 
+    /**
+     * @return bptAmount
+     * @return amountsDelta this will not contain bpt item since it will be discarded on the upper level
+     */
     function _onJoinExitPool(
         bool isJoin,
         uint256[] memory registeredBalances,
@@ -183,18 +187,17 @@ contract ComposableStablePreview is StablePreviewBase {
             view
             returns (uint256, uint256[] memory) _doJoinOrExit = (isJoin ? _doJoin : _doExit);
 
-        (bptAmount, amountsDelta) = _doJoinOrExit(
-            balances,
-            currentAmp,
-            preJoinExitSupply,
-            preJoinExitInvariant,
-            scalingFactors,
-            userData
-        );
+        return
+            _doJoinOrExit(
+                balances,
+                currentAmp,
+                preJoinExitSupply,
+                preJoinExitInvariant,
+                scalingFactors,
+                userData
+            );
 
         // skip _updateInvariantAfterJoinExit here
-
-        return (bptAmount, _addBptItem(amountsDelta, 0));
     }
 
     function _doJoin(
@@ -464,19 +467,6 @@ contract ComposableStablePreview is StablePreviewBase {
         returns (uint256)
     {
         return supply.mulDown(basePercentage).divDown(basePercentage.complement());
-    }
-
-    function _addBptItem(uint256[] memory amounts, uint256 bptAmount)
-        internal
-        view
-        returns (uint256[] memory registeredTokenAmounts)
-    {
-        registeredTokenAmounts = new uint256[](amounts.length + 1);
-        for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
-            registeredTokenAmounts[i] = i == bptIndex
-                ? bptAmount
-                : amounts[i < bptIndex ? i : i - 1];
-        }
     }
 
     function _dropBptItemFromBalances(uint256[] memory registeredBalances)
