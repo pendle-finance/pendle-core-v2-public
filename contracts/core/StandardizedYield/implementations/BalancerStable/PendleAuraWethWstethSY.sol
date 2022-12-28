@@ -7,8 +7,8 @@ import "../../StEthHelper.sol";
 import "./base/MetaStable/MetaStablePreview.sol";
 
 contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
-    uint256 public constant AURA_PID = 29;
-    address public constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
+    uint256 internal constant AURA_PID = 29;
+    address internal constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
 
     constructor(
         string memory _name,
@@ -110,6 +110,7 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
 
     function _getImmutablePoolData() internal view virtual override returns (bytes memory) {
         MetaStablePreview.ImmutableData memory res;
+        res.LP = LP;
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();

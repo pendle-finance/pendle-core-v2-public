@@ -9,8 +9,8 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    uint256 public constant AURA_PID = 15;
-    address public constant LP = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
+    uint256 internal constant AURA_PID = 15;
+    address internal constant LP = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
 
     constructor(
         string memory _name,
@@ -100,6 +100,7 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
 
     function _getImmutablePoolData() internal view virtual override returns (bytes memory) {
         MetaStablePreview.ImmutableData memory res;
+        res.LP = LP;
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();

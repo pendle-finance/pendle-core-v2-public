@@ -9,8 +9,9 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
     address public constant SFRXETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
 
-    uint256 public constant AURA_PID = 13;
-    address public constant LP = 0x8e85e97ed19C0fa13B2549309965291fbbc0048b;
+    uint256 internal constant AURA_PID = 13;
+    address internal constant LP = 0x8e85e97ed19C0fa13B2549309965291fbbc0048b;
+
     uint256 public constant BPT_INDEX = 1;
     bool public constant NO_TOKENS_EXEMPT = true;
     bool public constant ALL_TOKENS_EXEMPT = false;
@@ -84,7 +85,7 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
         res.isExemptFromYieldProtocolFee = _getExemption();
-        res.LP = balLp;
+        res.LP = LP;
         res.noTokensExempt = NO_TOKENS_EXEMPT;
         res.allTokensExempt = ALL_TOKENS_EXEMPT;
         res.bptIndex = BPT_INDEX;
