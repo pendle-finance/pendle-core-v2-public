@@ -15,43 +15,22 @@ contract ComposableStablePreview is StablePreviewBase {
     using StablePoolUserData for bytes;
     using FixedPoint for uint256;
 
+    struct ImmutableData {
+        address[] poolTokens;
+        address[] rateProviders;
+        uint256[] rawScalingFactors;
+        bool[] isExemptFromYieldProtocolFee;
+        //
+        address LP;
+        bool noTokensExempt;
+        bool allTokensExempt;
+        uint256 bptIndex;
+        uint256 totalTokens;
+    }
+
     struct TokenRateCache {
         uint256 currentRate;
         uint256 oldRate;
-    }
-
-    address public immutable LP;
-
-    bool public immutable noTokensExempt;
-    bool public immutable allTokensExempt;
-    uint256 public immutable bptIndex;
-    uint256 public immutable totalTokens;
-
-    constructor(address _LP) {
-        LP = _LP;
-
-        bytes32 POOL_ID = IBasePool(LP).getPoolId();
-
-        bptIndex = IComposableStable(LP).getBptIndex();
-
-        (IERC20[] memory tokens, , ) = IVault(BALANCER_VAULT).getPoolTokens(POOL_ID);
-
-        bool anyExempt = false;
-        bool anyNonExempt = false;
-
-        // immutable vars can't be initialized inside if statements
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            if (i == bptIndex) continue;
-            if (IComposableStable(LP).isTokenExemptFromYieldProtocolFee(tokens[i])) {
-                anyExempt = true;
-            } else {
-                anyNonExempt = true;
-            }
-        }
-
-        noTokensExempt = !anyExempt;
-        allTokensExempt = !anyNonExempt;
-        totalTokens = tokens.length;
     }
 
     function onJoinPool(
@@ -62,11 +41,13 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory poolImmutableData
     ) internal view override returns (uint256 bptAmountOut) {
-        TokenRateCache[] memory caches = _beforeSwapJoinExit(poolData);
+        ImmutableData memory imd = abi.decode(poolImmutableData, (ImmutableData));
 
-        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
+        TokenRateCache[] memory caches = _beforeSwapJoinExit(imd);
+
+        uint256[] memory scalingFactors = _scalingFactors(imd, caches);
 
         // skip totalSupply == 0 case
 
@@ -80,7 +61,7 @@ contract ComposableStablePreview is StablePreviewBase {
             protocolSwapFeePercentage,
             scalingFactors,
             userData,
-            poolData,
+            imd,
             caches
         );
 
@@ -97,16 +78,18 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory poolImmutableData
     ) internal view override returns (uint256 amountTokenOut) {
+        ImmutableData memory imd = abi.decode(poolImmutableData, (ImmutableData));
+
         uint256 bptAmountIn;
         uint256[] memory amountsOut;
 
         // skip recovery mode
 
-        TokenRateCache[] memory caches = _beforeSwapJoinExit(poolData);
+        TokenRateCache[] memory caches = _beforeSwapJoinExit(imd);
 
-        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
+        uint256[] memory scalingFactors = _scalingFactors(imd, caches);
         _upscaleArray(balances, scalingFactors);
 
         (bptAmountIn, amountsOut) = _onExitPool(
@@ -118,7 +101,7 @@ contract ComposableStablePreview is StablePreviewBase {
             protocolSwapFeePercentage, // assume no recovery mode
             scalingFactors,
             userData,
-            poolData,
+            imd,
             caches
         );
 
@@ -140,11 +123,10 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256,
         uint256[] memory scalingFactors,
         bytes memory userData,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     ) internal view returns (uint256, uint256[] memory) {
-        return
-            _onJoinExitPool(true, registeredBalances, scalingFactors, userData, poolData, caches);
+        return _onJoinExitPool(true, registeredBalances, scalingFactors, userData, imd, caches);
     }
 
     function _onExitPool(
@@ -156,11 +138,10 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256,
         uint256[] memory scalingFactors,
         bytes memory userData,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     ) internal view returns (uint256, uint256[] memory) {
-        return
-            _onJoinExitPool(false, registeredBalances, scalingFactors, userData, poolData, caches);
+        return _onJoinExitPool(false, registeredBalances, scalingFactors, userData, imd, caches);
     }
 
     /**
@@ -172,7 +153,7 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256[] memory registeredBalances,
         uint256[] memory scalingFactors,
         bytes memory userData,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     ) internal view returns (uint256 bptAmount, uint256[] memory amountsDelta) {
         (
@@ -180,12 +161,19 @@ contract ComposableStablePreview is StablePreviewBase {
             uint256[] memory balances,
             uint256 currentAmp,
             uint256 preJoinExitInvariant
-        ) = _beforeJoinExit(registeredBalances, poolData, caches);
+        ) = _beforeJoinExit(registeredBalances, imd, caches);
 
-        function(uint256[] memory, uint256, uint256, uint256, uint256[] memory, bytes memory)
-            internal
-            view
-            returns (uint256, uint256[] memory) _doJoinOrExit = (isJoin ? _doJoin : _doExit);
+        function(
+            uint256[] memory,
+            uint256,
+            uint256,
+            uint256,
+            uint256[] memory,
+            bytes memory,
+            ImmutableData memory
+        ) internal view returns (uint256, uint256[] memory) _doJoinOrExit = (
+                isJoin ? _doJoin : _doExit
+            );
 
         return
             _doJoinOrExit(
@@ -194,7 +182,8 @@ contract ComposableStablePreview is StablePreviewBase {
                 preJoinExitSupply,
                 preJoinExitInvariant,
                 scalingFactors,
-                userData
+                userData,
+                imd
             );
 
         // skip _updateInvariantAfterJoinExit here
@@ -206,7 +195,8 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 preJoinExitSupply,
         uint256 preJoinExitInvariant,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) internal view returns (uint256, uint256[] memory) {
         // this is always true given Pendle SY context
         return
@@ -216,7 +206,8 @@ contract ComposableStablePreview is StablePreviewBase {
                 currentAmp,
                 balances,
                 scalingFactors,
-                userData
+                userData,
+                imd
             );
     }
 
@@ -226,19 +217,20 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 currentAmp,
         uint256[] memory balances,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) private view returns (uint256, uint256[] memory) {
         (uint256[] memory amountsIn, ) = userData.exactTokensInForBptOut();
 
         // The user-provided amountsIn is unscaled, so we address that.
-        _upscaleArray(amountsIn, _dropBptItem(scalingFactors));
+        _upscaleArray(amountsIn, _dropBptItem(imd, scalingFactors));
 
         uint256 bptAmountOut = currentAmp._calcBptOutGivenExactTokensIn(
             balances,
             amountsIn,
             actualSupply,
             preJoinExitInvariant,
-            IBasePool(LP).getSwapFeePercentage()
+            IBasePool(imd.LP).getSwapFeePercentage()
         );
         return (bptAmountOut, amountsIn);
     }
@@ -249,7 +241,8 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 preJoinExitSupply,
         uint256 preJoinExitInvariant,
         uint256[] memory, /*scalingFactors*/
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) internal view returns (uint256, uint256[] memory) {
         // this is always true given Pendle SY context
         return
@@ -258,7 +251,8 @@ contract ComposableStablePreview is StablePreviewBase {
                 preJoinExitInvariant,
                 currentAmp,
                 balances,
-                userData
+                userData,
+                imd
             );
     }
 
@@ -267,7 +261,8 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 preJoinExitInvariant,
         uint256 currentAmp,
         uint256[] memory balances,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) private view returns (uint256, uint256[] memory) {
         (uint256 bptAmountIn, uint256 tokenIndex) = userData.exactBptInForTokenOut();
 
@@ -279,7 +274,7 @@ contract ComposableStablePreview is StablePreviewBase {
             bptAmountIn,
             actualSupply,
             preJoinExitInvariant,
-            IBasePool(LP).getSwapFeePercentage()
+            IBasePool(imd.LP).getSwapFeePercentage()
         );
 
         return (bptAmountIn, amountsOut);
@@ -287,7 +282,7 @@ contract ComposableStablePreview is StablePreviewBase {
 
     function _beforeJoinExit(
         uint256[] memory registeredBalances,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     )
         internal
@@ -299,7 +294,7 @@ contract ComposableStablePreview is StablePreviewBase {
             uint256
         )
     {
-        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IComposableStable(LP)
+        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IComposableStable(imd.LP)
             .getLastJoinExitData();
 
         (
@@ -310,11 +305,11 @@ contract ComposableStablePreview is StablePreviewBase {
                 registeredBalances,
                 lastJoinExitAmp,
                 lastPostJoinExitInvariant,
-                poolData,
+                imd,
                 caches
             );
 
-        (uint256 currentAmp, , ) = IComposableStable(LP).getAmplificationParameter();
+        (uint256 currentAmp, , ) = IComposableStable(imd.LP).getAmplificationParameter();
         uint256 preJoinExitInvariant = currentAmp == lastJoinExitAmp
             ? oldAmpPreJoinExitInvariant
             : currentAmp._calculateInvariant(balances);
@@ -326,7 +321,7 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256[] memory registeredBalances,
         uint256 lastJoinExitAmp,
         uint256 lastPostJoinExitInvariant,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     )
         internal
@@ -338,6 +333,7 @@ contract ComposableStablePreview is StablePreviewBase {
         )
     {
         (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(
+            imd,
             registeredBalances
         );
 
@@ -348,7 +344,7 @@ contract ComposableStablePreview is StablePreviewBase {
                 balances,
                 lastJoinExitAmp,
                 lastPostJoinExitInvariant,
-                poolData,
+                imd,
                 caches
             );
 
@@ -366,14 +362,14 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256[] memory balances,
         uint256 lastJoinExitAmp,
         uint256 lastPostJoinExitInvariant,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     ) internal view returns (uint256, uint256) {
         (
             uint256 swapFeeGrowthInvariant,
             uint256 totalNonExemptGrowthInvariant,
             uint256 totalGrowthInvariant
-        ) = _getGrowthInvariants(balances, lastJoinExitAmp, poolData, caches);
+        ) = _getGrowthInvariants(balances, lastJoinExitAmp, imd, caches);
 
         uint256 swapFeeGrowthInvariantDelta = (swapFeeGrowthInvariant > lastPostJoinExitInvariant)
             ? swapFeeGrowthInvariant - lastPostJoinExitInvariant
@@ -386,13 +382,13 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 protocolSwapFeePercentage = swapFeeGrowthInvariantDelta
             .divDown(totalGrowthInvariant)
             .mulDown(
-                IComposableStable(LP).getProtocolFeePercentageCache(0) // ProtocolFeeType.SWAP // can't get better
+                IComposableStable(imd.LP).getProtocolFeePercentageCache(0) // ProtocolFeeType.SWAP // can't get better
             );
 
         uint256 protocolYieldPercentage = nonExemptYieldGrowthInvariantDelta
             .divDown(totalGrowthInvariant)
             .mulDown(
-                IComposableStable(LP).getProtocolFeePercentageCache(2) // ProtocolFeeType.YIELD // can't get better
+                IComposableStable(imd.LP).getProtocolFeePercentageCache(2) // ProtocolFeeType.YIELD // can't get better
             );
 
         // These percentages can then be simply added to compute the total protocol Pool ownership percentage.
@@ -403,11 +399,11 @@ contract ComposableStablePreview is StablePreviewBase {
     function _getGrowthInvariants(
         uint256[] memory balances,
         uint256 lastJoinExitAmp,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory caches
     )
         internal
-        view
+        pure
         returns (
             uint256 swapFeeGrowthInvariant,
             uint256 totalNonExemptGrowthInvariant,
@@ -415,18 +411,18 @@ contract ComposableStablePreview is StablePreviewBase {
         )
     {
         swapFeeGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-            _getAdjustedBalances(balances, true, poolData, caches)
+            _getAdjustedBalances(balances, true, imd, caches)
         );
 
-        if (noTokensExempt) {
+        if (imd.noTokensExempt) {
             totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
             totalGrowthInvariant = totalNonExemptGrowthInvariant;
-        } else if (allTokensExempt) {
+        } else if (imd.allTokensExempt) {
             totalNonExemptGrowthInvariant = swapFeeGrowthInvariant;
             totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
         } else {
             totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-                _getAdjustedBalances(balances, false, poolData, caches)
+                _getAdjustedBalances(balances, false, imd, caches)
             );
 
             totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
@@ -436,16 +432,16 @@ contract ComposableStablePreview is StablePreviewBase {
     function _getAdjustedBalances(
         uint256[] memory balances,
         bool ignoreExemptFlags,
-        StablePoolData calldata poolData,
+        ImmutableData memory imd,
         TokenRateCache[] memory tokenRateCaches
-    ) internal view returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         uint256 totalTokensWithoutBpt = balances.length;
         uint256[] memory adjustedBalances = new uint256[](totalTokensWithoutBpt);
 
         for (uint256 i = 0; i < totalTokensWithoutBpt; ++i) {
-            uint256 skipBptIndex = i >= bptIndex ? i + 1 : i;
-            adjustedBalances[i] = _isTokenExemptFromYieldProtocolFee(poolData, skipBptIndex) ||
-                (ignoreExemptFlags && _hasRateProvider(poolData, skipBptIndex))
+            uint256 skipBptIndex = i >= imd.bptIndex ? i + 1 : i;
+            adjustedBalances[i] = _isTokenExemptFromYieldProtocolFee(imd, skipBptIndex) ||
+                (ignoreExemptFlags && _hasRateProvider(imd, skipBptIndex))
                 ? _adjustedBalance(balances[i], tokenRateCaches[skipBptIndex])
                 : balances[i];
         }
@@ -469,78 +465,88 @@ contract ComposableStablePreview is StablePreviewBase {
         return supply.mulDown(basePercentage).divDown(basePercentage.complement());
     }
 
-    function _dropBptItemFromBalances(uint256[] memory registeredBalances)
-        internal
-        view
-        returns (uint256, uint256[] memory)
-    {
-        return (_getVirtualSupply(registeredBalances[bptIndex]), _dropBptItem(registeredBalances));
+    function _dropBptItemFromBalances(
+        ImmutableData memory imd,
+        uint256[] memory registeredBalances
+    ) internal view returns (uint256, uint256[] memory) {
+        return (
+            _getVirtualSupply(imd, registeredBalances[imd.bptIndex]),
+            _dropBptItem(imd, registeredBalances)
+        );
     }
 
-    function _dropBptItem(uint256[] memory amounts) internal view returns (uint256[] memory) {
+    function _dropBptItem(ImmutableData memory imd, uint256[] memory amounts)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory amountsWithoutBpt = new uint256[](amounts.length - 1);
         for (uint256 i = 0; i < amountsWithoutBpt.length; i++) {
-            amountsWithoutBpt[i] = amounts[i < bptIndex ? i : i + 1];
+            amountsWithoutBpt[i] = amounts[i < imd.bptIndex ? i : i + 1];
         }
 
         return amountsWithoutBpt;
     }
 
-    function _getVirtualSupply(uint256 bptBalance) internal view returns (uint256) {
-        return (IERC20(LP).totalSupply()).sub(bptBalance); // can't get better
+    function _getVirtualSupply(ImmutableData memory imd, uint256 bptBalance)
+        internal
+        view
+        returns (uint256)
+    {
+        return (IERC20(imd.LP).totalSupply()).sub(bptBalance); // can't get better
     }
 
-    function _beforeSwapJoinExit(StablePoolData calldata poolData)
+    function _beforeSwapJoinExit(ImmutableData memory imd)
         internal
         view
         returns (TokenRateCache[] memory tokenRateCaches)
     {
-        return _cacheTokenRatesIfNecessary(poolData);
+        return _cacheTokenRatesIfNecessary(imd);
     }
 
-    function _cacheTokenRatesIfNecessary(StablePoolData calldata poolData)
+    function _cacheTokenRatesIfNecessary(ImmutableData memory imd)
         internal
         view
         returns (TokenRateCache[] memory tokenRateCaches)
     {
-        tokenRateCaches = new TokenRateCache[](totalTokens);
+        tokenRateCaches = new TokenRateCache[](imd.totalTokens);
 
-        for (uint256 i = 0; i < totalTokens; ++i) {
-            tokenRateCaches[i] = _cacheTokenRateIfNecessary(i, poolData);
+        for (uint256 i = 0; i < imd.totalTokens; ++i) {
+            tokenRateCaches[i] = _cacheTokenRateIfNecessary(i, imd);
         }
     }
 
     /**
      * @dev Caches the rate for a token if necessary. It ignores the call if there is no provider set.
      */
-    function _cacheTokenRateIfNecessary(uint256 index, StablePoolData calldata poolData)
+    function _cacheTokenRateIfNecessary(uint256 index, ImmutableData memory imd)
         internal
         view
         returns (TokenRateCache memory res)
     {
-        if (index == bptIndex || !_hasRateProvider(poolData, index)) return res;
+        if (index == imd.bptIndex || !_hasRateProvider(imd, index)) return res;
 
         uint256 expires;
-        (res.currentRate, res.oldRate, , expires) = IComposableStable(LP).getTokenRateCache(
-            IERC20(poolData.poolTokens[index])
+        (res.currentRate, res.oldRate, , expires) = IComposableStable(imd.LP).getTokenRateCache(
+            IERC20(imd.poolTokens[index])
         );
 
         if (block.timestamp > expires) {
-            res.currentRate = IRateProvider(poolData.rateProviders[index]).getRate();
+            res.currentRate = IRateProvider(imd.rateProviders[index]).getRate();
         }
     }
 
-    function _scalingFactors(StablePoolData calldata poolData, TokenRateCache[] memory caches)
+    function _scalingFactors(ImmutableData memory imd, TokenRateCache[] memory caches)
         internal
         view
         virtual
         returns (uint256[] memory)
     {
         // There is no need to check the arrays length since both are based on `_getTotalTokens`
-        uint256[] memory scalingFactors = new uint256[](totalTokens);
+        uint256[] memory scalingFactors = new uint256[](imd.totalTokens);
 
-        for (uint256 i = 0; i < totalTokens; ++i) {
-            scalingFactors[i] = poolData.rawScalingFactors[i].mulDown(_getTokenRate(caches, i));
+        for (uint256 i = 0; i < imd.totalTokens; ++i) {
+            scalingFactors[i] = imd.rawScalingFactors[i].mulDown(_getTokenRate(caches, i));
         }
 
         return scalingFactors;
@@ -577,5 +583,21 @@ contract ComposableStablePreview is StablePreviewBase {
         for (uint256 i = 0; i < length; ++i) {
             amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
         }
+    }
+
+    function _hasRateProvider(ImmutableData memory imd, uint256 index)
+        internal
+        pure
+        returns (bool)
+    {
+        return address(imd.rateProviders[index]) != address(0);
+    }
+
+    function _isTokenExemptFromYieldProtocolFee(ImmutableData memory imd, uint256 index)
+        internal
+        pure
+        returns (bool)
+    {
+        return imd.isExemptFromYieldProtocolFee[index];
     }
 }

@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./base/PendleAuraBalancerStableLPSY.sol";
 import "../../StEthHelper.sol";
+import "./base/MetaStable/MetaStablePreview.sol";
 
 contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
     uint256 public constant AURA_PID = 29;
@@ -12,7 +13,7 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
     constructor(
         string memory _name,
         string memory _symbol,
-        IBalancerStablePreview _previewHelper
+        MetaStablePreview _previewHelper
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) StEthHelper() {}
 
     function _deposit(address tokenIn, uint256 amount)
@@ -107,17 +108,13 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
         res[1] = 1e18;
     }
 
-    function _getImmutablePoolData()
-        internal
-        view
-        virtual
-        override
-        returns (IBalancerStablePreview.StablePoolData memory res)
-    {
+    function _getImmutablePoolData() internal view virtual override returns (bytes memory) {
+        MetaStablePreview.ImmutableData memory res;
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
-        // res.isExemptFromYieldProtocolFee is not available in MetaStablePool
+
+        return abi.encode(res);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

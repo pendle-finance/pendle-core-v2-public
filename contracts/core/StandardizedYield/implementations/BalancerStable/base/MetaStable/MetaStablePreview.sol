@@ -16,10 +16,11 @@ contract MetaStablePreview is StablePreviewBase {
     using MetaStableMath for uint256;
     using StablePoolUserData for bytes;
 
-    address public immutable LP;
-
-    constructor(address _LP) {
-        LP = _LP;
+    struct ImmutableData {
+        address LP;
+        address[] poolTokens;
+        address[] rateProviders;
+        uint256[] rawScalingFactors;
     }
 
     function onJoinPool(
@@ -30,11 +31,13 @@ contract MetaStablePreview is StablePreviewBase {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory poolImmutableData
     ) internal view override returns (uint256 bptAmountOut) {
-        uint256[] memory caches = _cachePriceRatesIfNecessary(poolData);
+        ImmutableData memory imd = abi.decode(poolImmutableData, (ImmutableData));
 
-        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
+        uint256[] memory caches = _cachePriceRatesIfNecessary(imd);
+
+        uint256[] memory scalingFactors = _scalingFactors(imd, caches);
 
         // skip totalSupply == 0 case
 
@@ -47,7 +50,8 @@ contract MetaStablePreview is StablePreviewBase {
             lastChangeBlock,
             protocolSwapFeePercentage,
             scalingFactors,
-            userData
+            userData,
+            imd
         );
 
         // skip _mintPoolTokens, _downscale
@@ -61,11 +65,13 @@ contract MetaStablePreview is StablePreviewBase {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory poolImmutableData
     ) internal view virtual override returns (uint256 amountTokenOut) {
-        uint256[] memory caches = _cachePriceRatesIfNecessary(poolData);
+        ImmutableData memory imd = abi.decode(poolImmutableData, (ImmutableData));
 
-        uint256[] memory scalingFactors = _scalingFactors(poolData, caches);
+        uint256[] memory caches = _cachePriceRatesIfNecessary(imd);
+
+        uint256[] memory scalingFactors = _scalingFactors(imd, caches);
         _upscaleArray(balances, scalingFactors);
 
         (, uint256[] memory amountsOut, ) = _onExitPool(
@@ -76,7 +82,8 @@ contract MetaStablePreview is StablePreviewBase {
             lastChangeBlock,
             protocolSwapFeePercentage,
             scalingFactors,
-            userData
+            userData,
+            imd
         );
 
         // skip burnPoolTokens
@@ -99,7 +106,8 @@ contract MetaStablePreview is StablePreviewBase {
         uint256,
         uint256 protocolSwapFeePercentage,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     )
         internal
         view
@@ -113,14 +121,16 @@ contract MetaStablePreview is StablePreviewBase {
 
         uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
             balances,
-            protocolSwapFeePercentage
+            protocolSwapFeePercentage,
+            imd
         );
 
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
         (uint256 bptAmountOut, uint256[] memory amountsIn) = _doJoin(
             balances,
             scalingFactors,
-            userData
+            userData,
+            imd
         );
 
         // skip _updateInvariantAfterJoin
@@ -136,7 +146,8 @@ contract MetaStablePreview is StablePreviewBase {
         uint256,
         uint256 protocolSwapFeePercentage,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     )
         internal
         view
@@ -149,11 +160,15 @@ contract MetaStablePreview is StablePreviewBase {
     {
         // skip _updateOracle
 
-        dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(balances, protocolSwapFeePercentage);
+        dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
+            balances,
+            protocolSwapFeePercentage,
+            imd
+        );
 
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
 
-        (bptAmountIn, amountsOut) = _doExit(balances, scalingFactors, userData);
+        (bptAmountIn, amountsOut) = _doExit(balances, scalingFactors, userData, imd);
 
         // skip pause case
 
@@ -164,7 +179,8 @@ contract MetaStablePreview is StablePreviewBase {
 
     function _getDueProtocolFeeAmounts(
         uint256[] memory balances,
-        uint256 protocolSwapFeePercentage
+        uint256 protocolSwapFeePercentage,
+        ImmutableData memory imd
     ) private view returns (uint256[] memory) {
         uint256[] memory dueProtocolFeeAmounts = new uint256[](2);
 
@@ -182,7 +198,7 @@ contract MetaStablePreview is StablePreviewBase {
             }
         }
 
-        (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(LP)
+        (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(imd.LP)
             .getLastInvariant();
         dueProtocolFeeAmounts[chosenTokenIndex] = MetaStableMath
             ._calcDueTokenProtocolSwapFeeAmount(
@@ -199,27 +215,29 @@ contract MetaStablePreview is StablePreviewBase {
     function _doJoin(
         uint256[] memory balances,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) private view returns (uint256, uint256[] memory) {
-        return _joinExactTokensInForBPTOut(balances, scalingFactors, userData);
+        return _joinExactTokensInForBPTOut(balances, scalingFactors, userData, imd);
     }
 
     function _joinExactTokensInForBPTOut(
         uint256[] memory balances,
         uint256[] memory scalingFactors,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) private view returns (uint256, uint256[] memory) {
         (uint256[] memory amountsIn, ) = userData.exactTokensInForBptOut();
 
         _upscaleArray(amountsIn, scalingFactors);
 
-        (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
+        (uint256 currentAmp, , ) = IMetaStablePool(imd.LP).getAmplificationParameter();
         uint256 bptAmountOut = MetaStableMath._calcBptOutGivenExactTokensIn(
             currentAmp,
             balances,
             amountsIn,
-            IMetaStablePool(LP).totalSupply(),
-            IMetaStablePool(LP).getSwapFeePercentage()
+            IMetaStablePool(imd.LP).totalSupply(),
+            IMetaStablePool(imd.LP).getSwapFeePercentage()
         );
 
         return (bptAmountOut, amountsIn);
@@ -228,16 +246,17 @@ contract MetaStablePreview is StablePreviewBase {
     function _doExit(
         uint256[] memory balances,
         uint256[] memory,
-        bytes memory userData
+        bytes memory userData,
+        ImmutableData memory imd
     ) private view returns (uint256, uint256[] memory) {
-        return _exitExactBPTInForTokenOut(balances, userData);
+        return _exitExactBPTInForTokenOut(balances, userData, imd);
     }
 
-    function _exitExactBPTInForTokenOut(uint256[] memory balances, bytes memory userData)
-        private
-        view
-        returns (uint256, uint256[] memory)
-    {
+    function _exitExactBPTInForTokenOut(
+        uint256[] memory balances,
+        bytes memory userData,
+        ImmutableData memory imd
+    ) private view returns (uint256, uint256[] memory) {
         // This exit function is disabled if the contract is paused.
 
         (uint256 bptAmountIn, uint256 tokenIndex) = userData.exactBptInForTokenOut();
@@ -247,20 +266,20 @@ contract MetaStablePreview is StablePreviewBase {
         uint256[] memory amountsOut = new uint256[](2);
 
         // And then assign the result to the selected token
-        (uint256 currentAmp, , ) = IMetaStablePool(LP).getAmplificationParameter();
+        (uint256 currentAmp, , ) = IMetaStablePool(imd.LP).getAmplificationParameter();
         amountsOut[tokenIndex] = MetaStableMath._calcTokenOutGivenExactBptIn(
             currentAmp,
             balances,
             tokenIndex,
             bptAmountIn,
-            IMetaStablePool(LP).totalSupply(), // this totalSupply is reliable since we didn't mint LP
-            IMetaStablePool(LP).getSwapFeePercentage()
+            IMetaStablePool(imd.LP).totalSupply(), // this totalSupply is reliable since we didn't mint LP
+            IMetaStablePool(imd.LP).getSwapFeePercentage()
         );
 
         return (bptAmountIn, amountsOut);
     }
 
-    function _scalingFactors(StablePoolData calldata poolData, uint256[] memory caches)
+    function _scalingFactors(ImmutableData memory imd, uint256[] memory caches)
         internal
         view
         virtual
@@ -269,7 +288,7 @@ contract MetaStablePreview is StablePreviewBase {
         uint256[] memory scalingFactors = new uint256[](2);
 
         for (uint256 i = 0; i < 2; ++i) {
-            scalingFactors[i] = poolData.rawScalingFactors[i].mulDown(_priceRate(caches, i));
+            scalingFactors[i] = imd.rawScalingFactors[i].mulDown(_priceRate(caches, i));
         }
 
         return scalingFactors;
@@ -284,30 +303,30 @@ contract MetaStablePreview is StablePreviewBase {
         return caches[index] == 0 ? FixedPoint.ONE : caches[index];
     }
 
-    function _cachePriceRatesIfNecessary(StablePoolData calldata poolData)
+    function _cachePriceRatesIfNecessary(ImmutableData memory imd)
         internal
         view
         returns (uint256[] memory res)
     {
         res = new uint256[](2);
-        res[0] = _cachePriceRateIfNecessary(0, poolData);
-        res[1] = _cachePriceRateIfNecessary(1, poolData);
+        res[0] = _cachePriceRateIfNecessary(0, imd);
+        res[1] = _cachePriceRateIfNecessary(1, imd);
     }
 
-    function _cachePriceRateIfNecessary(uint256 index, StablePoolData calldata poolData)
+    function _cachePriceRateIfNecessary(uint256 index, ImmutableData memory imd)
         internal
         view
         returns (uint256 res)
     {
-        if (!_hasRateProvider(poolData, index)) return res;
+        if (!_hasRateProvider(imd, index)) return res;
 
         uint256 expires;
-        (res, , expires) = IMetaStablePool(LP).getPriceRateCache(
-            IERC20(poolData.poolTokens[index])
+        (res, , expires) = IMetaStablePool(imd.LP).getPriceRateCache(
+            IERC20(imd.poolTokens[index])
         );
 
         if (block.timestamp > expires) {
-            res = IRateProvider(poolData.rateProviders[index]).getRate();
+            res = IRateProvider(imd.rateProviders[index]).getRate();
         }
     }
 
@@ -347,5 +366,13 @@ contract MetaStablePreview is StablePreviewBase {
         for (uint256 i = 0; i < 2; ++i) {
             toMutate[i] = mutation(toMutate[i], arguments[i]);
         }
+    }
+
+    function _hasRateProvider(ImmutableData memory imd, uint256 index)
+        internal
+        pure
+        returns (bool)
+    {
+        return address(imd.rateProviders[index]) != address(0);
     }
 }

@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import "./base/PendleAuraBalancerStableLPSY.sol";
 import "../../StEthHelper.sol";
+import "./base/ComposableStable/ComposableStablePreview.sol";
 
 contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
     address public constant SFRXETH = 0xac3E018457B222d93114458476f3E3416Abbe38F;
@@ -10,11 +11,14 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
 
     uint256 public constant AURA_PID = 13;
     address public constant LP = 0x8e85e97ed19C0fa13B2549309965291fbbc0048b;
+    uint256 public constant BPT_INDEX = 1;
+    bool public constant NO_TOKENS_EXEMPT = true;
+    bool public constant ALL_TOKENS_EXEMPT = false;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        IBalancerStablePreview _previewHelper
+        ComposableStablePreview _previewHelper
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
     function _deposit(address tokenIn, uint256 amount)
@@ -74,17 +78,19 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
         }
     }
 
-    function _getImmutablePoolData()
-        internal
-        view
-        virtual
-        override
-        returns (IBalancerStablePreview.StablePoolData memory res)
-    {
+    function _getImmutablePoolData() internal view virtual override returns (bytes memory ret) {
+        ComposableStablePreview.ImmutableData memory res;
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
         res.isExemptFromYieldProtocolFee = _getExemption();
+        res.LP = balLp;
+        res.noTokensExempt = NO_TOKENS_EXEMPT;
+        res.allTokensExempt = ALL_TOKENS_EXEMPT;
+        res.bptIndex = BPT_INDEX;
+        res.totalTokens = res.poolTokens.length;
+
+        return abi.encode(res);
     }
 
     function _getPoolTokenAddresses()

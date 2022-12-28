@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import "./base/PendleAuraBalancerStableLPSY.sol";
 import "../../../../interfaces/IWETH.sol";
+import "./base/MetaStable/MetaStablePreview.sol";
 
 contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
@@ -14,7 +15,7 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
     constructor(
         string memory _name,
         string memory _symbol,
-        IBalancerStablePreview _previewHelper
+        MetaStablePreview _previewHelper
     ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
     function _deposit(address tokenIn, uint256 amount)
@@ -97,17 +98,13 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         res[1] = 1e18;
     }
 
-    function _getImmutablePoolData()
-        internal
-        view
-        virtual
-        override
-        returns (IBalancerStablePreview.StablePoolData memory res)
-    {
+    function _getImmutablePoolData() internal view virtual override returns (bytes memory) {
+        MetaStablePreview.ImmutableData memory res;
         res.poolTokens = _getPoolTokenAddresses();
         res.rateProviders = _getRateProviders();
         res.rawScalingFactors = _getRawScalingFactors();
-        // res.isExemptFromYieldProtocolFee is not available in MetaStablePool
+
+        return abi.encode(res);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

@@ -9,6 +9,7 @@ import "../../../../../interfaces/Balancer/IBalancerStablePreview.sol";
 abstract contract StablePreviewBase is IBalancerStablePreview {
     address internal constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address internal constant FEE_COLLECTOR = 0xce88686553686DA562CE7Cea497CE749DA109f9F;
 
     enum PoolBalanceChangeKind {
         JOIN,
@@ -22,18 +23,12 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         bool useInternalBalance;
     }
 
-    address public immutable protocolFeesCollector;
-
-    constructor() {
-        protocolFeesCollector = IVault(BALANCER_VAULT).getProtocolFeesCollector();
-    }
-
     function joinPoolPreview(
         bytes32 poolId,
         address sender,
         address recipient,
         IVault.JoinPoolRequest memory request,
-        StablePoolData calldata poolData
+        bytes memory data
     ) external view returns (uint256 amountBptOut) {
         amountBptOut = _joinOrExit(
             PoolBalanceChangeKind.JOIN,
@@ -41,7 +36,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
             sender,
             payable(recipient),
             _toPoolBalanceChange(request),
-            poolData
+            data
         );
     }
 
@@ -50,7 +45,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         address sender,
         address recipient,
         IVault.ExitPoolRequest memory request,
-        StablePoolData calldata poolData
+        bytes memory data
     ) external view returns (uint256 amountTokenOut) {
         amountTokenOut = _joinOrExit(
             PoolBalanceChangeKind.EXIT,
@@ -58,7 +53,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
             sender,
             recipient,
             _toPoolBalanceChange(request),
-            poolData
+            data
         );
     }
 
@@ -68,7 +63,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         address sender,
         address recipient,
         PoolBalanceChange memory change,
-        StablePoolData calldata poolData
+        bytes memory data
     ) private view returns (uint256 amountBptOrTokensOut) {
         IERC20[] memory tokens = _translateToIERC20(change.assets);
         (uint256[] memory balances, uint256 lastChangeBlock) = _validateTokensAndGetBalances(
@@ -84,7 +79,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
             change,
             balances,
             lastChangeBlock,
-            poolData
+            data
         );
     }
 
@@ -96,7 +91,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         PoolBalanceChange memory change,
         uint256[] memory balances,
         uint256 lastChangeBlock,
-        StablePoolData calldata poolData
+        bytes memory data
     ) private view returns (uint256 amountsChanged) {
         if (kind == PoolBalanceChangeKind.JOIN) {
             amountsChanged = onJoinPool(
@@ -107,7 +102,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
                 lastChangeBlock,
                 _getProtocolSwapFeePercentage(),
                 change.userData,
-                poolData
+                data
             );
         } else {
             amountsChanged = onExitPool(
@@ -118,13 +113,13 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
                 lastChangeBlock,
                 _getProtocolSwapFeePercentage(),
                 change.userData,
-                poolData
+                data
             );
         }
     }
 
     function _getProtocolSwapFeePercentage() private view returns (uint256) {
-        return IBalancerFees(protocolFeesCollector).getSwapFeePercentage();
+        return IBalancerFees(FEE_COLLECTOR).getSwapFeePercentage();
     }
 
     function _validateTokensAndGetBalances(
@@ -178,7 +173,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory data
     ) internal view virtual returns (uint256 bptAmountOut);
 
     function onExitPool(
@@ -189,26 +184,6 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData,
-        StablePoolData calldata poolData
+        bytes memory data
     ) internal view virtual returns (uint256 amountTokenOut);
-
-    /*///////////////////////////////////////////////////////////////
-                               Helpers functions
-    //////////////////////////////////////////////////////////////*/
-
-    function _hasRateProvider(StablePoolData memory data, uint256 index)
-        internal
-        pure
-        returns (bool)
-    {
-        return address(data.rateProviders[index]) != address(0);
-    }
-
-    function _isTokenExemptFromYieldProtocolFee(StablePoolData memory data, uint256 index)
-        internal
-        pure
-        returns (bool)
-    {
-        return data.isExemptFromYieldProtocolFee[index];
-    }
 }

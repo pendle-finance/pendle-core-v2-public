@@ -53,7 +53,6 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         }
 
         previewHelper = _previewHelper;
-        require(previewHelper.LP() == balLp);
     }
 
     function _getPoolInfo(uint256 _auraPid)
@@ -247,11 +246,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         }
     }
 
-    function _getImmutablePoolData()
-        internal
-        view
-        virtual
-        returns (IBalancerStablePreview.StablePoolData memory);
+    function _getImmutablePoolData() internal view virtual returns (bytes memory);
 
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED
