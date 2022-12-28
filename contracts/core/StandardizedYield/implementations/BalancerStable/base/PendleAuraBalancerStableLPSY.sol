@@ -33,6 +33,8 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
     IBalancerStablePreview public immutable previewHelper;
 
+    address[] public extraRewards;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -258,14 +260,42 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function _getRewardTokens() internal view virtual override returns (address[] memory res) {
-        res = new address[](2);
-        res[0] = BAL_TOKEN;
-        res[1] = AURA_TOKEN;
+    /// @notice allows owner to add new reward tokens in in case Aura does so with their pools
+    function addRewardTokens(address token) external virtual onlyOwner {
+        if (token == BAL_TOKEN || token == AURA_TOKEN || extraRewards.contains(token))
+            revert Errors.SYInvalidRewardToken(token);
+
+        uint256 nRewardsAura = IRewards(auraRewardManager).extraRewardsLength();
+        for (uint256 i = 0; i < nRewardsAura; i++) {
+            if (token == IRewards(IRewards(auraRewardManager).extraRewards(i)).rewardToken()) {
+                extraRewards.push(token);
+                return;
+            }
+        }
+
+        revert Errors.SYInvalidRewardToken(token);
     }
 
+    function extraRewardsLength() external view virtual returns (uint256) {
+        return extraRewards.length;
+    }
+
+    function _getRewardTokens() internal view virtual override returns (address[] memory res) {
+        uint256 extraRewardsLen = extraRewards.length;
+        res = new address[](2 + extraRewardsLen);
+        res[0] = BAL_TOKEN;
+        res[1] = AURA_TOKEN;
+        for (uint256 i = 0; i < extraRewardsLen; i++) {
+            res[2 + i] = extraRewards[i];
+        }
+    }
+
+    /// @dev if there is no extra rewards, we can call getReward with the 2nd arg (_claimExtra) to be false
+    /// which helps save even more gas
     function _redeemExternalReward() internal virtual override {
-        IRewards(auraRewardManager).getReward();
+        uint256 extraRewardsLen = extraRewards.length;
+        if (extraRewardsLen == 0) IRewards(auraRewardManager).getReward(address(this), false);
+        else IRewards(auraRewardManager).getReward(address(this), true);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -113,6 +113,7 @@ library Errors {
 
     error SYApeDepositAmountTooSmall(uint256 amountDeposited);
     error SYBalancerInvalidPid();
+    error SYInvalidRewardToken(address token);
 
     // Liquidity Mining
     error VCInactivePool(address pool);
