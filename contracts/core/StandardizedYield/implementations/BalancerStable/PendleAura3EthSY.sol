@@ -109,7 +109,7 @@ contract PendleAura3EthSY is PendleAuraBalancerStableLPSY, StEthHelper {
     }
 
     function _getBPTIndex() internal view virtual override returns (uint256) {
-        return 1;
+        return BPT_INDEX;
     }
 
     function _getRateProviders() internal view virtual returns (address[] memory res) {
