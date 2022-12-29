@@ -135,11 +135,16 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         // max amounts in
         address[] memory assets = _getPoolTokenAddresses();
 
-        uint256[] memory amountsIn = new uint256[](assets.length);
+        uint256 amountsLength = _getBPTIndex() < type(uint256).max
+            ? assets.length - 1
+            : assets.length;
+
+        uint256[] memory amountsIn = new uint256[](amountsLength);
         uint256[] memory maxAmountsIn = new uint256[](assets.length);
 
         uint256 index = assets.find(tokenIn);
-        maxAmountsIn[index] = amountsIn[index] = amountTokenToDeposit;
+        uint256 indexSkipBPT = index > _getBPTIndex() ? index - 1 : index;
+        maxAmountsIn[index] = amountsIn[indexSkipBPT] = amountTokenToDeposit;
 
         // encode user data
         StablePoolUserData.JoinKind joinKind = StablePoolUserData
@@ -184,6 +189,9 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         uint256 bptAmountIn = amountLpToRedeem;
         uint256 exitTokenIndex = assets.find(tokenOut);
 
+        // must drop BPT index as well
+        exitTokenIndex = _getBPTIndex() < exitTokenIndex ? exitTokenIndex - 1 : exitTokenIndex;
+
         bytes memory userData = abi.encode(exitKind, bptAmountIn, exitTokenIndex);
 
         // assemble exitpoolrequest
@@ -192,6 +200,11 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
 
     /// @dev this should return tokens in the same order as `IVault.getPoolTokens()`
     function _getPoolTokenAddresses() internal view virtual returns (address[] memory res);
+
+    /// @dev should be overriden if and only if BPT is one of the pool tokens
+    function _getBPTIndex() internal view virtual returns (uint256) {
+        return type(uint256).max;
+    }
 
     /*///////////////////////////////////////////////////////////////
                    PREVIEW FUNCTIONS
