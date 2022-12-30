@@ -175,18 +175,33 @@ contract ComposableStablePreview is StablePreviewBase {
                 isJoin ? _doJoin : _doExit
             );
 
-        return
-            _doJoinOrExit(
-                balances,
-                currentAmp,
-                preJoinExitSupply,
-                preJoinExitInvariant,
-                scalingFactors,
-                userData,
-                imd
-            );
+        (bptAmount, amountsDelta) = _doJoinOrExit(
+            balances,
+            currentAmp,
+            preJoinExitSupply,
+            preJoinExitInvariant,
+            scalingFactors,
+            userData,
+            imd
+        );
+        amountsDelta = _addBptItem(amountsDelta, 0, imd);
+
+        // _mutateAmounts
 
         // skip _updateInvariantAfterJoinExit here
+    }
+
+    function _addBptItem(
+        uint256[] memory amounts,
+        uint256 bptAmount,
+        ImmutableData memory imd
+    ) internal view returns (uint256[] memory registeredTokenAmounts) {
+        registeredTokenAmounts = new uint256[](amounts.length + 1);
+        for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
+            registeredTokenAmounts[i] = i == imd.bptIndex
+                ? bptAmount
+                : amounts[i < imd.bptIndex ? i : i - 1];
+        }
     }
 
     function _doJoin(
