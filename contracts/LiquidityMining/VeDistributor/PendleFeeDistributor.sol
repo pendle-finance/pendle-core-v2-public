@@ -55,6 +55,8 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
 
         lastFundedWeek[pool] = _startWeek - WeekMath.WEEK;
         allPools.push(pool);
+
+        emit PoolAdded(pool, _startWeek);
     }
 
     function getAllPools() external view returns (address[] memory) {
@@ -92,6 +94,8 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
 
         uint256 lastFunded = lastFundedWeek[pool];
 
+        uint256 curWeek = WeekMath.getCurrentWeekStart();
+
         for (uint256 i = 0; i < amounts.length; ++i) {
             uint256 wTime = wTimes[i];
             uint256 amount = amounts[i];
@@ -104,6 +108,8 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
 
             emit UpdateFee(pool, wTime, amount);
         }
+
+        if (lastFunded >= curWeek) revert Errors.FDInvalidWTimeFund(lastFunded, curWeek);
 
         lastFundedWeek[pool] = lastFunded;
     }

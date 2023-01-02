@@ -145,6 +145,7 @@ library Errors {
     error FDInvalidNewFinishedEpoch(uint256 oldFinishedEpoch, uint256 newFinishedEpoch);
     error FDInvalidStartEpoch(uint256 startEpoch);
     error FDInvalidWTimeFund(uint256 lastFunded, uint256 wTime);
+    error FDFutureFunding(uint256 lastFunded, uint256 currentWTime);
 
     error BDInvalidEpoch(uint256 epoch, uint256 startTime);
 

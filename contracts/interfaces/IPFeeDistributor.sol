@@ -6,6 +6,8 @@ interface IPFeeDistributor {
 
     event ClaimReward(address indexed pool, address indexed user, uint256 wTime, uint256 amount);
 
+    event PoolAdded(address indexed pool, uint256 indexed startWeek);
+
     struct UserInfo {
         uint128 firstUnclaimedWeek;
         uint128 iter;
