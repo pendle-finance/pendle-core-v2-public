@@ -27,51 +27,133 @@ contract StaticMintRedeemFacet {
 
     function mintPYFromBaseStatic(
         address YT,
-        address baseToken,
-        uint256 amountBaseToken,
+        address tokenIn,
+        uint256 amountTokenIn,
         address bulk
-    ) external returns (uint256 amountPY) {
+    ) external returns (uint256 amountSy, uint256 amountPY) {
         IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
-        uint256 amountSy = previewDepositStatic(SY, baseToken, amountBaseToken, bulk);
-        return mintPYFromSyStatic(YT, amountSy);
+        amountSy = previewDepositStatic(SY, tokenIn, amountTokenIn, bulk);
+        amountPY = mintPYFromSyStatic(YT, amountSy);
     }
 
     function redeemPYToBaseStatic(
         address YT,
         uint256 amountPYToRedeem,
-        address baseToken,
+        address tokenOut,
         address bulk
-    ) external returns (uint256 amountBaseToken) {
+    ) external returns (uint256 amountSy, uint256 amountTokenOut) {
         IStandardizedYield SY = IStandardizedYield(IPYieldToken(YT).SY());
-        uint256 amountSy = redeemPYToSyStatic(YT, amountPYToRedeem);
-        return previewRedeemStatic(SY, baseToken, amountSy, bulk);
+        amountSy = redeemPYToSyStatic(YT, amountPYToRedeem);
+        amountTokenOut = previewRedeemStatic(SY, tokenOut, amountSy, bulk);
     }
 
     function previewDepositStatic(
         IStandardizedYield SY,
-        address baseToken,
-        uint256 amountToken,
+        address tokenIn,
+        uint256 amountTokenIn,
         address bulk
-    ) public view returns (uint256 amountSy) {
+    ) public view returns (uint256 amountSyOut) {
         if (bulk != address(0)) {
             BulkSellerState memory state = IPBulkSeller(bulk).readState();
-            return state.calcSwapExactTokenForSy(amountToken);
+            return state.calcSwapExactTokenForSy(amountTokenIn);
         } else {
-            return SY.previewDeposit(baseToken, amountToken);
+            return SY.previewDeposit(tokenIn, amountTokenIn);
         }
     }
 
     function previewRedeemStatic(
         IStandardizedYield SY,
-        address baseToken,
-        uint256 amountSy,
+        address tokenOut,
+        uint256 amountSyIn,
         address bulk
-    ) public view returns (uint256 amountBaseToken) {
+    ) public view returns (uint256 amountTokenOut) {
         if (bulk != address(0)) {
             BulkSellerState memory state = IPBulkSeller(bulk).readState();
-            return state.calcSwapExactSyForToken(amountSy);
+            return state.calcSwapExactSyForToken(amountSyIn);
         } else {
-            return SY.previewRedeem(baseToken, amountSy);
+            return SY.previewRedeem(tokenOut, amountSyIn);
         }
+    }
+
+    function getAmountTokenToMintSy(
+        IStandardizedYield SY,
+        address tokenIn,
+        address bulk,
+        uint256 netSyOut
+    ) public view returns (uint256 netTokenIn) {
+        uint256 pivotAmount = 10**IERC20Metadata(tokenIn).decimals();
+
+        uint256 low = pivotAmount;
+        {
+            while (true) {
+                uint256 lowSyOut = previewDepositStatic(SY, tokenIn, low, bulk);
+                if (lowSyOut >= netSyOut) low /= 10;
+                else break;
+            }
+        }
+
+        uint256 high = pivotAmount;
+        {
+            while (true) {
+                uint256 highSyOut = previewDepositStatic(SY, tokenIn, high, bulk);
+                if (highSyOut < netSyOut) high *= 10;
+                else break;
+            }
+        }
+
+        while (low <= high) {
+            uint256 mid = (low + high) / 2;
+            uint256 syOut = previewDepositStatic(SY, tokenIn, mid, bulk);
+
+            if (syOut >= netSyOut) {
+                netTokenIn = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        assert(netTokenIn > 0);
+    }
+
+    function getAmountSyToRedeemToken(
+        IStandardizedYield SY,
+        address tokenOut,
+        address bulk,
+        uint256 netTokenOut
+    ) public view returns (uint256 netSyIn) {
+        uint256 pivotAmount = 10**SY.decimals();
+
+        uint256 low = pivotAmount;
+        {
+            while (true) {
+                uint256 lowTokenOut = previewRedeemStatic(SY, tokenOut, low, bulk);
+                if (lowTokenOut >= netTokenOut) low /= 10;
+                else break;
+            }
+        }
+
+        uint256 high = pivotAmount;
+        {
+            while (true) {
+                uint256 highTokenOut = previewRedeemStatic(SY, tokenOut, high, bulk);
+                if (highTokenOut > netTokenOut) high *= 10;
+                else break;
+            }
+        }
+
+        while (low <= high) {
+            uint256 mid = (low + high) / 2;
+            uint256 midTokenOut = previewRedeemStatic(SY, tokenOut, mid, bulk);
+             
+            if (midTokenOut >= netTokenOut) {
+                netSyIn = mid;
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        assert(netSyIn > 0);
     }
 }

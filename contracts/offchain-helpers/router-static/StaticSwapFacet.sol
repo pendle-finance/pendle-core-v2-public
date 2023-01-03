@@ -11,7 +11,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netSyOut,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactPtForSyStatic(market, exactPtIn);
@@ -23,7 +23,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netSyIn,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapSyForExactPtStatic(market, exactPtOut);
@@ -35,7 +35,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netPtOut,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactSyForPtStatic(market, exactSyIn);
@@ -47,54 +47,51 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netPtIn,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapPtForExactSyStatic(market, exactSyOut);
     }
 
-    function swapExactBaseTokenForPtStatic(
+    function swapExactTokenInForPtStatic(
         address market,
-        address baseToken,
-        uint256 amountBaseToken,
+        address tokenIn,
+        uint256 amountTokenIn,
         address bulk
     )
         external
         returns (
             uint256 netPtOut,
+            uint256 netSyMinted,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyIn = previewDepositStatic(
-            getSyMarket(market),
-            baseToken,
-            amountBaseToken,
-            bulk
-        );
-        return MarketMathStatic.swapExactSyForPtStatic(market, netSyIn);
+        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, amountTokenIn, bulk);
+        (netPtOut, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
+            .swapExactSyForPtStatic(market, netSyMinted);
     }
 
-    function swapExactPtForBaseTokenStatic(
+    function swapExactPtForTokenOutStatic(
         address market,
         uint256 exactPtIn,
-        address baseToken,
+        address tokenOut,
         address bulk
     )
         external
         returns (
-            uint256 netBaseTokenOut,
+            uint256 netTokenOut,
+            uint256 netSyToRedeem,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+        (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactPtForSyStatic(market, exactPtIn);
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
+        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -103,7 +100,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netSyIn,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapSyForExactYtStatic(market, exactYtOut);
@@ -115,7 +112,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netYtOut,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactSyForYtStatic(market, exactSyIn);
@@ -127,7 +124,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netSyOut,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactYtForSyStatic(market, exactYtIn);
@@ -139,55 +136,51 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 netYtIn,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapYtForExactSyStatic(market, exactSyOut);
     }
 
-    function swapExactYtForBaseTokenStatic(
+    function swapExactYtForTokenOutStatic(
         address market,
         uint256 exactYtIn,
-        address baseToken,
+        address tokenOut,
         address bulk
     )
         external
         returns (
-            uint256 netBaseTokenOut,
+            uint256 netTokenOut,
+            uint256 netSyToRedeem,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyOut;
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+        (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactYtForSyStatic(market, exactYtIn);
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
+        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
     }
 
-    function swapExactBaseTokenForYtStatic(
+    function swapExactTokenInForYtStatic(
         address market,
-        address baseToken,
-        uint256 amountBaseToken,
+        address tokenIn,
+        uint256 amountTokenIn,
         address bulk
     )
         external
         returns (
             uint256 netYtOut,
+            uint256 netSyMinted,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyIn = previewDepositStatic(
-            getSyMarket(market),
-            baseToken,
-            amountBaseToken,
-            bulk
-        );
-
-        return MarketMathStatic.swapExactSyForYtStatic(market, netSyIn);
+        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, amountTokenIn, bulk);
+        (netYtOut, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
+            .swapExactSyForYtStatic(market, netSyMinted);
     }
 
     function swapExactPtForYtStatic(address market, uint256 exactPtIn)
@@ -197,7 +190,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 totalPtToSwap,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactPtForYt(market, exactPtIn);
@@ -210,7 +203,7 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 totalPtSwapped,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.swapExactYtForPt(market, exactYtIn);

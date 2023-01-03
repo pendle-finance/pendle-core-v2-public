@@ -68,14 +68,14 @@ contract StaticMarketInfoFacet {
     function getPYInfo(address py)
         external
         returns (
-            uint256 exchangeRate,
+            uint256 pyExchangeRate,
             uint256 totalSupply,
             RewardIndex[] memory rewardIndexes
         )
     {
         (, address yt) = getPY(py);
         IPYieldToken YT = IPYieldToken(yt);
-        exchangeRate = YT.pyIndexCurrent();
+        pyExchangeRate = YT.pyIndexCurrent();
         totalSupply = YT.totalSupply();
         address[] memory rewardTokens = YT.getRewardTokens();
         rewardIndexes = new RewardIndex[](rewardTokens.length);
@@ -86,20 +86,6 @@ contract StaticMarketInfoFacet {
             rewardIndexes[i].rewardToken = rewardToken;
             rewardIndexes[i].index = indexes[i];
         }
-    }
-
-    function getPendleTokenType(address token)
-        external
-        view
-        returns (
-            bool isPT,
-            bool isYT,
-            bool isMarket
-        )
-    {
-        if (getStaticMarketInfoFacetStorage().yieldContractFactory.isPT(token)) isPT = true;
-        else if (getStaticMarketInfoFacetStorage().yieldContractFactory.isYT(token)) isYT = true;
-        else if (getStaticMarketInfoFacetStorage().marketFactory.isValidMarket(token)) isMarket = true;
     }
 
     function getPY(address py) public view returns (address pt, address yt) {
@@ -119,7 +105,7 @@ contract StaticMarketInfoFacet {
             address sy,
             MarketState memory state,
             int256 impliedYield,
-            uint256 exchangeRate
+            uint256 tradeExchangeRateExcludeFee
         )
     {
         IPMarket _market = IPMarket(market);
@@ -129,8 +115,8 @@ contract StaticMarketInfoFacet {
         sy = address(SY);
         state = _market.readState(address(this));
         impliedYield = getPtImpliedYield(market);
-        exchangeRate = getTradeExchangeRateExcludeFee(market);
-    }   
+        tradeExchangeRateExcludeFee = getTradeExchangeRateExcludeFee(market);
+    }
 
     // either but not both pyToken or market must be != 0
     function getTokensInOut(address pyToken, address market)
@@ -149,28 +135,6 @@ contract StaticMarketInfoFacet {
     }
 
     // ============= USER INFO =============
-
-    function getUserPYPositionsByPYs(address user, address[] calldata pys)
-        external
-        view
-        returns (UserPYInfo[] memory userPYPositions)
-    {
-        userPYPositions = new UserPYInfo[](pys.length);
-        for (uint256 i = 0; i < pys.length; ++i) {
-            userPYPositions[i] = getUserPYInfo(pys[i], user);
-        }
-    }
-
-    function getUserMarketPositions(address user, address[] calldata markets)
-        external
-        view
-        returns (UserMarketInfo[] memory userMarketPositions)
-    {
-        userMarketPositions = new UserMarketInfo[](markets.length);
-        for (uint256 i = 0; i < markets.length; ++i) {
-            userMarketPositions[i] = getUserMarketInfo(markets[i], user);
-        }
-    }
 
     function getUserSYInfo(address sy, address user)
         external
@@ -200,20 +164,13 @@ contract StaticMarketInfoFacet {
         userPYInfo.unclaimedInterest.token = YT.SY();
         (, userPYInfo.unclaimedInterest.amount) = YT.userInterest(user);
         address[] memory rewardTokens = YT.getRewardTokens();
-        TokenAmount[] memory unclaimedRewards = new TokenAmount[](rewardTokens.length);
-        uint256 length = 0;
+
+        userPYInfo.unclaimedRewards = new TokenAmount[](rewardTokens.length);
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address rewardToken = rewardTokens[i];
             (, uint256 amount) = YT.userReward(rewardToken, user);
-            if (amount > 0) {
-                unclaimedRewards[length].token = rewardToken;
-                unclaimedRewards[length].amount = amount;
-                ++length;
-            }
-        }
-        userPYInfo.unclaimedRewards = new TokenAmount[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            userPYInfo.unclaimedRewards[i] = unclaimedRewards[i];
+            userPYInfo.unclaimedRewards[i].token = rewardToken;
+            userPYInfo.unclaimedRewards[i].amount = amount;
         }
     }
 
@@ -245,13 +202,6 @@ contract StaticMarketInfoFacet {
         userMarketInfo.ptBalance = TokenAmount(address(PT), userPt);
         userMarketInfo.syBalance = TokenAmount(address(SY), userSy);
         userMarketInfo.assetBalance.amount = (userSy * SY.exchangeRate()) / Math.ONE;
-    }
-
-    function hasPYPosition(UserPYInfo calldata userPYInfo) public pure returns (bool hasPosition) {
-        hasPosition = (userPYInfo.ytBalance > 0 ||
-            userPYInfo.ptBalance > 0 ||
-            userPYInfo.unclaimedInterest.amount > 0 ||
-            userPYInfo.unclaimedRewards.length > 0);
     }
 
     function getBulkSellerInfo(address token, address SY)
@@ -337,10 +287,7 @@ contract StaticMarketInfoFacet {
         return MarketMathStatic.getTradeExchangeRateIncludeFee(market, netPtOut);
     }
 
-    function getTradeExchangeRateExcludeFee(address market)
-        public
-        returns (uint256)
-    {
+    function getTradeExchangeRateExcludeFee(address market) public returns (uint256) {
         return MarketMathStatic.getTradeExchangeRateExcludeFee(market);
     }
 

@@ -33,7 +33,8 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
         returns (
             uint256 netLpOut,
             uint256 netTokenUsed,
-            uint256 netPtUsed
+            uint256 netPtUsed,
+            uint256 netSyUsed
         )
     {
         uint256 netSyDesired = previewDepositStatic(
@@ -43,7 +44,6 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             bulk
         );
 
-        uint256 netSyUsed;
         (netLpOut, netSyUsed, netPtUsed) = MarketMathStatic.addLiquidityDualSyAndPtStatic(
             market,
             netSyDesired,
@@ -62,7 +62,7 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 netPtToSwap,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.addLiquiditySinglePtStatic(market, netPtIn);
@@ -75,35 +75,36 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 netPtFromSwap,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
     }
 
-    function addLiquiditySingleBaseTokenStatic(
+    function addLiquiditySingleTokenInStatic(
         address market,
-        address baseToken,
-        uint256 netBaseTokenIn,
+        address tokenIn,
+        uint256 netTokenIn,
         address bulk
     )
         external
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
+            uint256 netSyMinted,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyIn = previewDepositStatic(
-            getSyMarket(market),
-            baseToken,
-            netBaseTokenIn,
-            bulk
-        );
-
-        return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
+        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, netTokenIn, bulk);
+        (
+            netLpOut,
+            netPtFromSwap,
+            netSyFee,
+            priceImpact,
+            tradeExchangeRateExcludeFeeAfter
+        ) = MarketMathStatic.addLiquiditySingleSyStatic(market, netSyMinted);
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
@@ -119,15 +120,21 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
         uint256 netLpToRemove,
         address tokenOut,
         address bulk
-    ) external view returns (uint256 netTokenOut, uint256 netPtOut) {
-        uint256 netSyOut;
-
-        (netSyOut, netPtOut) = MarketMathStatic.removeLiquidityDualSyAndPtStatic(
+    )
+        external
+        view
+        returns (
+            uint256 netTokenOut,
+            uint256 netPtOut,
+            uint256 netSyToRedeem
+        )
+    {
+        (netSyToRedeem, netPtOut) = MarketMathStatic.removeLiquidityDualSyAndPtStatic(
             market,
             netLpToRemove
         );
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyOut, bulk);
+        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
     }
 
     function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
@@ -137,7 +144,7 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 netPtFromSwap,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.removeLiquiditySinglePtStatic(market, netLpToRemove);
@@ -149,32 +156,31 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 netSyOut,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
         return MarketMathStatic.removeLiquiditySingleSyStatic(market, netLpToRemove);
     }
 
-    function removeLiquiditySingleBaseTokenStatic(
+    function removeLiquiditySingleTokenOutStatic(
         address market,
         uint256 netLpToRemove,
-        address baseToken,
+        address tokenOut,
         address bulk
     )
         external
         returns (
-            uint256 netBaseTokenOut,
+            uint256 netTokenOut,
+            uint256 netSyToRedeem,
             uint256 netSyFee,
             uint256 priceImpact,
-            uint256 exchangeRateAfter
+            uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        uint256 netSyOut;
-
-        (netSyOut, netSyFee, priceImpact, exchangeRateAfter) = MarketMathStatic
+        (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .removeLiquiditySingleSyStatic(market, netLpToRemove);
 
-        netBaseTokenOut = previewRedeemStatic(getSyMarket(market), baseToken, netSyOut, bulk);
+        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
     }
 
     function getSyMarket(address market) public view returns (IStandardizedYield) {
