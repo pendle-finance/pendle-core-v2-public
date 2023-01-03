@@ -138,11 +138,12 @@ contract StaticMarketInfoFacet {
 
     function getUserSYInfo(address sy, address user)
         external
-        view
         returns (uint256 balance, TokenAmount[] memory rewards)
     {
         IStandardizedYield SY = IStandardizedYield(sy);
         balance = SY.balanceOf(sy);
+
+        SY.claimRewards(user);
         address[] memory rewardTokens = SY.getRewardTokens();
         rewards = new TokenAmount[](rewardTokens.length);
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
@@ -153,14 +154,15 @@ contract StaticMarketInfoFacet {
     }
 
     function getUserPYInfo(address py, address user)
-        public
-        view
+        external
         returns (UserPYInfo memory userPYInfo)
     {
         (userPYInfo.pt, userPYInfo.yt) = getPY(py);
         IPYieldToken YT = IPYieldToken(userPYInfo.yt);
         userPYInfo.ytBalance = YT.balanceOf(user);
         userPYInfo.ptBalance = IPPrincipalToken(userPYInfo.pt).balanceOf(user);
+        
+        YT.redeemDueInterestAndRewards(user, true, true);
         userPYInfo.unclaimedInterest.token = YT.SY();
         (, userPYInfo.unclaimedInterest.amount) = YT.userInterest(user);
         address[] memory rewardTokens = YT.getRewardTokens();
