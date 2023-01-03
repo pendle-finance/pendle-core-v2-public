@@ -62,7 +62,7 @@ interface IStandardizedYield is IERC20Metadata {
      * @dev Emits a {Deposit} event
      *
      * Requirements:
-     * - (`baseTokenIn`) must be a valid base token.
+     * - (`tokenIn`) must be a valid base token.
      */
     function deposit(
         address receiver,
