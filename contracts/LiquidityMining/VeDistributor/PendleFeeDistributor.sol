@@ -128,6 +128,10 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         IERC20(token).safeTransfer(user, amountRewardOut.sum());
     }
 
+    function getAllActivePools() external view returns (address[] memory) {
+        return allPools;
+    }
+
     function _accumulateUserReward(address pool, address user)
         internal
         ensureValidPool(pool)
