@@ -5,7 +5,7 @@ import "./base/PendleAuraBalancerStableLPSY.sol";
 import "../../StEthHelper.sol";
 import "./base/ComposableStable/ComposableStablePreview.sol";
 
-contract PendleAuraCbEthWstEthSY is PendleAuraBalancerStableLPSY, StEthHelper {
+contract PendleAuraCbethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
     address public constant CBETH = 0xBe9895146f7AF43049ca1c1AE358B0541Ea49704;
 
     uint256 internal constant AURA_PID = 37;
