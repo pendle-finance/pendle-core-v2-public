@@ -195,7 +195,7 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256[] memory amounts,
         uint256 bptAmount,
         ImmutableData memory imd
-    ) internal view returns (uint256[] memory registeredTokenAmounts) {
+    ) internal pure returns (uint256[] memory registeredTokenAmounts) {
         registeredTokenAmounts = new uint256[](amounts.length + 1);
         for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
             registeredTokenAmounts[i] = i == imd.bptIndex
@@ -508,7 +508,7 @@ contract ComposableStablePreview is StablePreviewBase {
         view
         returns (uint256)
     {
-        return (IERC20(imd.LP).totalSupply()).sub(bptBalance); // can't get better
+        return (IERC20(imd.LP).totalSupply()).sub(bptBalance);
     }
 
     function _beforeSwapJoinExit(ImmutableData memory imd)

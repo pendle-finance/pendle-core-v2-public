@@ -272,7 +272,7 @@ contract MetaStablePreview is StablePreviewBase {
             balances,
             tokenIndex,
             bptAmountIn,
-            IMetaStablePool(imd.LP).totalSupply(), // this totalSupply is reliable since we didn't mint LP
+            IMetaStablePool(imd.LP).totalSupply(),
             IMetaStablePool(imd.LP).getSwapFeePercentage()
         );
 
