@@ -27,6 +27,8 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         uint256[] rawScalingFactors;
     }
 
+    constructor() initializer {}
+
     function initialize() external initializer {
         __BoringOwnable_init();
     }
