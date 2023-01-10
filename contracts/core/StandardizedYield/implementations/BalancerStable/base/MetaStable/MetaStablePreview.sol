@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
 import "../../../../../../interfaces/Balancer/IMetaStablePool.sol";
 import "../../../../../../interfaces/Balancer/IRateProvider.sol";
 
@@ -10,8 +12,10 @@ import "./MetaStableMath.sol";
 import "../StablePoolUserData.sol";
 
 import "../StablePreviewBase.sol";
+import "../../../../../libraries/BoringOwnableUpgradeable.sol";
 
-contract MetaStablePreview is StablePreviewBase {
+// this contract will be upgradable for the first 3-6 months, then its upgradeability will be relinquished
+contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSUpgradeable {
     using FixedPoint for uint256;
     using MetaStableMath for uint256;
     using StablePoolUserData for bytes;
@@ -22,6 +26,12 @@ contract MetaStablePreview is StablePreviewBase {
         address[] rateProviders;
         uint256[] rawScalingFactors;
     }
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function onJoinPool(
         bytes32 poolId,
