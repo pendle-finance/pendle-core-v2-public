@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IMultihopRouterEthereum.sol";
 import "./IAggregatorRouterHelper.sol";
+import "../../interfaces/IWETH.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
@@ -79,6 +80,15 @@ contract AggregationRouterHelper is
         returns (bytes memory)
     {
         bytes4 selector = bytes4(kybercall[:4]);
+
+        if (selector == IWETH.deposit.selector) {
+            return kybercall; // no scaling needed
+        }
+
+        if (selector == IWETH.withdraw.selector) {
+            return abi.encodeWithSelector(selector, newAmount);
+        }
+
         (
             address caller,
             SwapDescription memory desc,
