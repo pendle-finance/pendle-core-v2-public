@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../MarketMathStatic.sol";
 import "./StaticMintRedeemFacet.sol";
 
-contract StaticSwapFacet is StaticMintRedeemFacet {
+contract StaticSwapFacet {
     function swapExactPtForSyStatic(address market, uint256 exactPtIn)
         public
         returns (
@@ -68,7 +68,12 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, amountTokenIn, bulk);
+        netSyMinted = StaticMintRedeemFacet(address(this)).previewDepositStatic(
+            getSyMarket(market),
+            tokenIn,
+            amountTokenIn,
+            bulk
+        );
         (netPtOut, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactSyForPtStatic(market, netSyMinted);
     }
@@ -91,7 +96,12 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
         (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactPtForSyStatic(market, exactPtIn);
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
+        netTokenOut = StaticMintRedeemFacet(address(this)).previewRedeemStatic(
+            getSyMarket(market),
+            tokenOut,
+            netSyToRedeem,
+            bulk
+        );
     }
 
     function swapSyForExactYtStatic(address market, uint256 exactYtOut)
@@ -160,7 +170,12 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
         (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactYtForSyStatic(market, exactYtIn);
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
+        netTokenOut = StaticMintRedeemFacet(address(this)).previewRedeemStatic(
+            getSyMarket(market),
+            tokenOut,
+            netSyToRedeem,
+            bulk
+        );
     }
 
     function swapExactTokenInForYtStatic(
@@ -178,7 +193,12 @@ contract StaticSwapFacet is StaticMintRedeemFacet {
             uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, amountTokenIn, bulk);
+        netSyMinted = StaticMintRedeemFacet(address(this)).previewDepositStatic(
+            getSyMarket(market),
+            tokenIn,
+            amountTokenIn,
+            bulk
+        );
         (netYtOut, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .swapExactSyForYtStatic(market, netSyMinted);
     }

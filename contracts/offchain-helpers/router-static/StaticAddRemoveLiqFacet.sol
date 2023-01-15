@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../MarketMathStatic.sol";
 import "./StaticMintRedeemFacet.sol";
 
-contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
+contract StaticAddRemoveLiqFacet {
     function addLiquidityDualSyAndPtStatic(
         address market,
         uint256 netSyDesired,
@@ -37,7 +37,7 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 netSyUsed
         )
     {
-        uint256 netSyDesired = previewDepositStatic(
+        uint256 netSyDesired = StaticMintRedeemFacet(address(this)).previewDepositStatic(
             getSyMarket(market),
             tokenIn,
             netTokenDesired,
@@ -97,7 +97,12 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             uint256 tradeExchangeRateExcludeFeeAfter
         )
     {
-        netSyMinted = previewDepositStatic(getSyMarket(market), tokenIn, netTokenIn, bulk);
+        netSyMinted = StaticMintRedeemFacet(address(this)).previewDepositStatic(
+            getSyMarket(market),
+            tokenIn,
+            netTokenIn,
+            bulk
+        );
         (
             netLpOut,
             netPtFromSwap,
@@ -134,7 +139,12 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
             netLpToRemove
         );
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
+        netTokenOut = StaticMintRedeemFacet(address(this)).previewRedeemStatic(
+            getSyMarket(market),
+            tokenOut,
+            netSyToRedeem,
+            bulk
+        );
     }
 
     function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
@@ -180,7 +190,12 @@ contract StaticAddRemoveLiqFacet is StaticMintRedeemFacet {
         (netSyToRedeem, netSyFee, priceImpact, tradeExchangeRateExcludeFeeAfter) = MarketMathStatic
             .removeLiquiditySingleSyStatic(market, netLpToRemove);
 
-        netTokenOut = previewRedeemStatic(getSyMarket(market), tokenOut, netSyToRedeem, bulk);
+        netTokenOut = StaticMintRedeemFacet(address(this)).previewRedeemStatic(
+            getSyMarket(market),
+            tokenOut,
+            netSyToRedeem,
+            bulk
+        );
     }
 
     function getSyMarket(address market) public view returns (IStandardizedYield) {

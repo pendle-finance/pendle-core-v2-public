@@ -12,11 +12,11 @@ import "./StaticVePendleFacet.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouterStatic is IDiamondLoupe, Proxy {
-    address public immutable ADD_REMOVE_FACET;
-    address public immutable MARKET_INFO_FACET;
-    address public immutable MINT_REDEEM_FACET;
-    address public immutable SWAP_FACET;
-    address public immutable VE_PENDLE_FACET;
+    address internal immutable ADD_REMOVE_FACET;
+    address internal immutable MARKET_INFO_FACET;
+    address internal immutable MINT_REDEEM_FACET;
+    address internal immutable SWAP_FACET;
+    address internal immutable VE_PENDLE_FACET;
 
     constructor(
         address _ADD_REMOVE_FACET,
@@ -31,8 +31,6 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
         SWAP_FACET = _SWAP_FACET;
         VE_PENDLE_FACET = _VE_PENDLE_FACET;
     }
-
-    receive() external payable virtual override {}
 
     /// @notice Gets all facet addresses and their four byte function selectors.
     /// @return facets_ Facet
@@ -53,7 +51,7 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
     /// @notice Gets all the function selectors supported by a specific facet.
     function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {
         if (facet == ADD_REMOVE_FACET) {
-            res = new bytes4[](10);
+            res = new bytes4[](11);
             res[0] = StaticAddRemoveLiqFacet.addLiquidityDualSyAndPtStatic.selector;
             res[1] = StaticAddRemoveLiqFacet.addLiquidityDualTokenAndPtStatic.selector;
             res[2] = StaticAddRemoveLiqFacet.addLiquiditySinglePtStatic.selector;
