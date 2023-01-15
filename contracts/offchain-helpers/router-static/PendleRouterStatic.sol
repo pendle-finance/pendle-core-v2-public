@@ -4,19 +4,25 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../../interfaces/IDiamondLoupe.sol";
+import "../../interfaces/IDiamondCut.sol";
 import "./StaticAddRemoveLiqFacet.sol";
 import "./StaticMarketInfoFacet.sol";
 import "./StaticMintRedeemFacet.sol";
 import "./StaticSwapFacet.sol";
 import "./StaticVePendleFacet.sol";
+import "../../core/libraries/ArrayLib.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouterStatic is IDiamondLoupe, Proxy {
+    using ArrayLib for bytes4[];
+
     address internal immutable ADD_REMOVE_FACET;
     address internal immutable MARKET_INFO_FACET;
     address internal immutable MINT_REDEEM_FACET;
     address internal immutable SWAP_FACET;
     address internal immutable VE_PENDLE_FACET;
+
+    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
 
     constructor(
         address _ADD_REMOVE_FACET,
@@ -30,6 +36,22 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
         MINT_REDEEM_FACET = _MINT_REDEEM_FACET;
         SWAP_FACET = _SWAP_FACET;
         VE_PENDLE_FACET = _VE_PENDLE_FACET;
+
+        Facet[] memory facets_ = facets();
+
+        uint256 nFacets = facets_.length;
+
+        IDiamondCut.FacetCut[] memory cuts = new IDiamondCut.FacetCut[](nFacets);
+        for (uint256 i; i < nFacets; ) {
+            cuts[i].facetAddress = facets_[i].facetAddress;
+            cuts[i].action = IDiamondCut.FacetCutAction.Add;
+            cuts[i].functionSelectors = facets_[i].functionSelectors;
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit DiamondCut(cuts, address(0), "");
     }
 
     /// @notice Gets all facet addresses and their four byte function selectors.
@@ -130,71 +152,15 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
     /// @param selector The function selector.
     /// @return facetAddress_ The facet address.
     function facetAddress(bytes4 selector) public view returns (address) {
-        if (
-            selector == StaticAddRemoveLiqFacet.addLiquidityDualSyAndPtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.addLiquidityDualTokenAndPtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.addLiquiditySinglePtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.addLiquiditySingleSyStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.addLiquiditySingleTokenInStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.removeLiquidityDualSyAndPtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.removeLiquidityDualTokenAndPtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.removeLiquiditySinglePtStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.removeLiquiditySingleSyStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.removeLiquiditySingleTokenOutStatic.selector ||
-            selector == StaticAddRemoveLiqFacet.getSyMarket.selector
-        ) {
-            return ADD_REMOVE_FACET;
-        } else if (
-            selector == StaticMarketInfoFacet.getPYInfo.selector ||
-            selector == StaticMarketInfoFacet.getPY.selector ||
-            selector == StaticMarketInfoFacet.getMarketInfo.selector ||
-            selector == StaticMarketInfoFacet.getTokensInOut.selector ||
-            selector == StaticMarketInfoFacet.getUserSYInfo.selector ||
-            selector == StaticMarketInfoFacet.getUserPYInfo.selector ||
-            selector == StaticMarketInfoFacet.getUserMarketInfo.selector ||
-            selector == StaticMarketInfoFacet.getDefaultApproxParams.selector ||
-            selector == StaticMarketInfoFacet.getPtImpliedYield.selector ||
-            selector == StaticMarketInfoFacet.pyIndex.selector ||
-            selector == StaticMarketInfoFacet.getExchangeRate.selector ||
-            selector == StaticMarketInfoFacet.getTradeExchangeRateIncludeFee.selector ||
-            selector == StaticMarketInfoFacet.getTradeExchangeRateExcludeFee.selector ||
-            selector == StaticMarketInfoFacet.calcPriceImpact.selector
-        ) {
-            return MARKET_INFO_FACET;
-        } else if (
-            selector == StaticMintRedeemFacet.mintPYFromSyStatic.selector ||
-            selector == StaticMintRedeemFacet.redeemPYToSyStatic.selector ||
-            selector == StaticMintRedeemFacet.mintPYFromBaseStatic.selector ||
-            selector == StaticMintRedeemFacet.redeemPYToBaseStatic.selector ||
-            selector == StaticMintRedeemFacet.previewDepositStatic.selector ||
-            selector == StaticMintRedeemFacet.previewRedeemStatic.selector ||
-            selector == StaticMintRedeemFacet.getAmountTokenToMintSy.selector ||
-            selector == StaticMintRedeemFacet.getAmountSyToRedeemToken.selector
-        ) {
-            return MINT_REDEEM_FACET;
-        } else if (
-            selector == StaticSwapFacet.getSyMarket.selector ||
-            selector == StaticSwapFacet.swapExactPtForSyStatic.selector ||
-            selector == StaticSwapFacet.swapSyForExactPtStatic.selector ||
-            selector == StaticSwapFacet.swapExactSyForPtStatic.selector ||
-            selector == StaticSwapFacet.swapPtForExactSyStatic.selector ||
-            selector == StaticSwapFacet.swapExactTokenInForPtStatic.selector ||
-            selector == StaticSwapFacet.swapExactPtForTokenOutStatic.selector ||
-            selector == StaticSwapFacet.swapSyForExactYtStatic.selector ||
-            selector == StaticSwapFacet.swapExactSyForYtStatic.selector ||
-            selector == StaticSwapFacet.swapExactYtForSyStatic.selector ||
-            selector == StaticSwapFacet.swapYtForExactSyStatic.selector ||
-            selector == StaticSwapFacet.swapExactYtForTokenOutStatic.selector ||
-            selector == StaticSwapFacet.swapExactTokenInForYtStatic.selector ||
-            selector == StaticSwapFacet.swapExactPtForYtStatic.selector ||
-            selector == StaticSwapFacet.swapExactYtForPtStatic.selector
-        ) {
-            return SWAP_FACET;
-        } else if (selector == StaticVePendleFacet.increaseLockPositionStatic.selector) {
-            return VE_PENDLE_FACET;
-        } else {
-            revert("INVALID_FACET");
+        Facet[] memory facets_ = facets();
+
+        for (uint256 i; i < facets_.length; ) {
+            if (facets_[i].functionSelectors.contains(selector)) return facets_[i].facetAddress;
+            unchecked {
+                ++i;
+            }
         }
+        return address(0);
     }
 
     function _implementation() internal view override returns (address) {

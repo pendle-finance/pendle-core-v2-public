@@ -13,17 +13,6 @@ library ArrayLib {
         return value;
     }
 
-    function contains(address[] memory array, address element) internal pure returns (bool) {
-        uint256 length = array.length;
-        for (uint256 i = 0; i < length; ) {
-            if (array[i] == element) return true;
-            unchecked {
-                i++;
-            }
-        }
-        return false;
-    }
-
     function append(address[] memory inp, address element)
         internal
         pure
@@ -38,5 +27,28 @@ library ArrayLib {
             }
         }
         out[length] = element;
+    }
+
+    // various version of contains
+    function contains(address[] memory array, address element) internal pure returns (bool) {
+        uint256 length = array.length;
+        for (uint256 i = 0; i < length; ) {
+            if (array[i] == element) return true;
+            unchecked {
+                i++;
+            }
+        }
+        return false;
+    }
+
+    function contains(bytes4[] memory array, bytes4 element) internal pure returns (bool) {
+        uint256 length = array.length;
+        for (uint256 i = 0; i < length; ) {
+            if (array[i] == element) return true;
+            unchecked {
+                i++;
+            }
+        }
+        return false;
     }
 }
