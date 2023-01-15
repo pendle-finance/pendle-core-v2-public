@@ -145,7 +145,7 @@ contract StaticMintRedeemFacet {
         while (low <= high) {
             uint256 mid = (low + high) / 2;
             uint256 midTokenOut = previewRedeemStatic(SY, tokenOut, mid, bulk);
-             
+
             if (midTokenOut >= netTokenOut) {
                 netSyIn = mid;
                 high = mid - 1;

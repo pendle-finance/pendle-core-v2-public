@@ -9,23 +9,13 @@ contract StaticVePendleFacet {
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
 
-    uint128 public constant MAX_LOCK_TIME = 104 weeks;
-    uint128 public constant MIN_LOCK_TIME = 1 weeks;
+    uint128 private constant MAX_LOCK_TIME = 104 weeks;
+    uint128 private constant MIN_LOCK_TIME = 1 weeks;
 
-    // to initialize
-    struct StaticVePendleFacetStorage {
-        IPVotingEscrowMainchain vePENDLE;
-    }
+    IPVotingEscrowMainchain private immutable vePENDLE;
 
-    function getStaticVePendleFacetStorage()
-        internal
-        pure
-        returns (StaticVePendleFacetStorage storage storageStruct)
-    {
-        bytes32 position = keccak256("static.vependle.facet.storage");
-        assembly {
-            storageStruct.slot := position
-        }
+    constructor(IPVotingEscrowMainchain _vePENDLE) {
+        vePENDLE = _vePENDLE;
     }
 
     function increaseLockPositionStatic(
@@ -42,7 +32,7 @@ contract StaticVePendleFacet {
         LockedPosition memory oldPosition;
 
         {
-            (uint128 amount, uint128 expiry) = getStaticVePendleFacetStorage().vePENDLE.positionData(user);
+            (uint128 amount, uint128 expiry) = vePENDLE.positionData(user);
             oldPosition = LockedPosition(amount, expiry);
         }
 

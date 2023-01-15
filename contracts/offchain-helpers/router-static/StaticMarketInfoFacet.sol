@@ -45,22 +45,18 @@ contract StaticMarketInfoFacet {
         AssetAmount assetBalance;
     }
 
-    // to initialize
-    struct StaticMarketInfoFacetStorage {
-        IPYieldContractFactory yieldContractFactory;
-        IPMarketFactory marketFactory;
-        IPBulkSellerFactory bulkFactory;
-    }
+    IPYieldContractFactory internal immutable yieldContractFactory;
+    IPMarketFactory internal immutable marketFactory;
+    IPBulkSellerFactory internal immutable bulkFactory;
 
-    function getStaticMarketInfoFacetStorage()
-        internal
-        pure
-        returns (StaticMarketInfoFacetStorage storage storageStruct)
-    {
-        bytes32 position = keccak256("static.market.info.facet.storage");
-        assembly {
-            storageStruct.slot := position
-        }
+    constructor(
+        IPYieldContractFactory _yieldContractFactory,
+        IPMarketFactory _marketFactory,
+        IPBulkSellerFactory _bulkFactory
+    ) {
+        yieldContractFactory = _yieldContractFactory;
+        marketFactory = _marketFactory;
+        bulkFactory = _bulkFactory;
     }
 
     // ============= SYSTEM INFO =============
@@ -89,7 +85,7 @@ contract StaticMarketInfoFacet {
     }
 
     function getPY(address py) public view returns (address pt, address yt) {
-        if (getStaticMarketInfoFacetStorage().yieldContractFactory.isYT(py)) {
+        if (yieldContractFactory.isYT(py)) {
             pt = IPYieldToken(py).PT();
             yt = py;
         } else {
@@ -161,7 +157,7 @@ contract StaticMarketInfoFacet {
         IPYieldToken YT = IPYieldToken(userPYInfo.yt);
         userPYInfo.ytBalance = YT.balanceOf(user);
         userPYInfo.ptBalance = IPPrincipalToken(userPYInfo.pt).balanceOf(user);
-        
+
         YT.redeemDueInterestAndRewards(user, true, true);
         userPYInfo.unclaimedInterest.token = YT.SY();
         (, userPYInfo.unclaimedInterest.amount) = YT.userInterest(user);
@@ -215,7 +211,7 @@ contract StaticMarketInfoFacet {
             uint256 totalSy
         )
     {
-        bulk = IPBulkSellerFactory(getStaticMarketInfoFacetStorage().bulkFactory).get(token, SY);
+        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
         if (bulk != address(0)) {
             BulkSellerState memory state = IPBulkSeller(bulk).readState();
             if (state.rateTokenToSy != 0 || state.rateSyToToken != 0) {
@@ -239,7 +235,7 @@ contract StaticMarketInfoFacet {
             uint256 totalSy
         )
     {
-        bulk = IPBulkSellerFactory(getStaticMarketInfoFacetStorage().bulkFactory).get(token, SY);
+        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
         if (bulk != address(0)) {
             BulkSellerState memory state = IPBulkSeller(bulk).readState();
 
