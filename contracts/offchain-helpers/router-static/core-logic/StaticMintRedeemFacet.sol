@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../interfaces/IPMarket.sol";
-import "../../interfaces/IPBulkSeller.sol";
+import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPBulkSeller.sol";
 
 contract StaticMintRedeemFacet {
     using Math for uint256;

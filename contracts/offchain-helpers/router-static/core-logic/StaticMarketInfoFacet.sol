@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../MarketMathStatic.sol";
+import "../../MarketMathStatic.sol";
 
-import "../../interfaces/IPMarket.sol";
-import "../../interfaces/IPYieldContractFactory.sol";
-import "../../interfaces/IPMarketFactory.sol";
-import "../../interfaces/IPBulkSellerFactory.sol";
-import "../../interfaces/IPBulkSeller.sol";
+import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPYieldContractFactory.sol";
+import "../../../interfaces/IPMarketFactory.sol";
+import "../../../interfaces/IPBulkSellerFactory.sol";
+import "../../../interfaces/IPBulkSeller.sol";
 
 contract StaticMarketInfoFacet {
     using Math for uint256;

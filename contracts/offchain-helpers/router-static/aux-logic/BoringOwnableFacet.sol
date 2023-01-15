@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./StorageLayout.sol";
+import "../StorageLayout.sol";
 
-abstract contract BoringOwnableFacet is StorageLayout {
+contract BoringOwnableFacet is StorageLayout {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     function initialize() external {

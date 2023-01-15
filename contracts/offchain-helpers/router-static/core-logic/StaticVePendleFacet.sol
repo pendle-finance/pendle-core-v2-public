@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../../core/libraries/MiniHelpers.sol";
-import "../../interfaces/IPVotingEscrowMainchain.sol";
-import "../../LiquidityMining/libraries/VeBalanceLib.sol";
+import "../../../core/libraries/MiniHelpers.sol";
+import "../../../interfaces/IPVotingEscrowMainchain.sol";
+import "../../../LiquidityMining/libraries/VeBalanceLib.sol";
 
 contract StaticVePendleFacet {
     using VeBalanceLib for VeBalance;

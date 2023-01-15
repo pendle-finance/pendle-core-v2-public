@@ -5,46 +5,61 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "../../interfaces/IDiamondLoupe.sol";
 import "../../interfaces/IDiamondCut.sol";
-import "./StaticAddRemoveLiqFacet.sol";
-import "./StaticMarketInfoFacet.sol";
-import "./StaticMintRedeemFacet.sol";
-import "./StaticSwapFacet.sol";
-import "./StaticVePendleFacet.sol";
-import "./DiamondCutFacet.sol";
-import "./BoringOwnableFacet.sol";
+import "./core-logic/StaticAddRemoveLiqFacet.sol";
+import "./core-logic/StaticMarketInfoFacet.sol";
+import "./core-logic/StaticMintRedeemFacet.sol";
+import "./core-logic/StaticSwapFacet.sol";
+import "./core-logic/StaticVePendleFacet.sol";
+import "./aux-logic/DiamondCutFacet.sol";
+import "./aux-logic/DiamondLoupeFacet.sol";
+import "./aux-logic/BoringOwnableFacet.sol";
 import "../../core/libraries/ArrayLib.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouterStatic is Proxy, StorageLayout {
-    constructor(address diamondCutFacet, address boringOwnableFacet) {
-        _initDiamondCutFacet(diamondCutFacet);
-        _initBoringOwnableFacet(diamondCutFacet, boringOwnableFacet);
-    }
+    constructor() {
+        address diamondCutFacet = address(new DiamondCutFacet());
+        address diamondLoupeFacet = address(new DiamondLoupeFacet());
+        address boringOwnableFacet = address(new BoringOwnableFacet());
 
-    function _initDiamondCutFacet(address diamondCutFacet) internal {
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);
 
-        bytes4[] memory selectors = new bytes4[](1);
-        selectors[0] = IDiamondCut.diamondCut.selector;
+        {
+            // DiamondCutFacet
+            bytes4[] memory selectors = new bytes4[](1);
+            selectors[0] = IDiamondCut.diamondCut.selector;
+            cut[0] = IDiamondCut.FacetCut(
+                diamondCutFacet,
+                IDiamondCut.FacetCutAction.Add,
+                selectors
+            );
+        }
 
-        cut[0] = IDiamondCut.FacetCut(diamondCutFacet, IDiamondCut.FacetCutAction.Add, selectors);
-        _cut(diamondCutFacet, cut, address(0), "");
-    }
+        {
+            // DiamondLoupeFacet
+            bytes4[] memory selectors = new bytes4[](4);
+            selectors[0] = IDiamondLoupe.facetAddress.selector;
+            selectors[1] = IDiamondLoupe.facetAddresses.selector;
+            selectors[2] = IDiamondLoupe.facetFunctionSelectors.selector;
+            selectors[3] = IDiamondLoupe.facets.selector;
+            cut[1] = IDiamondCut.FacetCut(
+                diamondLoupeFacet,
+                IDiamondCut.FacetCutAction.Add,
+                selectors
+            );
+        }
 
-    function _initBoringOwnableFacet(address diamondCutFacet, address boringOwnableFacet)
-        internal
-    {
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-
-        bytes4[] memory selectors = new bytes4[](2);
-        selectors[0] = BoringOwnableFacet.transferOwnership.selector;
-        selectors[1] = BoringOwnableFacet.claimOwnership.selector;
-
-        cut[0] = IDiamondCut.FacetCut(
-            boringOwnableFacet,
-            IDiamondCut.FacetCutAction.Add,
-            selectors
-        );
+        {
+            // BoringOwnableFacet
+            bytes4[] memory selectors = new bytes4[](2);
+            selectors[0] = BoringOwnableFacet.transferOwnership.selector;
+            selectors[1] = BoringOwnableFacet.claimOwnership.selector;
+            cut[2] = IDiamondCut.FacetCut(
+                boringOwnableFacet,
+                IDiamondCut.FacetCutAction.Add,
+                selectors
+            );
+        }
 
         _cut(diamondCutFacet, cut, boringOwnableFacet, abi.encodeWithSignature("initialize()"));
     }
@@ -55,13 +70,13 @@ contract PendleRouterStatic is Proxy, StorageLayout {
         address _init,
         bytes memory _calldata
     ) internal {
-        (bool success, ) = address(diamondCutFacet).delegatecall(
+        (bool success, bytes memory returnData) = address(diamondCutFacet).delegatecall(
             abi.encodeWithSelector(IDiamondCut.diamondCut.selector, facetCuts, _init, _calldata)
         );
-        require(success);
+        require(success, string(returnData));
     }
 
     function _implementation() internal view override returns (address) {
-        return selectorToFacet[msg.sig];
+        return selectorToFacet[msg.sig].addr;
     }
 }
