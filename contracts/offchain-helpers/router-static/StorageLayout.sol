@@ -15,8 +15,8 @@ contract StorageLayout {
         bytes4[] selectors;
     }
 
-    mapping(bytes4 => FacetAndIndex) internal selectorToFacet;
-    mapping(address => SelectorsAndIndex) internal facetToSelectors;
+    mapping(bytes4 => FacetAndIndex) internal selectorToFacetAndIndex;
+    mapping(address => SelectorsAndIndex) internal facetToSelectorsAndIndex;
     address[] internal allFacets;
 
     modifier onlyOwner() {

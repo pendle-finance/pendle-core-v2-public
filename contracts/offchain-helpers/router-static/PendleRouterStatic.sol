@@ -77,6 +77,6 @@ contract PendleRouterStatic is Proxy, StorageLayout {
     }
 
     function _implementation() internal view override returns (address) {
-        return selectorToFacet[msg.sig].addr;
+        return selectorToFacetAndIndex[msg.sig].addr;
     }
 }

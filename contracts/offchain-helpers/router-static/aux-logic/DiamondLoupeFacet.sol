@@ -10,7 +10,7 @@ contract DiamondLoupeFacet is StorageLayout, IDiamondLoupe {
         facets_ = new Facet[](numFacets);
         for (uint256 i = 0; i < numFacets; ) {
             address addr = allFacets[i];
-            facets_[i] = Facet(addr, facetToSelectors[addr].selectors);
+            facets_[i] = Facet(addr, facetToSelectorsAndIndex[addr].selectors);
             unchecked {
                 i++;
             }
@@ -23,7 +23,7 @@ contract DiamondLoupeFacet is StorageLayout, IDiamondLoupe {
         override
         returns (bytes4[] memory facetFunctionSelectors_)
     {
-        return facetToSelectors[_facet].selectors;
+        return facetToSelectorsAndIndex[_facet].selectors;
     }
 
     function facetAddresses() external view override returns (address[] memory facetAddresses_) {
@@ -36,6 +36,6 @@ contract DiamondLoupeFacet is StorageLayout, IDiamondLoupe {
         override
         returns (address facetAddress_)
     {
-        return selectorToFacet[_functionSelector].addr;
+        return selectorToFacetAndIndex[_functionSelector].addr;
     }
 }
