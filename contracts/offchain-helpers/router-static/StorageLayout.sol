@@ -6,13 +6,13 @@ contract StorageLayout {
     address internal pendingOwner;
 
     struct FacetAndIndex {
-        address addr;
+        address facet;
         uint96 index;
     }
 
     struct SelectorsAndIndex {
-        uint256 index;
         bytes4[] selectors;
+        uint256 index;
     }
 
     mapping(bytes4 => FacetAndIndex) internal selectorToFacetAndIndex;

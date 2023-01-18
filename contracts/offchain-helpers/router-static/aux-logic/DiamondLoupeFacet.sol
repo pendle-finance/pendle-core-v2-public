@@ -36,6 +36,6 @@ contract DiamondLoupeFacet is StorageLayout, IDiamondLoupe {
         override
         returns (address facetAddress_)
     {
-        return selectorToFacetAndIndex[_functionSelector].addr;
+        return selectorToFacetAndIndex[_functionSelector].facet;
     }
 }

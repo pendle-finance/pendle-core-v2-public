@@ -46,7 +46,7 @@ contract DiamondCutFacet is StorageLayout, IDiamondCut {
 
     function _add(address facet, bytes4[] calldata selectors) internal {
         if (facetToSelectorsAndIndex[facet].selectors.length == 0) {
-            facetToSelectorsAndIndex[facet] = SelectorsAndIndex(allFacets.length, new bytes4[](0));
+            facetToSelectorsAndIndex[facet] = SelectorsAndIndex(new bytes4[](0), allFacets.length);
             allFacets.push(facet);
         }
 
@@ -54,7 +54,7 @@ contract DiamondCutFacet is StorageLayout, IDiamondCut {
 
         for (uint256 i = 0; i < selectors.length; ) {
             bytes4 selector = selectors[i];
-            require(selectorToFacetAndIndex[selector].addr == address(0), "already existed");
+            require(selectorToFacetAndIndex[selector].facet == address(0), "already existed");
 
             selectorToFacetAndIndex[selector] = FacetAndIndex(facet, uint96(length + i));
             facetToSelectorsAndIndex[facet].selectors.push(selector);
@@ -82,13 +82,13 @@ contract DiamondCutFacet is StorageLayout, IDiamondCut {
         for (uint256 i = 0; i < selectors.length; ) {
             bytes4 selector = selectors[i];
 
-            FacetAndIndex memory facet = selectorToFacetAndIndex[selector];
-            require(facet.addr != address(0), "not existed");
+            FacetAndIndex memory facetAndIndex = selectorToFacetAndIndex[selector];
+            require(facetAndIndex.facet != address(0), "not existed");
 
-            uint256 nLenArr = _removeSelector(facet.addr, facet.index);
+            uint256 nLenArr = _removeSelector(facetAndIndex.facet, facetAndIndex.index);
 
             delete selectorToFacetAndIndex[selector];
-            if (nLenArr == 0) _removeFacet(facet.addr);
+            if (nLenArr == 0) _removeFacet(facetAndIndex.facet);
 
             unchecked {
                 i++;
