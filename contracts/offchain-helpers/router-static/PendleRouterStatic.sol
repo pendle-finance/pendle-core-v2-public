@@ -128,6 +128,12 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
         } else if (facet == VE_PENDLE_FACET) {
             res = new bytes4[](1);
             res[0] = StaticVePendleFacet.increaseLockPositionStatic.selector;
+        } else if (facet == address(this)) {
+            res = new bytes4[](4);
+            res[0] = this.facets.selector;
+            res[1] = this.facetFunctionSelectors.selector;
+            res[2] = this.facetAddresses.selector;
+            res[3] = this.facetAddress.selector;
         } else {
             revert("invalid facet");
         }
@@ -136,12 +142,13 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
     /// @notice Get all the facet addresses used by a diamond.
     /// @return facetAddresses_
     function facetAddresses() public view returns (address[] memory facetAddresses_) {
-        facetAddresses_ = new address[](5);
+        facetAddresses_ = new address[](6);
         facetAddresses_[0] = ADD_REMOVE_FACET;
         facetAddresses_[1] = MARKET_INFO_FACET;
         facetAddresses_[2] = MINT_REDEEM_FACET;
         facetAddresses_[3] = SWAP_FACET;
         facetAddresses_[4] = VE_PENDLE_FACET;
+        facetAddresses_[5] = address(this);
     }
 
     /// @notice Gets the facet that supports the given selector.
@@ -211,6 +218,13 @@ contract PendleRouterStatic is IDiamondLoupe, Proxy {
             return SWAP_FACET;
         } else if (selector == StaticVePendleFacet.increaseLockPositionStatic.selector) {
             return VE_PENDLE_FACET;
+        } else if (
+            selector == this.facets.selector ||
+            selector == this.facetFunctionSelectors.selector ||
+            selector == this.facetAddresses.selector ||
+            selector == this.facetAddress.selector
+        ) {
+            return address(this);
         } else {
             revert("invalid selector");
         }
