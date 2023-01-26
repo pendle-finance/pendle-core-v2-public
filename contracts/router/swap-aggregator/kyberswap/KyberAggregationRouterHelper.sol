@@ -2,38 +2,23 @@
 
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../../core/libraries/BoringOwnableUpgradeable.sol";
 
-import "../../interfaces/IWETH.sol";
+import "../../../interfaces/IWETH.sol";
 
 import "./interfaces/IMetaAggregationRouter.sol";
 import "./interfaces/IMetaAggregationRouterV2.sol";
 import "./interfaces/IHashflow.sol";
 import "./interfaces/IExecutorHelperEthereum1.sol";
-
-import "./IAggregatorRouterHelper.sol";
 import "./ScaleDataHelperEthereum1.sol";
 
-contract AggregationRouterHelper is
-    IAggregationRouterHelper,
-    Initializable,
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable
-{
+abstract contract KyberAggregationRouterHelper {
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;
     uint256 private constant _BURN_FROM_MSG_SENDER = 0x08;
     uint256 private constant _BURN_FROM_TX_ORIGIN = 0x10;
     uint256 private constant _SIMPLE_SWAP = 0x20;
-
-    constructor() initializer {}
-
-    function initialize() external initializer {
-        __BoringOwnable_init();
-    }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     struct Swap {
         bytes data;
@@ -58,8 +43,8 @@ contract AggregationRouterHelper is
         bytes destTokenFeeData;
     }
 
-    function getScaledInputData(bytes calldata kybercall, uint256 newAmount)
-        external
+    function _getKyberScaledInputData(bytes calldata kybercall, uint256 newAmount)
+        internal
         pure
         returns (bytes memory)
     {

@@ -1,19 +1,43 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../kyberswap/KyberSwapHelper.sol";
 import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPBulkSeller.sol";
 import "../../core/libraries/Errors.sol";
+import "../swap-aggregator/ISwapAggregator.sol";
+
+struct TokenInput {
+    // Token/Sy data
+    address tokenIn;
+    uint256 netTokenIn;
+    address tokenMintSy;
+    address bulk;
+    // aggregator data
+    SwapData data;
+}
+
+struct TokenOutput {
+    // Token/Sy data
+    address tokenOut;
+    uint256 minTokenOut;
+    address tokenRedeemSy;
+    address bulk;
+    // Kyber data
+    SwapData data;
+}
 
 // solhint-disable no-empty-blocks
-abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
+abstract contract ActionBaseMintRedeem is TokenHelper {
     bytes internal constant EMPTY_BYTES = abi.encode();
 
+    address public immutable swapAggregator;
+
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberScalingLib) KyberSwapHelper(_kyberScalingLib) {}
+    constructor(address _swapAggregator) {
+        swapAggregator = _swapAggregator;
+    }
 
     function _mintSyFromToken(
         address receiver,
@@ -21,14 +45,23 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 minSyOut,
         TokenInput calldata input
     ) internal returns (uint256 netSyOut) {
-        _transferIn(input.tokenIn, msg.sender, input.netTokenIn);
-
         bool requireSwap = input.tokenIn != input.tokenMintSy;
 
         uint256 netTokenMintSy;
 
+        if (input.tokenIn != NATIVE) {
+            _transferFrom(
+                IERC20(input.tokenIn),
+                msg.sender,
+                requireSwap ? swapAggregator : address(this),
+                input.netTokenIn
+            );
+        }
+
         if (requireSwap) {
-            _kyberswap(input.tokenIn, input.netTokenIn, input.kyberRouter, input.kybercall);
+            ISwapAggregator(swapAggregator).swap{
+                value: input.tokenIn == NATIVE ? input.netTokenIn : 0
+            }(input.tokenIn, input.netTokenIn, input.data);
             netTokenMintSy = _selfBalance(input.tokenMintSy);
         } else {
             netTokenMintSy = input.netTokenIn;
@@ -64,7 +97,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         bool requireSwap = output.tokenRedeemSy != output.tokenOut;
-        address receiverRedeemSy = requireSwap ? address(this) : receiver;
+        address receiverRedeemSy = requireSwap ? swapAggregator : receiver;
         uint256 netTokenRedeemed;
 
         if (output.bulk != address(0)) {
@@ -85,12 +118,9 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         }
 
         if (requireSwap) {
-            _kyberswap(
-                output.tokenRedeemSy,
-                netTokenRedeemed,
-                output.kyberRouter,
-                output.kybercall
-            );
+            ISwapAggregator(swapAggregator).swap{
+                value: output.tokenRedeemSy == NATIVE ? netTokenRedeemed : 0
+            }(output.tokenRedeemSy, netTokenRedeemed, output.data);
 
             netTokenOut = _selfBalance(output.tokenOut);
 
@@ -150,6 +180,13 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 minTokenOut,
         address bulk
     ) internal pure returns (TokenOutput memory) {
-        return TokenOutput(tokenOut, minTokenOut, tokenOut, bulk, address(0), EMPTY_BYTES);
+        return
+            TokenOutput(
+                tokenOut,
+                minTokenOut,
+                tokenOut,
+                bulk,
+                SwapData(AGGREGATOR.KYBERSWAP, address(0), EMPTY_BYTES)
+            );
     }
 }
