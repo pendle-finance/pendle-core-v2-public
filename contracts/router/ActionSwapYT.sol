@@ -17,8 +17,8 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using PYIndexLib for IPYieldToken;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberScalingLib)
-        ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
+    constructor(address _swapAggregator)
+        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
     {}
 
     /**

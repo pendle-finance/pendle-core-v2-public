@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../router/base/MarketApproxLib.sol";
-import "../router/kyberswap/KyberSwapHelper.sol";
+import "../router/base/ActionBaseMintRedeem.sol";
 
 interface IPActionMintRedeem {
     event MintSyFromToken(
@@ -128,9 +128,8 @@ interface IPActionMintRedeem {
     struct RouterSwapAllStruct {
         // key-value pair
         address[] tokens;
-        bytes[] kybercalls;
+        SwapData[] data;
         //
-        address kyberRouter;
         address outputToken;
         uint256 minTokenOut;
     }

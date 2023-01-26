@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../router/base/MarketApproxLib.sol";
-import "../router/kyberswap/KyberSwapHelper.sol";
+import "../router/base/ActionBaseMintRedeem.sol";
 
 interface IPActionAddRemoveLiq {
     event AddLiquidityDualSyAndPt(

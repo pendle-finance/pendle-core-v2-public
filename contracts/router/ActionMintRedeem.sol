@@ -12,8 +12,8 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using Math for int256;
 
     /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _kyberScalingLib)
-        ActionBaseMintRedeem(_kyberScalingLib) //solhint-disable-next-line no-empty-blocks
+    constructor(address _swapAggregator)
+        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
     {}
 
     /**
@@ -162,8 +162,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address[] calldata markets,
         RouterSwapAllStruct calldata dataSwap
     ) external returns (uint256 netTokenOut, uint256[] memory amountsSwapped) {
-        if (dataSwap.tokens.length != dataSwap.kybercalls.length)
-            revert Errors.ArrayLengthMismatch();
+        if (dataSwap.tokens.length != dataSwap.data.length) revert Errors.ArrayLengthMismatch();
 
         if (dataYT.tokenRedeemSys.length != dataYT.syAddrs.length)
             revert Errors.ArrayLengthMismatch();
@@ -208,7 +207,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             _transferFrom(
                 IERC20(tokensOut.tokens[i]),
                 msg.sender,
-                address(this),
+                swapAggregator,
                 tokensOut.amounts[i]
             );
         }
@@ -252,7 +251,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
 
             TokenOutput memory output = _wrapTokenOutput(tokenRedeemSys[i], 1, bulks[i]);
             uint256 amountOut = _redeemSyToToken(
-                address(this),
+                swapAggregator,
                 sys.tokens[i],
                 sys.amounts[i],
                 output,
@@ -269,11 +268,10 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) internal returns (uint256 netTokenOut) {
         for (uint256 i = 0; i < tokens.tokens.length; ++i) {
             if (tokens.amounts[i] == 0) continue;
-            _kyberswap(
+            ISwapAggregator(swapAggregator).swap(
                 tokens.tokens[i],
                 tokens.amounts[i],
-                dataSwap.kyberRouter,
-                dataSwap.kybercalls[i]
+                dataSwap.data[i]
             );
         }
         netTokenOut = _selfBalance(dataSwap.outputToken);

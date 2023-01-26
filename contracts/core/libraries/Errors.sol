@@ -169,4 +169,8 @@ library Errors {
     error OnlyYT();
     error OnlyYCFactory();
     error OnlyWhitelisted();
+
+    // Swap Aggregator 
+    error SAInsufficientTokenIn(address tokenIn, uint256 amountExpected, uint256 amountActual);
+    error UnsupportedSelector(uint256 aggregatorType, bytes4 selector);
 }
