@@ -38,7 +38,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address market,
         uint256 exactSyIn,
         uint256 minYtOut,
-        ApproxParams memory guessYtOut
+        ApproxParams calldata guessYtOut
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -129,7 +129,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address market,
         uint256 exactSyOut,
         uint256 maxYtIn,
-        ApproxParams memory guessYtIn
+        ApproxParams calldata guessYtIn
     ) external returns (uint256 netYtIn, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState(address(this));
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
@@ -163,7 +163,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         address receiver,
         address market,
         uint256 minYtOut,
-        ApproxParams memory guessYtOut,
+        ApproxParams calldata guessYtOut,
         TokenInput calldata input
     ) external payable returns (uint256 netYtOut, uint256 netSyFee) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
@@ -233,7 +233,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         IPYieldToken YT,
         uint256 exactSyIn,
         uint256 minYtOut,
-        ApproxParams memory guessYtOut
+        ApproxParams calldata guessYtOut
     ) internal returns (uint256 netYtOut, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState(address(this));
 
