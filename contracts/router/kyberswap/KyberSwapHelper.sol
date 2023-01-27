@@ -68,8 +68,6 @@ abstract contract KyberSwapHelper is TokenHelper {
         if (kyberRouter == address(0) || rawKybercall.length == 0)
             revert Errors.RouterKyberSwapDataZero();
 
-        _safeApproveInf(tokenIn, kyberRouter);
-
         bytes memory kybercall = IAggregationRouterHelper(kyberScalingLib).getScaledInputData(
             rawKybercall,
             amountIn

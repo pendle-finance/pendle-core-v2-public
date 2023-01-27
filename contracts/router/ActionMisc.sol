@@ -4,8 +4,9 @@ pragma solidity 0.8.17;
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPActionMisc.sol";
 import "../core/libraries/Errors.sol";
+import "../core/libraries/TokenHelper.sol";
 
-contract ActionMisc is IPActionMisc {
+contract ActionMisc is IPActionMisc, TokenHelper {
     using Math for uint256;
 
     function consult(address market, uint32 secondsAgo)
@@ -21,5 +22,9 @@ contract ActionMisc is IPActionMisc {
         return
             (uint256(lnImpliedRateCumulatives[1] - lnImpliedRateCumulatives[0]) / secondsAgo)
                 .Uint96();
+    }
+
+    function approveInf(address token, address spender) external {
+        _safeApproveInf(token, spender);
     }
 }

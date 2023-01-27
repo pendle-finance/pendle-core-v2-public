@@ -37,14 +37,12 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
         uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
 
         if (input.bulk != address(0)) {
-            _safeApproveInf(input.tokenMintSy, input.bulk);
             netSyOut = IPBulkSeller(input.bulk).swapExactTokenForSy{ value: netNative }(
                 receiver,
                 netTokenMintSy,
                 minSyOut
             );
         } else {
-            _safeApproveInf(input.tokenMintSy, SY);
             netSyOut = IStandardizedYield(SY).deposit{ value: netNative }(
                 receiver,
                 input.tokenMintSy,

@@ -91,7 +91,9 @@ contract PendleRouter is Proxy {
             return ACTION_SWAP_PTYT;
         } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
-        } else if (sig == IPActionMisc.consult.selector) {
+        } else if (
+            sig == IPActionMisc.consult.selector || sig == IPActionMisc.approveInf.selector
+        ) {
             return ACTION_MISC;
         }
         revert Errors.RouterInvalidAction(sig);
