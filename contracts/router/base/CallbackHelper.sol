@@ -22,7 +22,7 @@ abstract contract CallbackHelper {
         return abi.encode(ActionType.SwapExactSyForYt, receiver, minYtOut);
     }
 
-    function _decodeSwapExactSyForYt(bytes memory data)
+    function _decodeSwapExactSyForYt(bytes calldata data)
         internal
         pure
         returns (address receiver, uint256 minYtOut)
@@ -42,7 +42,7 @@ abstract contract CallbackHelper {
         return abi.encode(ActionType.SwapSyForExactYt, payer, receiver, maxSyIn);
     }
 
-    function _decodeSwapSyForExactYt(bytes memory data)
+    function _decodeSwapSyForExactYt(bytes calldata data)
         internal
         pure
         returns (
@@ -66,7 +66,7 @@ abstract contract CallbackHelper {
         return abi.encode(ActionType.SwapYtForSy, receiver, minSyOut);
     }
 
-    function _decodeSwapYtForSy(bytes memory data)
+    function _decodeSwapYtForSy(bytes calldata data)
         internal
         pure
         returns (address receiver, uint256 minSyOut)
@@ -82,7 +82,7 @@ abstract contract CallbackHelper {
         return abi.encode(ActionType.SwapExactYtForPt, receiver, exactYtIn, minPtOut);
     }
 
-    function _decodeSwapExactYtForPt(bytes memory data)
+    function _decodeSwapExactYtForPt(bytes calldata data)
         internal
         pure
         returns (
@@ -105,7 +105,7 @@ abstract contract CallbackHelper {
         return abi.encode(ActionType.SwapExactPtForYt, receiver, exactPtIn, minYtOut);
     }
 
-    function _decodeSwapExactPtForYt(bytes memory data)
+    function _decodeSwapExactPtForYt(bytes calldata data)
         internal
         pure
         returns (
@@ -123,7 +123,7 @@ abstract contract CallbackHelper {
     /// ------------------------------------------------------------
     /// Misc functions
     /// ------------------------------------------------------------
-    function _getActionType(bytes memory data) internal pure returns (ActionType actionType) {
+    function _getActionType(bytes calldata data) internal pure returns (ActionType actionType) {
         actionType = abi.decode(data, (ActionType));
     }
 }
