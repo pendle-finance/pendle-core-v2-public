@@ -63,8 +63,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         int256, /*syToAccount*/
         bytes calldata data
     ) internal {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        (address receiver, uint256 minYtOut) = _decodeSwapExactSyForYt(data);
+        (address receiver, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactSyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
         uint256 netPyOut = YT.mintPY(market, receiver);
@@ -77,6 +76,8 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         address payer;
         address receiver;
         uint256 maxSyToPull;
+        IStandardizedYield SY;
+        IPYieldToken YT;
     }
 
     /// @dev refer to _swapSyForExactYt
@@ -87,8 +88,10 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         bytes calldata data
     ) internal {
         VarsSwapSyForExactYt memory vars;
-        (vars.payer, vars.receiver, vars.maxSyToPull) = _decodeSwapSyForExactYt(data);
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        IStandardizedYield SY;
+        IPYieldToken YT;
+
+        (vars.payer, vars.receiver, vars.maxSyToPull, SY, YT) = _decodeSwapSyForExactYt(data);
 
         /// ------------------------------------------------------------
         /// calc totalSyNeed
@@ -124,8 +127,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         int256 syToAccount,
         bytes calldata data
     ) internal {
-        (address receiver, uint256 minSyOut) = _decodeSwapYtForSy(data);
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (address receiver, uint256 minSyOut, IPYieldToken YT) = _decodeSwapYtForSy(data);
         PYIndex pyIndex = YT.newIndex();
 
         uint256 syOwed = syToAccount.neg().Uint();
@@ -150,9 +152,13 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         int256, /*syToAccount*/
         bytes calldata data
     ) internal {
-        (address receiver, uint256 exactPtIn, uint256 minYtOut) = _decodeSwapExactPtForYt(data);
+        (
+            address receiver,
+            uint256 exactPtIn,
+            uint256 minYtOut,
+            IPYieldToken YT
+        ) = _decodeSwapExactPtForYt(data);
         uint256 netPtOwed = ptToAccount.abs();
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 netPyOut = YT.mintPY(market, receiver);
         if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
@@ -166,8 +172,13 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         int256 syToAccount,
         bytes calldata data
     ) internal {
-        (address receiver, uint256 exactYtIn, uint256 minPtOut) = _decodeSwapExactYtForPt(data);
-        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
+        (
+            address receiver,
+            uint256 exactYtIn,
+            uint256 minPtOut,
+            IPPrincipalToken PT,
+            IPYieldToken YT
+        ) = _decodeSwapExactYtForPt(data);
 
         uint256 netSyOwed = syToAccount.abs();
 

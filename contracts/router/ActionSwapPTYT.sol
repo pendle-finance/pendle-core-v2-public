@@ -57,7 +57,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
         IPMarket(market).swapExactPtForSy(
             address(YT),
             totalPtToSwap,
-            _encodeSwapExactPtForYt(receiver, exactPtIn, minYtOut)
+            _encodeSwapExactPtForYt(receiver, exactPtIn, minYtOut, YT)
         );
 
         emit SwapPtAndYt(msg.sender, market, receiver, exactPtIn.neg(), netYtOut.Int());
@@ -82,7 +82,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
         uint256 minPtOut,
         ApproxParams calldata guessTotalPtFromSwap
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         MarketState memory state = IPMarket(market).readState(address(this));
 
         _transferFrom(IERC20(YT), msg.sender, address(YT), exactYtIn);
@@ -100,7 +100,7 @@ contract ActionSwapPTYT is IPActionSwapPTYT, CallbackHelper, TokenHelper {
         IPMarket(market).swapSyForExactPt(
             address(this),
             totalPtFromSwap,
-            _encodeSwapExactYtForPt(receiver, exactYtIn, minPtOut)
+            _encodeSwapExactYtForPt(receiver, exactYtIn, minPtOut, PT, YT)
         );
 
         emit SwapPtAndYt(msg.sender, market, receiver, netPtOut.Int(), exactYtIn.neg());

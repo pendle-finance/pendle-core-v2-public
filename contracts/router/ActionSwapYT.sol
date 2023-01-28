@@ -105,7 +105,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         (, netSyFee) = IPMarket(market).swapExactPtForSy(
             address(YT),
             exactYtOut, // exactPtIn = exactYtOut
-            _encodeSwapSyForExactYt(msg.sender, receiver, maxSyIn)
+            _encodeSwapSyForExactYt(msg.sender, receiver, maxSyIn, SY, YT)
         );
 
         netSyIn = preSyBalance - SY.balanceOf(msg.sender);
@@ -148,7 +148,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         (, netSyFee) = IPMarket(market).swapSyForExactPt(
             address(YT),
             netYtIn, // exactPtOut = netYtIn
-            _encodeSwapYtForSy(receiver, exactSyOut)
+            _encodeSwapYtForSy(receiver, exactSyOut, YT)
         );
 
         emit SwapYtAndSy(msg.sender, market, receiver, netYtIn.neg(), exactSyOut.Int());
@@ -250,7 +250,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         (, netSyFee) = IPMarket(market).swapExactPtForSy(
             address(YT),
             netYtOut, // exactPtIn = netYtOut
-            _encodeSwapExactSyForYt(receiver, minYtOut)
+            _encodeSwapExactSyForYt(receiver, minYtOut, YT)
         );
     }
 
@@ -267,7 +267,7 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
         (, netSyFee) = IPMarket(market).swapSyForExactPt(
             address(YT),
             exactYtIn, // exactPtOut = exactYtIn
-            _encodeSwapYtForSy(receiver, minSyOut)
+            _encodeSwapYtForSy(receiver, minSyOut, YT)
         );
 
         netSyOut = SY.balanceOf(receiver) - preSyBalance;
