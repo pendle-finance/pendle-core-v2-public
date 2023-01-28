@@ -41,65 +41,49 @@ contract PendleRouter is Proxy {
 
     receive() external payable virtual override {}
 
+    // prettier-ignore
     function getRouterImplementation(bytes4 sig) public view returns (address) {
-        if (
-            sig == IPActionMintRedeem.mintSyFromToken.selector ||
-            sig == IPActionMintRedeem.redeemSyToToken.selector ||
-            sig == IPActionMintRedeem.mintPyFromToken.selector ||
-            sig == IPActionMintRedeem.redeemPyToToken.selector ||
-            sig == IPActionMintRedeem.mintPyFromSy.selector ||
-            sig == IPActionMintRedeem.redeemPyToSy.selector ||
-            sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector ||
-            sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector
-        ) {
-            return ACTION_MINT_REDEEM;
-        }
-        if (
-            sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector ||
-            sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector ||
-            sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector ||
-            sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector ||
-            sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector ||
-            sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector
-        ) {
-            return ACTION_ADD_REMOVE_LIQ;
-        }
-        if (
-            sig == IPActionSwapPT.swapExactPtForSy.selector ||
-            sig == IPActionSwapPT.swapPtForExactSy.selector ||
-            sig == IPActionSwapPT.swapSyForExactPt.selector ||
-            sig == IPActionSwapPT.swapExactSyForPt.selector ||
-            sig == IPActionSwapPT.swapExactTokenForPt.selector ||
-            sig == IPActionSwapPT.swapExactPtForToken.selector
-        ) {
-            return ACTION_SWAP_PT;
-        }
-        if (
-            sig == IPActionSwapYT.swapExactYtForSy.selector ||
-            sig == IPActionSwapYT.swapSyForExactYt.selector ||
-            sig == IPActionSwapYT.swapExactSyForYt.selector ||
-            sig == IPActionSwapYT.swapExactTokenForYt.selector ||
-            sig == IPActionSwapYT.swapExactYtForToken.selector ||
-            sig == IPActionSwapYT.swapYtForExactSy.selector
-        ) {
-            return ACTION_SWAP_YT;
-        }
-        if (
-            sig == IPActionSwapPTYT.swapExactPtForYt.selector ||
-            sig == IPActionSwapPTYT.swapExactYtForPt.selector
-        ) {
-            return ACTION_SWAP_PTYT;
-        }
-        if (sig == IPMarketSwapCallback.swapCallback.selector) {
-            return ACTION_CALLBACK;
-        }
-        if (sig == IPActionMisc.consult.selector || sig == IPActionMisc.approveInf.selector) {
-            return ACTION_MISC;
-        }
+        if (sig == IPActionMintRedeem.mintSyFromToken.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.redeemSyToToken.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.mintPyFromToken.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.redeemPyToToken.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.mintPyFromSy.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.redeemPyToSy.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector) return ACTION_MINT_REDEEM;
+
+        if (sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
+
+        if (sig == IPActionSwapPT.swapExactPtForSy.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapPT.swapPtForExactSy.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapPT.swapSyForExactPt.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapPT.swapExactSyForPt.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapPT.swapExactTokenForPt.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapPT.swapExactPtForToken.selector) return ACTION_SWAP_PT;
+
+        if (sig == IPActionSwapYT.swapExactYtForSy.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapSyForExactYt.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapExactSyForYt.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapExactTokenForYt.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapExactYtForToken.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapYtForExactSy.selector) return ACTION_SWAP_YT;
+
+        if (sig == IPActionSwapPTYT.swapExactPtForYt.selector) return ACTION_SWAP_PTYT;
+        if (sig == IPActionSwapPTYT.swapExactYtForPt.selector) return ACTION_SWAP_PTYT;
+
+        if (sig == IPMarketSwapCallback.swapCallback.selector) return ACTION_CALLBACK;
+
+        if (sig == IPActionMisc.consult.selector) return ACTION_MISC;
+        if (sig == IPActionMisc.approveInf.selector) return ACTION_MISC;
         revert Errors.RouterInvalidAction(sig);
     }
 
