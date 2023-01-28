@@ -13,13 +13,13 @@ import "../core/libraries/Errors.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouter is Proxy {
-    address public immutable ACTION_MINT_REDEEM;
-    address public immutable ACTION_ADD_REMOVE_LIQ;
-    address public immutable ACTION_SWAP_PT;
-    address public immutable ACTION_SWAP_YT;
-    address public immutable ACTION_SWAP_PTYT;
-    address public immutable ACTION_CALLBACK;
-    address public immutable ACTION_MISC;
+    address internal immutable ACTION_MINT_REDEEM;
+    address internal immutable ACTION_ADD_REMOVE_LIQ;
+    address internal immutable ACTION_SWAP_PT;
+    address internal immutable ACTION_SWAP_YT;
+    address internal immutable ACTION_SWAP_PTYT;
+    address internal immutable ACTION_CALLBACK;
+    address internal immutable ACTION_MISC;
 
     constructor(
         address _ACTION_MINT_REDEEM,
