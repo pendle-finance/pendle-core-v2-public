@@ -17,14 +17,16 @@ abstract contract CallbackHelper {
     function _encodeSwapExactSyForYt(address receiver, uint256 minYtOut)
         internal
         pure
-        returns (bytes memory)
+        returns (bytes memory res)
     {
-        return
-            bytes.concat(
-                toBytes32(ActionType.SwapExactSyForYt),
-                toBytes32(receiver),
-                bytes32(minYtOut)
-            );
+        res = new bytes(96);
+        uint256 actionType = uint256(ActionType.SwapExactSyForYt);
+
+        assembly {
+            mstore(add(res, 32), actionType)
+            mstore(add(res, 64), receiver)
+            mstore(add(res, 96), minYtOut)
+        }
     }
 
     function _decodeSwapExactSyForYt(bytes calldata data)
@@ -47,14 +49,16 @@ abstract contract CallbackHelper {
         address payer,
         address receiver,
         uint256 maxSyIn
-    ) internal pure returns (bytes memory) {
-        return
-            bytes.concat(
-                toBytes32(ActionType.SwapSyForExactYt),
-                toBytes32(payer),
-                toBytes32(receiver),
-                bytes32(maxSyIn)
-            );
+    ) internal pure returns (bytes memory res) {
+        res = new bytes(128);
+        uint256 actionType = uint256(ActionType.SwapSyForExactYt);
+
+        assembly {
+            mstore(add(res, 32), actionType)
+            mstore(add(res, 64), payer)
+            mstore(add(res, 96), receiver)
+            mstore(add(res, 128), maxSyIn)
+        }
     }
 
     function _decodeSwapSyForExactYt(bytes calldata data)
@@ -81,14 +85,16 @@ abstract contract CallbackHelper {
     function _encodeSwapYtForSy(address receiver, uint256 minSyOut)
         internal
         pure
-        returns (bytes memory)
+        returns (bytes memory res)
     {
-        return
-            bytes.concat(
-                toBytes32(ActionType.SwapYtForSy),
-                toBytes32(receiver),
-                bytes32(minSyOut)
-            );
+        res = new bytes(96);
+        uint256 actionType = uint256(ActionType.SwapYtForSy);
+
+        assembly {
+            mstore(add(res, 32), actionType)
+            mstore(add(res, 64), receiver)
+            mstore(add(res, 96), minSyOut)
+        }
     }
 
     function _decodeSwapYtForSy(bytes calldata data)
@@ -107,14 +113,16 @@ abstract contract CallbackHelper {
         address receiver,
         uint256 exactYtIn,
         uint256 minPtOut
-    ) internal pure returns (bytes memory) {
-        return
-            bytes.concat(
-                toBytes32(ActionType.SwapExactYtForPt),
-                toBytes32(receiver),
-                bytes32(exactYtIn),
-                bytes32(minPtOut)
-            );
+    ) internal pure returns (bytes memory res) {
+        res = new bytes(128);
+        uint256 actionType = uint256(ActionType.SwapExactYtForPt);
+
+        assembly {
+            mstore(add(res, 32), actionType)
+            mstore(add(res, 64), receiver)
+            mstore(add(res, 96), exactYtIn)
+            mstore(add(res, 128), minPtOut)
+        }
     }
 
     function _decodeSwapExactYtForPt(bytes calldata data)
@@ -138,14 +146,16 @@ abstract contract CallbackHelper {
         address receiver,
         uint256 exactPtIn,
         uint256 minYtOut
-    ) internal pure returns (bytes memory) {
-        return
-            bytes.concat(
-                toBytes32(ActionType.SwapExactPtForYt),
-                toBytes32(receiver),
-                bytes32(exactPtIn),
-                bytes32(minYtOut)
-            );
+    ) internal pure returns (bytes memory res) {
+        res = new bytes(128);
+        uint256 actionType = uint256(ActionType.SwapExactPtForYt);
+
+        assembly {
+            mstore(add(res, 32), actionType)
+            mstore(add(res, 64), receiver)
+            mstore(add(res, 96), exactPtIn)
+            mstore(add(res, 128), minYtOut)
+        }
     }
 
     function _decodeSwapExactPtForYt(bytes calldata data)
@@ -172,13 +182,5 @@ abstract contract CallbackHelper {
         assembly {
             actionType := calldataload(data.offset)
         }
-    }
-
-    function toBytes32(address x) internal pure returns (bytes32) {
-        return bytes32(uint256(uint160(x)));
-    }
-
-    function toBytes32(ActionType x) internal pure returns (bytes32) {
-        return bytes32(uint256(x));
     }
 }
