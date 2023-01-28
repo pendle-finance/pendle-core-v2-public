@@ -53,7 +53,8 @@ contract PendleRouter is Proxy {
             sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector
         ) {
             return ACTION_MINT_REDEEM;
-        } else if (
+        }
+        if (
             sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector ||
             sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector ||
             sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector ||
@@ -66,7 +67,8 @@ contract PendleRouter is Proxy {
             sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector
         ) {
             return ACTION_ADD_REMOVE_LIQ;
-        } else if (
+        }
+        if (
             sig == IPActionSwapPT.swapExactPtForSy.selector ||
             sig == IPActionSwapPT.swapPtForExactSy.selector ||
             sig == IPActionSwapPT.swapSyForExactPt.selector ||
@@ -75,7 +77,8 @@ contract PendleRouter is Proxy {
             sig == IPActionSwapPT.swapExactPtForToken.selector
         ) {
             return ACTION_SWAP_PT;
-        } else if (
+        }
+        if (
             sig == IPActionSwapYT.swapExactYtForSy.selector ||
             sig == IPActionSwapYT.swapSyForExactYt.selector ||
             sig == IPActionSwapYT.swapExactSyForYt.selector ||
@@ -84,16 +87,17 @@ contract PendleRouter is Proxy {
             sig == IPActionSwapYT.swapYtForExactSy.selector
         ) {
             return ACTION_SWAP_YT;
-        } else if (
+        }
+        if (
             sig == IPActionSwapPTYT.swapExactPtForYt.selector ||
             sig == IPActionSwapPTYT.swapExactYtForPt.selector
         ) {
             return ACTION_SWAP_PTYT;
-        } else if (sig == IPMarketSwapCallback.swapCallback.selector) {
+        }
+        if (sig == IPMarketSwapCallback.swapCallback.selector) {
             return ACTION_CALLBACK;
-        } else if (
-            sig == IPActionMisc.consult.selector || sig == IPActionMisc.approveInf.selector
-        ) {
+        }
+        if (sig == IPActionMisc.consult.selector || sig == IPActionMisc.approveInf.selector) {
             return ACTION_MISC;
         }
         revert Errors.RouterInvalidAction(sig);
