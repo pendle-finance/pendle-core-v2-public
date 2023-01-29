@@ -38,19 +38,18 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         int256 ptToAccount,
         int256 syToAccount,
         bytes calldata data
-    ) external override onlyPendleMarket(msg.sender) {
-        address market = msg.sender;
+    ) external override {
         ActionType swapType = _getActionType(data);
         if (swapType == ActionType.SwapExactSyForYt) {
-            _callbackSwapExactSyForYt(market, ptToAccount, syToAccount, data);
+            _callbackSwapExactSyForYt(ptToAccount, syToAccount, data);
         } else if (swapType == ActionType.SwapSyForExactYt) {
-            _callbackSwapSyForExactYt(market, ptToAccount, syToAccount, data);
+            _callbackSwapSyForExactYt(ptToAccount, syToAccount, data);
         } else if (swapType == ActionType.SwapYtForSy) {
-            _callbackSwapYtForSy(market, ptToAccount, syToAccount, data);
+            _callbackSwapYtForSy(ptToAccount, syToAccount, data);
         } else if (swapType == ActionType.SwapExactYtForPt) {
-            _callbackSwapExactYtForPt(market, ptToAccount, syToAccount, data);
+            _callbackSwapExactYtForPt(ptToAccount, syToAccount, data);
         } else if (swapType == ActionType.SwapExactPtForYt) {
-            _callbackSwapExactPtForYt(market, ptToAccount, syToAccount, data);
+            _callbackSwapExactPtForYt(ptToAccount, syToAccount, data);
         } else {
             assert(false);
         }
@@ -58,7 +57,6 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
 
     /// @dev refer to _swapExactSyForYt
     function _callbackSwapExactSyForYt(
-        address market,
         int256 ptToAccount,
         int256, /*syToAccount*/
         bytes calldata data
@@ -66,7 +64,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         (address receiver, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactSyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
-        uint256 netPyOut = YT.mintPY(market, receiver);
+        uint256 netPyOut = YT.mintPY(msg.sender, receiver);
 
         if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
         if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
@@ -81,12 +79,12 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
     }
 
     /// @dev refer to _swapSyForExactYt
+    /// @dev we require msg.sender to be market here to make sure payer is the original msg.sender
     function _callbackSwapSyForExactYt(
-        address market,
         int256 ptToAccount,
         int256 syToAccount,
         bytes calldata data
-    ) internal {
+    ) internal onlyPendleMarket(msg.sender) {
         VarsSwapSyForExactYt memory vars;
         IStandardizedYield SY;
         IPYieldToken YT;
@@ -116,13 +114,12 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
             _transferFrom(IERC20(SY), vars.payer, address(YT), netSyToPull);
         }
 
-        uint256 netPyOut = YT.mintPY(market, vars.receiver);
+        uint256 netPyOut = YT.mintPY(msg.sender, vars.receiver);
         if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
     }
 
     /// @dev refer to _swapExactYtForSy or _swapYtForExactSy
     function _callbackSwapYtForSy(
-        address market,
         int256 ptToAccount,
         int256 syToAccount,
         bytes calldata data
@@ -135,7 +132,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         address[] memory receivers = new address[](2);
         uint256[] memory amountPYToRedeems = new uint256[](2);
 
-        (receivers[0], amountPYToRedeems[0]) = (market, pyIndex.syToAssetUp(syOwed));
+        (receivers[0], amountPYToRedeems[0]) = (msg.sender, pyIndex.syToAssetUp(syOwed));
         (receivers[1], amountPYToRedeems[1]) = (
             receiver,
             ptToAccount.Uint() - amountPYToRedeems[0]
@@ -147,7 +144,6 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
     }
 
     function _callbackSwapExactPtForYt(
-        address market,
         int256 ptToAccount,
         int256, /*syToAccount*/
         bytes calldata data
@@ -160,14 +156,13 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         ) = _decodeSwapExactPtForYt(data);
         uint256 netPtOwed = ptToAccount.abs();
 
-        uint256 netPyOut = YT.mintPY(market, receiver);
+        uint256 netPyOut = YT.mintPY(msg.sender, receiver);
         if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
         if (exactPtIn + netPyOut < netPtOwed)
             revert Errors.RouterInsufficientPtRepay(exactPtIn + netPyOut, netPtOwed);
     }
 
     function _callbackSwapExactYtForPt(
-        address market,
         int256 ptToAccount,
         int256 syToAccount,
         bytes calldata data
@@ -183,7 +178,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
         uint256 netSyOwed = syToAccount.abs();
 
         _transferOut(address(PT), address(YT), exactYtIn);
-        uint256 netSyToMarket = YT.redeemPY(market);
+        uint256 netSyToMarket = YT.redeemPY(msg.sender);
 
         if (netSyToMarket < netSyOwed)
             revert Errors.RouterInsufficientSyRepay(netSyToMarket, netSyOwed);
