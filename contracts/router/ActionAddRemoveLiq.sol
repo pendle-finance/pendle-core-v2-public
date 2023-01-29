@@ -497,7 +497,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     ) internal returns (uint256 netSyOut) {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
         (uint256 syFromBurn, ) = IPMarket(market).burn(receiver, address(YT), netLpToRemove);
-        netSyOut = syFromBurn + IPYieldToken(YT).redeemPY(receiver);
+        netSyOut = syFromBurn + YT.redeemPY(receiver);
     }
 
     /// @dev swaps PT to SY pre-expiry

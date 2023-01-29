@@ -61,7 +61,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address SY = IPYieldToken(YT).SY();
 
         uint256 netSyToMint = _mintSyFromToken(YT, SY, 0, input);
-        netPyOut = _mintPyFromSy(receiver, YT, netSyToMint, minPyOut, false);
+        netPyOut = _mintPyFromSy(receiver, SY, YT, netSyToMint, minPyOut, false);
 
         emit MintPyFromToken(msg.sender, input.tokenIn, YT, receiver, input.netTokenIn, netPyOut);
     }
@@ -96,7 +96,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         uint256 netSyIn,
         uint256 minPyOut
     ) external returns (uint256 netPyOut) {
-        netPyOut = _mintPyFromSy(receiver, YT, netSyIn, minPyOut, true);
+        netPyOut = _mintPyFromSy(receiver, IPYieldToken(YT).SY(), YT, netSyIn, minPyOut, true);
         emit MintPyFromSy(msg.sender, receiver, YT, netSyIn, netPyOut);
     }
 
@@ -130,35 +130,44 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             uint256[][] memory marketRewards
         )
     {
-        syRewards = new uint256[][](sys.length);
-        for (uint256 i = 0; i < sys.length; ++i) {
-            syRewards[i] = IStandardizedYield(sys[i]).claimRewards(user);
-        }
+        unchecked {
+            {
+                uint256 sysLength = sys.length;
+                syRewards = new uint256[][](sysLength);
+                for (uint256 i = 0; i < sysLength; ++i) {
+                    syRewards[i] = IStandardizedYield(sys[i]).claimRewards(user);
+                }
+            }
 
-        ytInterests = new uint256[](yts.length);
-        ytRewards = new uint256[][](yts.length);
-        for (uint256 i = 0; i < yts.length; ++i) {
-            (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i]).redeemDueInterestAndRewards(
+            {
+                uint256 ytsLength = yts.length;
+                ytInterests = new uint256[](ytsLength);
+                ytRewards = new uint256[][](ytsLength);
+                for (uint256 i = 0; i < ytsLength; ++i) {
+                    (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i])
+                        .redeemDueInterestAndRewards(user, true, true);
+                }
+            }
+
+            {
+                uint256 marketsLength = markets.length;
+                marketRewards = new uint256[][](marketsLength);
+                for (uint256 i = 0; i < marketsLength; ++i) {
+                    marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
+                }
+            }
+
+            emit RedeemDueInterestAndRewards(
                 user,
-                true,
-                true
+                sys,
+                yts,
+                markets,
+                syRewards,
+                ytInterests,
+                ytRewards,
+                marketRewards
             );
         }
-
-        marketRewards = new uint256[][](markets.length);
-        for (uint256 i = 0; i < markets.length; ++i) {
-            marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
-        }
-        emit RedeemDueInterestAndRewards(
-            user,
-            sys,
-            yts,
-            markets,
-            syRewards,
-            ytInterests,
-            ytRewards,
-            marketRewards
-        );
     }
 
     struct RouterTokenAmounts {
