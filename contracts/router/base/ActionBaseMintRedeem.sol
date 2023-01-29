@@ -106,13 +106,12 @@ abstract contract ActionBaseMintRedeem is TokenHelper, KyberSwapHelper {
 
     function _mintPyFromSy(
         address receiver,
+        address SY,
         address YT,
         uint256 netSyIn,
         uint256 minPyOut,
         bool doPull
     ) internal returns (uint256 netPyOut) {
-        address SY = IPYieldToken(YT).SY();
-
         if (doPull) {
             _transferFrom(IERC20(SY), msg.sender, YT, netSyIn);
         }
