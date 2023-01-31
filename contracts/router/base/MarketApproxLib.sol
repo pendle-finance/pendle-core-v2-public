@@ -69,11 +69,9 @@ library MarketApproxPtInLib {
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
 
             if (netSyOut >= minSyOut) {
-                approx.guessMax = guess;
-                bool isAnswerAccepted = Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps);
-                if (isAnswerAccepted) {
+                if (Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
                     return (guess, netSyOut, netSyFee);
-                }
+                approx.guessMax = guess;
             } else {
                 approx.guessMin = guess;
             }
@@ -124,9 +122,9 @@ library MarketApproxPtInLib {
             uint256 netSyToPull = netSyToTokenizePt - netSyOut;
 
             if (netSyToPull <= exactSyIn) {
+                if (Math.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps))
+                    return (guess, netSyFee);
                 approx.guessMin = guess;
-                bool isAnswerAccepted = Math.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps);
-                if (isAnswerAccepted) return (guess, netSyFee);
             } else {
                 approx.guessMax = guess - 1;
             }
@@ -177,9 +175,8 @@ library MarketApproxPtInLib {
 
             ) = calcNumerators(market, index, totalPtIn, comp, guess);
 
-            if (Math.isAApproxB(syNumerator, ptNumerator, approx.eps)) {
+            if (Math.isAApproxB(syNumerator, ptNumerator, approx.eps))
                 return (guess, netSyOut, netSyFee);
-            }
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
@@ -272,10 +269,9 @@ library MarketApproxPtInLib {
             uint256 netPtToPull = guess - netAssetOut;
 
             if (netPtToPull <= exactPtIn) {
-                approx.guessMin = guess;
-                if (Math.isASmallerApproxB(netPtToPull, exactPtIn, approx.eps)) {
+                if (Math.isASmallerApproxB(netPtToPull, exactPtIn, approx.eps))
                     return (netAssetOut, guess, netSyFee);
-                }
+                approx.guessMin = guess;
             } else {
                 approx.guessMax = guess - 1;
             }
@@ -400,9 +396,9 @@ library MarketApproxPtOutLib {
             (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
+                if (Math.isASmallerApproxB(netSyIn, exactSyIn, approx.eps))
+                    return (guess, netSyFee);
                 approx.guessMin = guess;
-                bool isAnswerAccepted = Math.isASmallerApproxB(netSyIn, exactSyIn, approx.eps);
-                if (isAnswerAccepted) return (guess, netSyFee);
             } else {
                 approx.guessMax = guess - 1;
             }
@@ -450,10 +446,9 @@ library MarketApproxPtOutLib {
             uint256 netSyOut = index.assetToSy(guess - netAssetToRepay);
 
             if (netSyOut >= minSyOut) {
-                approx.guessMax = guess;
-                if (Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps)) {
+                if (Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
                     return (guess, netSyOut, netSyFee);
-                }
+                approx.guessMax = guess;
             } else {
                 approx.guessMin = guess + 1;
             }
@@ -533,9 +528,8 @@ library MarketApproxPtOutLib {
                 syNumerator = (a.totalSyIn - netSyIn) * newTotalPt;
             }
 
-            if (Math.isAApproxB(ptNumerator, syNumerator, a.approx.eps)) {
+            if (Math.isAApproxB(ptNumerator, syNumerator, a.approx.eps))
                 return (guess, netSyIn, netSyFee);
-            }
 
             if (ptNumerator <= syNumerator) {
                 // needs more PT
@@ -587,11 +581,9 @@ library MarketApproxPtOutLib {
             (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyOwed <= maxSyPayable) {
-                approx.guessMin = guess;
-
-                if (Math.isASmallerApproxB(netSyOwed, maxSyPayable, approx.eps)) {
+                if (Math.isASmallerApproxB(netSyOwed, maxSyPayable, approx.eps))
                     return (guess - exactYtIn, guess, netSyFee);
-                }
+                approx.guessMin = guess;
             } else {
                 approx.guessMax = guess - 1;
             }
