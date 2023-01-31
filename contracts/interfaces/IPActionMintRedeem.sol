@@ -57,17 +57,6 @@ interface IPActionMintRedeem {
         uint256 netTokenOut
     );
 
-    event RedeemDueInterestAndRewards(
-        address indexed user,
-        address[] sys,
-        address[] yts,
-        address[] markets,
-        uint256[][] syRewards,
-        uint256[] ytInterests,
-        uint256[][] ytRewards,
-        uint256[][] marketRewards
-    );
-
     event RedeemDueInterestAndRewardsThenSwapAll(
         address indexed user,
         address[] sys,
@@ -125,13 +114,7 @@ interface IPActionMintRedeem {
         address[] calldata yts,
         address[] calldata markets
     )
-        external
-        returns (
-            uint256[][] memory syRewards,
-            uint256[] memory ytInterests,
-            uint256[][] memory ytRewards,
-            uint256[][] memory marketRewards
-        );
+        external;
 
     struct RouterYtRedeemStruct {
         address[] yts;
