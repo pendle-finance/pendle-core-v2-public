@@ -123,50 +123,23 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address[] calldata markets
     )
         external
-        returns (
-            uint256[][] memory syRewards,
-            uint256[] memory ytInterests,
-            uint256[][] memory ytRewards,
-            uint256[][] memory marketRewards
-        )
     {
         unchecked {
-            {
-                uint256 sysLength = sys.length;
-                syRewards = new uint256[][](sysLength);
-                for (uint256 i = 0; i < sysLength; ++i) {
-                    syRewards[i] = IStandardizedYield(sys[i]).claimRewards(user);
-                }
+            for (uint256 i = 0; i < sys.length; ++i) {
+                IStandardizedYield(sys[i]).claimRewards(user);
             }
 
-            {
-                uint256 ytsLength = yts.length;
-                ytInterests = new uint256[](ytsLength);
-                ytRewards = new uint256[][](ytsLength);
-                for (uint256 i = 0; i < ytsLength; ++i) {
-                    (ytInterests[i], ytRewards[i]) = IPYieldToken(yts[i])
-                        .redeemDueInterestAndRewards(user, true, true);
-                }
+            for (uint256 i = 0; i < yts.length; ++i) {
+                IPYieldToken(yts[i]).redeemDueInterestAndRewards(
+                    user,
+                    true,
+                    true
+                );
             }
 
-            {
-                uint256 marketsLength = markets.length;
-                marketRewards = new uint256[][](marketsLength);
-                for (uint256 i = 0; i < marketsLength; ++i) {
-                    marketRewards[i] = IPMarket(markets[i]).redeemRewards(user);
-                }
+            for (uint256 i = 0; i < markets.length; ++i) {
+                IPMarket(markets[i]).redeemRewards(user);
             }
-
-            emit RedeemDueInterestAndRewards(
-                user,
-                sys,
-                yts,
-                markets,
-                syRewards,
-                ytInterests,
-                ytRewards,
-                marketRewards
-            );
         }
     }
 
