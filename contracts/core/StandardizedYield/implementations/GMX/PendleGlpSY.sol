@@ -19,15 +19,15 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         string memory _symbol,
         address _glp,
         address _stakedGlp,
-        address _glpRewardRouter
-    ) SYBaseWithRewards(_name, _symbol, _glp) {
+        address _glpRewardRouter,
+        address _vault
+    ) SYBaseWithRewards(_name, _symbol, _glp) GMXPreviewHelper(_vault) {
         glp = _glp;
         stakedGlp = _stakedGlp;
         glpRewardRouter = _glpRewardRouter;
         glpManager = IRewardRouterV2(glpRewardRouter).glpManager();
         weth = IRewardRouterV2(glpRewardRouter).weth();
 
-        vault = IVault(IGlpManager(glpManager).vault());
         uint256 length = vault.allWhitelistedTokensLength();
         for (uint256 i = 0; i < length; ++i) {
             _safeApproveInf(vault.allWhitelistedTokens(i), glpManager);
@@ -53,7 +53,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         } else if (tokenIn == NATIVE) {
             amountSharesOut = IRewardRouterV2(glpRewardRouter).mintAndStakeGlpETH{
                 value: msg.value
-            }(0, 0); // TODO: should wrap to WETH ourselves?
+            }(0, 0);
         } else {
             amountSharesOut = IRewardRouterV2(glpRewardRouter).mintAndStakeGlp(
                 tokenIn,
@@ -117,7 +117,6 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
 
     function _redeemExternalReward() internal override {
         IRewardRouterV2(glpRewardRouter).claim();
-        IRewardRouterV2(glpRewardRouter).compound();
     }
 
     /*///////////////////////////////////////////////////////////////

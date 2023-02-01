@@ -4,19 +4,23 @@ pragma solidity 0.8.17;
 import "../../../../interfaces/GMX/IVault.sol";
 import "../../../../interfaces/GMX/IVaultPriceFeed.sol";
 
-contract GMXPreviewHelper {
-    IVault public vault;
-
+abstract contract GMXPreviewHelper {
     // Based on Vault functions
 
+    IVault public immutable vault;
+
+    constructor(address _vaultAddress) {
+        vault = IVault(_vaultAddress);
+    }
+
     function buyUSDG(address _token, uint256 tokenAmount) internal view returns (uint256) {
-        require(tokenAmount > 0);
+        assert(tokenAmount > 0);
 
         uint256 price = getMinPrice(_token);
 
         uint256 usdgAmount = (tokenAmount * price) / vault.PRICE_PRECISION();
         usdgAmount = vault.adjustForDecimals(usdgAmount, _token, vault.usdg());
-        require(usdgAmount > 0);
+        require(usdgAmount > 0, "preview buyUSDG: usdgAmount must be > 0");
 
         uint256 feeBasisPoints = vault.getFeeBasisPoints(
             _token,
@@ -33,10 +37,10 @@ contract GMXPreviewHelper {
     }
 
     function sellUSDG(address _token, uint256 usdgAmount) internal view returns (uint256) {
-        require(usdgAmount > 0);
+        assert(usdgAmount > 0);
 
         uint256 redemptionAmount = getRedemptionAmount(_token, usdgAmount);
-        require(redemptionAmount > 0);
+        require(redemptionAmount > 0, "preview sellUSDG: redemptionAmount must be > 0");
 
         uint256 feeBasisPoints = vault.getFeeBasisPoints(
             _token,
@@ -46,7 +50,7 @@ contract GMXPreviewHelper {
             false
         );
         uint256 amountOut = _collectSwapFees(_token, redemptionAmount, feeBasisPoints);
-        require(amountOut > 0);
+        require(amountOut > 0, "preview sellUSDG: amountOut must be > 0");
 
         return amountOut;
     }
@@ -72,7 +76,7 @@ contract GMXPreviewHelper {
     }
 
     function _collectSwapFees(
-        address _token,
+        address /*_token*/,
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private view returns (uint256) {
