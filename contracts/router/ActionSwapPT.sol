@@ -15,11 +15,6 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using Math for int256;
     using PYIndexLib for IPYieldToken;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _swapAggregator)
-        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
-    {}
-
     /**
      * @notice swaps exact amount of PT for SY
      * @param exactPtIn will always consume this exact amount of PT for as much SY as possible

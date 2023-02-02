@@ -16,11 +16,6 @@ contract ActionSwapYT is IPActionSwapYT, ActionBaseMintRedeem, CallbackHelper {
     using MarketApproxPtOutLib for MarketState;
     using PYIndexLib for IPYieldToken;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _swapAggregator)
-        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
-    {}
-
     /**
      * @notice swap exact SY to YT with the help of flashswaps & YT tokenization / redemption
      * @dev inner working of this function:

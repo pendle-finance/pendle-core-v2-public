@@ -113,8 +113,7 @@ interface IPActionMintRedeem {
         address[] calldata sys,
         address[] calldata yts,
         address[] calldata markets
-    )
-        external;
+    ) external;
 
     struct RouterYtRedeemStruct {
         address[] yts;
@@ -126,6 +125,7 @@ interface IPActionMintRedeem {
     }
 
     struct RouterSwapAllStruct {
+        address pendleSwap;
         // key-value pair
         address[] tokens;
         SwapData[] data;
