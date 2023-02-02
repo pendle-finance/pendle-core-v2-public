@@ -54,6 +54,8 @@ contract PendleYieldTokenV2 is
 
     PostExpiryData public postExpiry;
 
+    uint256 internal _lastCollectedInterestIndex;
+
     modifier updateData() {
         if (isExpired()) _setPostExpiryData();
         _;
@@ -423,8 +425,6 @@ contract PendleYieldTokenV2 is
         uint128 index128 = Math
             .max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored)
             .Uint128();
-        
-        _collectAndUpdateInterest(_pyIndexStored, index128);
 
         currentIndex = index128;
         _pyIndexStored = index128;
@@ -433,18 +433,24 @@ contract PendleYieldTokenV2 is
         emit NewInterestIndex(currentIndex);
     }
 
-    function _collectAndUpdateInterest(uint256 prevIndex, uint256 currentIndex) internal {
-        uint256 interestFeeRate = IPYieldContractFactory(factory).interestFeeRate();
-        address treasury = IPYieldContractFactory(factory).treasury();
+    function _collectAndUpdateInterest() internal {
+        uint256 prevIndex = _lastCollectedInterestIndex;
+        uint256 currentIndex = _pyIndexCurrent();
 
-        uint256 totalInterestAmount = _calcInterest(totalSupply(), prevIndex, currentIndex);
-        uint256 amountInterestFee = totalInterestAmount.mulDown(interestFeeRate);
-        _transferOut(SY, treasury, amountInterestFee);
-        _updateInterestIndex(totalInterestAmount - amountInterestFee);
-        _updateSyReserve();
+        if (prevIndex != 0) {
+            uint256 interestFeeRate = IPYieldContractFactory(factory).interestFeeRate();
+            address treasury = IPYieldContractFactory(factory).treasury();
 
-        emit CollectInterestFee(amountInterestFee);
-    } 
+            uint256 totalInterestAmount = _calcInterest(totalSupply(), prevIndex, currentIndex);
+            uint256 amountInterestFee = totalInterestAmount.mulDown(interestFeeRate);
+            _transferOut(SY, treasury, amountInterestFee);
+            _updateInterestIndex(totalInterestAmount - amountInterestFee);
+            _updateSyReserve();
+            emit CollectInterestFee(amountInterestFee);
+        }
+
+        _lastCollectedInterestIndex = currentIndex;
+    }
 
     function _YTbalance(address user) internal view override returns (uint256) {
         return balanceOf(user);
@@ -494,14 +500,14 @@ contract PendleYieldTokenV2 is
         }
     }
 
-    function _redeemExternalReward() internal virtual override {
+    function _collectAndUpdateReward() internal {
         IStandardizedYield(SY).claimRewards(address(this));
 
         address treasury = IPYieldContractFactory(factory).treasury();
         uint256 rewardFeeRate = IPYieldContractFactory(factory).rewardFeeRate();
 
         address[] memory rewardTokens = getRewardTokens();
-        for(uint256 i = 0; i < rewardTokens.length; ++i) {
+        for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
             uint256 accruedReward = _selfBalance(token) - rewardState[token].lastBalance;
             uint256 amountRewardFee = accruedReward.mulDown(rewardFeeRate);
@@ -510,6 +516,8 @@ contract PendleYieldTokenV2 is
             emit CollectRewardFee(token, amountRewardFee);
         }
     }
+
+    function _redeemExternalReward() internal virtual override {}
 
     /// @dev effectively returning the amount of SY generating rewards for this user
     function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
@@ -533,7 +541,10 @@ contract PendleYieldTokenV2 is
         uint256
     ) internal override {
         if (isExpired()) _setPostExpiryData();
+        _collectAndUpdateReward();
         _updateAndDistributeRewardsForTwo(from, to);
+
+        _collectAndUpdateInterest();
         _distributeInterestForTwo(from, to);
     }
 }
