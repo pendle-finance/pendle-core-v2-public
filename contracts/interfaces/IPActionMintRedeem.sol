@@ -114,30 +114,4 @@ interface IPActionMintRedeem {
         address[] calldata yts,
         address[] calldata markets
     ) external;
-
-    struct RouterYtRedeemStruct {
-        address[] yts;
-        // key-value pair
-        address[] syAddrs;
-        address[] tokenRedeemSys;
-        address[] bulks;
-        //
-    }
-
-    struct RouterSwapAllStruct {
-        address pendleSwap;
-        // key-value pair
-        address[] tokens;
-        SwapData[] data;
-        //
-        address outputToken;
-        uint256 minTokenOut;
-    }
-
-    function redeemDueInterestAndRewardsThenSwapAll(
-        address[] calldata sys,
-        RouterYtRedeemStruct calldata dataYT,
-        address[] calldata markets,
-        RouterSwapAllStruct calldata dataSwap
-    ) external returns (uint256 netTokenOut, uint256[] memory amountsSwapped);
 }

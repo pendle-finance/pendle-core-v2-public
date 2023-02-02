@@ -51,8 +51,6 @@ contract PendleRouter is Proxy {
         if (sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
         if (sig == IPActionMintRedeem.mintPyFromToken.selector) return ACTION_MINT_REDEEM;
 
-        if (sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector) return ACTION_MINT_REDEEM;
-
         if (sig == IPActionSwapPT.swapExactTokenForPt.selector) return ACTION_SWAP_PT;
         if (sig == IPActionSwapYT.swapExactSyForYt.selector) return ACTION_SWAP_YT;
         if (sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
