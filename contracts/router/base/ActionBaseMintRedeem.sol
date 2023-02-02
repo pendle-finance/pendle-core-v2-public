@@ -86,7 +86,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         address receiver,
         address SY,
         uint256 netSyIn,
-        TokenOutput memory output,
+        TokenOutput calldata output,
         bool doPull
     ) internal returns (uint256 netTokenOut) {
         if (doPull) {
@@ -164,27 +164,11 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
     }
 
-    function _syOrBulk(address SY, TokenOutput memory output)
+    function _syOrBulk(address SY, TokenOutput calldata output)
         internal
         pure
         returns (address addr)
     {
         return output.bulk != address(0) ? output.bulk : SY;
-    }
-
-    function _wrapTokenOutput(
-        address tokenOut,
-        uint256 minTokenOut,
-        address bulk
-    ) internal pure returns (TokenOutput memory) {
-        return
-            TokenOutput(
-                tokenOut,
-                minTokenOut,
-                tokenOut,
-                bulk,
-                address(0),
-                SwapData(AggregatorType.KYBERSWAP, address(0), EMPTY_BYTES) // dummy data
-            );
     }
 }
