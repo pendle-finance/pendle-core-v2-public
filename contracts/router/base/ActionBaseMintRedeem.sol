@@ -6,7 +6,7 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPBulkSeller.sol";
 import "../../core/libraries/Errors.sol";
-import "../swap-aggregator/ISwapAggregator.sol";
+import "../swap-aggregator/IPSwapAggregator.sol";
 
 struct TokenInput {
     // Token/Sy data
@@ -59,7 +59,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (requireSwap) {
-            ISwapAggregator(swapAggregator).swap{
+            IPSwapAggregator(swapAggregator).swap{
                 value: input.tokenIn == NATIVE ? input.netTokenIn : 0
             }(input.tokenIn, input.netTokenIn, input.data);
             netTokenMintSy = _selfBalance(input.tokenMintSy);
@@ -118,7 +118,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (requireSwap) {
-            ISwapAggregator(swapAggregator).swap{
+            IPSwapAggregator(swapAggregator).swap{
                 value: output.tokenRedeemSy == NATIVE ? netTokenRedeemed : 0
             }(output.tokenRedeemSy, netTokenRedeemed, output.data);
 
@@ -186,7 +186,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
                 minTokenOut,
                 tokenOut,
                 bulk,
-                SwapData(AGGREGATOR.KYBERSWAP, address(0), EMPTY_BYTES)
+                SwapData(AggregatorType.KYBERSWAP, address(0), EMPTY_BYTES) // dummy data
             );
     }
 }

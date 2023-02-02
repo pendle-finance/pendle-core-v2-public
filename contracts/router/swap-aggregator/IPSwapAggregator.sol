@@ -2,17 +2,17 @@
 pragma solidity 0.8.17;
 
 struct SwapData {
-    AGGREGATOR aggregatorType;
-    address router;
-    bytes callData;
+    AggregatorType aggregatorType;
+    address extRouter;
+    bytes extCallData;
 }
 
-enum AGGREGATOR {
+enum AggregatorType {
     KYBERSWAP,
     ONE_INCH
 }
 
-interface ISwapAggregator {
+interface IPSwapAggregator {
     function swap(
         address tokenIn,
         uint256 amountIn,
