@@ -11,11 +11,6 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using Math for uint256;
     using Math for int256;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _swapAggregator)
-        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
-    {}
-
     /**
      * @notice swaps input token for SY-mintable tokens (if needed), then mints SY from such
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
@@ -201,11 +196,11 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             _transferFrom(
                 IERC20(tokensOut.tokens[i]),
                 msg.sender,
-                swapAggregator,
+                dataSwap.pendleSwap,
                 tokensOut.amounts[i]
             );
         }
-        _redeemAllSys(sysOut, dataYT.bulks, dataYT.tokenRedeemSys, tokensOut);
+        _redeemAllSys(sysOut, dataYT.bulks, dataYT.tokenRedeemSys, tokensOut, dataSwap.pendleSwap);
 
         // now swap all to outputToken
         netTokenOut = _swapAllToOutputToken(tokensOut, dataSwap);
@@ -238,14 +233,15 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         RouterTokenAmounts memory sys,
         address[] calldata bulks,
         address[] calldata tokenRedeemSys,
-        RouterTokenAmounts memory tokensOut
+        RouterTokenAmounts memory tokensOut,
+        address pendleSwap
     ) internal {
         for (uint256 i = 0; i < sys.tokens.length; ++i) {
             if (sys.amounts[i] == 0) continue;
 
             TokenOutput memory output = _wrapTokenOutput(tokenRedeemSys[i], 1, bulks[i]);
             uint256 amountOut = _redeemSyToToken(
-                swapAggregator,
+                pendleSwap,
                 sys.tokens[i],
                 sys.amounts[i],
                 output,
@@ -262,7 +258,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) internal returns (uint256 netTokenOut) {
         for (uint256 i = 0; i < tokens.tokens.length; ++i) {
             if (tokens.amounts[i] == 0) continue;
-            IPSwapAggregator(swapAggregator).swap(
+            IPSwapAggregator(dataSwap.pendleSwap).swap(
                 tokens.tokens[i],
                 tokens.amounts[i],
                 dataSwap.data[i]

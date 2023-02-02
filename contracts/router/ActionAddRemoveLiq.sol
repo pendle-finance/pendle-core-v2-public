@@ -23,11 +23,6 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using PYIndexLib for IPYieldToken;
     using BulkSellerMathCore for BulkSellerState;
 
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _swapAggregator)
-        ActionBaseMintRedeem(_swapAggregator) //solhint-disable-next-line no-empty-blocks
-    {}
-
     /**
      * @notice Adds liquidity to the SY/PT market, granting LP tokens in return
      * @dev Will mint as much LP as possible given no more than `netSyDesired` and `netPtDesired`,

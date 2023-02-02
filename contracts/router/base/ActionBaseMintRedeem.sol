@@ -15,6 +15,7 @@ struct TokenInput {
     address tokenMintSy;
     address bulk;
     // aggregator data
+    address pendleSwap;
     SwapData data;
 }
 
@@ -24,20 +25,14 @@ struct TokenOutput {
     uint256 minTokenOut;
     address tokenRedeemSy;
     address bulk;
-    // Kyber data
+    // aggregator data
+    address pendleSwap;
     SwapData data;
 }
 
 // solhint-disable no-empty-blocks
 abstract contract ActionBaseMintRedeem is TokenHelper {
     bytes internal constant EMPTY_BYTES = abi.encode();
-
-    address public immutable swapAggregator;
-
-    /// @dev since this contract will be proxied, it must not contains non-immutable variables
-    constructor(address _swapAggregator) {
-        swapAggregator = _swapAggregator;
-    }
 
     function _mintSyFromToken(
         address receiver,
@@ -53,13 +48,13 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
             _transferFrom(
                 IERC20(input.tokenIn),
                 msg.sender,
-                requireSwap ? swapAggregator : address(this),
+                requireSwap ? input.pendleSwap : address(this),
                 input.netTokenIn
             );
         }
 
         if (requireSwap) {
-            IPSwapAggregator(swapAggregator).swap{
+            IPSwapAggregator(input.pendleSwap).swap{
                 value: input.tokenIn == NATIVE ? input.netTokenIn : 0
             }(input.tokenIn, input.netTokenIn, input.data);
             netTokenMintSy = _selfBalance(input.tokenMintSy);
@@ -97,7 +92,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         bool requireSwap = output.tokenRedeemSy != output.tokenOut;
-        address receiverRedeemSy = requireSwap ? swapAggregator : receiver;
+        address receiverRedeemSy = requireSwap ? output.pendleSwap : receiver;
         uint256 netTokenRedeemed;
 
         if (output.bulk != address(0)) {
@@ -118,7 +113,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (requireSwap) {
-            IPSwapAggregator(swapAggregator).swap{
+            IPSwapAggregator(output.pendleSwap).swap{
                 value: output.tokenRedeemSy == NATIVE ? netTokenRedeemed : 0
             }(output.tokenRedeemSy, netTokenRedeemed, output.data);
 
@@ -186,6 +181,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
                 minTokenOut,
                 tokenOut,
                 bulk,
+                address(0),
                 SwapData(AggregatorType.KYBERSWAP, address(0), EMPTY_BYTES) // dummy data
             );
     }
