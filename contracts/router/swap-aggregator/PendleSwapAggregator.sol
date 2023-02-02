@@ -21,15 +21,15 @@ contract PendleSwapAggregator is
     function swap(
         address tokenIn,
         uint256 amountIn,
+        bool needScale,
         SwapData calldata swapData
     ) external payable {
-        bytes memory scaledCallData = _getScaledInputData(
-            swapData.aggregatorType,
-            swapData.extCallData,
-            amountIn
+        swapData.extRouter.functionCallWithValue(
+            needScale
+                ? _getScaledInputData(swapData.aggregatorType, swapData.extCallData, amountIn)
+                : swapData.extCallData,
+            tokenIn == NATIVE ? amountIn : 0
         );
-
-        swapData.extRouter.functionCallWithValue(scaledCallData, tokenIn == NATIVE ? amountIn : 0);
     }
 
     function _getScaledInputData(
