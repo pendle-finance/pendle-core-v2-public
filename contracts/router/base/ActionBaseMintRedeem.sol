@@ -5,6 +5,7 @@ import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPBulkSeller.sol";
+import "../../interfaces/IWETH.sol";
 import "../../core/libraries/Errors.sol";
 import "../swap-aggregator/IPSwapAggregator.sol";
 
@@ -55,11 +56,13 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
 
         if (requireSwap) {
             // doesn't need scaling because we swap exactly the amount pulled in
-            IPSwapAggregator(input.pendleSwap).swap{
-                value: input.tokenIn == NATIVE ? input.netTokenIn : 0
-            }(input.tokenIn, input.netTokenIn, false, input.data);
-
-            netTokenMintSy = _selfBalance(input.tokenMintSy);
+            netTokenMintSy = _swap(
+                input.pendleSwap,
+                input.tokenIn,
+                input.tokenMintSy,
+                input.netTokenIn,
+                input.data
+            );
         } else {
             netTokenMintSy = input.netTokenIn;
         }
@@ -115,11 +118,13 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (requireSwap) {
-            IPSwapAggregator(output.pendleSwap).swap{
-                value: output.tokenRedeemSy == NATIVE ? netTokenRedeemed : 0
-            }(output.tokenRedeemSy, netTokenRedeemed, true, output.data);
-
-            netTokenOut = _selfBalance(output.tokenOut);
+            netTokenOut = _swap(
+                output.pendleSwap,
+                output.tokenOut,
+                output.tokenRedeemSy,
+                netTokenRedeemed,
+                output.data
+            );
 
             _transferOut(output.tokenOut, receiver, netTokenOut);
         } else {
@@ -170,5 +175,31 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         returns (address addr)
     {
         return output.bulk != address(0) ? output.bulk : SY;
+    }
+
+    function _swap(
+        address pendleSwap,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        SwapData calldata data
+    ) internal returns (uint256) {
+        if (data.swapType == SwapType.WRAP_ETH) {
+            IWETH(tokenOut).deposit{ value: amountIn }();
+            return amountIn;
+        }
+
+        if (data.swapType == SwapType.UNWRAP_WETH) {
+            IWETH(tokenIn).withdraw(amountIn);
+            return amountIn;
+        }
+
+        IPSwapAggregator(pendleSwap).swap{ value: tokenIn == NATIVE ? amountIn : 0 }(
+            tokenIn,
+            amountIn,
+            data
+        );
+
+        return _selfBalance(tokenOut);
     }
 }

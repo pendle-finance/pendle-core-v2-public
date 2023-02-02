@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../interfaces/IWETH.sol";
 import "../../core/libraries/TokenHelper.sol";
 import "../../core/libraries/Errors.sol";
 import "./IPSwapAggregator.sol";
@@ -21,32 +20,39 @@ contract PendleSwapAggregator is
     function swap(
         address tokenIn,
         uint256 amountIn,
-        bool needScale,
-        SwapData calldata swapData
+        SwapData calldata data
     ) external payable {
-        swapData.extRouter.functionCallWithValue(
-            needScale
-                ? _getScaledInputData(swapData.aggregatorType, swapData.extCallData, amountIn)
-                : swapData.extCallData,
+        data.extRouter.functionCallWithValue(
+            data.needScale
+                ? _getScaledInputData(data.swapType, data.extCallData, amountIn)
+                : data.extCallData,
             tokenIn == NATIVE ? amountIn : 0
         );
     }
 
     function _getScaledInputData(
-        AggregatorType aggregatorType,
+        SwapType swapType,
         bytes calldata rawCallData,
         uint256 amountIn
     ) internal pure returns (bytes memory scaledCallData) {
-        if (aggregatorType == AggregatorType.KYBERSWAP) {
+        if (swapType == SwapType.KYBERSWAP) {
             scaledCallData = _getKyberScaledInputData(rawCallData, amountIn);
-        } else if (aggregatorType == AggregatorType.ONE_INCH) {
+        } else if (swapType == SwapType.ONE_INCH) {
             scaledCallData = _get1inchScaledInputData(rawCallData, amountIn);
         } else {
             assert(false);
         }
     }
 
-    function approveInf(address token, address spender) external {
-        _safeApproveInf(token, spender);
+    /// @notice For the Aggregator to work with a token / aggregator, it must be approved first
+    function approveInf(address[] calldata tokens, address[] calldata spenders) external {
+        if (tokens.length != spenders.length) revert Errors.ArrayLengthMismatch();
+
+        for (uint256 i = 0; i < tokens.length; ) {
+            _safeApproveInf(tokens[i], spenders[i]);
+            unchecked {
+                i++;
+            }
+        }
     }
 }

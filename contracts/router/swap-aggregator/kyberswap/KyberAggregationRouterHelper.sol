@@ -4,8 +4,6 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../../core/libraries/BoringOwnableUpgradeable.sol";
 
-import "../../../interfaces/IWETH.sol";
-
 import "./interfaces/IMetaAggregationRouter.sol";
 import "./interfaces/IMetaAggregationRouterV2.sol";
 import "./interfaces/IHashflow.sol";
@@ -49,14 +47,6 @@ abstract contract KyberAggregationRouterHelper {
         returns (bytes memory)
     {
         bytes4 selector = bytes4(kybercall[:4]);
-
-        if (selector == IWETH.deposit.selector) {
-            return kybercall; // no scaling needed
-        }
-
-        if (selector == IWETH.withdraw.selector) {
-            return abi.encodeWithSelector(selector, newAmount);
-        }
 
         if (
             selector == IMetaAggregationRouter.swap.selector ||

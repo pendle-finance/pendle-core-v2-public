@@ -2,21 +2,25 @@
 pragma solidity 0.8.17;
 
 struct SwapData {
-    AggregatorType aggregatorType;
+    SwapType swapType;
     address extRouter;
     bytes extCallData;
+    bool needScale;
 }
 
-enum AggregatorType {
+enum SwapType {
+    NONE,
     KYBERSWAP,
-    ONE_INCH
+    ONE_INCH,
+    // WRAP / UNWRAP not used in Aggregator
+    WRAP_ETH,
+    UNWRAP_WETH
 }
 
 interface IPSwapAggregator {
     function swap(
         address tokenIn,
         uint256 amountIn,
-        bool needScale,
         SwapData calldata swapData
     ) external payable;
 }
