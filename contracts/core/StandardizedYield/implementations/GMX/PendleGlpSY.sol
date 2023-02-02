@@ -18,10 +18,11 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         string memory _name,
         string memory _symbol,
         address _glp,
+        address _fsGlp,
         address _stakedGlp,
         address _glpRewardRouter,
         address _vault
-    ) SYBaseWithRewards(_name, _symbol, _glp) GMXPreviewHelper(_vault) {
+    ) SYBaseWithRewards(_name, _symbol, _fsGlp) GMXPreviewHelper(_vault) {
         glp = _glp;
         stakedGlp = _stakedGlp;
         glpRewardRouter = _glpRewardRouter;
