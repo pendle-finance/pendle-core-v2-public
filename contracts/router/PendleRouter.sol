@@ -42,48 +42,51 @@ contract PendleRouter is Proxy {
     receive() external payable virtual override {}
 
     // prettier-ignore
+    /// @dev selectors are ordered by frequency of usage
     function getRouterImplementation(bytes4 sig) public view returns (address) {
-        if (sig == IPActionMintRedeem.mintSyFromToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionMintRedeem.redeemSyToToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionMintRedeem.mintPyFromToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionMintRedeem.redeemPyToToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionMintRedeem.mintPyFromSy.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionMintRedeem.redeemPyToSy.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
         if (sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPMarketSwapCallback.swapCallback.selector) return ACTION_CALLBACK;
+        if (sig == IPActionSwapYT.swapExactTokenForYt.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionMintRedeem.mintPyFromToken.selector) return ACTION_MINT_REDEEM;
+
         if (sig == IPActionMintRedeem.redeemDueInterestAndRewardsThenSwapAll.selector) return ACTION_MINT_REDEEM;
 
-        if (sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionSwapPT.swapExactTokenForPt.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionSwapYT.swapExactSyForYt.selector) return ACTION_SWAP_YT;
         if (sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionSwapYT.swapExactYtForToken.selector) return ACTION_SWAP_YT;
+        if (sig == IPActionSwapYT.swapExactYtForSy.selector) return ACTION_SWAP_YT;
 
+        if (sig == IPActionSwapPT.swapExactPtForToken.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionMintRedeem.redeemPyToToken.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionSwapPTYT.swapExactPtForYt.selector) return ACTION_SWAP_PTYT;
+
+        if (sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionMintRedeem.mintPyFromSy.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionSwapPT.swapExactSyForPt.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionMintRedeem.mintSyFromToken.selector) return ACTION_MINT_REDEEM;
+
+        if (sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionSwapPTYT.swapExactYtForPt.selector) return ACTION_SWAP_PTYT;
         if (sig == IPActionSwapPT.swapExactPtForSy.selector) return ACTION_SWAP_PT;
+        if (sig == IPActionMintRedeem.redeemPyToSy.selector) return ACTION_MINT_REDEEM;
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
+
+        if (sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
+        if (sig == IPActionMintRedeem.redeemSyToToken.selector) return ACTION_MINT_REDEEM;
         if (sig == IPActionSwapPT.swapPtForExactSy.selector) return ACTION_SWAP_PT;
         if (sig == IPActionSwapPT.swapSyForExactPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapPT.swapExactSyForPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapPT.swapExactTokenForPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapPT.swapExactPtForToken.selector) return ACTION_SWAP_PT;
-
-        if (sig == IPActionSwapYT.swapExactYtForSy.selector) return ACTION_SWAP_YT;
         if (sig == IPActionSwapYT.swapSyForExactYt.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionSwapYT.swapExactSyForYt.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionSwapYT.swapExactTokenForYt.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionSwapYT.swapExactYtForToken.selector) return ACTION_SWAP_YT;
+
         if (sig == IPActionSwapYT.swapYtForExactSy.selector) return ACTION_SWAP_YT;
-
-        if (sig == IPActionSwapPTYT.swapExactPtForYt.selector) return ACTION_SWAP_PTYT;
-        if (sig == IPActionSwapPTYT.swapExactYtForPt.selector) return ACTION_SWAP_PTYT;
-
-        if (sig == IPMarketSwapCallback.swapCallback.selector) return ACTION_CALLBACK;
-
         if (sig == IPActionMisc.consult.selector) return ACTION_MISC;
         if (sig == IPActionMisc.approveInf.selector) return ACTION_MISC;
+
         revert Errors.RouterInvalidAction(sig);
     }
 
