@@ -261,6 +261,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
             IPSwapAggregator(dataSwap.pendleSwap).swap(
                 tokens.tokens[i],
                 tokens.amounts[i],
+                true,
                 dataSwap.data[i]
             );
         }

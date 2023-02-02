@@ -54,9 +54,11 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (requireSwap) {
+            // doesn't need scaling because we swap exactly the amount pulled in
             IPSwapAggregator(input.pendleSwap).swap{
                 value: input.tokenIn == NATIVE ? input.netTokenIn : 0
-            }(input.tokenIn, input.netTokenIn, input.data);
+            }(input.tokenIn, input.netTokenIn, false, input.data);
+
             netTokenMintSy = _selfBalance(input.tokenMintSy);
         } else {
             netTokenMintSy = input.netTokenIn;
@@ -115,7 +117,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         if (requireSwap) {
             IPSwapAggregator(output.pendleSwap).swap{
                 value: output.tokenRedeemSy == NATIVE ? netTokenRedeemed : 0
-            }(output.tokenRedeemSy, netTokenRedeemed, output.data);
+            }(output.tokenRedeemSy, netTokenRedeemed, true, output.data);
 
             netTokenOut = _selfBalance(output.tokenOut);
 

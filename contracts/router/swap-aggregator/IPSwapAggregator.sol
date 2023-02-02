@@ -16,6 +16,7 @@ interface IPSwapAggregator {
     function swap(
         address tokenIn,
         uint256 amountIn,
+        bool needScale,
         SwapData calldata swapData
     ) external payable;
 }
