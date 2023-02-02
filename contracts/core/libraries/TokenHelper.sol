@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../interfaces/IWETH.sol";
 
 abstract contract TokenHelper {
     using SafeERC20 for IERC20;
@@ -82,5 +83,14 @@ abstract contract TokenHelper {
             _safeApprove(token, to, 0);
             _safeApprove(token, to, type(uint256).max);
         }
+    }
+
+    function _wrap_unwrap_ETH(
+        address tokenIn,
+        address tokenOut,
+        uint256 netTokenIn
+    ) internal {
+        if (tokenIn == NATIVE) IWETH(tokenOut).deposit{ value: netTokenIn }();
+        else IWETH(tokenIn).withdraw(netTokenIn);
     }
 }

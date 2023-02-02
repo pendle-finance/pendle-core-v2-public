@@ -5,7 +5,7 @@ import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPBulkSeller.sol";
-import "../../interfaces/IWETH.sol";
+
 import "../../core/libraries/Errors.sol";
 import "../swap-aggregator/IPSwapAggregator.sol";
 
@@ -39,38 +39,46 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         address receiver,
         address SY,
         uint256 minSyOut,
-        TokenInput calldata input
+        TokenInput calldata inp
     ) internal returns (uint256 netSyOut) {
-        bool requireSwap = input.tokenIn != input.tokenMintSy;
+        SwapType swapType = inp.data.swapType;
 
         uint256 netTokenMintSy;
 
-        if (input.tokenIn != NATIVE) {
-            _transferFrom(
-                IERC20(input.tokenIn),
-                msg.sender,
-                requireSwap ? input.pendleSwap : address(this),
-                input.netTokenIn
-            );
-        }
-
-        if (requireSwap) {
-            // doesn't need scaling because we swap exactly the amount pulled in
-            netTokenMintSy = _swap(
-                input.pendleSwap,
-                input.tokenIn,
-                input.tokenMintSy,
-                input.netTokenIn,
-                input.data
-            );
+        if (swapType == SwapType.NONE) {
+            _transferIn(inp.tokenIn, msg.sender, inp.netTokenIn);
+            netTokenMintSy = inp.netTokenIn;
+        } else if (swapType == SwapType.ETH_WETH) {
+            _transferIn(inp.tokenIn, msg.sender, inp.netTokenIn);
+            _wrap_unwrap_ETH(inp.tokenIn, inp.tokenMintSy, inp.netTokenIn);
+            netTokenMintSy = inp.netTokenIn;
         } else {
-            netTokenMintSy = input.netTokenIn;
+            if (inp.tokenIn == NATIVE) _transferIn(NATIVE, msg.sender, inp.netTokenIn);
+            else _transferFrom(IERC20(inp.tokenIn), msg.sender, inp.pendleSwap, inp.netTokenIn);
+
+            IPSwapAggregator(inp.pendleSwap).swap{
+                value: inp.tokenIn == NATIVE ? inp.netTokenIn : 0
+            }(inp.tokenIn, inp.netTokenIn, inp.data);
+            netTokenMintSy = _selfBalance(inp.tokenMintSy);
         }
 
-        uint256 netNative = input.tokenMintSy == NATIVE ? netTokenMintSy : 0;
+        // outcome of all branches: satisfy pre-condition of __mintSy
 
-        if (input.bulk != address(0)) {
-            netSyOut = IPBulkSeller(input.bulk).swapExactTokenForSy{ value: netNative }(
+        netSyOut = __mintSy(receiver, SY, netTokenMintSy, minSyOut, inp);
+    }
+
+    /// @dev pre-condition: having netTokenMintSy of tokens in this contract
+    function __mintSy(
+        address receiver,
+        address SY,
+        uint256 netTokenMintSy,
+        uint256 minSyOut,
+        TokenInput calldata inp
+    ) private returns (uint256 netSyOut) {
+        uint256 netNative = inp.tokenMintSy == NATIVE ? netTokenMintSy : 0;
+
+        if (inp.bulk != address(0)) {
+            netSyOut = IPBulkSeller(inp.bulk).swapExactTokenForSy{ value: netNative }(
                 receiver,
                 netTokenMintSy,
                 minSyOut
@@ -78,7 +86,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         } else {
             netSyOut = IStandardizedYield(SY).deposit{ value: netNative }(
                 receiver,
-                input.tokenMintSy,
+                inp.tokenMintSy,
                 netTokenMintSy,
                 minSyOut
             );
@@ -89,50 +97,62 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         address receiver,
         address SY,
         uint256 netSyIn,
-        TokenOutput calldata output,
+        TokenOutput calldata out,
         bool doPull
     ) internal returns (uint256 netTokenOut) {
-        if (doPull) {
-            _transferFrom(IERC20(SY), msg.sender, _syOrBulk(SY, output), netSyIn);
+        SwapType swapType = out.data.swapType;
+
+        if (swapType == SwapType.NONE) {
+            netTokenOut = __redeemSy(receiver, SY, netSyIn, out, doPull);
+        } else if (swapType == SwapType.ETH_WETH) {
+            netTokenOut = __redeemSy(address(this), SY, netSyIn, out, doPull); // ETH:WETH is 1:1
+
+            _wrap_unwrap_ETH(out.tokenRedeemSy, out.tokenOut, netTokenOut);
+
+            _transferOut(out.tokenOut, receiver, netTokenOut);
+        } else {
+            uint256 netTokenRedeemed = __redeemSy(out.pendleSwap, SY, netSyIn, out, doPull);
+
+            IPSwapAggregator(out.pendleSwap).swap(out.tokenRedeemSy, netTokenRedeemed, out.data);
+
+            netTokenOut = _selfBalance(out.tokenOut);
+
+            _transferOut(out.tokenOut, receiver, netTokenOut);
         }
 
-        bool requireSwap = output.tokenRedeemSy != output.tokenOut;
-        address receiverRedeemSy = requireSwap ? output.pendleSwap : receiver;
-        uint256 netTokenRedeemed;
+        // outcome of all branches: netTokenOut of tokens goes back to receiver
 
-        if (output.bulk != address(0)) {
-            netTokenRedeemed = IPBulkSeller(output.bulk).swapExactSyForToken(
-                receiverRedeemSy,
+        if (netTokenOut < out.minTokenOut) {
+            revert Errors.RouterInsufficientTokenOut(netTokenOut, out.minTokenOut);
+        }
+    }
+
+    function __redeemSy(
+        address receiver,
+        address SY,
+        uint256 netSyIn,
+        TokenOutput calldata out,
+        bool doPull
+    ) private returns (uint256 netTokenRedeemed) {
+        if (doPull) {
+            _transferFrom(IERC20(SY), msg.sender, _syOrBulk(SY, out), netSyIn);
+        }
+
+        if (out.bulk != address(0)) {
+            netTokenRedeemed = IPBulkSeller(out.bulk).swapExactSyForToken(
+                receiver,
                 netSyIn,
                 0,
                 true
             );
         } else {
             netTokenRedeemed = IStandardizedYield(SY).redeem(
-                receiverRedeemSy,
+                receiver,
                 netSyIn,
-                output.tokenRedeemSy,
+                out.tokenRedeemSy,
                 0,
                 true
             );
-        }
-
-        if (requireSwap) {
-            netTokenOut = _swap(
-                output.pendleSwap,
-                output.tokenOut,
-                output.tokenRedeemSy,
-                netTokenRedeemed,
-                output.data
-            );
-
-            _transferOut(output.tokenOut, receiver, netTokenOut);
-        } else {
-            netTokenOut = netTokenRedeemed;
-        }
-
-        if (netTokenOut < output.minTokenOut) {
-            revert Errors.RouterInsufficientTokenOut(netTokenOut, output.minTokenOut);
         }
     }
 
@@ -177,26 +197,22 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         return output.bulk != address(0) ? output.bulk : SY;
     }
 
-    function _swap(
+    function _pullAndSwap(
+        bool doPull,
         address pendleSwap,
         address tokenIn,
         address tokenOut,
-        uint256 amountIn,
+        uint256 netTokenIn,
         SwapData calldata data
     ) internal returns (uint256) {
-        if (data.swapType == SwapType.WRAP_ETH) {
-            IWETH(tokenOut).deposit{ value: amountIn }();
-            return amountIn;
+        if (doPull) {
+            if (tokenIn == NATIVE) _transferIn(tokenIn, msg.sender, netTokenIn);
+            else _transferFrom(IERC20(tokenIn), msg.sender, pendleSwap, netTokenIn);
         }
 
-        if (data.swapType == SwapType.UNWRAP_WETH) {
-            IWETH(tokenIn).withdraw(amountIn);
-            return amountIn;
-        }
-
-        IPSwapAggregator(pendleSwap).swap{ value: tokenIn == NATIVE ? amountIn : 0 }(
+        IPSwapAggregator(pendleSwap).swap{ value: tokenIn == NATIVE ? netTokenIn : 0 }(
             tokenIn,
-            amountIn,
+            netTokenIn,
             data
         );
 

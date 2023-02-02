@@ -12,9 +12,8 @@ enum SwapType {
     NONE,
     KYBERSWAP,
     ONE_INCH,
-    // WRAP / UNWRAP not used in Aggregator
-    WRAP_ETH,
-    UNWRAP_WETH
+    // ETH_WETH not used in Aggregator
+    ETH_WETH
 }
 
 interface IPSwapAggregator {
