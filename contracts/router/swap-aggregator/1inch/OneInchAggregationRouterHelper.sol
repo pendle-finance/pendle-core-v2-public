@@ -6,8 +6,6 @@ import "./I1inchAggregationRouterV5.sol";
 import "../../../core/libraries/Errors.sol";
 
 abstract contract OneInchAggregationRouterHelper {
-    constructor() {}
-
     function _rescaleMinAmount(
         uint256 minAmount,
         uint256 oldAmount,

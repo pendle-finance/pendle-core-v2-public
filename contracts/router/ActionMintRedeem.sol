@@ -121,20 +121,14 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
         address[] calldata sys,
         address[] calldata yts,
         address[] calldata markets
-    )
-        external
-    {
+    ) external {
         unchecked {
             for (uint256 i = 0; i < sys.length; ++i) {
                 IStandardizedYield(sys[i]).claimRewards(user);
             }
 
             for (uint256 i = 0; i < yts.length; ++i) {
-                IPYieldToken(yts[i]).redeemDueInterestAndRewards(
-                    user,
-                    true,
-                    true
-                );
+                IPYieldToken(yts[i]).redeemDueInterestAndRewards(user, true, true);
             }
 
             for (uint256 i = 0; i < markets.length; ++i) {
@@ -268,7 +262,7 @@ contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     ) internal returns (uint256 netTokenOut) {
         for (uint256 i = 0; i < tokens.tokens.length; ++i) {
             if (tokens.amounts[i] == 0) continue;
-            ISwapAggregator(swapAggregator).swap(
+            IPSwapAggregator(swapAggregator).swap(
                 tokens.tokens[i],
                 tokens.amounts[i],
                 dataSwap.data[i]
