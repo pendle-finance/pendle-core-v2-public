@@ -82,7 +82,6 @@ contract PendleRouter is Proxy {
         if (sig == IPActionSwapYT.swapSyForExactYt.selector) return ACTION_SWAP_YT;
 
         if (sig == IPActionSwapYT.swapYtForExactSy.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionMisc.consult.selector) return ACTION_MISC;
         if (sig == IPActionMisc.approveInf.selector) return ACTION_MISC;
 
         revert Errors.RouterInvalidAction(sig);
