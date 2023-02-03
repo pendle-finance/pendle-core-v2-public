@@ -6,8 +6,6 @@ interface IRewardRouterV2 {
 
     function claim() external;
 
-    function compound() external;
-
     function glpManager() external view returns (address);
 
     function mintAndStakeGlp(

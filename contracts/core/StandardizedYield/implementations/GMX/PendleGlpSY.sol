@@ -6,7 +6,6 @@ import "./GMXPreviewHelper.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
 import "../../../../interfaces/GMX/IVault.sol";
-import "hardhat/console.sol";
 
 contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     address public immutable glp;
@@ -167,7 +166,6 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             uint256 usdgAmount = (amountSharesToRedeem * aumInUsdg) / glpSupply;
             uint256 amountOut = super.sellUSDG(tokenOut, usdgAmount);
 
-            console.log("preview sellUSDG:", tokenOut, usdgAmount, amountOut);
             amountTokenOut = amountOut;
         }
     }
