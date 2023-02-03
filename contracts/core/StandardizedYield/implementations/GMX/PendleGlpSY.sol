@@ -6,10 +6,12 @@ import "./GMXPreviewHelper.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
 import "../../../../interfaces/GMX/IVault.sol";
+import "hardhat/console.sol";
 
 contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     address public immutable glp;
     address public immutable stakedGlp;
+    address public immutable rewardRouter;
     address public immutable glpRewardRouter;
     address public immutable glpManager;
     address public immutable weth;
@@ -20,11 +22,13 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         address _glp,
         address _fsGlp,
         address _stakedGlp,
+        address _rewardRouter,
         address _glpRewardRouter,
         address _vault
     ) SYBaseWithRewards(_name, _symbol, _fsGlp) GMXPreviewHelper(_vault) {
         glp = _glp;
         stakedGlp = _stakedGlp;
+        rewardRouter = _rewardRouter;
         glpRewardRouter = _glpRewardRouter;
         glpManager = IRewardRouterV2(glpRewardRouter).glpManager();
         weth = IRewardRouterV2(glpRewardRouter).weth();
@@ -117,7 +121,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     }
 
     function _redeemExternalReward() internal override {
-        IRewardRouterV2(glpRewardRouter).claim();
+        IRewardRouterV2(rewardRouter).claim();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -162,6 +166,8 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
 
             uint256 usdgAmount = (amountSharesToRedeem * aumInUsdg) / glpSupply;
             uint256 amountOut = super.sellUSDG(tokenOut, usdgAmount);
+
+            console.log("preview sellUSDG:", tokenOut, usdgAmount, amountOut);
             amountTokenOut = amountOut;
         }
     }
