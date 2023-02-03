@@ -9,21 +9,6 @@ import "../core/libraries/TokenHelper.sol";
 contract ActionMisc is IPActionMisc, TokenHelper {
     using Math for uint256;
 
-    function consult(address market, uint32 secondsAgo)
-        external
-        view
-        returns (uint96 lnImpliedRateMean)
-    {
-        if (secondsAgo == 0) revert Errors.RouterTimeRangeZero();
-        uint32[] memory secondsAgos = new uint32[](2);
-        secondsAgos[0] = secondsAgo;
-        secondsAgos[1] = 0;
-        uint216[] memory lnImpliedRateCumulatives = IPMarket(market).observe(secondsAgos);
-        return
-            (uint256(lnImpliedRateCumulatives[1] - lnImpliedRateCumulatives[0]) / secondsAgo)
-                .Uint96();
-    }
-
     function approveInf(address token, address spender) external {
         _safeApproveInf(token, spender);
     }
