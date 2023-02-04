@@ -5,7 +5,7 @@ import "../../SYBaseWithRewards.sol";
 import "./GMXPreviewHelper.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
-import "../../../../interfaces/GMX/IVault.sol";
+import "../../../../interfaces/GMX/IGMXVault.sol";
 
 contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     address public immutable glp;

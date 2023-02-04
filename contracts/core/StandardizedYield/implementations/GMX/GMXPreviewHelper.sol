@@ -2,16 +2,16 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../../../interfaces/GMX/IVault.sol";
+import "../../../../interfaces/GMX/IGMXVault.sol";
 import "../../../../interfaces/GMX/IVaultPriceFeed.sol";
 
 abstract contract GMXPreviewHelper {
     // Based on Vault functions
 
-    IVault public immutable vault;
+    IGMXVault public immutable vault;
 
     constructor(address _vaultAddress) {
-        vault = IVault(_vaultAddress);
+        vault = IGMXVault(_vaultAddress);
     }
 
     function buyUSDG(address _token, uint256 tokenAmount) internal view returns (uint256) {

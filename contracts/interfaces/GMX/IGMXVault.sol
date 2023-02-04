@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-interface IVault {
+interface IGMXVault {
     function BASIS_POINTS_DIVISOR() external view returns (uint256);
 
     function PRICE_PRECISION() external view returns (uint256);
