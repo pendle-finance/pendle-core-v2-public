@@ -17,7 +17,7 @@ struct TokenInput {
     address bulk;
     // aggregator data
     address pendleSwap;
-    SwapData data;
+    SwapData swapData;
 }
 
 struct TokenOutput {
@@ -28,7 +28,7 @@ struct TokenOutput {
     address bulk;
     // aggregator data
     address pendleSwap;
-    SwapData data;
+    SwapData swapData;
 }
 
 // solhint-disable no-empty-blocks
@@ -41,7 +41,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         uint256 minSyOut,
         TokenInput calldata inp
     ) internal returns (uint256 netSyOut) {
-        SwapType swapType = inp.data.swapType;
+        SwapType swapType = inp.swapData.swapType;
 
         uint256 netTokenMintSy;
 
@@ -58,7 +58,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
 
             IPSwapAggregator(inp.pendleSwap).swap{
                 value: inp.tokenIn == NATIVE ? inp.netTokenIn : 0
-            }(inp.tokenIn, inp.netTokenIn, inp.data);
+            }(inp.tokenIn, inp.netTokenIn, inp.swapData);
             netTokenMintSy = _selfBalance(inp.tokenMintSy);
         }
 
@@ -100,7 +100,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         TokenOutput calldata out,
         bool doPull
     ) internal returns (uint256 netTokenOut) {
-        SwapType swapType = out.data.swapType;
+        SwapType swapType = out.swapData.swapType;
 
         if (swapType == SwapType.NONE) {
             netTokenOut = __redeemSy(receiver, SY, netSyIn, out, doPull);
@@ -113,7 +113,11 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         } else {
             uint256 netTokenRedeemed = __redeemSy(out.pendleSwap, SY, netSyIn, out, doPull);
 
-            IPSwapAggregator(out.pendleSwap).swap(out.tokenRedeemSy, netTokenRedeemed, out.data);
+            IPSwapAggregator(out.pendleSwap).swap(
+                out.tokenRedeemSy,
+                netTokenRedeemed,
+                out.swapData
+            );
 
             netTokenOut = _selfBalance(out.tokenOut);
 

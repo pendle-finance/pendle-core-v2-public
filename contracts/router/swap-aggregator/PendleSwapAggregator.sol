@@ -24,8 +24,8 @@ contract PendleSwapAggregator is
     ) external payable {
         data.extRouter.functionCallWithValue(
             data.needScale
-                ? _getScaledInputData(data.swapType, data.extCallData, amountIn)
-                : data.extCallData,
+                ? _getScaledInputData(data.swapType, data.extCalldata, amountIn)
+                : data.extCalldata,
             tokenIn == NATIVE ? amountIn : 0
         );
     }
