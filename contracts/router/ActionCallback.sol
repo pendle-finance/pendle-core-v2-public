@@ -18,7 +18,7 @@ contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
-    address public immutable marketFactory;
+    address internal immutable marketFactory;
 
     modifier onlyPendleMarket(address caller) {
         if (!IPMarketFactory(marketFactory).isValidMarket(caller))
