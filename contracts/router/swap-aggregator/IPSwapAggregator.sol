@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 struct SwapData {
     SwapType swapType;
     address extRouter;
-    bytes extCallData;
+    bytes extCalldata;
     bool needScale;
 }
 
