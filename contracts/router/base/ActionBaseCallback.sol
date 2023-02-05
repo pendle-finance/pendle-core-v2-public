@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "../interfaces/IPMarketFactory.sol";
-import "../interfaces/IPMarket.sol";
-import "../interfaces/IPMarketSwapCallback.sol";
-import "../core/libraries/Errors.sol";
+import "../..//interfaces/IPMarketFactory.sol";
+import "../..//interfaces/IPMarket.sol";
+import "../..//interfaces/IPMarketSwapCallback.sol";
+import "../..//core/libraries/Errors.sol";
 
-import "./base/MarketApproxLib.sol";
-import "./base/ActionBaseMintRedeem.sol";
-import "./base/CallbackHelper.sol";
+import "./MarketApproxLib.sol";
+import "./ActionBaseMintRedeem.sol";
+import "./CallbackHelper.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ActionCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
+abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
     using Math for int256;
     using Math for uint256;
     using PYIndexLib for PYIndex;

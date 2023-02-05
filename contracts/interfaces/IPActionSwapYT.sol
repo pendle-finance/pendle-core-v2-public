@@ -22,6 +22,14 @@ interface IPActionSwapYT {
         int256 netTokenToAccount
     );
 
+    event SwapPtAndYt(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        int256 netPtToAccount,
+        int256 netYtToAccount
+    );
+
     function swapExactSyForYt(
         address receiver,
         address market,
@@ -66,4 +74,20 @@ interface IPActionSwapYT {
         uint256 netYtIn,
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut, uint256 netSyFee);
+
+    function swapExactPtForYt(
+        address receiver,
+        address market,
+        uint256 exactPtIn,
+        uint256 minYtOut,
+        ApproxParams calldata guessTotalPtToSwap
+    ) external returns (uint256 netYtOut, uint256 netSyFee);
+
+    function swapExactYtForPt(
+        address receiver,
+        address market,
+        uint256 exactYtIn,
+        uint256 minPtOut,
+        ApproxParams calldata guessTotalPtSwapped
+    ) external returns (uint256 netPtOut, uint256 netSyFee);
 }

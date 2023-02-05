@@ -12,8 +12,6 @@ contract PendleRouter is Proxy, IDiamondLoupe {
     address internal immutable ACTION_ADD_REMOVE_LIQ;
     address internal immutable ACTION_SWAP_PT;
     address internal immutable ACTION_SWAP_YT;
-    address internal immutable ACTION_SWAP_PTYT;
-    address internal immutable ACTION_CALLBACK;
     address internal immutable ACTION_MISC;
 
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
@@ -23,16 +21,12 @@ contract PendleRouter is Proxy, IDiamondLoupe {
         address _ACTION_ADD_REMOVE_LIQ,
         address _ACTION_SWAP_PT,
         address _ACTION_SWAP_YT,
-        address _ACTION_SWAP_PTYT,
-        address _ACTION_CALLBACK,
         address _ACTION_MISC
     ) {
         ACTION_MINT_REDEEM = _ACTION_MINT_REDEEM;
         ACTION_ADD_REMOVE_LIQ = _ACTION_ADD_REMOVE_LIQ;
         ACTION_SWAP_PT = _ACTION_SWAP_PT;
         ACTION_SWAP_YT = _ACTION_SWAP_YT;
-        ACTION_SWAP_PTYT = _ACTION_SWAP_PTYT;
-        ACTION_CALLBACK = _ACTION_CALLBACK;
         ACTION_MISC = _ACTION_MISC;
         _emitEvents();
     }
@@ -74,77 +68,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
     }
 
     /// @notice Gets all the function selectors supported by a specific facet.
-    function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {
-        if (facet == ACTION_ADD_REMOVE_LIQ) {
-            res = new bytes4[](10);
-            res[0] = 0x015491d1;
-            res[1] = 0x178d29d3;
-            res[2] = 0x3af1f329;
-            res[3] = 0x409c7a89;
-            res[4] = 0x690807ad;
-            res[5] = 0x694ab559;
-            res[6] = 0x97ee279e;
-            res[7] = 0xb7d75b8b;
-            res[8] = 0xcb591eb2;
-            res[9] = 0xe6eaba01;
-            return res;
-        }
-
-        if (facet == ACTION_MINT_REDEEM) {
-            res = new bytes4[](7);
-            res[0] = 0x1a8631b2;
-            res[1] = 0x339748cb;
-            res[2] = 0x443e6512;
-            res[3] = 0x46eb2db6;
-            res[4] = 0x527df199;
-            res[5] = 0x85b29936;
-            res[6] = 0xf7e375e8;
-            return res;
-        }
-
-        if (facet == ACTION_SWAP_PT) {
-            res = new bytes4[](6);
-            res[0] = 0x2032aecd;
-            res[1] = 0x6b8bdf32;
-            res[2] = 0x83c71b69;
-            res[3] = 0xa5f9931b;
-            res[4] = 0xb85f50ba;
-            res[5] = 0xdd371acd;
-            return res;
-        }
-
-        if (facet == ACTION_SWAP_YT) {
-            res = new bytes4[](6);
-            res[0] = 0x357d6540;
-            res[1] = 0xbf1bd434;
-            res[2] = 0xc4a9c7de;
-            res[3] = 0xd6308fa4;
-            res[4] = 0xe15cc098;
-            res[5] = 0xfdd71f43;
-            return res;
-        }
-
-        if (facet == ACTION_SWAP_PTYT) {
-            res = new bytes4[](2);
-            res[0] = 0x448b9b95;
-            res[1] = 0xc861a898;
-            return res;
-        }
-
-        if (facet == ACTION_MISC) {
-            res = new bytes4[](1);
-            res[0] = 0x4c6e8f81;
-            return res;
-        }
-
-        if (facet == ACTION_CALLBACK) {
-            res = new bytes4[](1);
-            res[0] = 0xfa483e72;
-            return res;
-        }
-
-        revert("Diamond: Facet has no selectors");
-    }
+    function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {}
 
     function facetAddress(bytes4 sig) public view returns (address) {
         if (sig < 0x85b29936) {
@@ -163,7 +87,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                 if (sig < 0x527df199) {
                     if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 4
                     if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 5
-                    if (sig == 0x448b9b95) return ACTION_SWAP_PTYT; // swapExactYtForPt 6
+                    if (sig == 0x448b9b95) return ACTION_SWAP_YT; // swapExactYtForPt 6
                     if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 7
                 } else {
                     if (sig < 0x694ab559) {
@@ -194,7 +118,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                 }
             } else {
                 if (sig < 0xe15cc098) {
-                    if (sig == 0xc861a898) return ACTION_SWAP_PTYT; // swapExactPtForYt 4
+                    if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 4
                     if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
                     if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 6
                     if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 7
@@ -204,7 +128,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                         if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 6
                     } else {
                         if (sig == 0xf7e375e8) return ACTION_MINT_REDEEM; // redeemDueInterestAndRewards 5
-                        if (sig == 0xfa483e72) return ACTION_CALLBACK; // swapCallback 6
+                        if (sig == 0xfa483e72) return ACTION_SWAP_YT; // swapCallback 6
                         if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 7
                     }
                 }
@@ -215,14 +139,12 @@ contract PendleRouter is Proxy, IDiamondLoupe {
     }
 
     function facetAddresses() public view returns (address[] memory facetAddresses_) {
-        facetAddresses_ = new address[](7);
+        facetAddresses_ = new address[](5);
         facetAddresses_[0] = ACTION_ADD_REMOVE_LIQ;
         facetAddresses_[1] = ACTION_MINT_REDEEM;
         facetAddresses_[2] = ACTION_SWAP_PT;
         facetAddresses_[3] = ACTION_SWAP_YT;
-        facetAddresses_[4] = ACTION_SWAP_PTYT;
-        facetAddresses_[5] = ACTION_MISC;
-        facetAddresses_[6] = ACTION_CALLBACK;
+        facetAddresses_[4] = ACTION_MISC;
     }
 
     function _implementation() internal view override returns (address) {
