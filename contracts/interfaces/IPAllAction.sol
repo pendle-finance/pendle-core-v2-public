@@ -5,7 +5,6 @@ pragma solidity 0.8.17;
 import "./IPActionAddRemoveLiq.sol";
 import "./IPActionSwapPT.sol";
 import "./IPActionSwapYT.sol";
-import "./IPActionSwapPTYT.sol";
 import "./IPActionMintRedeem.sol";
 import "./IPActionMisc.sol";
 import "./IPMarketSwapCallback.sol";
@@ -14,7 +13,6 @@ interface IPAllAction is
     IPActionAddRemoveLiq,
     IPActionSwapPT,
     IPActionSwapYT,
-    IPActionSwapPTYT,
     IPActionMintRedeem,
     IPActionMisc,
     IPMarketSwapCallback

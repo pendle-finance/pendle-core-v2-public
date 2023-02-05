@@ -19,4 +19,31 @@ contract ActionMisc is IPActionMisc, TokenHelper {
             }
         }
     }
+
+    function batchExec(Call3[] calldata calls) external payable returns (Result[] memory res) {
+        uint256 length = calls.length;
+
+        res = new Result[](length);
+
+        Call3 calldata calli;
+
+        for (uint256 i = 0; i < length; ) {
+            calli = calls[i];
+            (bool success, bytes memory result) = address(this).delegatecall(calli.callData);
+
+            if (!calli.allowFailure && !success) {
+                assembly {
+                    // We use Yul's revert() to bubble up errors from the target contract.
+                    revert(add(32, result), mload(result))
+                }
+            }
+
+            res[i].success = success;
+            res[i].returnData = result;
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 }
