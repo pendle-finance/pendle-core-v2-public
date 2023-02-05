@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.17;
-import "./interfaces/IMetaAggregationRouter.sol";
 import "./interfaces/IMetaAggregationRouterV2.sol";
 import "./interfaces/IHashflow.sol";
 import "./interfaces/IExecutorHelperEthereum1.sol";
@@ -45,30 +44,6 @@ abstract contract KyberAggregationRouterHelper {
     {
         bytes4 selector = bytes4(kybercall[:4]);
 
-        if (
-            selector == IMetaAggregationRouter.swap.selector ||
-            selector == IMetaAggregationRouter.swapSimpleMode.selector
-        ) {
-            (
-                address callTarget,
-                IMetaAggregationRouter.SwapDescription memory desc,
-                bytes memory targetData,
-                bytes memory clientData
-            ) = abi.decode(
-                    kybercall[4:],
-                    (address, IMetaAggregationRouter.SwapDescription, bytes, bytes)
-                );
-
-            (desc, targetData) = _getScaledInputDataV1(
-                desc,
-                targetData,
-                newAmount,
-                selector == IMetaAggregationRouter.swapSimpleMode.selector ||
-                    _flagsChecked(desc.flags, _SIMPLE_SWAP)
-            );
-            return abi.encodeWithSelector(selector, callTarget, desc, targetData, clientData);
-        }
-
         if (selector == IMetaAggregationRouterV2.swap.selector) {
             IMetaAggregationRouterV2.SwapExecutionParams memory params = abi.decode(
                 kybercall[4:],
@@ -102,32 +77,6 @@ abstract contract KyberAggregationRouterHelper {
         revert("InputScalingHelper: Invalid selector");
     }
 
-    function _getScaledInputDataV1(
-        IMetaAggregationRouter.SwapDescription memory desc,
-        bytes memory executorData,
-        uint256 newAmount,
-        bool isSimpleMode
-    ) internal pure returns (IMetaAggregationRouter.SwapDescription memory, bytes memory) {
-        uint256 oldAmount = desc.amount;
-        if (oldAmount == newAmount) {
-            return (desc, executorData);
-        }
-
-        // simple mode swap
-        if (isSimpleMode) {
-            return (
-                _scaledSwapDescriptionV1(desc, oldAmount, newAmount),
-                _scaledSimpleSwapData(executorData, oldAmount, newAmount)
-            );
-        }
-
-        //normal mode swap
-        return (
-            _scaledSwapDescriptionV1(desc, oldAmount, newAmount),
-            _scaledExecutorCallBytesData(executorData, oldAmount, newAmount)
-        );
-    }
-
     function _getScaledInputDataV2(
         IMetaAggregationRouterV2.SwapDescriptionV2 memory desc,
         bytes memory executorData,
@@ -152,32 +101,6 @@ abstract contract KyberAggregationRouterHelper {
             _scaledSwapDescriptionV2(desc, oldAmount, newAmount),
             _scaledExecutorCallBytesData(executorData, oldAmount, newAmount)
         );
-    }
-
-    function _scaledSwapDescriptionV1(
-        IMetaAggregationRouter.SwapDescription memory desc,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (IMetaAggregationRouter.SwapDescription memory) {
-        uint256 oldMinReturnAmount = desc.minReturnAmount;
-        desc.minReturnAmount = (desc.minReturnAmount * newAmount) / oldAmount;
-        //newMinReturnAmount should no be 0 if oldMinReturnAmount > 0
-        if (oldMinReturnAmount > 0 && desc.minReturnAmount == 0) desc.minReturnAmount = 1;
-        desc.amount = newAmount;
-        if (desc.srcReceivers.length == 0) {
-            return desc;
-        }
-
-        uint256 newTotal;
-        for (uint256 i = 0; i < desc.srcReceivers.length; i++) {
-            if (i == desc.srcReceivers.length - 1) {
-                desc.srcAmounts[i] = newAmount - newTotal;
-            } else {
-                desc.srcAmounts[i] = (desc.srcAmounts[i] * newAmount) / oldAmount;
-            }
-            newTotal += desc.srcAmounts[i];
-        }
-        return desc;
     }
 
     function _scaledSimpleSwapData(
