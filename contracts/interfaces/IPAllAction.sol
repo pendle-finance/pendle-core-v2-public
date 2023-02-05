@@ -8,6 +8,7 @@ import "./IPActionSwapYT.sol";
 import "./IPActionSwapPTYT.sol";
 import "./IPActionMintRedeem.sol";
 import "./IPActionMisc.sol";
+import "./IPMarketSwapCallback.sol";
 
 interface IPAllAction is
     IPActionAddRemoveLiq,
@@ -15,5 +16,6 @@ interface IPAllAction is
     IPActionSwapYT,
     IPActionSwapPTYT,
     IPActionMintRedeem,
-    IPActionMisc
+    IPActionMisc,
+    IPMarketSwapCallback
 {}

@@ -41,48 +41,70 @@ contract PendleRouter is Proxy {
 
     receive() external payable virtual override {}
 
-    // prettier-ignore
-    /// @dev selectors are ordered by frequency of usage
     function getRouterImplementation(bytes4 sig) public view returns (address) {
-        if (sig == IPActionAddRemoveLiq.addLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.redeemDueInterestAndRewards.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPMarketSwapCallback.swapCallback.selector) return ACTION_CALLBACK;
-        if (sig == IPActionSwapYT.swapExactTokenForYt.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleToken.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.mintPyFromToken.selector) return ACTION_MINT_REDEEM;
-
-        if (sig == IPActionSwapPT.swapExactTokenForPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapYT.swapExactSyForYt.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionAddRemoveLiq.addLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionSwapYT.swapExactYtForToken.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionSwapYT.swapExactYtForSy.selector) return ACTION_SWAP_YT;
-
-        if (sig == IPActionSwapPT.swapExactPtForToken.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionAddRemoveLiq.addLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.redeemPyToToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionAddRemoveLiq.addLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionSwapPTYT.swapExactPtForYt.selector) return ACTION_SWAP_PTYT;
-
-        if (sig == IPActionAddRemoveLiq.removeLiquidityDualSyAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.mintPyFromSy.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionSwapPT.swapExactSyForPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionAddRemoveLiq.addLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.mintSyFromToken.selector) return ACTION_MINT_REDEEM;
-
-        if (sig == IPActionAddRemoveLiq.removeLiquidityDualTokenAndPt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionSwapPTYT.swapExactYtForPt.selector) return ACTION_SWAP_PTYT;
-        if (sig == IPActionSwapPT.swapExactPtForSy.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionMintRedeem.redeemPyToSy.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySingleSy.selector) return ACTION_ADD_REMOVE_LIQ;
-
-        if (sig == IPActionAddRemoveLiq.removeLiquiditySinglePt.selector) return ACTION_ADD_REMOVE_LIQ;
-        if (sig == IPActionMintRedeem.redeemSyToToken.selector) return ACTION_MINT_REDEEM;
-        if (sig == IPActionSwapPT.swapPtForExactSy.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapPT.swapSyForExactPt.selector) return ACTION_SWAP_PT;
-        if (sig == IPActionSwapYT.swapSyForExactYt.selector) return ACTION_SWAP_YT;
-
-        if (sig == IPActionSwapYT.swapYtForExactSy.selector) return ACTION_SWAP_YT;
-        if (sig == IPActionMisc.approveInf.selector) return ACTION_MISC;
+        if (sig < 0x83c71b69) {
+            if (sig < 0x409c7a89) {
+                if (sig < 0x2032aecd) {
+                    if (sig == 0x015491d1) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleToken 4
+                    if (sig == 0x178d29d3) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleSy 5
+                    if (sig == 0x1a8631b2) return ACTION_MINT_REDEEM; // mintPyFromSy 6
+                } else {
+                    if (sig == 0x2032aecd) return ACTION_SWAP_PT; // swapExactPtForSy 4
+                    if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 5
+                    if (sig == 0x357d6540) return ACTION_SWAP_YT; // swapExactYtForSy 6
+                    if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 7
+                }
+            } else {
+                if (sig < 0x4c6e8f81) {
+                    if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 4
+                    if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 5
+                    if (sig == 0x448b9b95) return ACTION_SWAP_PTYT; // swapExactYtForPt 6
+                    if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 7
+                } else {
+                    if (sig < 0x690807ad) {
+                        if (sig == 0x4c6e8f81) return ACTION_MISC; // approveInf 5
+                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 6
+                    } else {
+                        if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 5
+                        if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 6
+                        if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 7
+                    }
+                }
+            }
+        } else {
+            if (sig < 0xc861a898) {
+                if (sig < 0xa5f9931b) {
+                    if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 4
+                    if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 5
+                    if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 6
+                } else {
+                    if (sig < 0xb85f50ba) {
+                        if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 5
+                        if (sig == 0xb7d75b8b) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualSyAndPt 6
+                    } else {
+                        if (sig == 0xb85f50ba) return ACTION_SWAP_PT; // swapExactPtForToken 5
+                        if (sig == 0xbf1bd434) return ACTION_SWAP_YT; // swapSyForExactYt 6
+                        if (sig == 0xc4a9c7de) return ACTION_SWAP_YT; // swapExactTokenForYt 7
+                    }
+                }
+            } else {
+                if (sig < 0xe15cc098) {
+                    if (sig == 0xc861a898) return ACTION_SWAP_PTYT; // swapExactPtForYt 4
+                    if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
+                    if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 6
+                    if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 7
+                } else {
+                    if (sig < 0xf7e375e8) {
+                        if (sig == 0xe15cc098) return ACTION_SWAP_YT; // swapYtForExactSy 5
+                        if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 6
+                    } else {
+                        if (sig == 0xf7e375e8) return ACTION_MINT_REDEEM; // redeemDueInterestAndRewards 5
+                        if (sig == 0xfa483e72) return ACTION_CALLBACK; // swapCallback 6
+                        if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 7
+                    }
+                }
+            }
+        }
 
         revert Errors.RouterInvalidAction(sig);
     }
