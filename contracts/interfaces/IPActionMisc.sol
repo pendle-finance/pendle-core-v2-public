@@ -2,5 +2,10 @@
 pragma solidity 0.8.17;
 
 interface IPActionMisc {
-    function approveInf(address token, address spender) external;
+    struct MultiApproval {
+        address[] tokens;
+        address spender;
+    }
+
+    function approveInf(MultiApproval[] calldata) external;
 }

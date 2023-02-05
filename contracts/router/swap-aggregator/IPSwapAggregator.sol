@@ -17,6 +17,11 @@ enum SwapType {
 }
 
 interface IPSwapAggregator {
+    struct MultiApproval {
+        address[] tokens;
+        address spender;
+    }
+
     function swap(
         address tokenIn,
         uint256 amountIn,
