@@ -11,7 +11,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     address public immutable glp;
     address public immutable stakedGlp;
     address public immutable rewardRouter;
-    address public immutable glpRewardRouter;
+    address public immutable glpRouter;
     address public immutable glpManager;
     address public immutable weth;
 
@@ -22,15 +22,15 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         address _fsGlp,
         address _stakedGlp,
         address _rewardRouter,
-        address _glpRewardRouter,
+        address _glpRouter,
         address _vault
     ) SYBaseWithRewards(_name, _symbol, _fsGlp) GMXPreviewHelper(_vault) {
         glp = _glp;
         stakedGlp = _stakedGlp;
         rewardRouter = _rewardRouter;
-        glpRewardRouter = _glpRewardRouter;
-        glpManager = IRewardRouterV2(glpRewardRouter).glpManager();
-        weth = IRewardRouterV2(glpRewardRouter).weth();
+        glpRouter = _glpRouter;
+        glpManager = IRewardRouterV2(glpRouter).glpManager();
+        weth = IRewardRouterV2(glpRouter).weth();
 
         uint256 length = vault.allWhitelistedTokensLength();
         for (uint256 i = 0; i < length; ++i) {
@@ -55,11 +55,11 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             // GLP is already staked in stakedGlp's transferFrom, called in _transferIn()
             amountSharesOut = amountDeposited;
         } else if (tokenIn == NATIVE) {
-            amountSharesOut = IRewardRouterV2(glpRewardRouter).mintAndStakeGlpETH{
+            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlpETH{
                 value: msg.value
             }(0, 0);
         } else {
-            amountSharesOut = IRewardRouterV2(glpRewardRouter).mintAndStakeGlp(
+            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlp(
                 tokenIn,
                 amountDeposited,
                 0,
@@ -80,13 +80,13 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             amountTokenOut = amountSharesToRedeem;
             _transferOut(tokenOut, receiver, amountTokenOut);
         } else if (tokenOut == NATIVE) {
-            amountTokenOut = IRewardRouterV2(glpRewardRouter).unstakeAndRedeemGlpETH(
+            amountTokenOut = IRewardRouterV2(glpRouter).unstakeAndRedeemGlpETH(
                 amountSharesToRedeem,
                 0,
                 payable(receiver)
             );
         } else {
-            amountTokenOut = IRewardRouterV2(glpRewardRouter).unstakeAndRedeemGlp(
+            amountTokenOut = IRewardRouterV2(glpRouter).unstakeAndRedeemGlp(
                 tokenOut,
                 amountSharesToRedeem,
                 0,
