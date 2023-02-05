@@ -147,7 +147,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
     }
 
     function facetAddress(bytes4 sig) public view returns (address) {
-        if (sig < 0x83c71b69) {
+        if (sig < 0x85b29936) {
             if (sig < 0x409c7a89) {
                 if (sig < 0x2032aecd) {
                     if (sig == 0x015491d1) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleToken 4
@@ -160,31 +160,31 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                     if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 7
                 }
             } else {
-                if (sig < 0x4c6e8f81) {
+                if (sig < 0x527df199) {
                     if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 4
                     if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 5
                     if (sig == 0x448b9b95) return ACTION_SWAP_PTYT; // swapExactYtForPt 6
                     if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 7
                 } else {
-                    if (sig < 0x690807ad) {
-                        if (sig == 0x4c6e8f81) return ACTION_MISC; // approveInf 5
-                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 6
+                    if (sig < 0x694ab559) {
+                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 5
+                        if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 6
                     } else {
-                        if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 5
-                        if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 6
-                        if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 7
+                        if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 5
+                        if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 6
+                        if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 7
                     }
                 }
             }
         } else {
             if (sig < 0xc861a898) {
-                if (sig < 0xa5f9931b) {
-                    if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 4
-                    if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 5
-                    if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 6
+                if (sig < 0xacdb32df) {
+                    if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 4
+                    if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 5
+                    if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 6
                 } else {
                     if (sig < 0xb85f50ba) {
-                        if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 5
+                        if (sig == 0xacdb32df) return ACTION_MISC; // approveInf 5
                         if (sig == 0xb7d75b8b) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualSyAndPt 6
                     } else {
                         if (sig == 0xb85f50ba) return ACTION_SWAP_PT; // swapExactPtForToken 5

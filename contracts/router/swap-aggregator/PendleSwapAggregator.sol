@@ -45,11 +45,15 @@ contract PendleSwapAggregator is
     }
 
     /// @notice For the Aggregator to work with a token / aggregator, it must be approved first
-    function approveInf(address[] calldata tokens, address[] calldata spenders) external {
-        if (tokens.length != spenders.length) revert Errors.ArrayLengthMismatch();
-
-        for (uint256 i = 0; i < tokens.length; ) {
-            _safeApproveInf(tokens[i], spenders[i]);
+    function approveInf(MultiApproval[] calldata arr) external {
+        for (uint256 i = 0; i < arr.length; ) {
+            MultiApproval calldata ele = arr[i];
+            for (uint256 j = 0; j < ele.tokens.length; ) {
+                _safeApproveInf(ele.tokens[j], ele.spender);
+                unchecked {
+                    j++;
+                }
+            }
             unchecked {
                 i++;
             }

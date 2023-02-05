@@ -9,7 +9,18 @@ import "../core/libraries/TokenHelper.sol";
 contract ActionMisc is IPActionMisc, TokenHelper {
     using Math for uint256;
 
-    function approveInf(address token, address spender) external {
-        _safeApproveInf(token, spender);
+    function approveInf(MultiApproval[] calldata arr) external {
+        for (uint256 i = 0; i < arr.length; ) {
+            MultiApproval calldata ele = arr[i];
+            for (uint256 j = 0; j < ele.tokens.length; ) {
+                _safeApproveInf(ele.tokens[j], ele.spender);
+                unchecked {
+                    j++;
+                }
+            }
+            unchecked {
+                i++;
+            }
+        }
     }
 }
