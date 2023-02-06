@@ -7,9 +7,9 @@ import "../../interfaces/IStETH.sol";
 import "../libraries/TokenHelper.sol";
 
 abstract contract StEthHelper is TokenHelper {
-    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
-    address public constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+    address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address internal constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
+    address internal constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
 
     constructor() {
         _safeApproveInf(STETH, WSTETH);
@@ -39,7 +39,7 @@ abstract contract StEthHelper is TokenHelper {
         returns (uint256 amountTokenOut)
     {
         amountTokenOut = IWstETH(WSTETH).unwrap(amountRedeem);
-        _transferOut(STETH, receiver, amountTokenOut);
+        if (receiver != address(this)) _transferOut(STETH, receiver, amountTokenOut);
     }
 
     /// @dev tokenIn must be either ETH, WETH or STETH
