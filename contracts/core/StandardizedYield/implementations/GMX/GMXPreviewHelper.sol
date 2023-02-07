@@ -9,9 +9,13 @@ abstract contract GMXPreviewHelper {
     // Based on Vault functions
 
     IGMXVault public immutable vault;
+    address internal immutable usdg;
+    uint256 public constant PRICE_PRECISION = 10**30;
+    uint256 public constant BASIS_POINTS_DIVISOR = 10000;
 
     constructor(address _vaultAddress) {
         vault = IGMXVault(_vaultAddress);
+        usdg = vault.usdg();
     }
 
     function _buyUSDG(address _token, uint256 tokenAmount) internal view returns (uint256) {
@@ -20,8 +24,8 @@ abstract contract GMXPreviewHelper {
 
         uint256 price = vault.getMinPrice(_token);
 
-        uint256 usdgAmount = (tokenAmount * price) / vault.PRICE_PRECISION();
-        usdgAmount = vault.adjustForDecimals(usdgAmount, _token, vault.usdg());
+        uint256 usdgAmount = (tokenAmount * price) / PRICE_PRECISION;
+        usdgAmount = vault.adjustForDecimals(usdgAmount, _token, usdg);
         require(usdgAmount > 0, "preview buyUSDG: usdgAmount must be > 0");
 
         uint256 feeBasisPoints = __getFeeBasisPoints(
@@ -33,14 +37,14 @@ abstract contract GMXPreviewHelper {
             true
         );
         uint256 amountAfterFees = __collectSwapFees(_token, tokenAmount, feeBasisPoints);
-        uint256 mintAmount = (amountAfterFees * price) / vault.PRICE_PRECISION();
-        mintAmount = vault.adjustForDecimals(mintAmount, _token, vault.usdg());
+        uint256 mintAmount = (amountAfterFees * price) / PRICE_PRECISION;
+        mintAmount = vault.adjustForDecimals(mintAmount, _token, usdg);
 
         return mintAmount;
     }
 
     function _sellUSDG(address _token, uint256 usdgAmount) internal view returns (uint256) {
-        usdgAmount = __transferIn(vault.usdg(), usdgAmount);
+        usdgAmount = __transferIn(usdg, usdgAmount);
         assert(usdgAmount > 0);
 
         uint256 redemptionAmount = vault.getRedemptionAmount(_token, usdgAmount);
@@ -71,9 +75,9 @@ abstract contract GMXPreviewHelper {
         address, /*_token*/
         uint256 _amount,
         uint256 _feeBasisPoints
-    ) private view returns (uint256) {
-        uint256 afterFeeAmount = (_amount * (vault.BASIS_POINTS_DIVISOR() - _feeBasisPoints)) /
-            (vault.BASIS_POINTS_DIVISOR());
+    ) private pure returns (uint256) {
+        uint256 afterFeeAmount = (_amount * (BASIS_POINTS_DIVISOR - _feeBasisPoints)) /
+            (BASIS_POINTS_DIVISOR);
         return afterFeeAmount;
     }
 
@@ -128,7 +132,7 @@ abstract contract GMXPreviewHelper {
         view
         returns (uint256)
     {
-        uint256 supply = IERC20(vault.usdg()).totalSupply() - _burnedUsdg;
+        uint256 supply = IERC20(usdg).totalSupply() - _burnedUsdg;
         if (supply == 0) {
             return 0;
         }
