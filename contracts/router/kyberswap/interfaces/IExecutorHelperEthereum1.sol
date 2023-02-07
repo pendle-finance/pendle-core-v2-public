@@ -182,4 +182,10 @@ interface IExecutorHelperEthereum1 {
         bytes memory data,
         uint256 previousAmountOut
     ) external payable returns (uint256);
+
+    function executeFraxSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
 }

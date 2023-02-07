@@ -280,6 +280,8 @@ contract AggregationRouterHelper is
                 swap.data = ScaleDataHelperEthereum1.newPSM(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeHashflowSwap.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
+            } else if (selector == IExecutorHelperEthereum1.executeFraxSwap.selector) {
+                swap.data = ScaleDataHelperEthereum1.newFrax(swap.data, oldAmount, newAmount);
             } else revert("AggregationExecutor: Dex type not supported");
         }
         return abi.encode(executorDesc);

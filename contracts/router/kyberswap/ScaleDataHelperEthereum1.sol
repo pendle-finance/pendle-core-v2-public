@@ -131,4 +131,17 @@ library ScaleDataHelperEthereum1 {
         psm.amountIn = (psm.amountIn * newAmount) / oldAmount;
         return abi.encode(psm);
     }
+
+    function newFrax(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelperEthereum1.UniSwap memory frax = abi.decode(
+            data,
+            (IExecutorHelperEthereum1.UniSwap)
+        );
+        frax.collectAmount = (frax.collectAmount * newAmount) / oldAmount;
+        return abi.encode(frax);
+    }
 }
