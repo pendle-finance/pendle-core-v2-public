@@ -14,8 +14,8 @@ abstract contract GMXPreviewHelper {
         vault = IGMXVault(_vaultAddress);
     }
 
-    function buyUSDG(address _token, uint256 tokenAmount) internal view returns (uint256) {
-        tokenAmount = _transferIn(_token, tokenAmount);
+    function _buyUSDG(address _token, uint256 tokenAmount) internal view returns (uint256) {
+        tokenAmount = __transferIn(_token, tokenAmount);
         assert(tokenAmount > 0);
 
         uint256 price = vault.getMinPrice(_token);
@@ -24,7 +24,7 @@ abstract contract GMXPreviewHelper {
         usdgAmount = vault.adjustForDecimals(usdgAmount, _token, vault.usdg());
         require(usdgAmount > 0, "preview buyUSDG: usdgAmount must be > 0");
 
-        uint256 feeBasisPoints = getFeeBasisPoints(
+        uint256 feeBasisPoints = __getFeeBasisPoints(
             _token,
             usdgAmount,
             0,
@@ -32,21 +32,21 @@ abstract contract GMXPreviewHelper {
             vault.taxBasisPoints(),
             true
         );
-        uint256 amountAfterFees = _collectSwapFees(_token, tokenAmount, feeBasisPoints);
+        uint256 amountAfterFees = __collectSwapFees(_token, tokenAmount, feeBasisPoints);
         uint256 mintAmount = (amountAfterFees * price) / vault.PRICE_PRECISION();
         mintAmount = vault.adjustForDecimals(mintAmount, _token, vault.usdg());
 
         return mintAmount;
     }
 
-    function sellUSDG(address _token, uint256 usdgAmount) internal view returns (uint256) {
-        usdgAmount = _transferIn(vault.usdg(), usdgAmount);
+    function _sellUSDG(address _token, uint256 usdgAmount) internal view returns (uint256) {
+        usdgAmount = __transferIn(vault.usdg(), usdgAmount);
         assert(usdgAmount > 0);
 
         uint256 redemptionAmount = vault.getRedemptionAmount(_token, usdgAmount);
         require(redemptionAmount > 0, "preview sellUSDG: redemptionAmount must be > 0");
 
-        uint256 feeBasisPoints = getFeeBasisPoints(
+        uint256 feeBasisPoints = __getFeeBasisPoints(
             _token,
             usdgAmount,
             usdgAmount,
@@ -54,20 +54,20 @@ abstract contract GMXPreviewHelper {
             vault.taxBasisPoints(),
             false
         );
-        uint256 amountOut = _collectSwapFees(_token, redemptionAmount, feeBasisPoints);
+        uint256 amountOut = __collectSwapFees(_token, redemptionAmount, feeBasisPoints);
         require(amountOut > 0, "preview sellUSDG: amountOut must be > 0");
 
         return amountOut;
     }
 
-    function _transferIn(address _token, uint256 _amount) private view returns (uint256) {
+    function __transferIn(address _token, uint256 _amount) private view returns (uint256) {
         uint256 prevBalance = vault.tokenBalances(_token);
         uint256 nextBalance = IERC20(_token).balanceOf(address(vault)) + _amount;
 
         return nextBalance - prevBalance;
     }
 
-    function _collectSwapFees(
+    function __collectSwapFees(
         address, /*_token*/
         uint256 _amount,
         uint256 _feeBasisPoints
@@ -77,7 +77,7 @@ abstract contract GMXPreviewHelper {
         return afterFeeAmount;
     }
 
-    function getFeeBasisPoints(
+    function __getFeeBasisPoints(
         address _token,
         uint256 _usdgDelta,
         uint256 _burnedUsdg,
@@ -97,7 +97,7 @@ abstract contract GMXPreviewHelper {
             nextAmount = _usdgDelta > initialAmount ? 0 : initialAmount - _usdgDelta;
         }
 
-        uint256 targetAmount = getTargetUsdgAmount(_token, _burnedUsdg);
+        uint256 targetAmount = __getTargetUsdgAmount(_token, _burnedUsdg);
         if (targetAmount == 0) {
             return _feeBasisPoints;
         }
@@ -123,7 +123,7 @@ abstract contract GMXPreviewHelper {
         return _feeBasisPoints + taxBps;
     }
 
-    function getTargetUsdgAmount(address _token, uint256 _burnedUsdg)
+    function __getTargetUsdgAmount(address _token, uint256 _burnedUsdg)
         private
         view
         returns (uint256)

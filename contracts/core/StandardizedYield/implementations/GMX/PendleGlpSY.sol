@@ -55,9 +55,10 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             // GLP is already staked in stakedGlp's transferFrom, called in _transferIn()
             amountSharesOut = amountDeposited;
         } else if (tokenIn == NATIVE) {
-            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlpETH{
-                value: msg.value
-            }(0, 0);
+            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlpETH{ value: msg.value }(
+                0,
+                0
+            );
         } else {
             amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlp(
                 tokenIn,
@@ -140,7 +141,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             // Based on GlpManager's _addLiquidity
             uint256 aumInUsdg = IGlpManager(glpManager).getAumInUsdg(true);
             uint256 glpSupply = IERC20(glp).totalSupply();
-            uint256 usdgAmount = super.buyUSDG(tokenIn, amountTokenToDeposit);
+            uint256 usdgAmount = super._buyUSDG(tokenIn, amountTokenToDeposit);
 
             uint256 mintAmount = aumInUsdg == 0
                 ? usdgAmount
@@ -164,7 +165,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
             uint256 glpSupply = IERC20(glp).totalSupply();
 
             uint256 usdgAmount = (amountSharesToRedeem * aumInUsdg) / glpSupply;
-            uint256 amountOut = super.sellUSDG(tokenOut, usdgAmount);
+            uint256 amountOut = super._sellUSDG(tokenOut, usdgAmount);
 
             amountTokenOut = amountOut;
         }
