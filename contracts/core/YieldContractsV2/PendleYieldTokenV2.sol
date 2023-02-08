@@ -500,7 +500,7 @@ contract PendleYieldTokenV2 is
         }
     }
 
-    function _collectAndUpdateReward() internal {
+    function _redeemExternalReward() internal virtual override {
         IStandardizedYield(SY).claimRewards(address(this));
 
         address treasury = IPYieldContractFactory(factory).treasury();
@@ -516,8 +516,6 @@ contract PendleYieldTokenV2 is
             emit CollectRewardFee(token, amountRewardFee);
         }
     }
-
-    function _redeemExternalReward() internal virtual override {}
 
     /// @dev effectively returning the amount of SY generating rewards for this user
     function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
@@ -541,7 +539,6 @@ contract PendleYieldTokenV2 is
         uint256
     ) internal override {
         if (isExpired()) _setPostExpiryData();
-        _collectAndUpdateReward();
         _updateAndDistributeRewardsForTwo(from, to);
 
         _collectAndUpdateInterest();
