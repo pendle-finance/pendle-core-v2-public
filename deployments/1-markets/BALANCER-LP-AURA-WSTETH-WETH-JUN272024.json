@@ -6,5 +6,6 @@
     "market": "0xFcbAe4635CA89866F83Add208eCcEec742678746",
     "expiry": 1719446400,
     "scalarRoot": "28880000000000000000",
-    "initAnchor": "1105675000000000000"
+    "initAnchor": "1105675000000000000",
+    "bulkSeller": "0xd044Ee6D5dD9E9e4f6E3e81d1DF3ADB8adabAba0"
 }
