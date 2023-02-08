@@ -41,12 +41,12 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYT {
     }
 
     function _updateAndDistributeInterestForTwo(address user1, address user2) internal virtual {
-        uint256 indexes = _updateInterestIndex();
+        uint256 index = _updateInterestIndex();
 
         if (user1 != address(0) && user1 != address(this))
-            _distributeInterestPrivate(user1, indexes);
+            _distributeInterestPrivate(user1, index);
         if (user2 != address(0) && user2 != address(this))
-            _distributeInterestPrivate(user2, indexes);
+            _distributeInterestPrivate(user2, index);
     }
 
     function _doTransferOutInterest(address user, address SY)
