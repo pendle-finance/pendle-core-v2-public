@@ -5,8 +5,6 @@ import "./IRewardManager.sol";
 import "./IPInterestManagerYT.sol";
 
 interface IPYieldTokenV2 is IERC20Metadata, IRewardManager, IPInterestManagerYT {
-    event NewInterestIndex(uint256 indexed newIndex);
-
     event Mint(
         address indexed caller,
         address indexed receiverPT,

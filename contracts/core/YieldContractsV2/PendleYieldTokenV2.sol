@@ -34,10 +34,7 @@ contract PendleYieldTokenV2 is
     using ArrayLib for uint256[];
 
     struct PostExpiryData {
-        uint128 firstPYIndex;
-        uint128 totalSyInterestForTreasury;
-        mapping(address => uint256) firstRewardIndex;
-        mapping(address => uint256) userRewardOwed;
+        uint256 firstPYIndex;
     }
 
     address public immutable SY;
@@ -199,7 +196,7 @@ contract PendleYieldTokenV2 is
         }
 
         if (redeemInterest) {
-            _distributeInterest(user);
+            _updateAndDistributeInterest(user);
             interestOut = _doTransferOutInterest(user, SY);
             emit RedeemInterest(user, interestOut);
         } else {
@@ -211,30 +208,11 @@ contract PendleYieldTokenV2 is
      * @dev All rewards and interests accrued post-expiry goes to the treasury.
      * Reverts if called pre-expiry.
      */
-    function redeemInterestAndRewardsPostExpiryForTreasury()
-        external
-        nonReentrant
-        updateData
-        returns (uint256 interestOut, uint256[] memory rewardsOut)
-    {
+    function redeemInterestAndRewardsPostExpiryForTreasury() external nonReentrant updateData {
         if (!isExpired()) revert Errors.YCNotExpired();
 
-        address treasury = IPYieldContractFactory(factory).treasury();
-
-        address[] memory tokens = getRewardTokens();
-        rewardsOut = new uint256[](tokens.length);
-
+        _collectInterest();
         _redeemExternalReward();
-
-        for (uint256 i = 0; i < tokens.length; i++) {
-            rewardsOut[i] = _selfBalance(tokens[i]) - postExpiry.userRewardOwed[tokens[i]];
-        }
-
-        _transferOut(tokens, treasury, rewardsOut);
-
-        interestOut = postExpiry.totalSyInterestForTreasury;
-        postExpiry.totalSyInterestForTreasury = 0;
-        _transferOut(SY, treasury, interestOut);
     }
 
     /// @notice updates and returns the reward indexes
@@ -273,33 +251,10 @@ contract PendleYieldTokenV2 is
      * @notice returns the current data post-expiry, if exists
      * @dev reverts if post-expiry data not set (see `setPostExpiryData()`)
      * @return firstPYIndex the earliest PY index post-expiry
-     * @return totalSyInterestForTreasury current amount of SY interests post-expiry for treasury
-     * @return firstRewardIndexes the earliest reward indices post-expiry, for each reward token
-     * @return userRewardOwed amount of unclaimed user rewards, for each reward token
      */
-    function getPostExpiryData()
-        external
-        view
-        returns (
-            uint256 firstPYIndex,
-            uint256 totalSyInterestForTreasury,
-            uint256[] memory firstRewardIndexes,
-            uint256[] memory userRewardOwed
-        )
-    {
+    function getPostExpiryData() external view returns (uint256 firstPYIndex) {
         if (postExpiry.firstPYIndex == 0) revert Errors.YCPostExpiryDataNotSet();
-
         firstPYIndex = postExpiry.firstPYIndex;
-        totalSyInterestForTreasury = postExpiry.totalSyInterestForTreasury;
-
-        address[] memory tokens = getRewardTokens();
-        firstRewardIndexes = new uint256[](tokens.length);
-        userRewardOwed = new uint256[](tokens.length);
-
-        for (uint256 i = 0; i < tokens.length; ++i) {
-            firstRewardIndexes[i] = postExpiry.firstRewardIndex[tokens[i]];
-            userRewardOwed[i] = postExpiry.userRewardOwed[tokens[i]];
-        }
     }
 
     function _mintPY(
@@ -331,6 +286,10 @@ contract PendleYieldTokenV2 is
         return MiniHelpers.isCurrentlyExpired(expiry);
     }
 
+    function isDistributingInterestAndRewards() public view returns (bool) {
+        return postExpiry.firstPYIndex == 0;
+    }
+
     function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
         internal
         returns (uint256[] memory amountSyOuts)
@@ -354,9 +313,9 @@ contract PendleYieldTokenV2 is
 
             emit Burn(msg.sender, receivers[i], amountPYToRedeems[i], amountSyOuts[i]);
         }
-        if (totalSyInterestPostExpiry != 0) {
-            postExpiry.totalSyInterestForTreasury += totalSyInterestPostExpiry.Uint128();
-        }
+
+        address treasury = IPYieldContractFactory(factory).treasury();
+        _transferOut(SY, treasury, totalSyInterestPostExpiry);
     }
 
     function _calcPYToMint(uint256 amountSy, uint256 indexCurrent)
@@ -398,25 +357,16 @@ contract PendleYieldTokenV2 is
         PostExpiryData storage local = postExpiry;
         if (local.firstPYIndex != 0) return; // already set
 
-        _redeemExternalReward(); // do a final redeem. All the future reward income will belong to the treasury
+        _updateInterestIndex();
+        _updateRewardIndex();
 
+        // by setting this, we have finished setting postExpiry data, all income will go to treasury
         local.firstPYIndex = _pyIndexCurrent().Uint128();
-        address[] memory rewardTokens = IStandardizedYield(SY).getRewardTokens();
-        uint256[] memory rewardIndexes = IStandardizedYield(SY).rewardIndexesCurrent();
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            local.firstRewardIndex[rewardTokens[i]] = rewardIndexes[i];
-            local.userRewardOwed[rewardTokens[i]] = _selfBalance(rewardTokens[i]);
-        }
     }
 
     /*///////////////////////////////////////////////////////////////
                                INTEREST-RELATED
     //////////////////////////////////////////////////////////////*/
-
-    function _getInterestIndex() internal virtual override returns (uint256 index) {
-        if (isExpired()) index = postExpiry.firstPYIndex;
-        else index = _pyIndexCurrent();
-    }
 
     function _pyIndexCurrent() internal returns (uint256 currentIndex) {
         if (doCacheIndexSameBlock && pyIndexLastUpdatedBlock == block.number)
@@ -429,27 +379,41 @@ contract PendleYieldTokenV2 is
         currentIndex = index128;
         _pyIndexStored = index128;
         pyIndexLastUpdatedBlock = uint128(block.number);
-
-        emit NewInterestIndex(currentIndex);
     }
 
-    function _collectAndUpdateInterest() internal {
+    function _collectInterest() internal override returns (uint256 accuredAmount) {
         uint256 prevIndex = _lastCollectedInterestIndex;
         uint256 currentIndex = _pyIndexCurrent();
 
-        if (prevIndex != 0) {
-            uint256 interestFeeRate = IPYieldContractFactory(factory).interestFeeRate();
+        if (prevIndex != 0 && prevIndex != currentIndex) {
+            // guaranteed feeAmount != 0
             address treasury = IPYieldContractFactory(factory).treasury();
+            uint256 totalInterest = _calcInterest(totalSupply(), prevIndex, currentIndex);
+            uint256 feeAmount;
 
-            uint256 totalInterestAmount = _calcInterest(totalSupply(), prevIndex, currentIndex);
-            uint256 amountInterestFee = totalInterestAmount.mulDown(interestFeeRate);
-            _transferOut(SY, treasury, amountInterestFee);
-            _updateInterestIndex(totalInterestAmount - amountInterestFee);
+            if (isDistributingInterestAndRewards()) {
+                uint256 interestFeeRate = IPYieldContractFactory(factory).interestFeeRate();
+                feeAmount = totalInterest.mulDown(interestFeeRate);
+                accuredAmount = totalInterest - feeAmount;
+            } else {
+                feeAmount = totalInterest;
+                accuredAmount = 0;
+            }
+
+            _transferOut(SY, treasury, feeAmount);
             _updateSyReserve();
-            emit CollectInterestFee(amountInterestFee);
+            emit CollectInterestFee(feeAmount);
         }
 
         _lastCollectedInterestIndex = currentIndex;
+    }
+
+    function _calcInterest(
+        uint256 principal,
+        uint256 prevIndex,
+        uint256 currentIndex
+    ) internal pure returns (uint256) {
+        return (principal * (currentIndex - prevIndex)).divDown(prevIndex * currentIndex);
     }
 
     function _YTbalance(address user) internal view override returns (uint256) {
@@ -476,15 +440,7 @@ contract PendleYieldTokenV2 is
     {
         address[] memory tokens = getRewardTokens();
 
-        if (isExpired()) {
-            // post-expiry, all incoming rewards will go to the treasury
-            // hence, we can save users one _redeemExternal here
-            for (uint256 i = 0; i < tokens.length; i++)
-                postExpiry.userRewardOwed[tokens[i]] -= userReward[tokens[i]][user].accrued;
-            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
-        } else {
-            rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
-        }
+        rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
     }
 
     function __doTransferOutRewardsLocal(
@@ -507,10 +463,16 @@ contract PendleYieldTokenV2 is
         uint256 rewardFeeRate = IPYieldContractFactory(factory).rewardFeeRate();
 
         address[] memory rewardTokens = getRewardTokens();
+
+        bool isDist = isDistributingInterestAndRewards();
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
             uint256 accruedReward = _selfBalance(token) - rewardState[token].lastBalance;
-            uint256 amountRewardFee = accruedReward.mulDown(rewardFeeRate);
+
+            uint256 amountRewardFee;
+
+            if (isDist) amountRewardFee = accruedReward.mulDown(rewardFeeRate);
+            else amountRewardFee = accruedReward;
 
             _transferOut(token, treasury, amountRewardFee);
             emit CollectRewardFee(token, amountRewardFee);
@@ -540,8 +502,6 @@ contract PendleYieldTokenV2 is
     ) internal override {
         if (isExpired()) _setPostExpiryData();
         _updateAndDistributeRewardsForTwo(from, to);
-
-        _collectAndUpdateInterest();
-        _distributeInterestForTwo(from, to);
+        _updateAndDistributeInterestForTwo(from, to);
     }
 }

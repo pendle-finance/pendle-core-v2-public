@@ -28,19 +28,25 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYT {
         uint128 accrued;
     }
 
+    uint256 public lastInterestBlock;
+
     uint256 public globalInterestIndex;
+
     mapping(address => UserInterest) public userInterest;
 
-    function _distributeInterest(address user) internal {
-        _distributeInterestForTwo(user, address(0));
+    uint256 internal constant INITIAL_INTEREST_INDEX = 1;
+
+    function _updateAndDistributeInterest(address user) internal virtual {
+        _updateAndDistributeInterestForTwo(user, address(0));
     }
 
-    function _distributeInterestForTwo(address user1, address user2) internal {
-        uint256 index = globalInterestIndex;
+    function _updateAndDistributeInterestForTwo(address user1, address user2) internal virtual {
+        uint256 indexes = _updateInterestIndex();
+
         if (user1 != address(0) && user1 != address(this))
-            _distributeInterestPrivate(user1, index);
+            _distributeInterestPrivate(user1, indexes);
         if (user2 != address(0) && user2 != address(this))
-            _distributeInterestPrivate(user2, index);
+            _distributeInterestPrivate(user2, indexes);
     }
 
     function _doTransferOutInterest(address user, address SY)
@@ -48,8 +54,8 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYT {
         returns (uint256 interestAmount)
     {
         interestAmount = userInterest[user].accrued;
-        _transferOut(SY, user, interestAmount);
         userInterest[user].accrued = 0;
+        _transferOut(SY, user, interestAmount);
     }
 
     // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)
@@ -69,21 +75,28 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYT {
         userInterest[user].index = currentIndex.Uint128();
     }
 
-    function _updateInterestIndex(uint256 syInterestAccrued) internal {
-        globalInterestIndex += syInterestAccrued.divDown(_YTSupply());
+    function _updateInterestIndex() internal returns (uint256 index) {
+        if (lastInterestBlock != block.number) {
+            // if we have not yet update the index for this block
+            lastInterestBlock = block.number;
+
+            uint256 totalShares = _YTSupply();
+
+            uint256 accrued = _collectInterest();
+            index = globalInterestIndex;
+
+            if (index == 0) index = INITIAL_INTEREST_INDEX;
+            if (totalShares != 0) index += accrued.divDown(totalShares);
+
+            globalInterestIndex = index;
+        } else {
+            index = globalInterestIndex;
+        }
     }
 
-    function _getInterestIndex() internal virtual returns (uint256 index);
+    function _collectInterest() internal virtual returns (uint256);
 
     function _YTbalance(address user) internal view virtual returns (uint256);
 
     function _YTSupply() internal view virtual returns (uint256);
-
-    function _calcInterest(
-        uint256 principal,
-        uint256 prevIndex,
-        uint256 currentIndex
-    ) internal pure returns (uint256) {
-        return (principal * (currentIndex - prevIndex)).divDown(prevIndex * currentIndex);
-    }
 }
