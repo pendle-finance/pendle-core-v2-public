@@ -388,17 +388,13 @@ contract PendleYieldTokenV2 is
         if (prevIndex != 0 && prevIndex != currentIndex) {
             // guaranteed feeAmount != 0
             address treasury = IPYieldContractFactory(factory).treasury();
-            uint256 totalInterest = _calcInterest(totalSupply(), prevIndex, currentIndex);
-            uint256 feeAmount;
+            uint256 interestFeeRate = isDistributingInterestAndRewards()
+                ? IPYieldContractFactory(factory).interestFeeRate()
+                : Math.ONE;
 
-            if (isDistributingInterestAndRewards()) {
-                uint256 interestFeeRate = IPYieldContractFactory(factory).interestFeeRate();
-                feeAmount = totalInterest.mulDown(interestFeeRate);
-                accuredAmount = totalInterest - feeAmount;
-            } else {
-                feeAmount = totalInterest;
-                accuredAmount = 0;
-            }
+            uint256 totalInterest = _calcInterest(totalSupply(), prevIndex, currentIndex);
+            uint256 feeAmount = totalInterest.mulDown(interestFeeRate);
+            accuredAmount = totalInterest - feeAmount;
 
             _transferOut(SY, treasury, feeAmount);
             _updateSyReserve();
@@ -460,19 +456,17 @@ contract PendleYieldTokenV2 is
         IStandardizedYield(SY).claimRewards(address(this));
 
         address treasury = IPYieldContractFactory(factory).treasury();
-        uint256 rewardFeeRate = IPYieldContractFactory(factory).rewardFeeRate();
+        uint256 rewardFeeRate = isDistributingInterestAndRewards()
+            ? IPYieldContractFactory(factory).rewardFeeRate()
+            : Math.ONE;
 
         address[] memory rewardTokens = getRewardTokens();
 
-        bool isDist = isDistributingInterestAndRewards();
         for (uint256 i = 0; i < rewardTokens.length; ++i) {
             address token = rewardTokens[i];
             uint256 accruedReward = _selfBalance(token) - rewardState[token].lastBalance;
 
-            uint256 amountRewardFee;
-
-            if (isDist) amountRewardFee = accruedReward.mulDown(rewardFeeRate);
-            else amountRewardFee = accruedReward;
+            uint256 amountRewardFee = accruedReward.mulDown(rewardFeeRate);
 
             _transferOut(token, treasury, amountRewardFee);
             emit CollectRewardFee(token, amountRewardFee);
