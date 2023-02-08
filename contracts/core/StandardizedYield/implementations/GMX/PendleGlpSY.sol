@@ -32,9 +32,16 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         glpManager = IRewardRouterV2(glpRouter).glpManager();
         weth = IRewardRouterV2(glpRouter).weth();
 
+        approveAllWhitelisted();
+    }
+
+    function approveAllWhitelisted() public {
         uint256 length = vault.allWhitelistedTokensLength();
         for (uint256 i = 0; i < length; ++i) {
-            _safeApproveInf(vault.allWhitelistedTokens(i), glpManager);
+            address token = vault.allWhitelistedTokens(i);
+            if (vault.whitelistedTokens(token)) {
+                _safeApproveInf(token, glpManager);
+            }
         }
     }
 
