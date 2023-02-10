@@ -436,31 +436,6 @@ contract PendleYieldTokenV2 is
         return IStandardizedYield(SY).getRewardTokens();
     }
 
-    function _doTransferOutRewards(address user, address receiver)
-        internal
-        virtual
-        override
-        returns (uint256[] memory rewardAmounts)
-    {
-        address[] memory tokens = getRewardTokens();
-
-        rewardAmounts = __doTransferOutRewardsLocal(tokens, user, receiver);
-    }
-
-    function __doTransferOutRewardsLocal(
-        address[] memory tokens,
-        address user,
-        address receiver
-    ) internal returns (uint256[] memory rewardAmounts) {
-        rewardAmounts = new uint256[](tokens.length);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            rewardAmounts[i] = userReward[tokens[i]][user].accrued;
-            userReward[tokens[i]][user].accrued = 0;
-            rewardState[tokens[i]].lastBalance -= rewardAmounts[i].Uint128();
-            _transferOut(tokens[i], receiver, rewardAmounts[i]);
-        }
-    }
-
     function _redeemExternalReward() internal virtual override {
         IStandardizedYield(SY).claimRewards(address(this));
 
