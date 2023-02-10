@@ -75,6 +75,7 @@ library Errors {
     error RouterTimeRangeZero();
     error RouterCallbackNotPendleMarket(address caller);
     error RouterInvalidAction(bytes4 selector);
+    error RouterInvalidFacet(address facet);
 
     error RouterKyberSwapDataZero();
 
@@ -170,7 +171,7 @@ library Errors {
     error OnlyYCFactory();
     error OnlyWhitelisted();
 
-    // Swap Aggregator 
+    // Swap Aggregator
     error SAInsufficientTokenIn(address tokenIn, uint256 amountExpected, uint256 amountActual);
     error UnsupportedSelector(uint256 aggregatorType, bytes4 selector);
 }
