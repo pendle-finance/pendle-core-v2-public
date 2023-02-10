@@ -67,8 +67,63 @@ contract PendleRouter is Proxy, IDiamondLoupe {
         }
     }
 
-    /// @notice Gets all the function selectors supported by a specific facet.
-    function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {}
+    function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {
+        if (facet == ACTION_ADD_REMOVE_LIQ) {
+            res = new bytes4[](10);
+            res[0] = 0x97ee279e; // addLiquidityDualSyAndPt
+            res[1] = 0xcb591eb2; // addLiquidityDualTokenAndPt
+            res[2] = 0x3af1f329; // addLiquiditySinglePt
+            res[3] = 0x409c7a89; // addLiquiditySingleSy
+            res[4] = 0x015491d1; // addLiquiditySingleToken
+            res[5] = 0xb7d75b8b; // removeLiquidityDualSyAndPt
+            res[6] = 0xe6eaba01; // removeLiquidityDualTokenAndPt
+            res[7] = 0x694ab559; // removeLiquiditySinglePt
+            res[8] = 0x178d29d3; // removeLiquiditySingleSy
+            res[9] = 0x690807ad; // removeLiquiditySingleToken
+            return res;
+        }
+        if (facet == ACTION_MINT_REDEEM) {
+            res = new bytes4[](7);
+            res[0] = 0x1a8631b2; // mintPyFromSy
+            res[1] = 0x46eb2db6; // mintPyFromToken
+            res[2] = 0x443e6512; // mintSyFromToken
+            res[3] = 0xf7e375e8; // redeemDueInterestAndRewards
+            res[4] = 0x339748cb; // redeemPyToSy
+            res[5] = 0x527df199; // redeemPyToToken
+            res[6] = 0x85b29936; // redeemSyToToken
+            return res;
+        }
+        if (facet == ACTION_SWAP_PT) {
+            res = new bytes4[](6);
+            res[0] = 0x2032aecd; // swapExactPtForSy
+            res[1] = 0xb85f50ba; // swapExactPtForToken
+            res[2] = 0x83c71b69; // swapExactSyForPt
+            res[3] = 0xa5f9931b; // swapExactTokenForPt
+            res[4] = 0xdd371acd; // swapPtForExactSy
+            res[5] = 0x6b8bdf32; // swapSyForExactPt
+            return res;
+        }
+        if (facet == ACTION_SWAP_YT) {
+            res = new bytes4[](9);
+            res[0] = 0xfa483e72; // swapCallback
+            res[1] = 0xc861a898; // swapExactPtForYt
+            res[2] = 0x448b9b95; // swapExactYtForPt
+            res[3] = 0xfdd71f43; // swapExactSyForYt
+            res[4] = 0xc4a9c7de; // swapExactTokenForYt
+            res[5] = 0x357d6540; // swapExactYtForSy
+            res[6] = 0xd6308fa4; // swapExactYtForToken
+            res[7] = 0xbf1bd434; // swapSyForExactYt
+            res[8] = 0xe15cc098; // swapYtForExactSy
+            return res;
+        }
+        if (facet == ACTION_MISC) {
+            res = new bytes4[](2);
+            res[0] = 0xacdb32df; // approveInf
+            res[1] = 0xd617b03b; // batchExec
+            return res;
+        }
+        revert Errors.RouterInvalidFacet(facet);
+    }
 
     function facetAddress(bytes4 sig) public view returns (address) {
         if (sig < 0x85b29936) {
@@ -117,25 +172,26 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                     }
                 }
             } else {
-                if (sig < 0xe15cc098) {
+                if (sig < 0xdd371acd) {
                     if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 4
                     if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
-                    if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 6
-                    if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 7
+                    if (sig == 0xd617b03b) return ACTION_MISC; // batchExec 6
+                    if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 7
                 } else {
-                    if (sig < 0xf7e375e8) {
-                        if (sig == 0xe15cc098) return ACTION_SWAP_YT; // swapYtForExactSy 5
-                        if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 6
+                    if (sig < 0xe6eaba01) {
+                        if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 5
+                        if (sig == 0xe15cc098) return ACTION_SWAP_YT; // swapYtForExactSy 6
                     } else {
-                        if (sig == 0xf7e375e8) return ACTION_MINT_REDEEM; // redeemDueInterestAndRewards 5
-                        if (sig == 0xfa483e72) return ACTION_SWAP_YT; // swapCallback 6
-                        if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 7
+                        if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 5
+                        if (sig == 0xf7e375e8) return ACTION_MINT_REDEEM; // redeemDueInterestAndRewards 6
+                        if (sig == 0xfa483e72) return ACTION_SWAP_YT; // swapCallback 7
+                        if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 8
                     }
                 }
             }
         }
-
         revert Errors.RouterInvalidAction(sig);
+        // sumStep:191 worstCase:8
     }
 
     function facetAddresses() public view returns (address[] memory facetAddresses_) {

@@ -29,9 +29,11 @@ contract ActionMisc is IPActionMisc, TokenHelper {
 
         for (uint256 i = 0; i < length; ) {
             calli = calls[i];
+
+            // delegatecall to itself, it turns allowing invoking functions from other actions
             (bool success, bytes memory result) = address(this).delegatecall(calli.callData);
 
-            if (!calli.allowFailure && !success) {
+            if (!success && !calli.allowFailure) {
                 assembly {
                     // We use Yul's revert() to bubble up errors from the target contract.
                     revert(add(32, result), mload(result))

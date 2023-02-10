@@ -7,5 +7,20 @@ interface IPActionMisc {
         address spender;
     }
 
+    struct Call3 {
+        bool allowFailure;
+        bytes callData;
+    }
+
+    struct Result {
+        bool success;
+        bytes returnData;
+    }
+
     function approveInf(MultiApproval[] calldata) external;
+
+    function batchExec(Call3[] calldata calls)
+        external
+        payable
+        returns (Result[] memory returnData);
 }
