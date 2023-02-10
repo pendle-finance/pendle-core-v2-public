@@ -381,9 +381,13 @@ contract PendleYieldTokenV2 is
         pyIndexLastUpdatedBlock = uint128(block.number);
     }
 
-    function _collectInterest() internal override returns (uint256 accuredAmount) {
+    function _collectInterest()
+        internal
+        override
+        returns (uint256 accuredAmount, uint256 currentIndex)
+    {
         uint256 prevIndex = _lastCollectedInterestIndex;
-        uint256 currentIndex = _pyIndexCurrent();
+        currentIndex = _pyIndexCurrent();
 
         if (prevIndex != 0 && prevIndex != currentIndex) {
             // guaranteed feeAmount != 0
@@ -420,6 +424,10 @@ contract PendleYieldTokenV2 is
         return totalSupply();
     }
 
+    function _getGlobalPYIndex() internal view virtual override returns (uint256) {
+        return _pyIndexStored;
+    }
+
     /*///////////////////////////////////////////////////////////////
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
@@ -448,6 +456,7 @@ contract PendleYieldTokenV2 is
         for (uint256 i = 0; i < tokens.length; i++) {
             rewardAmounts[i] = userReward[tokens[i]][user].accrued;
             userReward[tokens[i]][user].accrued = 0;
+            rewardState[tokens[i]].lastBalance -= rewardAmounts[i].Uint128();
             _transferOut(tokens[i], receiver, rewardAmounts[i]);
         }
     }
@@ -475,7 +484,7 @@ contract PendleYieldTokenV2 is
 
     /// @dev effectively returning the amount of SY generating rewards for this user
     function _rewardSharesUser(address user) internal view virtual override returns (uint256) {
-        uint256 index = userInterest[user].index;
+        uint256 index = userInterest[user].pyIndex;
         if (index == 0) return 0;
         return SYUtils.assetToSy(index, balanceOf(user)) + userInterest[user].accrued;
     }

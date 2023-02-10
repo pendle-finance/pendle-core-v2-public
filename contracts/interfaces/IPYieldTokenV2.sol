@@ -2,9 +2,9 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IRewardManager.sol";
-import "./IPInterestManagerYT.sol";
+import "./IPInterestManagerYTV2.sol";
 
-interface IPYieldTokenV2 is IERC20Metadata, IRewardManager, IPInterestManagerYT {
+interface IPYieldTokenV2 is IERC20Metadata, IRewardManager, IPInterestManagerYTV2 {
     event Mint(
         address indexed caller,
         address indexed receiverPT,
