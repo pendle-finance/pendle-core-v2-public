@@ -70,14 +70,6 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
     }
 
-    struct VarsSwapSyForExactYt {
-        address payer;
-        address receiver;
-        uint256 maxSyToPull;
-        IStandardizedYield SY;
-        IPYieldToken YT;
-    }
-
     /// @dev refer to _swapSyForExactYt
     /// @dev we require msg.sender to be market here to make sure payer is the original msg.sender
     function _callbackSwapSyForExactYt(
@@ -85,11 +77,13 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         int256 syToAccount,
         bytes calldata data
     ) internal onlyPendleMarket(msg.sender) {
-        VarsSwapSyForExactYt memory vars;
-        IStandardizedYield SY;
-        IPYieldToken YT;
-
-        (vars.payer, vars.receiver, vars.maxSyToPull, SY, YT) = _decodeSwapSyForExactYt(data);
+        (
+            address payer,
+            address receiver,
+            uint256 maxSyToPull,
+            IStandardizedYield SY,
+            IPYieldToken YT
+        ) = _decodeSwapSyForExactYt(data);
 
         /// ------------------------------------------------------------
         /// calc totalSyNeed
@@ -104,17 +98,17 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         uint256 syReceived = syToAccount.Uint();
         uint256 netSyToPull = totalSyNeed.subMax0(syReceived);
 
-        if (netSyToPull > vars.maxSyToPull)
-            revert Errors.RouterExceededLimitSyIn(netSyToPull, vars.maxSyToPull);
+        if (netSyToPull > maxSyToPull)
+            revert Errors.RouterExceededLimitSyIn(netSyToPull, maxSyToPull);
 
         /// ------------------------------------------------------------
         /// mint & transfer
         /// ------------------------------------------------------------
         if (netSyToPull > 0) {
-            _transferFrom(IERC20(SY), vars.payer, address(YT), netSyToPull);
+            _transferFrom(IERC20(SY), payer, address(YT), netSyToPull);
         }
 
-        uint256 netPyOut = YT.mintPY(msg.sender, vars.receiver);
+        uint256 netPyOut = YT.mintPY(msg.sender, receiver);
         if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
     }
 
