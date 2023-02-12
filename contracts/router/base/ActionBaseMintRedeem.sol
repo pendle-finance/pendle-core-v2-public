@@ -200,26 +200,4 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
     {
         return output.bulk != address(0) ? output.bulk : SY;
     }
-
-    function _pullAndSwap(
-        bool doPull,
-        address pendleSwap,
-        address tokenIn,
-        address tokenOut,
-        uint256 netTokenIn,
-        SwapData calldata data
-    ) internal returns (uint256) {
-        if (doPull) {
-            if (tokenIn == NATIVE) _transferIn(tokenIn, msg.sender, netTokenIn);
-            else _transferFrom(IERC20(tokenIn), msg.sender, pendleSwap, netTokenIn);
-        }
-
-        IPSwapAggregator(pendleSwap).swap{ value: tokenIn == NATIVE ? netTokenIn : 0 }(
-            tokenIn,
-            netTokenIn,
-            data
-        );
-
-        return _selfBalance(tokenOut);
-    }
 }
