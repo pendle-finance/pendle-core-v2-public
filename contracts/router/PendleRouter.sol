@@ -69,7 +69,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
 
     function facetFunctionSelectors(address facet) public view returns (bytes4[] memory res) {
         if (facet == ACTION_ADD_REMOVE_LIQ) {
-            res = new bytes4[](10);
+            res = new bytes4[](12);
             res[0] = 0x97ee279e; // addLiquidityDualSyAndPt
             res[1] = 0xcb591eb2; // addLiquidityDualTokenAndPt
             res[2] = 0x3af1f329; // addLiquiditySinglePt
@@ -80,6 +80,8 @@ contract PendleRouter is Proxy, IDiamondLoupe {
             res[7] = 0x694ab559; // removeLiquiditySinglePt
             res[8] = 0x178d29d3; // removeLiquiditySingleSy
             res[9] = 0x690807ad; // removeLiquiditySingleToken
+            res[10] = 0xdfbc814e; // addLiquiditySingleTokenKeepYt
+            res[11] = 0x844384aa; // addLiquiditySingleSyKeepYt
             return res;
         }
         if (facet == ACTION_MINT_REDEEM) {
@@ -135,77 +137,77 @@ contract PendleRouter is Proxy, IDiamondLoupe {
 
     function facetAddress(bytes4 sig) public view returns (address) {
         if (sig < 0x97ee279e) {
-            if (sig < 0x448b9b95) {
-                if (sig < 0x339748cb) {
+            if (sig < 0x46eb2db6) {
+                if (sig < 0x357d6540) {
                     if (sig < 0x1a8631b2) {
                         if (sig == 0x015491d1) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleToken 5
                         if (sig == 0x178d29d3) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleSy 6
                     } else {
                         if (sig == 0x1a8631b2) return ACTION_MINT_REDEEM; // mintPyFromSy 5
                         if (sig == 0x2032aecd) return ACTION_SWAP_PT; // swapExactPtForSy 6
+                        if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 7
                     }
                 } else {
-                    if (sig < 0x3af1f329) {
+                    if (sig < 0x409c7a89) {
                         if (sig == 0x357d6540) return ACTION_SWAP_YT; // swapExactYtForSy 5
-                        if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 6
-                        if (sig == 0x3968d6b2) return ACTION_ADD_REMOVE_LIQ; // addLiqSingleSyKeepYt 7
+                        if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 6
                     } else {
-                        if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 5
-                        if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 6
-                        if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 7
+                        if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 5
+                        if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 6
+                        if (sig == 0x448b9b95) return ACTION_SWAP_YT; // swapExactYtForPt 7
                     }
                 }
             } else {
-                if (sig < 0x694ab559) {
-                    if (sig < 0x527df199) {
+                if (sig < 0x6b8bdf32) {
+                    if (sig < 0x52ef6b2c) {
                         if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 5
-                        if (sig == 0x448b9b95) return ACTION_SWAP_YT; // swapExactYtForPt 6
+                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 6
                     } else {
                         if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 5
-                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 6
+                        if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 6
                         if (sig == 0x52ef6b2c) return address(this); // facetAddresses 7
                     }
                 } else {
-                    if (sig < 0x7a0ed627) {
-                        if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 5
-                        if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 6
-                        if (sig == 0x733c0cd9) return ACTION_ADD_REMOVE_LIQ; // addLiqSingleTokenKeepYt 6
+                    if (sig < 0x83c71b69) {
+                        if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 5
+                        if (sig == 0x7a0ed627) return address(this); // facets 6
                     } else {
-                        if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 5
-                        if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 6
-                        if (sig == 0x7a0ed627) return address(this); // facets 7
+                        if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 5
+                        if (sig == 0x844384aa) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSyKeepYt 6
+                        if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 7
                     }
                 }
             }
         } else {
-            if (sig < 0xcb591eb2) {
-                if (sig < 0xb7d75b8b) {
+            if (sig < 0xcdffacc6) {
+                if (sig < 0xb85f50ba) {
                     if (sig < 0xacdb32df) {
                         if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 5
                         if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 6
                     } else {
-                        if (sig == 0xacdb32df) return ACTION_MISC; // approveInf 5
-                        if (sig == 0xadfca15e) return address(this); // facetFunctionSelectors 6
+                        if (sig == 0xb7d75b8b) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualSyAndPt 5
+                        if (sig == 0xacdb32df) return ACTION_MISC; // approveInf 6
+                        if (sig == 0xadfca15e) return address(this); // facetFunctionSelectors 7
                     }
                 } else {
-                    if (sig < 0xbf1bd434) {
+                    if (sig < 0xc4a9c7de) {
                         if (sig == 0xb85f50ba) return ACTION_SWAP_PT; // swapExactPtForToken 5
-                        if (sig == 0xb7d75b8b) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualSyAndPt 6
+                        if (sig == 0xbf1bd434) return ACTION_SWAP_YT; // swapSyForExactYt 6
                     } else {
                         if (sig == 0xc4a9c7de) return ACTION_SWAP_YT; // swapExactTokenForYt 5
-                        if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 6
-                        if (sig == 0xbf1bd434) return ACTION_SWAP_YT; // swapSyForExactYt 7
+                        if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 6
+                        if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 7
                     }
                 }
             } else {
                 if (sig < 0xe15cc098) {
-                    if (sig < 0xd617b03b) {
-                        if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
+                    if (sig < 0xd6308fa4) {
+                        if (sig == 0xd617b03b) return ACTION_MISC; // batchExec 5
                         if (sig == 0xcdffacc6) return address(this); // facetAddress 6
                     } else {
                         if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 5
-                        if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 6
-                        if (sig == 0xd617b03b) return ACTION_MISC; // batchExec 7
+                        if (sig == 0xdfbc814e) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleTokenKeepYt 6
+                        if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 7
                     }
                 } else {
                     if (sig < 0xf7e375e8) {
@@ -220,7 +222,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
             }
         }
         revert Errors.RouterInvalidAction(sig);
-        // NUM_FUNC: 38 AVG:5.74 STD:0.71 WORST_CASE:7 STOP_BRANCH:3
+        // NUM_FUNC: 40 AVG:5.80 STD:0.75 WORST_CASE:7 STOP_BRANCH:3
     }
 
     function facetAddresses() public view returns (address[] memory) {

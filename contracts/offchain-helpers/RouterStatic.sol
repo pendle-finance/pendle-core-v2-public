@@ -368,14 +368,14 @@ contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpg
         return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
     }
 
-    function addLiqSingleSyKeepYtStatic(address market, uint256 netSyIn)
+    function addLiquiditySingleSyKeepYtStatic(address market, uint256 netSyIn)
         external
         returns (uint256 netLpOut, uint256 netYtOut)
     {
-        return MarketMathStatic.addLiqSingleSyKeepYtStatic(market, netSyIn);
+        return MarketMathStatic.addLiquiditySingleSyKeepYtStatic(market, netSyIn);
     }
 
-    function addLiqSingleTokenKeepYtStatic(
+    function addLiquiditySingleTokenKeepYtStatic(
         address market,
         address baseToken,
         uint256 netBaseTokenIn,
@@ -387,7 +387,7 @@ contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpg
             netBaseTokenIn,
             bulk
         );
-        return MarketMathStatic.addLiqSingleSyKeepYtStatic(market, netSyIn);
+        return MarketMathStatic.addLiquiditySingleSyKeepYtStatic(market, netSyIn);
     }
 
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)

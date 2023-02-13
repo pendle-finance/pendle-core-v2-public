@@ -261,7 +261,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
      * @return netYtOut actual YT output, will not be lower than `minYtOut`
      * @dev Reverts if market is expired
      */
-    function addLiqSingleSyKeepYt(
+    function addLiquiditySingleSyKeepYt(
         address receiver,
         address market,
         uint256 netSyIn,
@@ -272,7 +272,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         _transferIn(address(SY), msg.sender, netSyIn);
 
-        (netLpOut, netYtOut) = _addLiqSingleSyKeepYt(
+        (netLpOut, netYtOut) = _addLiquiditySingleSyKeepYt(
             receiver,
             market,
             SY,
@@ -282,19 +282,19 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             minYtOut
         );
 
-        emit AddLiqSingleSyKeepYt(msg.sender, market, receiver, netSyIn, netLpOut, netYtOut);
+        emit AddLiquiditySingleSyKeepYt(msg.sender, market, receiver, netSyIn, netLpOut, netYtOut);
     }
 
     /**
      * @notice Adds liquidity and returns leftover YT using a single token input. The input token
      * is first swapped through Kyberswap to a SY-mintable token, the rest is the same as
-     * `addLiqSingleSyKeepYt()`
+     * `addLiquiditySingleSyKeepYt()`
      * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
      * @return netLpOut actual LP output, will not be lower than `minLpOut`
      * @return netYtOut actual YT output, will not be lower than `minYtOut`
      * @dev Reverts if market is expired
      */
-    function addLiqSingleTokenKeepYt(
+    function addLiquiditySingleTokenKeepYt(
         address receiver,
         address market,
         uint256 minLpOut,
@@ -305,7 +305,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
 
         uint256 netSyUsed = _mintSyFromToken(address(this), address(SY), 1, input);
 
-        (netLpOut, netYtOut) = _addLiqSingleSyKeepYt(
+        (netLpOut, netYtOut) = _addLiquiditySingleSyKeepYt(
             receiver,
             market,
             SY,
@@ -315,7 +315,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
             minYtOut
         );
 
-        emit AddLiqSingleTokenKeepYt(
+        emit AddLiquiditySingleTokenKeepYt(
             msg.sender,
             market,
             input.tokenIn,
@@ -546,13 +546,13 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         - Split SY into a SY and b SY (with a + b = netSyIn)
         - Mint PY with a SY ---> gives (a * pyIndex / ONE) PT + YT
         - Mint LP with (a * pyIndex / ONE) PT and b SY
-        
+
         -> We want (a * pyIndex / ONE) / totalPt = b / totalSy
-        -> a * (1 + pyIndex * totalSy / ONE / totalPt) = netSyIn 
+        -> a * (1 + pyIndex * totalSy / ONE / totalPt) = netSyIn
         -> a = (netSyIn * totalPt) / (totalPt + (pyIndex * totalSy / ONE))
         -> a = (netSyIn * totalPt) / (totalPt + totalAsset)
      */
-    function _addLiqSingleSyKeepYt(
+    function _addLiquiditySingleSyKeepYt(
         address receiver,
         address market,
         IStandardizedYield SY,

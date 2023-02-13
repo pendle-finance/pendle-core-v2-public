@@ -49,7 +49,7 @@ interface IPActionAddRemoveLiq {
         uint256 netLpOut
     );
 
-    event AddLiqSingleSyKeepYt(
+    event AddLiquiditySingleSyKeepYt(
         address indexed caller,
         address indexed market,
         address indexed receiver,
@@ -58,7 +58,7 @@ interface IPActionAddRemoveLiq {
         uint256 netYtOut
     );
 
-    event AddLiqSingleTokenKeepYt(
+    event AddLiquiditySingleTokenKeepYt(
         address indexed caller,
         address indexed market,
         address indexed token,
@@ -165,7 +165,7 @@ interface IPActionAddRemoveLiq {
         TokenInput calldata input
     ) external payable returns (uint256 netLpOut, uint256 netSyFee);
 
-    function addLiqSingleSyKeepYt(
+    function addLiquiditySingleSyKeepYt(
         address receiver,
         address market,
         uint256 netSyIn,
@@ -173,7 +173,7 @@ interface IPActionAddRemoveLiq {
         uint256 minYtOut
     ) external returns (uint256 netLpOut, uint256 netYtOut);
 
-    function addLiqSingleTokenKeepYt(
+    function addLiquiditySingleTokenKeepYt(
         address receiver,
         address market,
         uint256 minLpOut,
