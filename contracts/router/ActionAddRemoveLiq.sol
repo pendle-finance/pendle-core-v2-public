@@ -21,6 +21,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;
     using PYIndexLib for IPYieldToken;
+    using PYIndexLib for PYIndex;
     using BulkSellerMathCore for BulkSellerState;
 
     /**
@@ -254,6 +255,78 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     }
 
     /**
+     * @notice Mints partial SY to PT+YT, returns YT to user, then uses PT+SY to add liquidity
+     * @param netSyIn amount of SY to be transferred in from caller
+     * @return netLpOut actual LP output, will not be lower than `minLpOut`
+     * @return netYtOut actual YT output, will not be lower than `minYtOut`
+     * @dev Reverts if market is expired
+     */
+    function addLiqSingleSyKeepYt(
+        address receiver,
+        address market,
+        uint256 netSyIn,
+        uint256 minLpOut,
+        uint256 minYtOut
+    ) external returns (uint256 netLpOut, uint256 netYtOut) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        _transferIn(address(SY), msg.sender, netSyIn);
+
+        (netLpOut, netYtOut) = _addLiqSingleSyKeepYt(
+            receiver,
+            market,
+            SY,
+            YT,
+            netSyIn,
+            minLpOut,
+            minYtOut
+        );
+
+        emit AddLiqSingleSyKeepYt(msg.sender, market, receiver, netSyIn, netLpOut, netYtOut);
+    }
+
+    /**
+     * @notice Adds liquidity and returns leftover YT using a single token input. The input token
+     * is first swapped through Kyberswap to a SY-mintable token, the rest is the same as
+     * `addLiqSingleSyKeepYt()`
+     * @param input data for input token, see {`./kyberswap/KyberSwapHelper.sol`}
+     * @return netLpOut actual LP output, will not be lower than `minLpOut`
+     * @return netYtOut actual YT output, will not be lower than `minYtOut`
+     * @dev Reverts if market is expired
+     */
+    function addLiqSingleTokenKeepYt(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external returns (uint256 netLpOut, uint256 netYtOut) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        uint256 netSyUsed = _mintSyFromToken(address(this), address(SY), 1, input);
+
+        (netLpOut, netYtOut) = _addLiqSingleSyKeepYt(
+            receiver,
+            market,
+            SY,
+            YT,
+            netSyUsed,
+            minLpOut,
+            minYtOut
+        );
+
+        emit AddLiqSingleTokenKeepYt(
+            msg.sender,
+            market,
+            input.tokenIn,
+            receiver,
+            input.netTokenIn,
+            netLpOut,
+            netYtOut
+        );
+    }
+
+    /**
      * @notice Burns LP token to remove SY/PT liquidity
      * @param netLpToRemove amount of LP to be burned from caller
      * @dev Will work even if market is expired
@@ -466,6 +539,48 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyIn - netSySwapped, netPtFromSwap);
 
         if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+    }
+
+    /**
+     * @dev algorithm:
+        - Split SY into a SY and b SY (with a + b = netSyIn)
+        - Mint PY with a SY ---> gives (a * pyIndex / ONE) PT + YT
+        - Mint LP with (a * pyIndex / ONE) PT and b SY
+        
+        -> We want (a * pyIndex / ONE) / totalPt = b / totalSy
+        -> a * (1 + pyIndex * totalSy / ONE / totalPt) = netSyIn 
+        -> a = (netSyIn * totalPt) / (totalPt + (pyIndex * totalSy / ONE))
+        -> a = (netSyIn * totalPt) / (totalPt + totalAsset)
+     */
+    function _addLiqSingleSyKeepYt(
+        address receiver,
+        address market,
+        IStandardizedYield SY,
+        IPYieldToken YT,
+        uint256 netSyIn,
+        uint256 minLpOut,
+        uint256 minYtOut
+    ) internal returns (uint256 netLpOut, uint256 netYtOut) {
+        MarketState memory state = IPMarket(market).readState(address(this));
+
+        PYIndex pyIndex = YT.newIndex();
+
+        uint256 netSyToPt = (netSyIn * state.totalPt.Uint()) /
+            (state.totalPt.Uint() + pyIndex.syToAsset(state.totalSy.Uint()));
+
+        // transfer SY to mint PY
+        _transferOut(address(SY), address(YT), netSyToPt);
+
+        // the rest of SY goes to market
+        _transferOut(address(SY), market, netSyIn - netSyToPt);
+
+        // PT goes to market, YT goes to receiver
+        netYtOut = YT.mintPY(market, receiver);
+
+        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyIn - netSyToPt, netYtOut);
+
+        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+        if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
     }
 
     /// @dev removes SY/PT liquidity, then converts PT to SY

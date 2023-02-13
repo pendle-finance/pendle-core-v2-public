@@ -49,6 +49,25 @@ interface IPActionAddRemoveLiq {
         uint256 netLpOut
     );
 
+    event AddLiqSingleSyKeepYt(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        uint256 netSyIn,
+        uint256 netLpOut,
+        uint256 netYtOut
+    );
+
+    event AddLiqSingleTokenKeepYt(
+        address indexed caller,
+        address indexed market,
+        address indexed token,
+        address receiver,
+        uint256 netTokenIn,
+        uint256 netLpOut,
+        uint256 netYtOut
+    );
+
     event RemoveLiquidityDualSyAndPt(
         address indexed caller,
         address indexed market,
@@ -145,6 +164,22 @@ interface IPActionAddRemoveLiq {
         ApproxParams calldata guessPtReceivedFromSy,
         TokenInput calldata input
     ) external payable returns (uint256 netLpOut, uint256 netSyFee);
+
+    function addLiqSingleSyKeepYt(
+        address receiver,
+        address market,
+        uint256 netSyIn,
+        uint256 minLpOut,
+        uint256 minYtOut
+    ) external returns (uint256 netLpOut, uint256 netYtOut);
+
+    function addLiqSingleTokenKeepYt(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external returns (uint256 netLpOut, uint256 netYtOut);
 
     function removeLiquidityDualSyAndPt(
         address receiver,

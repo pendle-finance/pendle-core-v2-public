@@ -148,6 +148,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                     if (sig < 0x3af1f329) {
                         if (sig == 0x357d6540) return ACTION_SWAP_YT; // swapExactYtForSy 5
                         if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 6
+                        if (sig == 0x3968d6b2) return ACTION_ADD_REMOVE_LIQ; // addLiqSingleSyKeepYt 7
                     } else {
                         if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 5
                         if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 6
@@ -168,6 +169,7 @@ contract PendleRouter is Proxy, IDiamondLoupe {
                     if (sig < 0x7a0ed627) {
                         if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 5
                         if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 6
+                        if (sig == 0x733c0cd9) return ACTION_ADD_REMOVE_LIQ; // addLiqSingleTokenKeepYt 6
                     } else {
                         if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 5
                         if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 6

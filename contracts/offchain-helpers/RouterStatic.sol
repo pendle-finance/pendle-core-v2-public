@@ -368,6 +368,28 @@ contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpg
         return MarketMathStatic.addLiquiditySingleSyStatic(market, netSyIn);
     }
 
+    function addLiqSingleSyKeepYtStatic(address market, uint256 netSyIn)
+        external
+        returns (uint256 netLpOut, uint256 netYtOut)
+    {
+        return MarketMathStatic.addLiqSingleSyKeepYtStatic(market, netSyIn);
+    }
+
+    function addLiqSingleTokenKeepYtStatic(
+        address market,
+        address baseToken,
+        uint256 netBaseTokenIn,
+        address bulk
+    ) external returns (uint256 netLpOut, uint256 netYtOut) {
+        uint256 netSyIn = previewDepositStatic(
+            getSyMarket(market),
+            baseToken,
+            netBaseTokenIn,
+            bulk
+        );
+        return MarketMathStatic.addLiqSingleSyKeepYtStatic(market, netSyIn);
+    }
+
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
