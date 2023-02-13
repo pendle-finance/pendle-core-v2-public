@@ -118,7 +118,7 @@ library MarketMathStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function addLiqSingleSyKeepYtStatic(address market, uint256 netSyIn)
+    function addLiquiditySingleSyKeepYtStatic(address market, uint256 netSyIn)
         public
         returns (uint256 netLpOut, uint256 netYtOut)
     {
