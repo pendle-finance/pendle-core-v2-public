@@ -122,85 +122,114 @@ contract PendleRouter is Proxy, IDiamondLoupe {
             res[1] = 0xd617b03b; // batchExec
             return res;
         }
+        if (facet == address(this)) {
+            res = new bytes4[](4);
+            res[0] = 0xcdffacc6; // facetAddress
+            res[1] = 0x52ef6b2c; // facetAddresses
+            res[2] = 0xadfca15e; // facetFunctionSelectors
+            res[3] = 0x7a0ed627; // facets
+            return res;
+        }
         revert Errors.RouterInvalidFacet(facet);
     }
 
     function facetAddress(bytes4 sig) public view returns (address) {
-        if (sig < 0x85b29936) {
-            if (sig < 0x409c7a89) {
-                if (sig < 0x2032aecd) {
-                    if (sig == 0x015491d1) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleToken 4
-                    if (sig == 0x178d29d3) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleSy 5
-                    if (sig == 0x1a8631b2) return ACTION_MINT_REDEEM; // mintPyFromSy 6
+        if (sig < 0x97ee279e) {
+            if (sig < 0x448b9b95) {
+                if (sig < 0x339748cb) {
+                    if (sig < 0x1a8631b2) {
+                        if (sig == 0x015491d1) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleToken 5
+                        if (sig == 0x178d29d3) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleSy 6
+                    } else {
+                        if (sig == 0x1a8631b2) return ACTION_MINT_REDEEM; // mintPyFromSy 5
+                        if (sig == 0x2032aecd) return ACTION_SWAP_PT; // swapExactPtForSy 6
+                    }
                 } else {
-                    if (sig == 0x2032aecd) return ACTION_SWAP_PT; // swapExactPtForSy 4
-                    if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 5
-                    if (sig == 0x357d6540) return ACTION_SWAP_YT; // swapExactYtForSy 6
-                    if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 7
+                    if (sig < 0x3af1f329) {
+                        if (sig == 0x357d6540) return ACTION_SWAP_YT; // swapExactYtForSy 5
+                        if (sig == 0x339748cb) return ACTION_MINT_REDEEM; // redeemPyToSy 6
+                    } else {
+                        if (sig == 0x3af1f329) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySinglePt 5
+                        if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 6
+                        if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 7
+                    }
                 }
             } else {
-                if (sig < 0x527df199) {
-                    if (sig == 0x409c7a89) return ACTION_ADD_REMOVE_LIQ; // addLiquiditySingleSy 4
-                    if (sig == 0x443e6512) return ACTION_MINT_REDEEM; // mintSyFromToken 5
-                    if (sig == 0x448b9b95) return ACTION_SWAP_YT; // swapExactYtForPt 6
-                    if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 7
-                } else {
-                    if (sig < 0x694ab559) {
-                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 5
-                        if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 6
+                if (sig < 0x694ab559) {
+                    if (sig < 0x527df199) {
+                        if (sig == 0x46eb2db6) return ACTION_MINT_REDEEM; // mintPyFromToken 5
+                        if (sig == 0x448b9b95) return ACTION_SWAP_YT; // swapExactYtForPt 6
                     } else {
+                        if (sig == 0x690807ad) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySingleToken 5
+                        if (sig == 0x527df199) return ACTION_MINT_REDEEM; // redeemPyToToken 6
+                        if (sig == 0x52ef6b2c) return address(this); // facetAddresses 7
+                    }
+                } else {
+                    if (sig < 0x7a0ed627) {
                         if (sig == 0x694ab559) return ACTION_ADD_REMOVE_LIQ; // removeLiquiditySinglePt 5
                         if (sig == 0x6b8bdf32) return ACTION_SWAP_PT; // swapSyForExactPt 6
-                        if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 7
+                    } else {
+                        if (sig == 0x83c71b69) return ACTION_SWAP_PT; // swapExactSyForPt 5
+                        if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 6
+                        if (sig == 0x7a0ed627) return address(this); // facets 7
                     }
                 }
             }
         } else {
-            if (sig < 0xc861a898) {
-                if (sig < 0xacdb32df) {
-                    if (sig == 0x85b29936) return ACTION_MINT_REDEEM; // redeemSyToToken 4
-                    if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 5
-                    if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 6
-                } else {
-                    if (sig < 0xb85f50ba) {
+            if (sig < 0xcb591eb2) {
+                if (sig < 0xb7d75b8b) {
+                    if (sig < 0xacdb32df) {
+                        if (sig == 0xa5f9931b) return ACTION_SWAP_PT; // swapExactTokenForPt 5
+                        if (sig == 0x97ee279e) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualSyAndPt 6
+                    } else {
                         if (sig == 0xacdb32df) return ACTION_MISC; // approveInf 5
+                        if (sig == 0xadfca15e) return address(this); // facetFunctionSelectors 6
+                    }
+                } else {
+                    if (sig < 0xbf1bd434) {
+                        if (sig == 0xb85f50ba) return ACTION_SWAP_PT; // swapExactPtForToken 5
                         if (sig == 0xb7d75b8b) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualSyAndPt 6
                     } else {
-                        if (sig == 0xb85f50ba) return ACTION_SWAP_PT; // swapExactPtForToken 5
-                        if (sig == 0xbf1bd434) return ACTION_SWAP_YT; // swapSyForExactYt 6
-                        if (sig == 0xc4a9c7de) return ACTION_SWAP_YT; // swapExactTokenForYt 7
+                        if (sig == 0xc4a9c7de) return ACTION_SWAP_YT; // swapExactTokenForYt 5
+                        if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 6
+                        if (sig == 0xbf1bd434) return ACTION_SWAP_YT; // swapSyForExactYt 7
                     }
                 }
             } else {
-                if (sig < 0xdd371acd) {
-                    if (sig == 0xc861a898) return ACTION_SWAP_YT; // swapExactPtForYt 4
-                    if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
-                    if (sig == 0xd617b03b) return ACTION_MISC; // batchExec 6
-                    if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 7
+                if (sig < 0xe15cc098) {
+                    if (sig < 0xd617b03b) {
+                        if (sig == 0xcb591eb2) return ACTION_ADD_REMOVE_LIQ; // addLiquidityDualTokenAndPt 5
+                        if (sig == 0xcdffacc6) return address(this); // facetAddress 6
+                    } else {
+                        if (sig == 0xd6308fa4) return ACTION_SWAP_YT; // swapExactYtForToken 5
+                        if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 6
+                        if (sig == 0xd617b03b) return ACTION_MISC; // batchExec 7
+                    }
                 } else {
-                    if (sig < 0xe6eaba01) {
-                        if (sig == 0xdd371acd) return ACTION_SWAP_PT; // swapPtForExactSy 5
+                    if (sig < 0xf7e375e8) {
+                        if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 5
                         if (sig == 0xe15cc098) return ACTION_SWAP_YT; // swapYtForExactSy 6
                     } else {
-                        if (sig == 0xe6eaba01) return ACTION_ADD_REMOVE_LIQ; // removeLiquidityDualTokenAndPt 5
+                        if (sig == 0xfa483e72) return ACTION_SWAP_YT; // swapCallback 5
                         if (sig == 0xf7e375e8) return ACTION_MINT_REDEEM; // redeemDueInterestAndRewards 6
-                        if (sig == 0xfa483e72) return ACTION_SWAP_YT; // swapCallback 7
-                        if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 8
+                        if (sig == 0xfdd71f43) return ACTION_SWAP_YT; // swapExactSyForYt 7
                     }
                 }
             }
         }
         revert Errors.RouterInvalidAction(sig);
-        // sumStep:191 worstCase:8
+        // NUM_FUNC: 38 AVG:5.74 STD:0.71 WORST_CASE:7 STOP_BRANCH:3
     }
 
-    function facetAddresses() public view returns (address[] memory facetAddresses_) {
-        facetAddresses_ = new address[](5);
-        facetAddresses_[0] = ACTION_ADD_REMOVE_LIQ;
-        facetAddresses_[1] = ACTION_MINT_REDEEM;
-        facetAddresses_[2] = ACTION_SWAP_PT;
-        facetAddresses_[3] = ACTION_SWAP_YT;
-        facetAddresses_[4] = ACTION_MISC;
+    function facetAddresses() public view returns (address[] memory) {
+        address[] memory res = new address[](6);
+        res[0] = ACTION_ADD_REMOVE_LIQ;
+        res[1] = ACTION_MINT_REDEEM;
+        res[2] = ACTION_SWAP_PT;
+        res[3] = ACTION_SWAP_YT;
+        res[4] = ACTION_MISC;
+        res[5] = address(this);
+        return res;
     }
 
     function _implementation() internal view override returns (address) {
