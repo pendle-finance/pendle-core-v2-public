@@ -40,4 +40,10 @@ interface IPVotingController {
         );
 
     function getPoolTotalVoteAt(address pool, uint128 wTime) external view returns (uint128);
+
+    function finalizeEpoch() external;
+
+    function getBroadcastResultFee(uint64 chainId) external view returns (uint256);
+
+    function broadcastResults(uint64 chainId) external payable;
 }
