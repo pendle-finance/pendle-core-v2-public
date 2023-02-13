@@ -118,6 +118,21 @@ library MarketMathStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
+    function addLiqSingleSyKeepYtStatic(address market, uint256 netSyIn)
+        public
+        returns (uint256 netLpOut, uint256 netYtOut)
+    {
+        MarketState memory state = IPMarket(market).readState(address(this));
+        PYIndex index = pyIndex(market);
+
+        uint256 netSyToPt = (netSyIn * state.totalPt.Uint()) /
+            (state.totalPt.Uint() + index.syToAsset(state.totalSy.Uint()));
+
+        netYtOut = index.syToAsset(netSyToPt);
+
+        (, netLpOut, , ) = state.addLiquidity(netSyIn - netSyToPt, netYtOut, block.timestamp);
+    }
+
     function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
         external
         view
