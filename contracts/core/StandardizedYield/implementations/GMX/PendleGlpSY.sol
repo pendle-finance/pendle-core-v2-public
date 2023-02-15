@@ -128,7 +128,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
     }
 
     function _redeemExternalReward() internal override {
-        IRewardRouterV2(rewardRouter).claim();
+        IRewardRouterV2(rewardRouter).handleRewards(false, false, true, true, false, true, false);
     }
 
     /*///////////////////////////////////////////////////////////////
