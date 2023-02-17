@@ -3,5 +3,5 @@
 pragma solidity >=0.8.0;
 
 interface IPMsgReceiverApp {
-    function executeMessage(bytes calldata message) external payable;
+    function executeMessage(bytes calldata message) external;
 }
