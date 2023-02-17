@@ -20,7 +20,7 @@ contract ActionMisc is IPActionMisc, TokenHelper {
         }
     }
 
-    function batchExec(Call3[] calldata calls) external payable returns (Result[] memory res) {
+    function batchExec(Call3[] calldata calls) external returns (Result[] memory res) {
         uint256 length = calls.length;
 
         res = new Result[](length);

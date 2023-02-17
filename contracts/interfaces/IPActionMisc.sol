@@ -19,8 +19,5 @@ interface IPActionMisc {
 
     function approveInf(MultiApproval[] calldata) external;
 
-    function batchExec(Call3[] calldata calls)
-        external
-        payable
-        returns (Result[] memory returnData);
+    function batchExec(Call3[] calldata calls) external returns (Result[] memory returnData);
 }
