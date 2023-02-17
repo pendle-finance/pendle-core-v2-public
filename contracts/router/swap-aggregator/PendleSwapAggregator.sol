@@ -22,6 +22,7 @@ contract PendleSwapAggregator is
         uint256 amountIn,
         SwapData calldata data
     ) external payable {
+        _safeApproveInf(tokenIn, data.extRouter);
         data.extRouter.functionCallWithValue(
             data.needScale
                 ? _getScaledInputData(data.swapType, data.extCalldata, amountIn)
@@ -41,22 +42,6 @@ contract PendleSwapAggregator is
             scaledCallData = _get1inchScaledInputData(rawCallData, amountIn);
         } else {
             assert(false);
-        }
-    }
-
-    /// @notice For the Aggregator to work with a token / aggregator, it must be approved first
-    function approveInf(MultiApproval[] calldata arr) external {
-        for (uint256 i = 0; i < arr.length; ) {
-            MultiApproval calldata ele = arr[i];
-            for (uint256 j = 0; j < ele.tokens.length; ) {
-                _safeApproveInf(ele.tokens[j], ele.spender);
-                unchecked {
-                    j++;
-                }
-            }
-            unchecked {
-                i++;
-            }
         }
     }
 }
