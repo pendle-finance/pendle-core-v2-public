@@ -3,11 +3,14 @@ pragma solidity 0.8.17;
 
 import "../../SYBaseWithRewards.sol";
 import "./GMXPreviewHelper.sol";
+import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
 import "../../../../interfaces/GMX/IGMXVault.sol";
 
 contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
+    using ArrayLib for address[];
+
     address public immutable glp;
     address public immutable stakedGlp;
     address public immutable rewardRouter;
@@ -178,48 +181,23 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         }
     }
 
-    function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](vault.whitelistedTokenCount() + 2);
-        res[0] = stakedGlp;
-        res[1] = NATIVE;
-
-        uint256 resIndex = 2;
+    function _getGlpWhitelistedTokens() internal view returns (address[] memory res) {
+        res = new address[](0);
         uint256 length = vault.allWhitelistedTokensLength();
-        for (uint256 i = 0; i < length; ) {
+        for(uint256 i = 0; i < length; ++i) {
             address token = vault.allWhitelistedTokens(i);
-            if (vault.whitelistedTokens(token)) {
-                res[resIndex] = token;
-                unchecked {
-                    ++resIndex;
-                }
-            }
-            unchecked {
-                ++i;
+            if (vault.whitelistedTokens(token) && !res.contains(token)) {
+                res = res.append(token);
             }
         }
-        require(resIndex == res.length, "Wrong whitelisted tokens count");
+    }
+
+    function getTokensIn() public view virtual override returns (address[] memory res) {
+        return _getGlpWhitelistedTokens();
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
-        res = new address[](vault.whitelistedTokenCount() + 2);
-        res[0] = stakedGlp;
-        res[1] = NATIVE;
-
-        uint256 resIndex = 2;
-        uint256 length = vault.allWhitelistedTokensLength();
-        for (uint256 i = 0; i < length; ) {
-            address token = vault.allWhitelistedTokens(i);
-            if (vault.whitelistedTokens(token)) {
-                res[resIndex] = token;
-                unchecked {
-                    ++resIndex;
-                }
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        require(resIndex == res.length, "Wrong whitelisted tokens count");
+        return _getGlpWhitelistedTokens();
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
