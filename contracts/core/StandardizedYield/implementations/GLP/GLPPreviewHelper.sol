@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../../../interfaces/GMX/IGMXVault.sol";
 import "../../../../interfaces/GMX/IVaultPriceFeed.sol";
 
-abstract contract GMXPreviewHelper {
+abstract contract GLPPreviewHelper {
     // Based on Vault functions
 
     IGMXVault public immutable vault;

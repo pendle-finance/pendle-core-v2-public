@@ -2,13 +2,13 @@
 pragma solidity 0.8.17;
 
 import "../../SYBaseWithRewards.sol";
-import "./GMXPreviewHelper.sol";
+import "./GLPPreviewHelper.sol";
 import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
 import "../../../../interfaces/GMX/IGMXVault.sol";
 
-contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
+contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
     using ArrayLib for address[];
 
     address public immutable glp;
@@ -27,7 +27,7 @@ contract PendleGlpSY is SYBaseWithRewards, GMXPreviewHelper {
         address _rewardRouter,
         address _glpRouter,
         address _vault
-    ) SYBaseWithRewards(_name, _symbol, _fsGlp) GMXPreviewHelper(_vault) {
+    ) SYBaseWithRewards(_name, _symbol, _fsGlp) GLPPreviewHelper(_vault) {
         glp = _glp;
         stakedGlp = _stakedGlp;
         rewardRouter = _rewardRouter;
