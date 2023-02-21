@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "./base/ActionBaseMintRedeem.sol";
 import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYT.sol";
+import "../interfaces/IAddressProvider.sol";
 import "../interfaces/IPMarket.sol";
 import "../core/libraries/Errors.sol";
 
@@ -18,7 +19,11 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
     using MarketApproxPtOutLib for MarketState;
     using PYIndexLib for IPYieldToken;
 
-    constructor(address _marketFactory) ActionBaseCallback(_marketFactory) {}
+    constructor(IAddressProvider provider, uint256 providerId) ActionBaseCallback(_getMarketFactory(provider,providerId)) {}
+
+    function _getMarketFactory(IAddressProvider provider, uint256 providerId) internal view returns (address) {
+        return provider.get(providerId);
+    }
 
     /**
      * @notice swap exact SY to YT with the help of flashswaps & YT tokenization / redemption
