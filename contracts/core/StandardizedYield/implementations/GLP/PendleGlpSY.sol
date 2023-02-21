@@ -181,7 +181,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
         }
     }
 
-    function _getGlpWhitelistedTokens() internal view returns (address[] memory res) {
+    function _getGlpTokens() internal view returns (address[] memory res) {
         res = new address[](0);
         uint256 length = vault.allWhitelistedTokensLength();
         for(uint256 i = 0; i < length; ++i) {
@@ -190,14 +190,16 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
                 res = res.append(token);
             }
         }
+        res = res.append(stakedGlp);
+        res = res.append(NATIVE);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        return _getGlpWhitelistedTokens();
+        return _getGlpTokens();
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
-        return _getGlpWhitelistedTokens();
+        return _getGlpTokens();
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
