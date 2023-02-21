@@ -33,3 +33,6 @@ coverage.json
 __pycache__/
 
 draft/
+
+# Deployments
+deployments/**/*.ts
