@@ -874,12 +874,14 @@ contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpg
             uint256 totalSy
         )
     {
-        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
-        if (bulk != address(0)) {
-            BulkSellerState memory state = IPBulkSeller(bulk).readState();
-            if (state.rateTokenToSy != 0 || state.rateSyToToken != 0) {
-                totalToken = state.totalToken;
-                totalSy = state.totalSy;
+        if (address(bulkFactory) != address(0)) {
+            bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
+            if (bulk != address(0)) {
+                BulkSellerState memory state = IPBulkSeller(bulk).readState();
+                if (state.rateTokenToSy != 0 || state.rateSyToToken != 0) {
+                    totalToken = state.totalToken;
+                    totalSy = state.totalSy;
+                }
             }
         }
     }
@@ -898,28 +900,30 @@ contract RouterStatic is Initializable, Proxy, BoringOwnableUpgradeable, UUPSUpg
             uint256 totalSy
         )
     {
-        bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
-        if (bulk != address(0)) {
-            BulkSellerState memory state = IPBulkSeller(bulk).readState();
+        if (address(bulkFactory) != address(0)) {
+            bulk = IPBulkSellerFactory(bulkFactory).get(token, SY);
+            if (bulk != address(0)) {
+                BulkSellerState memory state = IPBulkSeller(bulk).readState();
 
-            // Paused check
-            if (state.rateTokenToSy == 0 || state.rateSyToToken == 0) {
-                return (address(0), 0, 0);
+                // Paused check
+                if (state.rateTokenToSy == 0 || state.rateSyToToken == 0) {
+                    return (address(0), 0, 0);
+                }
+
+                // Liquidity check
+                uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
+                uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
+                if (
+                    netTokenIn.mulDown(postFeeRateTokenToSy) > state.totalSy ||
+                    netSyIn.mulDown(postFeeRateSyToToken) > state.totalToken
+                ) {
+                    return (address(0), 0, 0);
+                }
+
+                // return...
+                totalToken = state.totalToken;
+                totalSy = state.totalSy;
             }
-
-            // Liquidity check
-            uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
-            uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
-            if (
-                netTokenIn.mulDown(postFeeRateTokenToSy) > state.totalSy ||
-                netSyIn.mulDown(postFeeRateSyToToken) > state.totalToken
-            ) {
-                return (address(0), 0, 0);
-            }
-
-            // return...
-            totalToken = state.totalToken;
-            totalSy = state.totalSy;
         }
     }
 }
