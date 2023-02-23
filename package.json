@@ -25,16 +25,16 @@
   "devDependencies": {
     "@typechain/ethers-v5": "^9.0.0",
     "@typechain/hardhat": "^4.0.0",
-    "hardhat": "^2.12.5",
-    "hardhat-contract-sizer": "^2.6.1",
+    "hardhat": "^2.12.7",
+    "hardhat-contract-sizer": "^2.8.0",
     "hardhat-storage-layout-diff": "^0.0.4",
-    "prettier": "^2.8.2",
-    "prettier-plugin-solidity": "^1.1.1",
-    "solc": "^0.8.17",
-    "solhint": "^3.3.7",
+    "prettier": "^2.8.4",
+    "prettier-plugin-solidity": "^1.1.2",
+    "solc": "^0.8.19",
+    "solhint": "^3.4.0",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "compile": "yarn hardhat compile",
