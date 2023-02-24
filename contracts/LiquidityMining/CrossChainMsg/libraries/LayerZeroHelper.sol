@@ -9,6 +9,7 @@ library LayerZeroHelper {
         else if (chainId == 80001) return 10109; // mumbai testnet
         else if (chainId == 43114) return 106;  // avax mainnet
         else if (chainId == 42161) return 110; // arbitrum one
+        else if (chainId == 1) return 101;
         assert(false);
     }
 
@@ -17,6 +18,7 @@ library LayerZeroHelper {
         else if (chainId == 10109) return 80001; // mumbai testnet
         else if (chainId == 106) return 43114; // avax mainnet
         else if (chainId == 110) return 42161; // arbitrum one
+        else if (chainId == 101) return 1;
         assert(false);
     }
 
