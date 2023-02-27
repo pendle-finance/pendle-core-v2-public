@@ -45,14 +45,12 @@ contract PendleMsgReceiveEndpointUpg is
      * But in order to aim for flexibility in switching to other crosschain messaging protocol, there
      * is no harm to keep our current whitelisting mechanism.
      */
-    function isOriginateFromSendEndpoint(uint16 srcChainId, bytes memory path)
-        internal
-        view
-        returns (bool)
-    {
-        return
-            sendEndpointAddr == LayerZeroHelper._getFirstAddressFromPath(path) &&
-            sendEndpointChainId == LayerZeroHelper._getOriginalChainIds(srcChainId);
+    modifier mustOriginateFromSendEndpoint(uint16 srcChainId, bytes memory path) {
+        if (
+            sendEndpointAddr != LayerZeroHelper._getFirstAddressFromPath(path) ||
+            sendEndpointChainId != LayerZeroHelper._getOriginalChainIds(srcChainId)
+        ) revert Errors.MsgNotFromSendEndpoint(srcChainId, path);
+        _;
     }
 
     // by default we will use LZ's default version (most updated version). Hence, it's not necessary
@@ -76,8 +74,7 @@ contract PendleMsgReceiveEndpointUpg is
         bytes calldata _path,
         uint64 _nonce,
         bytes calldata _payload
-    ) external onlyLzEndpoint {
-        if (!isOriginateFromSendEndpoint(_srcChainId, _path)) return;
+    ) external onlyLzEndpoint mustOriginateFromSendEndpoint(_srcChainId, _path) {
         (address receiver, bytes memory message) = abi.decode(_payload, (address, bytes));
 
         (bool success, bytes memory reason) = address(receiver).excessivelySafeCall(
