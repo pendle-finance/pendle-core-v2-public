@@ -43,4 +43,6 @@ contract Broadcaster is Initializable, BoringOwnableUpgradeable, UUPSUpgradeable
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    receive() external payable {}
 }
