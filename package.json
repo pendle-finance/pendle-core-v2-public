@@ -28,7 +28,7 @@
     "hardhat": "^2.12.7",
     "hardhat-contract-sizer": "^2.8.0",
     "prettier": "^2.8.4",
-    "prettier-plugin-solidity": "^1.1.2",
+    "prettier-plugin-solidity": "^1.1.3",
     "solc": "^0.8.19",
     "solhint": "^3.4.0",
     "ts-node": "^10.9.1",
