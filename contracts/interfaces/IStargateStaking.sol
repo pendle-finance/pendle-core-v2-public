@@ -22,7 +22,7 @@
  */
 pragma solidity 0.8.17;
 
-interface IStargateLPStaking {
+interface IStargateStaking {
     struct PoolInfo {
         address lpToken; // Address of LP token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. STGs to distribute per block.
@@ -41,7 +41,7 @@ interface IStargateLPStaking {
 
     function withdraw(uint256 _pid, uint256 _amount) external;
 
-    function poolInfo(uint256 _pid) external view returns (PoolInfo memory);
+    function poolInfo(uint256 _pid) external view returns (address, uint256, uint256, uint256);
 
     function userInfo(uint256 _pid, address _user) external view returns (UserInfo memory);
 }

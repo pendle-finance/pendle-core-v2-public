@@ -114,6 +114,8 @@ library Errors {
     error SYBalancerInvalidPid();
     error SYInvalidRewardToken(address token);
 
+    error SYStargateRedeemCapExeceeded(uint256 amountLpDesired, uint256 amountLpRedeemable);
+
     // Liquidity Mining
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);
