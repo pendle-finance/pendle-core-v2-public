@@ -127,7 +127,8 @@ contract PendleStargateLP is SYBaseWithRewards {
      * @dev It is the exchange rate of lp to underlying
      */
     function exchangeRate() public view virtual override returns (uint256) {
-        return IStargateLP(lp).totalLiquidity().divDown(IStargateLP(lp).totalSupply());
+        return
+            IStargateLP(lp).totalLiquidity().divDown(IStargateLP(lp).totalSupply()) * convertRate;
     }
 
     /*///////////////////////////////////////////////////////////////
