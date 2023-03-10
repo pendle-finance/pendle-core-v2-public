@@ -6,7 +6,7 @@ import "../../../interfaces/IStargateRouter.sol";
 import "../../../interfaces/IStargateLP.sol";
 import "../../../interfaces/IStargateStaking.sol";
 
-contract PendleStargateLP is SYBaseWithRewards {
+contract PendleStargateLPSY is SYBaseWithRewards {
     uint256 public constant STARGATE_BP_DENOMINATOR = 10000;
 
     using Math for uint256;
@@ -111,7 +111,7 @@ contract PendleStargateLP is SYBaseWithRewards {
 
             uint256 lpUsed = preBalanceLp - _selfBalance(lp);
             if (lpUsed < amountSharesToRedeem) {
-                revert Errors.SYStargateRedeemCapExeceeded(amountSharesToRedeem, lpUsed);
+                revert Errors.SYStargateRedeemCapExceeded(amountSharesToRedeem, lpUsed);
             }
 
             amountTokenOut = IERC20(underlying).balanceOf(receiver) - preBalanceUnderlying;
@@ -192,7 +192,7 @@ contract PendleStargateLP is SYBaseWithRewards {
 
             uint256 capAmountLp = (deltaCredit * totalSupply) / totalLiquidity;
             if (amountSharesToRedeem > capAmountLp) {
-                revert Errors.SYStargateRedeemCapExeceeded(amountSharesToRedeem, capAmountLp);
+                revert Errors.SYStargateRedeemCapExceeded(amountSharesToRedeem, capAmountLp);
             }
 
             uint256 amountSD = (amountSharesToRedeem * totalLiquidity) / totalSupply;
