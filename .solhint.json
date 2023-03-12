@@ -2,6 +2,9 @@
   "extends": "solhint:recommended",
   "plugins": [],
   "rules": {
+    "no-global-import": [
+      "off"
+    ],
     "code-complexity": [
       "warn",
       7

@@ -1,0 +1,60 @@
+pragma solidity ^0.8.17;
+
+interface IPActionMintRedeemStatic {
+    function getAmountTokenToMintSy(
+        address SY,
+        address tokenIn,
+        address bulk,
+        uint256 netSyOut
+    ) external view returns (uint256 netTokenIn);
+
+    function getBulkSellerInfo(
+        address token,
+        address SY,
+        uint256 netTokenIn,
+        uint256 netSyIn
+    )
+        external
+        view
+        returns (
+            address bulk,
+            uint256 totalToken,
+            uint256 totalSy
+        );
+
+    function mintPyFromSyStatic(address YT, uint256 netSyToMint)
+        external
+        returns (uint256 netPYOut);
+
+    function mintPyFromTokenStatic(
+        address YT,
+        address tokenIn,
+        uint256 netTokenIn,
+        address bulk
+    ) external returns (uint256 netPyOut);
+
+    function mintSyFromTokenStatic(
+        address SY,
+        address tokenIn,
+        uint256 netTokenIn,
+        address bulk
+    ) external view returns (uint256 netSyOut);
+
+    function redeemPyToSyStatic(address YT, uint256 netPYToRedeem)
+        external
+        returns (uint256 netSyOut);
+
+    function redeemPyToTokenStatic(
+        address YT,
+        uint256 netPYToRedeem,
+        address tokenOut,
+        address bulk
+    ) external returns (uint256 netTokenOut);
+
+    function redeemSyToTokenStatic(
+        address SY,
+        address tokenOut,
+        uint256 netSyIn,
+        address bulk
+    ) external view returns (uint256 netTokenOut);
+}
