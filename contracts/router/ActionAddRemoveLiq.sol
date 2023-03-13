@@ -22,7 +22,6 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
     using MarketApproxPtOutLib for MarketState;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
-    using BulkSellerMathCore for BulkSellerState;
 
     /**
      * @notice Adds liquidity to the SY/PT market, granting LP tokens in return
