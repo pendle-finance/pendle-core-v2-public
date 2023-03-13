@@ -100,10 +100,9 @@ contract PendleStargateLPSY is SYBaseWithRewards {
              * When this rare case happens, Pendle's SY should guarantee to revert.
              */
 
-            uint256 preBalanceUnderlying = IERC20(underlying).balanceOf(receiver);
             uint256 preBalanceLp = _selfBalance(lp);
 
-            IStargateRouter(stargateRouter).instantRedeemLocal(
+            uint256 amountSD = IStargateRouter(stargateRouter).instantRedeemLocal(
                 pid,
                 amountSharesToRedeem,
                 receiver
@@ -114,7 +113,7 @@ contract PendleStargateLPSY is SYBaseWithRewards {
                 revert Errors.SYStargateRedeemCapExceeded(amountSharesToRedeem, lpUsed);
             }
 
-            amountTokenOut = IERC20(underlying).balanceOf(receiver) - preBalanceUnderlying;
+            amountTokenOut = amountSD * convertRate;
         }
     }
 
