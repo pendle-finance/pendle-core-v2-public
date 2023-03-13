@@ -39,7 +39,8 @@
     "compile": "yarn hardhat compile",
     "size": "yarn hardhat size-contracts",
     "clean": "yarn hardhat clean",
-    "fcompile": "yarn clean && yarn compile"
+    "fcompile": "yarn clean && yarn compile",
+    "format": "yarn prettier -w contracts/**/*"
   },
   "packageManager": "yarn@3.3.1",
   "dependencies": {
