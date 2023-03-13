@@ -34,13 +34,14 @@ contract PendleAuraWethAnkrethSY is PendleAuraBalancerStableLPSY {
         address receiver,
         address tokenOut,
         uint256 amountSharesToRedeem
-    ) internal virtual override returns (uint256 amountTokenOut) {
+    ) internal virtual override returns (uint256) {
         if (tokenOut == NATIVE) {
-            amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
+            uint256 amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
             IWETH(WETH).withdraw(amountTokenOut);
             _transferOut(NATIVE, receiver, amountTokenOut);
+            return amountTokenOut;
         } else {
-            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
+            return super._redeem(receiver, tokenOut, amountSharesToRedeem);
         }
     }
 
