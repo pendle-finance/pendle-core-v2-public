@@ -132,11 +132,9 @@ abstract contract PendleGaugeControllerBaseUpg is
      * Pendle distributed to the accumulatedPendle
      * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
-    function _getUpdatedMarketReward(address market)
-        internal
-        view
-        returns (MarketRewardData memory)
-    {
+    function _getUpdatedMarketReward(
+        address market
+    ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);

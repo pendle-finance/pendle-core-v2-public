@@ -28,11 +28,7 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     uint256 public totalActiveSupply;
     mapping(address => uint256) public activeBalance;
 
-    constructor(
-        address _SY,
-        address _vePendle,
-        address _gaugeController
-    ) {
+    constructor(address _SY, address _vePendle, address _gaugeController) {
         SY = _SY;
         vePENDLE = IPVeToken(_vePendle);
         gaugeController = _gaugeController;
@@ -74,11 +70,10 @@ abstract contract PendleGauge is RewardManager, IPGauge {
         activeBalance[user] = newActiveBalance;
     }
 
-    function _calcVeBoostedLpBalance(address user, uint256 lpBalance)
-        internal
-        virtual
-        returns (uint256)
-    {
+    function _calcVeBoostedLpBalance(
+        address user,
+        uint256 lpBalance
+    ) internal virtual returns (uint256) {
         (uint256 vePendleSupply, uint256 vePendleBalance) = vePENDLE.totalSupplyAndBalanceCurrent(
             user
         );
@@ -116,19 +111,11 @@ abstract contract PendleGauge is RewardManager, IPGauge {
         return SYRewards.append(PENDLE);
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal virtual {
+    function _beforeTokenTransfer(address from, address to, uint256) internal virtual {
         _updateAndDistributeRewardsForTwo(from, to);
     }
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal virtual {
+    function _afterTokenTransfer(address from, address to, uint256) internal virtual {
         _updateUserActiveBalanceForTwo(from, to);
     }
 }

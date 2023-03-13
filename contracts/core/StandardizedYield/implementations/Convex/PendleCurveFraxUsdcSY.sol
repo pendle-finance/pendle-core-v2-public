@@ -13,7 +13,10 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
     address public constant FRAX = CurveFraxUsdcPoolHelper.FRAX;
     address public constant USDC = CurveFraxUsdcPoolHelper.USDC;
 
-    constructor(string memory _name, string memory _symbol)
+    constructor(
+        string memory _name,
+        string memory _symbol
+    )
         PendleConvexLPSY(
             _name,
             _symbol,
@@ -26,23 +29,19 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         _safeApproveInf(USDC, crvPool);
     }
 
-    function _depositToCurve(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        virtual
-        override
-        returns (uint256 amountLpOut)
-    {
+    function _depositToCurve(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal virtual override returns (uint256 amountLpOut) {
         uint256[2] memory amounts;
         amounts[_getIndex(tokenIn)] = amountTokenToDeposit;
         amountLpOut = ICrvPool(crvPool).add_liquidity(amounts, 0);
     }
 
-    function _redeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
-        internal
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _redeemFromCurve(
+        address tokenOut,
+        uint256 amountLpToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
         amountTokenOut = ICrvPool(crvPool).remove_liquidity_one_coin(
             amountLpToRedeem,
             Math.Int128(_getIndex(tokenOut)),
@@ -50,23 +49,17 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         );
     }
 
-    function _previewDepositToCurve(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function _previewDepositToCurve(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256) {
         return CurveFraxUsdcPoolHelper.previewAddLiquidity(tokenIn, amountTokenToDeposit);
     }
 
-    function _previewRedeemFromCurve(address tokenOut, uint256 amountLpToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function _previewRedeemFromCurve(
+        address tokenOut,
+        uint256 amountLpToRedeem
+    ) internal view virtual override returns (uint256) {
         return
             ICrvPool(crvPool).calc_withdraw_one_coin(
                 amountLpToRedeem,

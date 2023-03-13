@@ -87,7 +87,9 @@ library CodeDeployer {
 }
 
 library BaseSplitCodeFactory {
-    function setCreationCode(bytes memory creationCode)
+    function setCreationCode(
+        bytes memory creationCode
+    )
         internal
         returns (
             address creationCodeContractA,
@@ -261,11 +263,7 @@ library BaseSplitCodeFactory {
 
     // From
     // https://github.com/Arachnid/solidity-stringutils/blob/b9a6f6615cf18a87a823cbc461ce9e140a61c305/src/strings.sol
-    function _memcpy(
-        uint256 dest,
-        uint256 src,
-        uint256 len
-    ) private pure {
+    function _memcpy(uint256 dest, uint256 src, uint256 len) private pure {
         unchecked {
             // Copy word-length chunks while possible
             for (; len >= 32; len -= 32) {
@@ -277,7 +275,7 @@ library BaseSplitCodeFactory {
             }
 
             // Copy remaining bytes
-            uint256 mask = 256**(32 - len) - 1;
+            uint256 mask = 256 ** (32 - len) - 1;
             assembly {
                 let srcpart := and(mload(src), not(mask))
                 let destpart := and(mload(dest), mask)

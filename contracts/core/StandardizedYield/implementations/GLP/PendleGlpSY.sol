@@ -55,12 +55,10 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
     /**
      * @dev See {SYBase-_deposit}
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == stakedGlp) {
             // GLP is already staked in stakedGlp's transferFrom, called in _transferIn()
             amountSharesOut = amountDeposited;
@@ -138,12 +136,10 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
                     MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
         if (tokenIn == stakedGlp) amountSharesOut = amountTokenToDeposit;
         else {
             if (tokenIn == NATIVE) tokenIn = weth;
@@ -160,12 +156,10 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
         if (tokenOut == stakedGlp) amountTokenOut = amountSharesToRedeem;
         else {
             if (tokenOut == NATIVE) tokenOut = weth;
@@ -184,7 +178,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
     function _getGlpTokens() internal view returns (address[] memory res) {
         res = new address[](0);
         uint256 length = vault.allWhitelistedTokensLength();
-        for(uint256 i = 0; i < length; ++i) {
+        for (uint256 i = 0; i < length; ++i) {
             address token = vault.allWhitelistedTokens(i);
             if (vault.whitelistedTokens(token) && !res.contains(token)) {
                 res = res.append(token);
@@ -213,11 +207,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, glp, IERC20Metadata(glp).decimals());
     }

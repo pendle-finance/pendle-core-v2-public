@@ -88,11 +88,10 @@ contract PendleMsgReceiveEndpointUpg is
         }
     }
 
-    function govExecuteMessage(address receiver, bytes calldata message)
-        external
-        payable
-        onlyOwner
-    {
+    function govExecuteMessage(
+        address receiver,
+        bytes calldata message
+    ) external payable onlyOwner {
         IPMsgReceiverApp(receiver).executeMessage(message);
     }
 

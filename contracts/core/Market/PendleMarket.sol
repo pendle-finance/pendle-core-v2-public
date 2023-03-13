@@ -96,11 +96,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         external
         nonReentrant
         notExpired
-        returns (
-            uint256 netLpOut,
-            uint256 netSyUsed,
-            uint256 netPtUsed
-        )
+        returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed)
     {
         MarketState memory market = readState(msg.sender);
         PYIndex index = YT.newIndex();
@@ -260,11 +256,9 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
                                 ORACLE
     //////////////////////////////////////////////////////////////*/
 
-    function observe(uint32[] memory secondsAgos)
-        external
-        view
-        returns (uint216[] memory lnImpliedRateCumulative)
-    {
+    function observe(
+        uint32[] memory secondsAgos
+    ) external view returns (uint216[] memory lnImpliedRateCumulative) {
         return
             observations.observe(
                 uint32(block.timestamp),
@@ -336,11 +330,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
     function readTokens()
         external
         view
-        returns (
-            IStandardizedYield _SY,
-            IPPrincipalToken _PT,
-            IPYieldToken _YT
-        )
+        returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT)
     {
         _SY = SY;
         _PT = PT;

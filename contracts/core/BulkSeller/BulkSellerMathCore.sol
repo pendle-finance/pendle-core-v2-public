@@ -16,31 +16,28 @@ struct BulkSellerState {
 library BulkSellerMathCore {
     using Math for uint256;
 
-    function swapExactTokenForSy(BulkSellerState memory state, uint256 netTokenIn)
-        internal
-        pure
-        returns (uint256 netSyOut)
-    {
+    function swapExactTokenForSy(
+        BulkSellerState memory state,
+        uint256 netTokenIn
+    ) internal pure returns (uint256 netSyOut) {
         netSyOut = calcSwapExactTokenForSy(state, netTokenIn);
         state.totalToken += netTokenIn;
         state.totalSy -= netSyOut;
     }
 
-    function swapExactSyForToken(BulkSellerState memory state, uint256 netSyIn)
-        internal
-        pure
-        returns (uint256 netTokenOut)
-    {
+    function swapExactSyForToken(
+        BulkSellerState memory state,
+        uint256 netSyIn
+    ) internal pure returns (uint256 netTokenOut) {
         netTokenOut = calcSwapExactSyForToken(state, netSyIn);
         state.totalSy += netSyIn;
         state.totalToken -= netTokenOut;
     }
 
-    function calcSwapExactTokenForSy(BulkSellerState memory state, uint256 netTokenIn)
-        internal
-        pure
-        returns (uint256 netSyOut)
-    {
+    function calcSwapExactTokenForSy(
+        BulkSellerState memory state,
+        uint256 netTokenIn
+    ) internal pure returns (uint256 netSyOut) {
         uint256 postFeeRate = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
         assert(postFeeRate != 0);
 
@@ -49,11 +46,10 @@ library BulkSellerMathCore {
             revert Errors.BulkInsufficientSyForTrade(state.totalSy, netSyOut);
     }
 
-    function calcSwapExactSyForToken(BulkSellerState memory state, uint256 netSyIn)
-        internal
-        pure
-        returns (uint256 netTokenOut)
-    {
+    function calcSwapExactSyForToken(
+        BulkSellerState memory state,
+        uint256 netSyIn
+    ) internal pure returns (uint256 netTokenOut) {
         uint256 postFeeRate = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
         assert(postFeeRate != 0);
 
@@ -68,11 +64,10 @@ library BulkSellerMathCore {
         return totalToken.divDown(totalToken + totalTokenFromSy);
     }
 
-    function getReBalanceParams(BulkSellerState memory state, uint256 targetTokenProp)
-        internal
-        pure
-        returns (uint256 netTokenToDeposit, uint256 netSyToRedeem)
-    {
+    function getReBalanceParams(
+        BulkSellerState memory state,
+        uint256 targetTokenProp
+    ) internal pure returns (uint256 netTokenToDeposit, uint256 netSyToRedeem) {
         uint256 currentTokenProp = getTokenProp(state);
 
         if (currentTokenProp > targetTokenProp) {

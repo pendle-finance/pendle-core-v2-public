@@ -36,7 +36,7 @@ import "../libraries/BoringOwnableUpgradeable.sol";
 import "../libraries/StringLib.sol";
 
 import "./PendlePrincipalTokenV2.sol";
-import "./PendleYieldTokenV2.sol"; 
+import "./PendleYieldTokenV2.sol";
 
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
 contract PendleYieldContractFactoryV2 is BoringOwnableUpgradeable, IPYieldContractFactory {

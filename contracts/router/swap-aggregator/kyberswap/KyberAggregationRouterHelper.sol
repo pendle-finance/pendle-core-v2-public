@@ -37,11 +37,10 @@ abstract contract KyberAggregationRouterHelper {
         bytes destTokenFeeData;
     }
 
-    function _getKyberScaledInputData(bytes calldata kybercall, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function _getKyberScaledInputData(
+        bytes calldata kybercall,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
         bytes4 selector = bytes4(kybercall[:4]);
 
         if (selector == IMetaAggregationRouterV2.swap.selector) {

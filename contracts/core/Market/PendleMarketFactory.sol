@@ -103,15 +103,9 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         emit CreateNewMarket(market, PT, scalarRoot, initialAnchor);
     }
 
-    function getMarketConfig(address router)
-        external
-        view
-        returns (
-            address _treasury,
-            uint80 _lnFeeRateRoot,
-            uint8 _reserveFeePercent
-        )
-    {
+    function getMarketConfig(
+        address router
+    ) external view returns (address _treasury, uint80 _lnFeeRateRoot, uint8 _reserveFeePercent) {
         (_treasury, _lnFeeRateRoot, _reserveFeePercent) = (
             treasury,
             defaultFee.lnFeeRateRoot,

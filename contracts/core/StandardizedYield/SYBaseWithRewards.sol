@@ -24,13 +24,9 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     /**
      * @dev See {IStandardizedYield-claimRewards}
      */
-    function claimRewards(address user)
-        external
-        virtual
-        override
-        nonReentrant
-        returns (uint256[] memory rewardAmounts)
-    {
+    function claimRewards(
+        address user
+    ) external virtual override nonReentrant returns (uint256[] memory rewardAmounts) {
         _updateAndDistributeRewards(user);
         rewardAmounts = _doTransferOutRewards(user, user);
 
@@ -53,13 +49,9 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     /**
      * @dev See {IStandardizedYield-accruedRewards}
      */
-    function accruedRewards(address user)
-        external
-        view
-        virtual
-        override
-        returns (uint256[] memory rewardAmounts)
-    {
+    function accruedRewards(
+        address user
+    ) external view virtual override returns (uint256[] memory rewardAmounts) {
         address[] memory rewardTokens = _getRewardTokens();
         rewardAmounts = new uint256[](rewardTokens.length);
         for (uint256 i = 0; i < rewardTokens.length; ) {
@@ -116,11 +108,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     /*///////////////////////////////////////////////////////////////
                             TRANSFER HOOKS
     //////////////////////////////////////////////////////////////*/
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal virtual override {
+    function _beforeTokenTransfer(address from, address to, uint256) internal virtual override {
         _updateAndDistributeRewardsForTwo(from, to);
     }
 }

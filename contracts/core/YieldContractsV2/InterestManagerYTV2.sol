@@ -50,10 +50,10 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYTV2 {
             _distributeInterestPrivate(user2, index, pyIndex);
     }
 
-    function _doTransferOutInterest(address user, address SY)
-        internal
-        returns (uint256 interestAmount)
-    {
+    function _doTransferOutInterest(
+        address user,
+        address SY
+    ) internal returns (uint256 interestAmount) {
         interestAmount = userInterest[user].accrued;
         userInterest[user].accrued = 0;
         _transferOut(SY, user, interestAmount);

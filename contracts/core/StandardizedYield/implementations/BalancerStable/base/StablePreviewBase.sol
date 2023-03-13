@@ -143,22 +143,18 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         return address(asset) == address(0) ? IERC20(WETH) : IERC20(address(asset));
     }
 
-    function _toPoolBalanceChange(IVault.JoinPoolRequest memory request)
-        private
-        pure
-        returns (PoolBalanceChange memory change)
-    {
+    function _toPoolBalanceChange(
+        IVault.JoinPoolRequest memory request
+    ) private pure returns (PoolBalanceChange memory change) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             change := request
         }
     }
 
-    function _toPoolBalanceChange(IVault.ExitPoolRequest memory request)
-        private
-        pure
-        returns (PoolBalanceChange memory change)
-    {
+    function _toPoolBalanceChange(
+        IVault.ExitPoolRequest memory request
+    ) private pure returns (PoolBalanceChange memory change) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             change := request

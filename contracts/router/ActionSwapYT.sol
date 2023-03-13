@@ -19,9 +19,15 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
     using MarketApproxPtOutLib for MarketState;
     using PYIndexLib for IPYieldToken;
 
-    constructor(IAddressProvider provider, uint256 providerId) ActionBaseCallback(_getMarketFactory(provider,providerId)) {}
+    constructor(
+        IAddressProvider provider,
+        uint256 providerId
+    ) ActionBaseCallback(_getMarketFactory(provider, providerId)) {}
 
-    function _getMarketFactory(IAddressProvider provider, uint256 providerId) internal view returns (address) {
+    function _getMarketFactory(
+        IAddressProvider provider,
+        uint256 providerId
+    ) internal view returns (address) {
         return provider.get(providerId);
     }
 

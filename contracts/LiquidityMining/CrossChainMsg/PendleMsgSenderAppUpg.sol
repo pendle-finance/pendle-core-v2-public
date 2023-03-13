@@ -48,11 +48,10 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         );
     }
 
-    function addDestinationContract(address _address, uint256 _chainId)
-        external
-        payable
-        onlyOwner
-    {
+    function addDestinationContract(
+        address _address,
+        uint256 _chainId
+    ) external payable onlyOwner {
         destinationContracts.set(_chainId, _address);
     }
 
@@ -74,11 +73,10 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
-    function _getSendMessageFee(uint256 chainId, bytes memory message)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getSendMessageFee(
+        uint256 chainId,
+        bytes memory message
+    ) internal view returns (uint256) {
         return
             pendleMsgSendEndpoint.calcFee(
                 destinationContracts.get(chainId),

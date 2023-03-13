@@ -37,11 +37,7 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         _;
     }
 
-    constructor(
-        address _votingController,
-        address _vePendle,
-        address _rewardToken
-    ) initializer {
+    constructor(address _votingController, address _vePendle, address _rewardToken) initializer {
         votingController = _votingController;
         vePendle = _vePendle;
         token = _rewardToken;
@@ -114,10 +110,10 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         lastFundedWeek[pool] = lastFunded;
     }
 
-    function claimReward(address user, address[] calldata pools)
-        external
-        returns (uint256[] memory amountRewardOut)
-    {
+    function claimReward(
+        address user,
+        address[] calldata pools
+    ) external returns (uint256[] memory amountRewardOut) {
         amountRewardOut = new uint256[](pools.length);
         for (uint256 i = 0; i < pools.length; ) {
             amountRewardOut[i] = _accumulateUserReward(pools[i], user);
@@ -132,11 +128,10 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         return allPools;
     }
 
-    function _accumulateUserReward(address pool, address user)
-        internal
-        ensureValidPool(pool)
-        returns (uint256 totalReward)
-    {
+    function _accumulateUserReward(
+        address pool,
+        address user
+    ) internal ensureValidPool(pool) returns (uint256 totalReward) {
         uint256 length = _getUserCheckpointLength(pool, user);
         if (length == 0) return 0;
 

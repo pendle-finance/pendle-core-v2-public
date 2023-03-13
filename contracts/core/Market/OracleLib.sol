@@ -28,10 +28,10 @@ library OracleLib {
             });
     }
 
-    function initialize(Observation[65535] storage self, uint32 time)
-        public
-        returns (uint16 cardinality, uint16 cardinalityNext)
-    {
+    function initialize(
+        Observation[65535] storage self,
+        uint32 time
+    ) public returns (uint16 cardinality, uint16 cardinalityNext) {
         self[0] = Observation({
             blockTimestamp: time,
             lnImpliedRateCumulative: 0,

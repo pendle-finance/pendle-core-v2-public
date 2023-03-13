@@ -20,13 +20,7 @@ interface IPGaugeController {
 
     function redeemMarketReward() external;
 
-    function rewardData(address pool)
-        external
-        view
-        returns (
-            uint128 pendlePerSec,
-            uint128,
-            uint128,
-            uint128
-        );
+    function rewardData(
+        address pool
+    ) external view returns (uint128 pendlePerSec, uint128, uint128, uint128);
 }

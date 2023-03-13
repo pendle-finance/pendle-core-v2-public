@@ -17,7 +17,10 @@ contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeable {
         __BoringOwnable_init();
     }
 
-    function deploy(string memory name, bytes calldata creationCode)
+    function deploy(
+        string memory name,
+        bytes calldata creationCode
+    )
         external
         onlyOwner
         returns (

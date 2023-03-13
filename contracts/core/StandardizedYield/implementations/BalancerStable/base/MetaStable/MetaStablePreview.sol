@@ -120,15 +120,7 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         uint256[] memory scalingFactors,
         bytes memory userData,
         ImmutableData memory imd
-    )
-        internal
-        view
-        returns (
-            uint256,
-            uint256[] memory,
-            uint256[] memory
-        )
-    {
+    ) internal view returns (uint256, uint256[] memory, uint256[] memory) {
         // skip _updateOracle
 
         uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
@@ -291,12 +283,10 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         return (bptAmountIn, amountsOut);
     }
 
-    function _scalingFactors(ImmutableData memory imd, uint256[] memory caches)
-        internal
-        view
-        virtual
-        returns (uint256[] memory)
-    {
+    function _scalingFactors(
+        ImmutableData memory imd,
+        uint256[] memory caches
+    ) internal view virtual returns (uint256[] memory) {
         uint256[] memory scalingFactors = new uint256[](2);
 
         for (uint256 i = 0; i < 2; ++i) {
@@ -306,30 +296,25 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         return scalingFactors;
     }
 
-    function _priceRate(uint256[] memory caches, uint256 index)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
+    function _priceRate(
+        uint256[] memory caches,
+        uint256 index
+    ) internal view virtual returns (uint256) {
         return caches[index] == 0 ? FixedPoint.ONE : caches[index];
     }
 
-    function _cachePriceRatesIfNecessary(ImmutableData memory imd)
-        internal
-        view
-        returns (uint256[] memory res)
-    {
+    function _cachePriceRatesIfNecessary(
+        ImmutableData memory imd
+    ) internal view returns (uint256[] memory res) {
         res = new uint256[](2);
         res[0] = _cachePriceRateIfNecessary(0, imd);
         res[1] = _cachePriceRateIfNecessary(1, imd);
     }
 
-    function _cachePriceRateIfNecessary(uint256 index, ImmutableData memory imd)
-        internal
-        view
-        returns (uint256 res)
-    {
+    function _cachePriceRateIfNecessary(
+        uint256 index,
+        ImmutableData memory imd
+    ) internal view returns (uint256 res) {
         if (!_hasRateProvider(imd, index)) return res;
 
         uint256 expires;
@@ -346,10 +331,10 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
                                Helpers functions
     //////////////////////////////////////////////////////////////*/
 
-    function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors)
-        internal
-        pure
-    {
+    function _upscaleArray(
+        uint256[] memory amounts,
+        uint256[] memory scalingFactors
+    ) internal pure {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -358,10 +343,10 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         }
     }
 
-    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors)
-        internal
-        pure
-    {
+    function _downscaleDownArray(
+        uint256[] memory amounts,
+        uint256[] memory scalingFactors
+    ) internal pure {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -380,11 +365,10 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         }
     }
 
-    function _hasRateProvider(ImmutableData memory imd, uint256 index)
-        internal
-        pure
-        returns (bool)
-    {
+    function _hasRateProvider(
+        ImmutableData memory imd,
+        uint256 index
+    ) internal pure returns (bool) {
         return address(imd.rateProviders[index]) != address(0);
     }
 }

@@ -10,7 +10,7 @@ abstract contract GLPPreviewHelper {
 
     IGMXVault public immutable vault;
     address internal immutable usdg;
-    uint256 public constant PRICE_PRECISION = 10**30;
+    uint256 public constant PRICE_PRECISION = 10 ** 30;
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
 
     constructor(address _vaultAddress) {
@@ -72,7 +72,7 @@ abstract contract GLPPreviewHelper {
     }
 
     function __collectSwapFees(
-        address, /*_token*/
+        address /*_token*/,
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private pure returns (uint256) {
@@ -127,11 +127,10 @@ abstract contract GLPPreviewHelper {
         return _feeBasisPoints + taxBps;
     }
 
-    function __getTargetUsdgAmount(address _token, uint256 _burnedUsdg)
-        private
-        view
-        returns (uint256)
-    {
+    function __getTargetUsdgAmount(
+        address _token,
+        uint256 _burnedUsdg
+    ) private view returns (uint256) {
         uint256 supply = IERC20(usdg).totalSupply() - _burnedUsdg;
         if (supply == 0) {
             return 0;

@@ -8,10 +8,10 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 library CurveFraxUsdcPoolHelper {
     uint256 internal constant N_COINS = 2;
     uint256 internal constant A_PRECISION = 100;
-    uint256 internal constant PRECISION = 10**18;
+    uint256 internal constant PRECISION = 10 ** 18;
     uint256 internal constant RATE_0 = 1000000000000000000;
     uint256 internal constant RATE_1 = 1000000000000000000000000000000;
-    uint256 internal constant FEE_DENOMINATOR = 10**10;
+    uint256 internal constant FEE_DENOMINATOR = 10 ** 10;
 
     address internal constant POOL = 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
     address internal constant LP = 0x3175Df0976dFA876431C2E9eE6Bc45b65d3473CC;
@@ -59,11 +59,10 @@ library CurveFraxUsdcPoolHelper {
         return (total_supply * (D2 - D0)) / D0;
     }
 
-    function _get_D_mem(uint256[N_COINS] memory balances, uint256 _amp)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _get_D_mem(
+        uint256[N_COINS] memory balances,
+        uint256 _amp
+    ) internal pure returns (uint256) {
         uint256[N_COINS] memory _xp;
         _xp[0] = (RATE_0 * balances[0]) / PRECISION;
         _xp[1] = (RATE_1 * balances[1]) / PRECISION;
@@ -117,11 +116,10 @@ library CurveFraxUsdcPoolHelper {
         }
     }
 
-    function _getTokenAmounts(address token, uint256 amount)
-        internal
-        pure
-        returns (uint256[N_COINS] memory res)
-    {
+    function _getTokenAmounts(
+        address token,
+        uint256 amount
+    ) internal pure returns (uint256[N_COINS] memory res) {
         res[token == FRAX ? 0 : 1] = amount;
     }
 }

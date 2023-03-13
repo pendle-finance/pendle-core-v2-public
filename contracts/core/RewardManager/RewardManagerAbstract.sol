@@ -80,10 +80,10 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
 
     function _redeemExternalReward() internal virtual;
 
-    function _doTransferOutRewards(address user, address receiver)
-        internal
-        virtual
-        returns (uint256[] memory rewardAmounts);
+    function _doTransferOutRewards(
+        address user,
+        address receiver
+    ) internal virtual returns (uint256[] memory rewardAmounts);
 
     function _rewardSharesUser(address user) internal view virtual returns (uint256);
 }

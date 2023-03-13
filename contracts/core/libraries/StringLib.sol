@@ -42,11 +42,7 @@ library StringLib {
         uint256 _ptr;
     }
 
-    function memcpy(
-        uint256 dest,
-        uint256 src,
-        uint256 len
-    ) private pure {
+    function memcpy(uint256 dest, uint256 src, uint256 len) private pure {
         // Copy word-length chunks while possible
         for (; len >= 32; len -= 32) {
             assembly {
@@ -59,7 +55,7 @@ library StringLib {
         // Copy remaining bytes
         uint256 mask = type(uint256).max;
         if (len > 0) {
-            mask = 256**(32 - len) - 1;
+            mask = 256 ** (32 - len) - 1;
         }
         assembly {
             let srcpart := and(mload(src), not(mask))
@@ -222,7 +218,7 @@ library StringLib {
                 // Mask out irrelevant bytes and check again
                 uint256 mask = type(uint256).max; // 0xffff...
                 if (shortest < 32) {
-                    mask = ~(2**(8 * (32 - shortest + idx)) - 1);
+                    mask = ~(2 ** (8 * (32 - shortest + idx)) - 1);
                 }
                 unchecked {
                     uint256 diff = (a & mask) - (b & mask);
@@ -312,7 +308,7 @@ library StringLib {
 
         uint256 word;
         uint256 length;
-        uint256 divisor = 2**248;
+        uint256 divisor = 2 ** 248;
 
         // Load the rune into the MSBs of b
         assembly {
@@ -488,7 +484,7 @@ library StringLib {
             if (needlelen <= 32) {
                 bytes32 mask;
                 if (needlelen > 0) {
-                    mask = bytes32(~(2**(8 * (32 - needlelen)) - 1));
+                    mask = bytes32(~(2 ** (8 * (32 - needlelen)) - 1));
                 }
 
                 bytes32 needledata;
@@ -544,7 +540,7 @@ library StringLib {
             if (needlelen <= 32) {
                 bytes32 mask;
                 if (needlelen > 0) {
-                    mask = bytes32(~(2**(8 * (32 - needlelen)) - 1));
+                    mask = bytes32(~(2 ** (8 * (32 - needlelen)) - 1));
                 }
 
                 bytes32 needledata;
@@ -652,11 +648,10 @@ library StringLib {
      * @param needle The text to search for in `self`.
      * @return The part of `self` up to the first occurrence of `delim`.
      */
-    function split(slice memory self, slice memory needle)
-        internal
-        pure
-        returns (slice memory token)
-    {
+    function split(
+        slice memory self,
+        slice memory needle
+    ) internal pure returns (slice memory token) {
         split(self, needle, token);
     }
 
@@ -696,11 +691,10 @@ library StringLib {
      * @param needle The text to search for in `self`.
      * @return The part of `self` after the last occurrence of `delim`.
      */
-    function rsplit(slice memory self, slice memory needle)
-        internal
-        pure
-        returns (slice memory token)
-    {
+    function rsplit(
+        slice memory self,
+        slice memory needle
+    ) internal pure returns (slice memory token) {
         rsplit(self, needle, token);
     }
 

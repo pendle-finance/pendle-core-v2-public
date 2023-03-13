@@ -25,11 +25,10 @@ library ArrayLib {
         return type(uint256).max;
     }
 
-    function append(address[] memory inp, address element)
-        internal
-        pure
-        returns (address[] memory out)
-    {
+    function append(
+        address[] memory inp,
+        address element
+    ) internal pure returns (address[] memory out) {
         uint256 length = inp.length;
         out = new address[](length + 1);
         for (uint256 i = 0; i < length; ) {

@@ -17,22 +17,20 @@ struct LockedPosition {
 library VeBalanceLib {
     using Math for uint256;
     uint128 internal constant MAX_LOCK_TIME = 104 weeks;
-    uint256 internal constant USER_VOTE_MAX_WEIGHT = 10**18;
+    uint256 internal constant USER_VOTE_MAX_WEIGHT = 10 ** 18;
 
-    function add(VeBalance memory a, VeBalance memory b)
-        internal
-        pure
-        returns (VeBalance memory res)
-    {
+    function add(
+        VeBalance memory a,
+        VeBalance memory b
+    ) internal pure returns (VeBalance memory res) {
         res.bias = a.bias + b.bias;
         res.slope = a.slope + b.slope;
     }
 
-    function sub(VeBalance memory a, VeBalance memory b)
-        internal
-        pure
-        returns (VeBalance memory res)
-    {
+    function sub(
+        VeBalance memory a,
+        VeBalance memory b
+    ) internal pure returns (VeBalance memory res) {
         res.bias = a.bias - b.bias;
         res.slope = a.slope - b.slope;
     }
@@ -67,29 +65,25 @@ library VeBalanceLib {
         return a.bias / a.slope;
     }
 
-    function convertToVeBalance(LockedPosition memory position)
-        internal
-        pure
-        returns (VeBalance memory res)
-    {
+    function convertToVeBalance(
+        LockedPosition memory position
+    ) internal pure returns (VeBalance memory res) {
         res.slope = position.amount / MAX_LOCK_TIME;
         res.bias = res.slope * position.expiry;
     }
 
-    function convertToVeBalance(LockedPosition memory position, uint256 weight)
-        internal
-        pure
-        returns (VeBalance memory res)
-    {
+    function convertToVeBalance(
+        LockedPosition memory position,
+        uint256 weight
+    ) internal pure returns (VeBalance memory res) {
         res.slope = ((position.amount * weight) / MAX_LOCK_TIME / USER_VOTE_MAX_WEIGHT).Uint128();
         res.bias = res.slope * position.expiry;
     }
 
-    function convertToVeBalance(uint128 amount, uint128 expiry)
-        internal
-        pure
-        returns (uint128, uint128)
-    {
+    function convertToVeBalance(
+        uint128 amount,
+        uint128 expiry
+    ) internal pure returns (uint128, uint128) {
         VeBalance memory balance = convertToVeBalance(LockedPosition(amount, expiry));
         return (balance.bias, balance.slope);
     }

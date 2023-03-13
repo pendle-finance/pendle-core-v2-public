@@ -17,9 +17,10 @@ interface IPVotingEscrowMainchain is IPVeToken {
 
     // ============= ACTIONS =============
 
-    function increaseLockPosition(uint128 additionalAmountToLock, uint128 expiry)
-        external
-        returns (uint128);
+    function increaseLockPosition(
+        uint128 additionalAmountToLock,
+        uint128 expiry
+    ) external returns (uint128);
 
     function withdraw() external returns (uint128);
 
@@ -27,8 +28,8 @@ interface IPVotingEscrowMainchain is IPVeToken {
 
     function getUserHistoryLength(address user) external view returns (uint256);
 
-    function getUserHistoryAt(address user, uint256 index)
-        external
-        view
-        returns (Checkpoint memory);
+    function getUserHistoryAt(
+        address user,
+        uint256 index
+    ) external view returns (Checkpoint memory);
 }

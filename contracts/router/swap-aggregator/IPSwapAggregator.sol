@@ -17,9 +17,5 @@ enum SwapType {
 }
 
 interface IPSwapAggregator {
-    function swap(
-        address tokenIn,
-        uint256 amountIn,
-        SwapData calldata swapData
-    ) external payable;
+    function swap(address tokenIn, uint256 amountIn, SwapData calldata swapData) external payable;
 }

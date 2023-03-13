@@ -16,11 +16,7 @@ contract PendleSwapAggregator is
 {
     using Address for address;
 
-    function swap(
-        address tokenIn,
-        uint256 amountIn,
-        SwapData calldata data
-    ) external payable {
+    function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
         _safeApproveInf(tokenIn, data.extRouter);
         data.extRouter.functionCallWithValue(
             data.needScale

@@ -58,7 +58,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
     /// @dev refer to _swapExactSyForYt
     function _callbackSwapExactSyForYt(
         int256 ptToAccount,
-        int256, /*syToAccount*/
+        int256 /*syToAccount*/,
         bytes calldata data
     ) internal {
         (address receiver, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactSyForYt(data);
@@ -139,7 +139,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
 
     function _callbackSwapExactPtForYt(
         int256 ptToAccount,
-        int256, /*syToAccount*/
+        int256 /*syToAccount*/,
         bytes calldata data
     ) internal {
         (

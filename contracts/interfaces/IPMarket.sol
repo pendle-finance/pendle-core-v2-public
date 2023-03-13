@@ -44,13 +44,7 @@ interface IPMarket is IERC20Metadata, IPGauge {
         address receiver,
         uint256 netSyDesired,
         uint256 netPtDesired
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netSyUsed,
-            uint256 netPtUsed
-        );
+    ) external returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed);
 
     function burn(
         address receiverSy,
@@ -74,21 +68,16 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     function readState(address router) external view returns (MarketState memory market);
 
-    function observe(uint32[] memory secondsAgos)
-        external
-        view
-        returns (uint216[] memory lnImpliedRateCumulative);
+    function observe(
+        uint32[] memory secondsAgos
+    ) external view returns (uint216[] memory lnImpliedRateCumulative);
 
     function increaseObservationsCardinalityNext(uint16 cardinalityNext) external;
 
     function readTokens()
         external
         view
-        returns (
-            IStandardizedYield _SY,
-            IPPrincipalToken _PT,
-            IPYieldToken _YT
-        );
+        returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT);
 
     function getRewardTokens() external view returns (address[] memory);
 

@@ -14,11 +14,10 @@ abstract contract OneInchAggregationRouterHelper {
         return (minAmount * newAmount) / oldAmount;
     }
 
-    function _get1inchScaledInputData(bytes calldata rawCallData, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function _get1inchScaledInputData(
+        bytes calldata rawCallData,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
         bytes4 selector = bytes4(rawCallData[:4]);
         bytes memory args = rawCallData[4:];
 

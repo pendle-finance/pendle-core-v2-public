@@ -8,7 +8,7 @@ contract sAPE is SYBase {
     using Math for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
-    uint256 public constant MIN_APE_DEPOSIT = 10**18;
+    uint256 public constant MIN_APE_DEPOSIT = 10 ** 18;
     uint256 public constant EPOCH_LENGTH = 1 hours;
     uint256 private constant MINIMUM_LIQUIDITY = 1e9;
 
@@ -42,12 +42,10 @@ contract sAPE is SYBase {
         emit Redeem(msg.sender, msg.sender, apeCoin, amountShares, amountTokenOut);
     }
 
-    function _deposit(address, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountSharesOut) {
         // Respecting APE's deposit invariant
         if (amountDeposited < MIN_APE_DEPOSIT) {
             revert Errors.SYApeDepositAmountTooSmall(amountDeposited);
@@ -141,22 +139,18 @@ contract sAPE is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
         // This function is intentionally left reverted when totalSupply() = 0
         amountSharesOut = (amountTokenToDeposit * totalSupply()) / getTotalAssetOwned();
     }
 
-    function _previewRedeem(address, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
         // This function is intentionally left reverted when totalSupply() = 0
         amountTokenOut = (amountSharesToRedeem * getTotalAssetOwned()) / totalSupply();
     }
@@ -186,11 +180,7 @@ contract sAPE is SYBase {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, apeCoin, IERC20Metadata(apeCoin).decimals());
     }

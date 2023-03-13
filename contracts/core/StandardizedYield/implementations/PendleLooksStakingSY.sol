@@ -30,12 +30,10 @@ contract PendleLooksStakingSY is SYBase {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(address, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountSharesOut) {
         uint256 previousShare = ILooksStaking(stakingContract).userInfo(address(this));
         ILooksStaking(stakingContract).deposit(amountDeposited);
         amountSharesOut = ILooksStaking(stakingContract).userInfo(address(this)) - previousShare;
@@ -65,22 +63,18 @@ contract PendleLooksStakingSY is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
         (uint256 totalShares, uint256 totalLooks) = _getLooksStakingParams();
         amountSharesOut = (amountTokenToDeposit * totalShares) / totalLooks;
     }
 
-    function _previewRedeem(address, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
         (uint256 totalShares, uint256 totalLooks) = _getLooksStakingParams();
         amountTokenOut = (amountSharesToRedeem * totalLooks) / totalShares;
     }
@@ -117,11 +111,7 @@ contract PendleLooksStakingSY is SYBase {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, looks, IERC20Metadata(looks).decimals());
     }

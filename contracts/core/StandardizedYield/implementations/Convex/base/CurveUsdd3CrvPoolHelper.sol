@@ -11,9 +11,9 @@ library CurveUsdd3CrvPoolHelper {
 
     uint256 internal constant N_COINS = 2;
     uint256 internal constant A_PRECISION = 100;
-    uint256 internal constant PRECISION = 10**18;
-    uint256 internal constant rate_multiplier = 10**18;
-    uint256 internal constant FEE_DENOMINATOR = 10**10;
+    uint256 internal constant PRECISION = 10 ** 18;
+    uint256 internal constant rate_multiplier = 10 ** 18;
+    uint256 internal constant FEE_DENOMINATOR = 10 ** 10;
 
     // LP == POOL
     address internal constant POOL = 0xe6b5CC1B4b47305c58392CE3D359B10282FC36Ea;
@@ -25,11 +25,10 @@ library CurveUsdd3CrvPoolHelper {
         balances[1] = ICrvPool(POOL).balances(1);
     }
 
-    function _getTokenAmounts(address token, uint256 amount)
-        internal
-        pure
-        returns (uint256[N_COINS] memory res)
-    {
+    function _getTokenAmounts(
+        address token,
+        uint256 amount
+    ) internal pure returns (uint256[N_COINS] memory res) {
         res[token == USDD ? 0 : 1] = amount;
     }
 
@@ -95,11 +94,10 @@ library CurveUsdd3CrvPoolHelper {
         return get_D(xp, _amp);
     }
 
-    function _xp_mem(uint256[N_COINS] memory _rates, uint256[N_COINS] memory balances)
-        internal
-        pure
-        returns (uint256[N_COINS] memory)
-    {
+    function _xp_mem(
+        uint256[N_COINS] memory _rates,
+        uint256[N_COINS] memory balances
+    ) internal pure returns (uint256[N_COINS] memory) {
         uint256[N_COINS] memory result;
         for (uint256 i = 0; i < N_COINS; ++i) {
             result[i] = (balances[i] * _rates[i]) / PRECISION;
@@ -140,11 +138,9 @@ library CurveUsdd3CrvPoolHelper {
         assert(false);
     }
 
-    function arrayClone(uint256[N_COINS] memory a)
-        internal
-        pure
-        returns (uint256[N_COINS] memory res)
-    {
+    function arrayClone(
+        uint256[N_COINS] memory a
+    ) internal pure returns (uint256[N_COINS] memory res) {
         for (uint256 i = 0; i < N_COINS; ++i) {
             res[i] = a[i];
         }

@@ -193,11 +193,10 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
     }
 
-    function _syOrBulk(address SY, TokenOutput calldata output)
-        internal
-        pure
-        returns (address addr)
-    {
+    function _syOrBulk(
+        address SY,
+        TokenOutput calldata output
+    ) internal pure returns (address addr) {
         return output.bulk != address(0) ? output.bulk : SY;
     }
 }

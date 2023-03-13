@@ -39,11 +39,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
     }
 
     // Since this contract is a beacon contract, no constructor should be defined.
-    function initialize(
-        address _token,
-        address _SY,
-        address _factory
-    ) external initializer {
+    function initialize(address _token, address _SY, address _factory) external initializer {
         __ReentrancyGuard_init();
         token = _token;
         SY = _SY;

@@ -37,14 +37,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         uint256 netSyDesired,
         uint256 netPtDesired,
         uint256 minLpOut
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netSyUsed,
-            uint256 netPtUsed
-        )
-    {
+    ) external returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed) {
         (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         // calculate the amount of SY and PT to be used
@@ -87,15 +80,7 @@ contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
         TokenInput calldata input,
         uint256 netPtDesired,
         uint256 minLpOut
-    )
-        external
-        payable
-        returns (
-            uint256 netLpOut,
-            uint256 netTokenUsed,
-            uint256 netPtUsed
-        )
-    {
+    ) external payable returns (uint256 netLpOut, uint256 netTokenUsed, uint256 netPtUsed) {
         (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
 
         uint256 netSyDesired = _mintSyFromToken(market, address(SY), 1, input);

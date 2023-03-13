@@ -53,7 +53,7 @@ library LogExpMath {
     int256 constant LN_36_LOWER_BOUND = ONE_18 - 1e17;
     int256 constant LN_36_UPPER_BOUND = ONE_18 + 1e17;
 
-    uint256 constant MILD_EXPONENT_BOUND = 2**254 / uint256(ONE_20);
+    uint256 constant MILD_EXPONENT_BOUND = 2 ** 254 / uint256(ONE_20);
 
     // 18 decimal constants
     int256 constant x0 = 128000000000000000000; // 2ˆ7
@@ -263,7 +263,7 @@ library LogExpMath {
             // x^y = exp(y * ln(x)).
 
             // The ln function takes a signed value, so we need to make sure x fits in the signed 256 bit range.
-            require(x < 2**255, "x out of bounds");
+            require(x < 2 ** 255, "x out of bounds");
             int256 x_int256 = int256(x);
 
             // We will compute y * ln(x) in a single step. Depending on the value of x, we can either use ln or ln_36. In

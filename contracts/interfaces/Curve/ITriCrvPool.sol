@@ -27,10 +27,10 @@ interface ITriCrvPool {
         uint256 _min_amount
     ) external;
 
-    function calc_withdraw_one_coin(uint256 _burn_amount, int128 i)
-        external
-        view
-        returns (uint256);
+    function calc_withdraw_one_coin(
+        uint256 _burn_amount,
+        int128 i
+    ) external view returns (uint256);
 
     function balances(uint256 i) external view returns (uint256);
 

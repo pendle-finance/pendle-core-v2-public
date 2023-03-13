@@ -293,11 +293,7 @@ library MetaStableMath {
         }
     }
 
-    function div(
-        uint256 a,
-        uint256 b,
-        bool roundUp
-    ) internal pure returns (uint256) {
+    function div(uint256 a, uint256 b, bool roundUp) internal pure returns (uint256) {
         return roundUp ? divUp(a, b) : divDown(a, b);
     }
 

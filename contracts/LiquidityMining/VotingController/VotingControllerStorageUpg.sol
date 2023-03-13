@@ -46,7 +46,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
 
     uint128 public constant MAX_LOCK_TIME = 104 weeks;
     uint128 public constant WEEK = 1 weeks;
-    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10 * (10**6) * (10**18); // 10 mils of PENDLE
+    uint128 public constant GOVERNANCE_PENDLE_VOTE = 10 * (10 ** 6) * (10 ** 18); // 10 mils of PENDLE
 
     IPVeToken public immutable vePendle;
 
@@ -87,7 +87,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return weekData[wTime].poolVotes[pool];
     }
 
-    function getPoolData(address pool, uint128[] calldata wTimes)
+    function getPoolData(
+        address pool,
+        uint128[] calldata wTimes
+    )
         public
         view
         returns (
@@ -111,11 +114,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         }
     }
 
-    function getUserData(address user, address[] calldata pools)
-        public
-        view
-        returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools)
-    {
+    function getUserData(
+        address user,
+        address[] calldata pools
+    ) public view returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools) {
         UserData storage data = userData[user];
 
         totalVotedWeight = data.totalVotedWeight;
@@ -124,15 +126,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         for (uint256 i = 0; i < pools.length; ++i) voteForPools[i] = data.voteForPools[pools[i]];
     }
 
-    function getWeekData(uint128 wTime, address[] calldata pools)
-        public
-        view
-        returns (
-            bool isEpochFinalized,
-            uint128 totalVotes,
-            uint128[] memory poolVotes
-        )
-    {
+    function getWeekData(
+        uint128 wTime,
+        address[] calldata pools
+    ) public view returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes) {
         if (!wTime.isValidWTime()) revert Errors.InvalidWTime(wTime);
 
         WeekData storage data = weekData[wTime];
@@ -147,11 +144,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return allActivePools.values();
     }
 
-    function getAllRemovedPools(uint256 start, uint256 end)
-        external
-        view
-        returns (uint256 lengthOfRemovedPools, address[] memory arr)
-    {
+    function getAllRemovedPools(
+        uint256 start,
+        uint256 end
+    ) external view returns (uint256 lengthOfRemovedPools, address[] memory arr) {
         lengthOfRemovedPools = allRemovedPools.length();
 
         if (end >= lengthOfRemovedPools) revert Errors.ArrayOutOfBounds();
@@ -164,11 +160,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return activeChainPools[chainId].values();
     }
 
-    function getUserPoolVote(address user, address pool)
-        external
-        view
-        returns (UserPoolData memory)
-    {
+    function getUserPoolVote(
+        address user,
+        address pool
+    ) external view returns (UserPoolData memory) {
         return userData[user].voteForPools[pool];
     }
 
@@ -205,20 +200,12 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         delete poolData[pool];
     }
 
-    function _setFinalPoolVoteForWeek(
-        address pool,
-        uint128 wTime,
-        uint128 vote
-    ) internal {
+    function _setFinalPoolVoteForWeek(address pool, uint128 wTime, uint128 vote) internal {
         weekData[wTime].totalVotes += vote;
         weekData[wTime].poolVotes[pool] = vote;
     }
 
-    function _setNewVotePoolData(
-        address pool,
-        VeBalance memory vote,
-        uint128 wTime
-    ) internal {
+    function _setNewVotePoolData(address pool, VeBalance memory vote, uint128 wTime) internal {
         poolData[pool].totalVote = vote;
         poolData[pool].lastSlopeChangeAppliedAt = wTime;
         emit PoolVoteChange(pool, vote);

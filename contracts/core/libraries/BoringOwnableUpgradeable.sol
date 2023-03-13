@@ -20,11 +20,7 @@ abstract contract BoringOwnableUpgradeable is BoringOwnableUpgradeableData, Init
     /// @param newOwner Address of the new owner.
     /// @param direct True if `newOwner` should be set immediately. False if `newOwner` needs to use `claimOwnership`.
     /// @param renounce Allows the `newOwner` to be `address(0)` if `direct` and `renounce` is True. Has no effect otherwise.
-    function transferOwnership(
-        address newOwner,
-        bool direct,
-        bool renounce
-    ) public onlyOwner {
+    function transferOwnership(address newOwner, bool direct, bool renounce) public onlyOwner {
         if (direct) {
             // Checks
             require(newOwner != address(0) || renounce, "Ownable: zero address");

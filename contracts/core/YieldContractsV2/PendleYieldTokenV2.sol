@@ -89,13 +89,10 @@ contract PendleYieldTokenV2 is
      * @notice Tokenize SY into PT + YT of equal qty. Every unit of asset of SY will create 1 PT + 1 YT
      * @dev SY must be transferred to this contract prior to calling
      */
-    function mintPY(address receiverPT, address receiverYT)
-        external
-        nonReentrant
-        notExpired
-        updateData
-        returns (uint256 amountPYOut)
-    {
+    function mintPY(
+        address receiverPT,
+        address receiverYT
+    ) external nonReentrant notExpired updateData returns (uint256 amountPYOut) {
         address[] memory receiverPTs = new address[](1);
         address[] memory receiverYTs = new address[](1);
         uint256[] memory amountSyToMints = new uint256[](1);
@@ -134,12 +131,9 @@ contract PendleYieldTokenV2 is
      * same time
      * @dev PT/YT must be transferred to this contract prior to calling
      */
-    function redeemPY(address receiver)
-        external
-        nonReentrant
-        updateData
-        returns (uint256 amountSyOut)
-    {
+    function redeemPY(
+        address receiver
+    ) external nonReentrant updateData returns (uint256 amountSyOut) {
         address[] memory receivers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         (receivers[0], amounts[0]) = (receiver, _getAmountPYToRedeem());
@@ -155,12 +149,10 @@ contract PendleYieldTokenV2 is
      * @dev PT/YT must be transferred to this contract prior to calling
      * @dev fails if unable to redeem the total PY amount in `amountPYToRedeems`
      */
-    function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
-        external
-        nonReentrant
-        updateData
-        returns (uint256[] memory amountSyOuts)
-    {
+    function redeemPYMulti(
+        address[] calldata receivers,
+        uint256[] calldata amountPYToRedeems
+    ) external nonReentrant updateData returns (uint256[] memory amountSyOuts) {
         if (receivers.length != amountPYToRedeems.length) revert Errors.ArrayLengthMismatch();
         if (receivers.length == 0) revert Errors.ArrayEmpty();
         amountSyOuts = _redeemPY(receivers, amountPYToRedeems);
@@ -290,10 +282,10 @@ contract PendleYieldTokenV2 is
         return postExpiry.firstPYIndex == 0;
     }
 
-    function _redeemPY(address[] memory receivers, uint256[] memory amountPYToRedeems)
-        internal
-        returns (uint256[] memory amountSyOuts)
-    {
+    function _redeemPY(
+        address[] memory receivers,
+        uint256[] memory amountPYToRedeems
+    ) internal returns (uint256[] memory amountSyOuts) {
         uint256 totalAmountPYToRedeem = amountPYToRedeems.sum();
         IPPrincipalToken(PT).burnByYT(address(this), totalAmountPYToRedeem);
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
@@ -318,20 +310,18 @@ contract PendleYieldTokenV2 is
         _transferOut(SY, treasury, totalSyInterestPostExpiry);
     }
 
-    function _calcPYToMint(uint256 amountSy, uint256 indexCurrent)
-        internal
-        pure
-        returns (uint256 amountPY)
-    {
+    function _calcPYToMint(
+        uint256 amountSy,
+        uint256 indexCurrent
+    ) internal pure returns (uint256 amountPY) {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
         return SYUtils.syToAsset(indexCurrent, amountSy);
     }
 
-    function _calcSyRedeemableFromPY(uint256 amountPY, uint256 indexCurrent)
-        internal
-        view
-        returns (uint256 syToUser, uint256 syInterestPostExpiry)
-    {
+    function _calcSyRedeemableFromPY(
+        uint256 amountPY,
+        uint256 indexCurrent
+    ) internal view returns (uint256 syToUser, uint256 syInterestPostExpiry) {
         syToUser = SYUtils.assetToSy(indexCurrent, amountPY);
         if (isExpired()) {
             uint256 totalSyRedeemable = SYUtils.assetToSy(postExpiry.firstPYIndex, amountPY);
@@ -473,11 +463,7 @@ contract PendleYieldTokenV2 is
     }
 
     //solhint-disable-next-line ordering
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal override {
+    function _beforeTokenTransfer(address from, address to, uint256) internal override {
         if (isExpired()) _setPostExpiryData();
         _updateAndDistributeRewardsForTwo(from, to);
         _updateAndDistributeInterestForTwo(from, to);

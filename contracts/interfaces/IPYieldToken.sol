@@ -32,9 +32,10 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
 
     function redeemPY(address receiver) external returns (uint256 amountSyOut);
 
-    function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
-        external
-        returns (uint256[] memory amountSyOuts);
+    function redeemPYMulti(
+        address[] calldata receivers,
+        uint256[] calldata amountPYToRedeems
+    ) external returns (uint256[] memory amountSyOuts);
 
     function redeemDueInterestAndRewards(
         address user,

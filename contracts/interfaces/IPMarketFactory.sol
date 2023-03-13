@@ -26,12 +26,7 @@ interface IPMarketFactory {
     function isValidMarket(address market) external view returns (bool);
 
     // If this is changed, change the readState function in market as well
-    function getMarketConfig(address router)
-        external
-        view
-        returns (
-            address treasury,
-            uint80 lnFeeRateRoot,
-            uint8 reserveFeePercent
-        );
+    function getMarketConfig(
+        address router
+    ) external view returns (address treasury, uint80 lnFeeRateRoot, uint8 reserveFeePercent);
 }

@@ -2,12 +2,10 @@
 pragma solidity 0.8.17;
 
 interface IPInterestManagerYTV2 {
-    function userInterest(address user)
+    function userInterest(
+        address user
+    )
         external
         view
-        returns (
-            uint128 lastInterestIndex,
-            uint128 accruedInterest,
-            uint256 lastPYIndex
-        );
+        returns (uint128 lastInterestIndex, uint128 accruedInterest, uint256 lastPYIndex);
 }

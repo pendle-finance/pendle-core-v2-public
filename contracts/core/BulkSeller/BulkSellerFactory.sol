@@ -37,11 +37,10 @@ contract BulkSellerFactory is
         upgradeBeacon(implementation_);
     }
 
-    function createBulkSeller(address token, address SY)
-        external
-        onlyMaintainer
-        returns (address bulk)
-    {
+    function createBulkSeller(
+        address token,
+        address SY
+    ) external onlyMaintainer returns (address bulk) {
         IStandardizedYield _SY = IStandardizedYield(SY);
         if (syToBulkSeller[token][SY] != address(0))
             revert Errors.BulkSellerAlreadyExisted(token, SY, syToBulkSeller[token][SY]);

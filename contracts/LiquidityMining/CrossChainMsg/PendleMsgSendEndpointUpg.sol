@@ -74,11 +74,10 @@ contract PendleMsgSendEndpointUpg is
         );
     }
 
-    function addReceiveEndpoints(address endpointAddr, uint256 endpointChainId)
-        external
-        payable
-        onlyOwner
-    {
+    function addReceiveEndpoints(
+        address endpointAddr,
+        uint256 endpointChainId
+    ) external payable onlyOwner {
         receiveEndpoints.set(endpointChainId, endpointAddr);
     }
 
@@ -106,11 +105,9 @@ contract PendleMsgSendEndpointUpg is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function _getAdapterParams(uint256 estimatedGasAmount)
-        internal
-        pure
-        returns (bytes memory adapterParams)
-    {
+    function _getAdapterParams(
+        uint256 estimatedGasAmount
+    ) internal pure returns (bytes memory adapterParams) {
         // this is more like "type" rather than version
         // It is the type of adapter params you want to pass to relayer
         adapterParams = abi.encodePacked(uint16(1), estimatedGasAmount);

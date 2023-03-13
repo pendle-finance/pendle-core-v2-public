@@ -55,11 +55,9 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         previewHelper = _previewHelper;
     }
 
-    function _getPoolInfo(uint256 _auraPid)
-        internal
-        view
-        returns (address _auraLp, address _auraRewardManager)
-    {
+    function _getPoolInfo(
+        uint256 _auraPid
+    ) internal view returns (address _auraLp, address _auraRewardManager) {
         if (_auraPid > IBooster(AURA_BOOSTER).poolLength()) revert Errors.SYBalancerInvalidPid();
         (_auraLp, , , _auraRewardManager, , ) = IBooster(AURA_BOOSTER).poolInfo(_auraPid);
     }
@@ -71,12 +69,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     /**
      * @notice Either wraps LP, or also joins pool using exact tokenIn
      */
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amount
+    ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == balLp) {
             amountSharesOut = amount;
         } else {
@@ -111,11 +107,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
                     BALANCER-RELATED FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function _depositToBalancer(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        virtual
-        returns (uint256)
-    {
+    function _depositToBalancer(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal virtual returns (uint256) {
         IVault.JoinPoolRequest memory request = _assembleJoinRequest(
             tokenIn,
             amountTokenToDeposit
@@ -126,12 +121,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         return _selfBalance(balLp);
     }
 
-    function _assembleJoinRequest(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        returns (IVault.JoinPoolRequest memory request)
-    {
+    function _assembleJoinRequest(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual returns (IVault.JoinPoolRequest memory request) {
         // max amounts in
         address[] memory assets = _getPoolTokenAddresses();
 
@@ -173,12 +166,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         return balanceAfter - balanceBefore;
     }
 
-    function _assembleExitRequest(address tokenOut, uint256 amountLpToRedeem)
-        internal
-        view
-        virtual
-        returns (IVault.ExitPoolRequest memory request)
-    {
+    function _assembleExitRequest(
+        address tokenOut,
+        uint256 amountLpToRedeem
+    ) internal view virtual returns (IVault.ExitPoolRequest memory request) {
         address[] memory assets = _getPoolTokenAddresses();
         uint256[] memory minAmountsOut = new uint256[](assets.length);
 
@@ -210,13 +201,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
                    PREVIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == balLp) {
             amountSharesOut = amountTokenToDeposit;
         } else {
@@ -234,13 +222,10 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == balLp) {
             amountTokenOut = amountSharesToRedeem;
         } else {
@@ -318,11 +303,7 @@ abstract contract PendleAuraBalancerStableLPSY is SYBaseWithRewards {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, balLp, IERC20Metadata(balLp).decimals());
     }

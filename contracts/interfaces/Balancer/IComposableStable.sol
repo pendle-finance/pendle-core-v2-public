@@ -13,25 +13,15 @@ interface IComposableStable is IBasePool {
     function getAmplificationParameter()
         external
         view
-        returns (
-            uint256 value,
-            bool isUpdating,
-            uint256 precision
-        );
+        returns (uint256 value, bool isUpdating, uint256 precision);
 
     function getProtocolFeePercentageCache(uint256 feeType) external view returns (uint256);
 
     function isTokenExemptFromYieldProtocolFee(IERC20 token) external view returns (bool);
 
-    function getTokenRateCache(IERC20 token)
-        external
-        view
-        returns (
-            uint256 rate,
-            uint256 oldRate,
-            uint256 duration,
-            uint256 expires
-        );
+    function getTokenRateCache(
+        IERC20 token
+    ) external view returns (uint256 rate, uint256 oldRate, uint256 duration, uint256 expires);
 
     function getRateProviders() external view returns (IRateProvider[] memory);
 

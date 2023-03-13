@@ -61,14 +61,12 @@ interface IVault {
         uint256 deadline
     ) external payable returns (uint256);
 
-    function getPoolTokens(bytes32 poolId)
+    function getPoolTokens(
+        bytes32 poolId
+    )
         external
         view
-        returns (
-            IERC20[] memory tokens,
-            uint256[] memory balances,
-            uint256 lastChangeBlock
-        );
+        returns (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock);
 
     function WETH() external view returns (IERC20);
 

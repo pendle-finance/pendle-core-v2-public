@@ -226,11 +226,7 @@ contract PendleVotingControllerUpg is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice broadcast voting results of the timestamp to chainId
-    function _broadcastResults(
-        uint64 chainId,
-        uint128 wTime,
-        uint128 totalPendlePerSec
-    ) internal {
+    function _broadcastResults(uint64 chainId, uint128 wTime, uint128 totalPendlePerSec) internal {
         uint256 totalVotes = weekData[wTime].totalVotes;
         if (totalVotes == 0) return;
 
@@ -259,11 +255,9 @@ contract PendleVotingControllerUpg is
         emit BroadcastResults(chainId, wTime, totalPendlePerSec);
     }
 
-    function _getUserVePendlePosition(address user)
-        internal
-        view
-        returns (LockedPosition memory userPosition)
-    {
+    function _getUserVePendlePosition(
+        address user
+    ) internal view returns (LockedPosition memory userPosition) {
         if (user == owner) {
             (userPosition.amount, userPosition.expiry) = (
                 GOVERNANCE_PENDLE_VOTE,

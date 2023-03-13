@@ -6,11 +6,7 @@ interface ICrvDepositor {
 
     function minter() external view returns (address);
 
-    function deposit(
-        uint256 _amount,
-        bool _lock,
-        address _stakeAddress
-    ) external;
+    function deposit(uint256 _amount, bool _lock, address _stakeAddress) external;
 
     //deposit crv for cvxCrv
     //can locking immediately or defer locking to someone else by paying a fee.

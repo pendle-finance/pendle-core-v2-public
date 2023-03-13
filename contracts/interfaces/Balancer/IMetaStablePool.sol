@@ -12,20 +12,11 @@ interface IMetaStablePool is IBasePool {
     function getAmplificationParameter()
         external
         view
-        returns (
-            uint256 value,
-            bool isUpdating,
-            uint256 precision
-        );
+        returns (uint256 value, bool isUpdating, uint256 precision);
 
     function getSwapFeePercentage() external view returns (uint256);
 
-    function getPriceRateCache(IERC20 token)
-        external
-        view
-        returns (
-            uint256 rate,
-            uint256 duration,
-            uint256 expires
-        );
+    function getPriceRateCache(
+        IERC20 token
+    ) external view returns (uint256 rate, uint256 duration, uint256 expires);
 }

@@ -26,14 +26,10 @@ contract PendleGDaiSY is SYBase {
      * The underlying yield token is gDAI. If the base token deposited is DAI, the function
      * deposits received DAI into the gDAI contract.
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (
-            uint256 /*amountSharesOut*/
-        )
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == gDAI) {
             return amountDeposited;
         } else {
@@ -48,14 +44,7 @@ contract PendleGDaiSY is SYBase {
         address receiver,
         address tokenOut,
         uint256 amountSharesToRedeem
-    )
-        internal
-        virtual
-        override
-        returns (
-            uint256 /*amountTokenOut*/
-        )
-    {
+    ) internal virtual override returns (uint256 /*amountTokenOut*/) {
         _transferOut(tokenOut, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
@@ -76,14 +65,10 @@ contract PendleGDaiSY is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (
-            uint256 /*amountSharesOut*/
-        )
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == gDAI) {
             return amountTokenToDeposit;
         } else {
@@ -92,16 +77,9 @@ contract PendleGDaiSY is SYBase {
     }
 
     function _previewRedeem(
-        address, /*tokenOut*/
+        address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    )
-        internal
-        pure
-        override
-        returns (
-            uint256 /*amountTokenOut*/
-        )
-    {
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
@@ -127,11 +105,7 @@ contract PendleGDaiSY is SYBase {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, DAI, 18);
     }

@@ -90,10 +90,10 @@ abstract contract SYBase is
      * @param amountDeposited amount of base tokens deposited
      * @return amountSharesOut amount of shares minted
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        returns (uint256 amountSharesOut);
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual returns (uint256 amountSharesOut);
 
     /**
      * @notice redeems base tokens based on amount of shares to be burned
@@ -169,22 +169,18 @@ abstract contract SYBase is
                 MISC METADATA FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        external
-        view
-        virtual
-        returns (uint256 amountSharesOut)
-    {
+    function previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) external view virtual returns (uint256 amountSharesOut) {
         if (!isValidTokenIn(tokenIn)) revert Errors.SYInvalidTokenIn(tokenIn);
         return _previewDeposit(tokenIn, amountTokenToDeposit);
     }
 
-    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        external
-        view
-        virtual
-        returns (uint256 amountTokenOut)
-    {
+    function previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) external view virtual returns (uint256 amountTokenOut) {
         if (!isValidTokenOut(tokenOut)) revert Errors.SYInvalidTokenOut(tokenOut);
         return _previewRedeem(tokenOut, amountSharesToRedeem);
     }
@@ -203,17 +199,15 @@ abstract contract SYBase is
         uint256
     ) internal virtual override whenNotPaused {}
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        returns (uint256 amountSharesOut);
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual returns (uint256 amountSharesOut);
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        returns (uint256 amountTokenOut);
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual returns (uint256 amountTokenOut);
 
     function getTokensIn() public view virtual returns (address[] memory res);
 

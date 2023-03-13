@@ -50,11 +50,10 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
      *
      * The exchange rate of qiToken to shares is 1:1
      */
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amount
+    ) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == qiToken) {
             amountSharesOut = amount;
         } else {
@@ -155,22 +154,18 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
                     MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
         if (tokenIn == qiToken) amountSharesOut = amountTokenToDeposit;
         else amountSharesOut = (amountTokenToDeposit * 1e18) / exchangeRate();
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
         if (tokenOut == qiToken) amountTokenOut = amountSharesToRedeem;
         else amountTokenOut = (amountSharesToRedeem * exchangeRate()) / 1e18;
     }
@@ -198,11 +193,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (
             AssetType.TOKEN,

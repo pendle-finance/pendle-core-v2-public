@@ -20,10 +20,10 @@ interface IGMXVault {
 
     function getMinPrice(address _token) external view returns (uint256);
 
-    function getRedemptionAmount(address _token, uint256 _usdgAmount)
-        external
-        view
-        returns (uint256);
+    function getRedemptionAmount(
+        address _token,
+        uint256 _usdgAmount
+    ) external view returns (uint256);
 
     function taxBasisPoints() external view returns (uint256);
 

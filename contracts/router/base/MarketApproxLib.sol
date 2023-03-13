@@ -48,15 +48,7 @@ library MarketApproxPtInLib {
         uint256 minSyOut,
         uint256 blockTime,
         ApproxParams memory approx
-    )
-        internal
-        pure
-        returns (
-            uint256, /*netPtIn*/
-            uint256, /*netSyOut*/
-            uint256 /*netSyFee*/
-        )
-    {
+    ) internal pure returns (uint256 /*netPtIn*/, uint256 /*netSyOut*/, uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -94,14 +86,7 @@ library MarketApproxPtInLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    )
-        internal
-        pure
-        returns (
-            uint256, /*netYtOut*/
-            uint256 /*netSyFee*/
-        )
-    {
+    ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             approx.guessMin = Math.max(approx.guessMin, index.syToAsset(exactSyIn));
@@ -149,11 +134,7 @@ library MarketApproxPtInLib {
     )
         internal
         pure
-        returns (
-            uint256, /*netPtSwap*/
-            uint256, /*netSyFromSwap*/
-            uint256 /*netSyFee*/
-        )
+        returns (uint256 /*netPtSwap*/, uint256 /*netSyFromSwap*/, uint256 /*netSyFee*/)
     {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
@@ -245,11 +226,7 @@ library MarketApproxPtInLib {
     )
         internal
         pure
-        returns (
-            uint256, /*netYtOut*/
-            uint256, /*totalPtToSwap*/
-            uint256 /*netSyFee*/
-        )
+        returns (uint256 /*netYtOut*/, uint256 /*totalPtToSwap*/, uint256 /*netSyFee*/)
     {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
@@ -286,15 +263,7 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp,
         PYIndex index,
         uint256 netPtIn
-    )
-        internal
-        pure
-        returns (
-            uint256 netSyOut,
-            uint256 netSyFee,
-            uint256 netSyToReserve
-        )
-    {
+    ) internal pure returns (uint256 netSyOut, uint256 netSyFee, uint256 netSyToReserve) {
         (int256 _netSyOut, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(
             comp,
             index,
@@ -318,11 +287,10 @@ library MarketApproxPtInLib {
             revert Errors.ApproxParamsInvalid(approx.guessMin, approx.guessMax, approx.eps);
     }
 
-    function calcMaxPtIn(MarketState memory market, MarketPreCompute memory comp)
-        internal
-        pure
-        returns (uint256)
-    {
+    function calcMaxPtIn(
+        MarketState memory market,
+        MarketPreCompute memory comp
+    ) internal pure returns (uint256) {
         uint256 low = 0;
         uint256 hi = uint256(comp.totalAsset) - 1;
 
@@ -375,14 +343,7 @@ library MarketApproxPtOutLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    )
-        internal
-        pure
-        returns (
-            uint256, /*netPtOut*/
-            uint256 /*netSyFee*/
-        )
-    {
+    ) internal pure returns (uint256 /*netPtOut*/, uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -421,15 +382,7 @@ library MarketApproxPtOutLib {
         uint256 minSyOut,
         uint256 blockTime,
         ApproxParams memory approx
-    )
-        internal
-        pure
-        returns (
-            uint256, /*netYtIn*/
-            uint256, /*netSyOut*/
-            uint256 /*netSyFee*/
-        )
-    {
+    ) internal pure returns (uint256 /*netYtIn*/, uint256 /*netSyOut*/, uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -481,11 +434,7 @@ library MarketApproxPtOutLib {
     )
         internal
         pure
-        returns (
-            uint256, /*netPtFromSwap*/
-            uint256, /*netSySwap*/
-            uint256 /*netSyFee*/
-        )
+        returns (uint256 /*netPtFromSwap*/, uint256 /*netSySwap*/, uint256 /*netSyFee*/)
     {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _blockTime, _approx);
 
@@ -560,11 +509,7 @@ library MarketApproxPtOutLib {
     )
         internal
         pure
-        returns (
-            uint256, /*netPtOut*/
-            uint256, /*totalPtSwapped*/
-            uint256 /*netSyFee*/
-        )
+        returns (uint256 /*netPtOut*/, uint256 /*totalPtSwapped*/, uint256 /*netSyFee*/)
     {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
@@ -598,15 +543,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp,
         PYIndex index,
         uint256 netPtOut
-    )
-        internal
-        pure
-        returns (
-            uint256 netSyIn,
-            uint256 netSyFee,
-            uint256 netSyToReserve
-        )
-    {
+    ) internal pure returns (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) {
         (int256 _netSyIn, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(
             comp,
             index,
@@ -619,11 +556,10 @@ library MarketApproxPtOutLib {
         netSyToReserve = uint256(_netSyToReserve);
     }
 
-    function calcMaxPtOut(MarketPreCompute memory comp, int256 totalPt)
-        internal
-        pure
-        returns (uint256)
-    {
+    function calcMaxPtOut(
+        MarketPreCompute memory comp,
+        int256 totalPt
+    ) internal pure returns (uint256) {
         int256 logitP = (comp.feeRate - comp.rateAnchor).mulDown(comp.rateScalar).exp();
         int256 proportion = logitP.divDown(logitP + Math.IONE);
         int256 numerator = proportion.mulDown(totalPt + comp.totalAsset);

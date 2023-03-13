@@ -22,11 +22,9 @@ abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp {
         pendleMsgReceiveEndpoint = _pendleMsgReceiveEndpoint;
     }
 
-    function executeMessage(bytes calldata message)
-        external
-        virtual
-        onlyFromPendleMsgReceiveEndpoint
-    {
+    function executeMessage(
+        bytes calldata message
+    ) external virtual onlyFromPendleMsgReceiveEndpoint {
         _executeMessage(message);
     }
 

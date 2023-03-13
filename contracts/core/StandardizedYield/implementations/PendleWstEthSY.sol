@@ -35,12 +35,10 @@ contract PendleWstEthSY is SYBase {
      *
      * The exchange rate of wstETH to shares is 1:1
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == wstETH) {
             amountSharesOut = amountDeposited;
         } else {
@@ -94,12 +92,10 @@ contract PendleWstEthSY is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
         if (tokenIn == wstETH) amountSharesOut = amountTokenToDeposit;
         else {
             if (tokenIn != stETH) {
@@ -120,12 +116,10 @@ contract PendleWstEthSY is SYBase {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
         if (tokenOut == wstETH) amountTokenOut = amountSharesToRedeem;
         else amountTokenOut = IStETH(stETH).getPooledEthByShares(amountSharesToRedeem);
     }
@@ -155,11 +149,7 @@ contract PendleWstEthSY is SYBase {
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, stETH, IERC20Metadata(stETH).decimals());
     }

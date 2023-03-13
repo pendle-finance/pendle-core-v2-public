@@ -9,7 +9,9 @@ interface IPActionMarketAuxStatic {
 
     function calcPriceImpactYt(address market, int256 netPtOut) external returns (uint256);
 
-    function getMarketState(address market)
+    function getMarketState(
+        address market
+    )
         external
         returns (
             address pt,
@@ -20,11 +22,13 @@ interface IPActionMarketAuxStatic {
             MarketState memory state
         );
 
-    function getTradeExchangeRateExcludeFee(address market, MarketState memory state)
-        external
-        returns (uint256);
+    function getTradeExchangeRateExcludeFee(
+        address market,
+        MarketState memory state
+    ) external returns (uint256);
 
-    function getTradeExchangeRateIncludeFee(address market, int256 netPtOut)
-        external
-        returns (uint256);
+    function getTradeExchangeRateIncludeFee(
+        address market,
+        int256 netPtOut
+    ) external returns (uint256);
 }

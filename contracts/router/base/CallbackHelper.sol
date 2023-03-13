@@ -34,15 +34,9 @@ abstract contract CallbackHelper {
         }
     }
 
-    function _decodeSwapExactSyForYt(bytes calldata data)
-        internal
-        pure
-        returns (
-            address receiver,
-            uint256 minYtOut,
-            IPYieldToken YT
-        )
-    {
+    function _decodeSwapExactSyForYt(
+        bytes calldata data
+    ) internal pure returns (address receiver, uint256 minYtOut, IPYieldToken YT) {
         assembly {
             // first 32 bytes is ActionType
             receiver := calldataload(add(data.offset, 32))
@@ -75,7 +69,9 @@ abstract contract CallbackHelper {
         }
     }
 
-    function _decodeSwapSyForExactYt(bytes calldata data)
+    function _decodeSwapSyForExactYt(
+        bytes calldata data
+    )
         internal
         pure
         returns (
@@ -116,15 +112,9 @@ abstract contract CallbackHelper {
         }
     }
 
-    function _decodeSwapYtForSy(bytes calldata data)
-        internal
-        pure
-        returns (
-            address receiver,
-            uint256 minSyOut,
-            IPYieldToken YT
-        )
-    {
+    function _decodeSwapYtForSy(
+        bytes calldata data
+    ) internal pure returns (address receiver, uint256 minSyOut, IPYieldToken YT) {
         assembly {
             // first 32 bytes is ActionType
             receiver := calldataload(add(data.offset, 32))
@@ -153,7 +143,9 @@ abstract contract CallbackHelper {
         }
     }
 
-    function _decodeSwapExactYtForPt(bytes calldata data)
+    function _decodeSwapExactYtForPt(
+        bytes calldata data
+    )
         internal
         pure
         returns (
@@ -192,15 +184,12 @@ abstract contract CallbackHelper {
         }
     }
 
-    function _decodeSwapExactPtForYt(bytes calldata data)
+    function _decodeSwapExactPtForYt(
+        bytes calldata data
+    )
         internal
         pure
-        returns (
-            address receiver,
-            uint256 exactPtIn,
-            uint256 minYtOut,
-            IPYieldToken YT
-        )
+        returns (address receiver, uint256 exactPtIn, uint256 minYtOut, IPYieldToken YT)
     {
         assembly {
             // first 32 bytes is ActionType
