@@ -158,12 +158,9 @@ contract PendleStargateLPSY is SYBaseWithRewards {
         if (tokenIn == lp) {
             amountSharesOut = amountTokenToDeposit;
         } else {
-            (
-                uint256 totalLiquidity,
-                uint256 totalSupply,
-                uint256 mintFeeBP,
-
-            ) = _getStargateLiquidityInfo();
+            uint256 totalLiquidity = IStargateLP(lp).totalLiquidity();
+            uint256 totalSupply = IStargateLP(lp).totalSupply();
+            uint256 mintFeeBP = IStargateLP(lp).mintFeeBP();
 
             uint256 amountSD = amountTokenToDeposit / convertRate;
 
@@ -183,12 +180,9 @@ contract PendleStargateLPSY is SYBaseWithRewards {
         if (tokenOut == lp) {
             amountTokenOut = amountSharesToRedeem;
         } else {
-            (
-                uint256 totalLiquidity,
-                uint256 totalSupply,
-                ,
-                uint256 deltaCredit
-            ) = _getStargateLiquidityInfo();
+            uint256 totalLiquidity = IStargateLP(lp).totalLiquidity();
+            uint256 totalSupply = IStargateLP(lp).totalSupply();
+            uint256 deltaCredit = IStargateLP(lp).deltaCredit();
 
             uint256 capAmountLp = (deltaCredit * totalSupply) / totalLiquidity;
             if (amountSharesToRedeem > capAmountLp) {
@@ -198,22 +192,6 @@ contract PendleStargateLPSY is SYBaseWithRewards {
             uint256 amountSD = (amountSharesToRedeem * totalLiquidity) / totalSupply;
             amountTokenOut = amountSD * convertRate;
         }
-    }
-
-    function _getStargateLiquidityInfo()
-        internal
-        view
-        returns (
-            uint256 totalLiquidity,
-            uint256 totalSupply,
-            uint256 mintFeeBP,
-            uint256 deltaCredit
-        )
-    {
-        totalLiquidity = IStargateLP(lp).totalLiquidity();
-        totalSupply = IStargateLP(lp).totalSupply();
-        mintFeeBP = IStargateLP(lp).mintFeeBP();
-        deltaCredit = IStargateLP(lp).deltaCredit();
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
