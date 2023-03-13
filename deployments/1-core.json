@@ -21,7 +21,7 @@
     "bulkSellerFactory": "0x4B1da107B50529d53e5C906a79eaEcDCbC0E1dE3",
     "bulkSellerOffchain": "0x9ACc60F915dFcd190D270fc92567aE71776bd320",
     "router": "0x0000000001e4ef00d069e71d6ba041b0a16f7ea0",
-    "routerStatic": "0xcF45b92cd0B0859FC42a767fAac2354909f937e9",
+    "routerStatic": "0x263833d47eA3fA4a30f269323aba6a107f9eB14C",
     "pendleSwap": "0x9660AC0cB085F8Fb39a6F383cF2067785364f924",
     "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
