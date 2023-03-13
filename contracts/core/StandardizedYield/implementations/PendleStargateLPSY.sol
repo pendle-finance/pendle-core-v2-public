@@ -72,9 +72,9 @@ contract PendleStargateLPSY is SYBaseWithRewards {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == underlying) {
-            uint256 preBalance = _selfBalance(lp);
             IStargateRouter(stargateRouter).addLiquidity(pid, amountDeposited, address(this));
-            amountSharesOut = _selfBalance(lp) - preBalance;
+            amountSharesOut = _selfBalance(lp);
+            // all outstanding LP will be staked
         } else {
             amountSharesOut = amountDeposited;
         }
@@ -107,7 +107,6 @@ contract PendleStargateLPSY is SYBaseWithRewards {
                 amountSharesToRedeem,
                 receiver
             );
-
             uint256 lpUsed = preBalanceLp - _selfBalance(lp);
             if (lpUsed < amountSharesToRedeem) {
                 revert Errors.SYStargateRedeemCapExceeded(amountSharesToRedeem, lpUsed);
