@@ -34,5 +34,4 @@ __pycache__/
 
 draft/
 
-# Deployments
-deployments/**/*.ts
+.npmrc
