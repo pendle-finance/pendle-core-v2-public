@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.17;
-import "./interfaces/IMetaAggregationRouterV2.sol";
-import "./interfaces/IHashflow.sol";
-import "./interfaces/IExecutorHelperEthereum1.sol";
-import "./ScaleDataHelperEthereum1.sol";
+import "./IMetaAggregationRouterV2.sol";
+import "./IHashflow.sol";
+import "./IExecutorHelperEthereum1.sol";
+import "./ScaleDataHelperEthereum.sol";
 
-abstract contract KyberAggregationRouterHelper {
+abstract contract KyberHelperEthereum {
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;
@@ -135,47 +135,35 @@ abstract contract KyberAggregationRouterHelper {
             bytes4 selector = swap.selector;
 
             if (selector == IExecutorHelperEthereum1.executeUniSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newUniSwap(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newUniSwap(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeStableSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newStableSwap(
-                    swap.data,
-                    oldAmount,
-                    newAmount
-                );
+                swap.data = ScaleDataHelperEthereum.newStableSwap(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeCurveSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newCurveSwap(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newCurveSwap(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeKyberDMMSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newKyberDMM(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newKyberDMM(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeUniV3ProMMSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newUniV3ProMM(
-                    swap.data,
-                    oldAmount,
-                    newAmount
-                );
+                swap.data = ScaleDataHelperEthereum.newUniV3ProMM(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeRfqSwap.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
             } else if (selector == IExecutorHelperEthereum1.executeBalV2Swap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newBalancerV2(
-                    swap.data,
-                    oldAmount,
-                    newAmount
-                );
+                swap.data = ScaleDataHelperEthereum.newBalancerV2(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeDODOSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newDODO(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newDODO(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeWrappedstETHSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newWrappedstETHSwap(
+                swap.data = ScaleDataHelperEthereum.newWrappedstETHSwap(
                     swap.data,
                     oldAmount,
                     newAmount
                 );
             } else if (selector == IExecutorHelperEthereum1.executeSynthetixSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newSynthetix(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newSynthetix(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executePSMSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newPSM(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newPSM(swap.data, oldAmount, newAmount);
             } else if (selector == IExecutorHelperEthereum1.executeHashflowSwap.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
             } else if (selector == IExecutorHelperEthereum1.executeFraxSwap.selector) {
-                swap.data = ScaleDataHelperEthereum1.newFrax(swap.data, oldAmount, newAmount);
+                swap.data = ScaleDataHelperEthereum.newFrax(swap.data, oldAmount, newAmount);
             } else revert("AggregationExecutor: Dex type not supported");
         }
         return abi.encode(executorDesc);

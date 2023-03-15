@@ -6,12 +6,12 @@ import "../../core/libraries/TokenHelper.sol";
 import "../../core/libraries/Errors.sol";
 import "./IPSwapAggregator.sol";
 import "./1inch/OneInchAggregationRouterHelper.sol";
-import "./kyberswap/KyberAggregationRouterHelper.sol";
+import "./kyberswap/ethereum/KyberHelperEthereum.sol";
 
-contract PendleSwapAggregator is
+contract PendleSwapEthereum is
     IPSwapAggregator,
     TokenHelper,
-    KyberAggregationRouterHelper,
+    KyberHelperEthereum,
     OneInchAggregationRouterHelper
 {
     using Address for address;

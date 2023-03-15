@@ -8,7 +8,7 @@ import "./IPSwapAggregator.sol";
 import "./1inch/OneInchAggregationRouterHelper.sol";
 import "./kyberswap/arbitrum/KyberHelperArbitrum.sol";
 
-contract PendleSwapAggregator is
+contract PendleSwapArbitrum is
     IPSwapAggregator,
     TokenHelper,
     KyberHelperArbitrum,
