@@ -19,7 +19,7 @@
     "marketFactory": "0xf5a7De2D276dbda3EEf1b62A9E718EFf4d29dDC8",
     "router": "0x0000000001e4ef00d069e71d6ba041b0a16f7ea0",
     "routerStatic": "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8",
-    "pendleSwap": "0x0E669e08bd717d7F9c9DE158636BD8561295fbB5",
+    "pendleSwap": "0xDa78D46C4133EA548386e64eaca26FC456F71D2d",
     "receiverEndpoint": "0xC9215ae9EC67385F38C755D862C8eE3702B5793A",
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "gaugeController": "0x1e56299ebc8a1010cec26005d12e3e5c5cc2db00"
