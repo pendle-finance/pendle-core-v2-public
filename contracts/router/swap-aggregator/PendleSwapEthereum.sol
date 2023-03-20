@@ -39,4 +39,6 @@ contract PendleSwapEthereum is
             assert(false);
         }
     }
+
+    receive() external payable {}
 }

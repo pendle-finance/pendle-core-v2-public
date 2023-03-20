@@ -39,4 +39,7 @@ contract PendleSwapArbitrum is
             assert(false);
         }
     }
+
+    receive() external payable {}
+
 }
