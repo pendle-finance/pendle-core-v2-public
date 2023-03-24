@@ -1,0 +1,10 @@
+{
+    "name": "SY Stargate USDT",
+    "SY": "0x068DEf65B9dbAFf02b4ee54572a9Fa7dFb188EA3",
+    "YT": "0x0AdEd315d2e51F676a2Aa8d2bc6A79C88e0F1c1a",
+    "PT": "0x7D180a4f451FC15B543B5d1Ba7dDa6b3014A4c49",
+    "market": "0x0A21291A184cf36aD3B0a0def4A17C12Cbd66A14",
+    "expiry": 1719446400,
+    "scalarRoot": "55429700000000000000",
+    "initAnchor": "1081744000000000000"
+}
