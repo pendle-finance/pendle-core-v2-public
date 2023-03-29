@@ -2,7 +2,7 @@
   "name": "@pendle/core-v2",
   "description": "Core smart contracts of Pendle Protocol.",
   "license": "BUSL-1.1",
-  "version": "2.5.0-mainnet",
+  "version": "2.6.0-mainnet",
   "homepage": "https://pendle.finance",
   "keywords": [
     "pendle",
