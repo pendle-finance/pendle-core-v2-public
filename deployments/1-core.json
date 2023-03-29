@@ -28,5 +28,5 @@
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
-    "routerHelper": "0xeb984195D54Df02BaF757e21B0705032FaEFde2E"
+    "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335"
 }
