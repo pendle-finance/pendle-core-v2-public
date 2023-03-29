@@ -15,6 +15,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
     constructor(address _ROUTER, IAddressProvider provider) {
         ROUTER = IPAllAction(_ROUTER);
         WETH = _getWETHAddress(provider, 1);
+        _safeApproveInf(WETH, address(ROUTER));
     }
 
     function _getWETHAddress(IAddressProvider provider, uint256 providerId)
@@ -75,7 +76,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             uint256 netSyFeeOfAdd
         )
     {
-        (netTokenZapIn, netSyFeeOfRemove) = _removeLiquiditySingleToken(fromMarket);
+        (netTokenZapIn, netSyFeeOfRemove) = removeLiquiditySingleToken(fromMarket);
         (netLpOut, netSyFeeOfAdd) = _addLiquiditySingleToken(
             toMarket,
             fromMarket.output.tokenOut,
@@ -95,7 +96,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             uint256 netSyFeeOfRemove
         )
     {
-        (netTokenZapIn, netSyFeeOfRemove) = _removeLiquiditySingleToken(fromMarket);
+        (netTokenZapIn, netSyFeeOfRemove) = removeLiquiditySingleToken(fromMarket);
         (netLpOut, netYtOut) = _addLiquiditySingleTokenKeepYt(
             toMarket,
             fromMarket.output.tokenOut,
@@ -115,7 +116,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             uint256 netSyFeeOfAdd
         )
     {
-        (netSyZapIn, netSyFeeOfRemove) = _removeLiquiditySingleSy(fromMarket);
+        (netSyZapIn, netSyFeeOfRemove) = removeLiquiditySingleSy(fromMarket);
         (netLpOut, netSyFeeOfAdd) = _addLiquiditySingleSy(toMarket, netSyZapIn);
     }
 
@@ -131,12 +132,12 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             uint256 netSyFeeOfRemove
         )
     {
-        (netSyZapIn, netSyFeeOfRemove) = _removeLiquiditySingleSy(fromMarket);
+        (netSyZapIn, netSyFeeOfRemove) = removeLiquiditySingleSy(fromMarket);
         (netLpOut, netYtOut) = _addLiquiditySingleSyKeepYt(toMarket, netSyZapIn);
     }
 
-    function _removeLiquiditySingleToken(RemoveLiquiditySingleTokenStruct calldata fromMarket)
-        internal
+    function removeLiquiditySingleToken(RemoveLiquiditySingleTokenStruct calldata fromMarket)
+        public
         returns (uint256 netTokenOut, uint256 netSyFee)
     {
         _transferFrom(
@@ -169,8 +170,8 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
         );
     }
 
-    function _removeLiquiditySingleSy(RemoveLiquiditySingleSyStruct calldata fromMarket)
-        internal
+    function removeLiquiditySingleSy(RemoveLiquiditySingleSyStruct calldata fromMarket)
+        public
         returns (uint256 netSyOut, uint256 netSyFee)
     {
         _transferFrom(

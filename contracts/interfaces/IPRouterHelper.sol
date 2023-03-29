@@ -165,4 +165,12 @@ interface IPRouterHelper {
             uint256 netSyZapIn,
             uint256 netSyFeeOfRemove
         );
+
+    function removeLiquiditySingleToken(RemoveLiquiditySingleTokenStruct calldata fromMarket)
+        external
+        returns (uint256 netTokenOut, uint256 netSyFee);
+
+    function removeLiquiditySingleSy(RemoveLiquiditySingleSyStruct calldata fromMarket)
+        external
+        returns (uint256 netSyOut, uint256 netSyFee);
 }
