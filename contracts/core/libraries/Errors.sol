@@ -167,6 +167,7 @@ library Errors {
     error ArrayOutOfBounds();
     error ZeroAddress();
     error FailedToSendEther();
+    error InvalidMerkleProof();
 
     error OnlyLayerZeroEndpoint();
     error OnlyYT();
