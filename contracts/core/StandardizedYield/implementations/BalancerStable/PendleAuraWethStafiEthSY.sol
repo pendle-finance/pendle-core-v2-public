@@ -5,12 +5,12 @@ import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "../../../../interfaces/IWETH.sol";
 import "./base/MetaStable/MetaStablePreview.sol";
 
-contract PendleAuraWethRocketEthSYV2 is PendleAuraBalancerStableLPSYV2 {
-    address internal constant ROCKET_ETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
+contract PendleAuraWethStafiEthSY is PendleAuraBalancerStableLPSYV2 {
+    address internal constant STAFI_ETH = 0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    uint256 internal constant AURA_PID = 15;
-    address internal constant LP = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
+    uint256 internal constant AURA_PID = 63;
+    address internal constant LP = 0xB08885e6026bab4333A80024Ec25a1a3e1FF2b8A;
 
     constructor(
         string memory _name,
@@ -83,13 +83,13 @@ contract PendleAuraWethRocketEthSYV2 is PendleAuraBalancerStableLPSYV2 {
         returns (address[] memory res)
     {
         res = new address[](2);
-        res[0] = ROCKET_ETH;
+        res[0] = STAFI_ETH;
         res[1] = WETH;
     }
 
     function _getRateProviders() internal view virtual returns (address[] memory res) {
         res = new address[](2);
-        res[0] = 0x1a8F81c256aee9C640e14bB0453ce247ea0DFE6F;
+        res[0] = 0x3D40f9dd83bd404fA4047c15da494E58C3c1f1ac;
         res[1] = 0x0000000000000000000000000000000000000000;
     }
 
@@ -112,7 +112,7 @@ contract PendleAuraWethRocketEthSYV2 is PendleAuraBalancerStableLPSYV2 {
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](4);
         res[0] = LP;
-        res[1] = ROCKET_ETH;
+        res[1] = STAFI_ETH;
         res[2] = WETH;
         res[3] = NATIVE;
     }
@@ -120,16 +120,16 @@ contract PendleAuraWethRocketEthSYV2 is PendleAuraBalancerStableLPSYV2 {
     function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](4);
         res[0] = LP;
-        res[1] = ROCKET_ETH;
+        res[1] = STAFI_ETH;
         res[2] = WETH;
         res[3] = NATIVE;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return (token == LP || token == ROCKET_ETH || token == WETH || token == NATIVE);
+        return (token == LP || token == STAFI_ETH || token == WETH || token == NATIVE);
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return (token == LP || token == ROCKET_ETH || token == WETH || token == NATIVE);
+        return (token == LP || token == STAFI_ETH || token == WETH || token == NATIVE);
     }
 }
