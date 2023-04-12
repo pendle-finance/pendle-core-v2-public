@@ -71,7 +71,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     mapping(address => UserData) internal userData;
 
     // [user][pool] => checkpoint
-    mapping(address => mapping(address => Checkpoints.History)) internal userPoolHistory;
+    mapping(address => mapping(address => Checkpoints.History)) internal __dep_userPoolHistory;
 
     uint256[100] private __gap;
 
@@ -167,18 +167,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return userData[user].voteForPools[pool];
     }
 
-    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256) {
-        return userPoolHistory[user][pool].length();
-    }
-
-    function getUserPoolHistoryAt(
-        address user,
-        address pool,
-        uint256 index
-    ) external view returns (Checkpoint memory) {
-        return userPoolHistory[user][pool].get(index);
-    }
-
     /*///////////////////////////////////////////////////////////////
                 INTERNAL DATA MANIPULATION FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -249,7 +237,6 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
             uData.totalVotedWeight += weight;
         }
 
-        userPoolHistory[user][pool].push(newVote);
         emit PoolVoteChange(pool, pData.totalVote);
     }
 

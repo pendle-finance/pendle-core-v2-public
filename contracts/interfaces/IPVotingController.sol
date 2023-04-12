@@ -22,21 +22,14 @@ interface IPVotingController {
 
     function applyPoolSlopeChanges(address pool) external;
 
-    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256);
-
-    function getUserPoolHistoryAt(
-        address user,
-        address pool,
-        uint256 index
-    ) external view returns (Checkpoint memory);
-
-    function getWeekData(
-        uint128 wTime,
-        address[] calldata pools
-    )
+    function getWeekData(uint128 wTime, address[] calldata pools)
         external
         view
-        returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes);
+        returns (
+            bool isEpochFinalized,
+            uint128 totalVotes,
+            uint128[] memory poolVotes
+        );
 
     function getPoolTotalVoteAt(address pool, uint128 wTime) external view returns (uint128);
 
