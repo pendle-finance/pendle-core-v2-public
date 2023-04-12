@@ -5,6 +5,21 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IAsset.sol";
 
 interface IVault {
+    enum UserBalanceOpKind {
+        DEPOSIT_INTERNAL,
+        WITHDRAW_INTERNAL,
+        TRANSFER_INTERNAL,
+        TRANSFER_EXTERNAL
+    }
+
+    struct UserBalanceOp {
+        UserBalanceOpKind kind;
+        IAsset asset;
+        uint256 amount;
+        address sender;
+        address payable recipient;
+    }
+
     struct JoinPoolRequest {
         address[] assets;
         uint256[] maxAmountsIn;
@@ -61,12 +76,14 @@ interface IVault {
         uint256 deadline
     ) external payable returns (uint256);
 
-    function getPoolTokens(
-        bytes32 poolId
-    )
+    function getPoolTokens(bytes32 poolId)
         external
         view
-        returns (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock);
+        returns (
+            IERC20[] memory tokens,
+            uint256[] memory balances,
+            uint256 lastChangeBlock
+        );
 
     function WETH() external view returns (IERC20);
 

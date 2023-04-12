@@ -116,6 +116,8 @@ library Errors {
 
     error SYStargateRedeemCapExceeded(uint256 amountLpDesired, uint256 amountLpRedeemable);
 
+    error SYBalancerReentrancy();
+
     // Liquidity Mining
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);

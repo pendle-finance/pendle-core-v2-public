@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./base/PendleAuraBalancerStableLPSY.sol";
+import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "../../../../interfaces/IWETH.sol";
 import "./base/MetaStable/MetaStablePreview.sol";
 
-contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
-    address public constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
-    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+contract PendleAuraWethRocketEthSYV2 is PendleAuraBalancerStableLPSYV2 {
+    address internal constant RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
+    address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     uint256 internal constant AURA_PID = 15;
     address internal constant LP = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
@@ -16,12 +16,14 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         string memory _name,
         string memory _symbol,
         MetaStablePreview _previewHelper
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
+    ) PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount)
+        internal
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             IWETH(WETH).deposit{ value: amount }();
             amountSharesOut = super._deposit(WETH, amount);
@@ -34,20 +36,24 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         address receiver,
         address tokenOut,
         uint256 amountSharesToRedeem
-    ) internal virtual override returns (uint256 amountTokenOut) {
+    ) internal virtual override returns (uint256) {
         if (tokenOut == NATIVE) {
-            amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
+            uint256 amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
             IWETH(WETH).withdraw(amountTokenOut);
             _transferOut(NATIVE, receiver, amountTokenOut);
+            return amountTokenOut;
         } else {
-            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
+            return super._redeem(receiver, tokenOut, amountSharesToRedeem);
         }
     }
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view virtual override returns (uint256 amountSharesOut) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else {
@@ -55,10 +61,13 @@ contract PendleAuraWethRethSY is PendleAuraBalancerStableLPSY {
         }
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view virtual override returns (uint256 amountTokenOut) {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountTokenOut)
+    {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else {

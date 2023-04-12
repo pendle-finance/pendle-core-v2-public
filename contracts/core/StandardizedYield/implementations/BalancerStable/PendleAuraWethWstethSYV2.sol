@@ -2,11 +2,11 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./base/PendleAuraBalancerStableLPSY.sol";
+import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "../../StEthHelper.sol";
 import "./base/MetaStable/MetaStablePreview.sol";
 
-contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
+contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper {
     uint256 internal constant AURA_PID = 29;
     address internal constant LP = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
 
@@ -14,12 +14,14 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
         string memory _name,
         string memory _symbol,
         MetaStablePreview _previewHelper
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) StEthHelper() {}
+    ) PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _previewHelper) StEthHelper() {}
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount)
+        internal
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             IWETH(WETH).deposit{ value: amount }();
             amountSharesOut = super._deposit(WETH, amount);
@@ -48,10 +50,13 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
         }
     }
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view virtual override returns (uint256 amountSharesOut) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else if (tokenIn == STETH) {
@@ -62,10 +67,13 @@ contract PendleAuraWethWstethSY is PendleAuraBalancerStableLPSY, StEthHelper {
         }
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view virtual override returns (uint256 amountTokenOut) {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountTokenOut)
+    {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else if (tokenOut == STETH) {

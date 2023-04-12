@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "./base/PendleAuraBalancerStableLPSY.sol";
+import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "../../../../interfaces/IWETH.sol";
 import "./base/MetaStable/MetaStablePreview.sol";
 
-contract PendleAuraWethAnkrethSY is PendleAuraBalancerStableLPSY {
+contract PendleAuraWethAnkrethSYV2 is PendleAuraBalancerStableLPSYV2 {
     address internal constant ANKRETH = 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
@@ -16,12 +16,14 @@ contract PendleAuraWethAnkrethSY is PendleAuraBalancerStableLPSY {
         string memory _name,
         string memory _symbol,
         MetaStablePreview _previewHelper
-    ) PendleAuraBalancerStableLPSY(_name, _symbol, LP, AURA_PID, _previewHelper) {}
+    ) PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _previewHelper) {}
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount)
+        internal
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             IWETH(WETH).deposit{ value: amount }();
             amountSharesOut = super._deposit(WETH, amount);
@@ -45,10 +47,13 @@ contract PendleAuraWethAnkrethSY is PendleAuraBalancerStableLPSY {
         }
     }
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view virtual override returns (uint256 amountSharesOut) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountSharesOut)
+    {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else {
@@ -56,10 +61,13 @@ contract PendleAuraWethAnkrethSY is PendleAuraBalancerStableLPSY {
         }
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view virtual override returns (uint256 amountTokenOut) {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        virtual
+        override
+        returns (uint256 amountTokenOut)
+    {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else {
