@@ -1,0 +1,11 @@
+{
+    "name": "SY rETH-WETH_BalancerLP Aura",
+    "SY": "0x9Bdb1dfD15D9051D127c3cD6882e194cA1c89e56",
+    "YT": "0xE1578305ACC1BA40a331fd8cC9c8aEA1C2F21c9c",
+    "PT": "0x73AA4ce1d62E30AA0207eaF25De6aC3bEba9E7fd",
+    "market": "0x7E9Ad57D949b7aE03588a5bCBa85016F76B462f7",
+    "expiry": 1735171200,
+    "bulkSeller": "0xFa6c7Eb155ad7A9f9Ad5f6C5178eb7e929BF8C09",
+    "scalarRoot": "52750270000000000000",
+    "initAnchor": "1104792000000000000"
+}
