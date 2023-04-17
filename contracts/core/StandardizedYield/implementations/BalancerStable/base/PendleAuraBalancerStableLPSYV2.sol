@@ -21,6 +21,7 @@ abstract contract PendleAuraBalancerStableLPSYV2 is SYBaseWithRewards {
     address internal constant AURA_TOKEN = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address internal constant AURA_BOOSTER = 0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
     address internal constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    uint256 internal constant DEFAULT_GAS_REENTRANCY_CHECK = 7000;
 
     address public immutable balLp;
     bytes32 public immutable balPoolId;
@@ -30,6 +31,7 @@ abstract contract PendleAuraBalancerStableLPSYV2 is SYBaseWithRewards {
 
     IBalancerStablePreview public immutable previewHelper;
 
+    uint256 public gasForReentrancyCheck;
     address[] public extraRewards;
 
     constructor(
@@ -53,6 +55,7 @@ abstract contract PendleAuraBalancerStableLPSYV2 is SYBaseWithRewards {
         }
 
         previewHelper = _previewHelper;
+        gasForReentrancyCheck = DEFAULT_GAS_REENTRANCY_CHECK;
     }
 
     function _getPoolInfo(uint256 _auraPid)
@@ -108,19 +111,32 @@ abstract contract PendleAuraBalancerStableLPSYV2 is SYBaseWithRewards {
         return IRateProvider(balLp).getRate();
     }
 
-    /// @dev The `manageUserBalance` function is a non-view function that includes a reentrancy guard.
-    /// When it is called by `staticcall`, one of two cases can occur:
-    /// 1. The function passes the reentrancy guard. In this scenario, the `status` variable is set to 2,
-    /// causing the EVM to panic (since the sub-call is a `staticcall`), resulting in a revert with
-    /// no response (i.e., `response.length == 0`).
-    /// 2. The function does not pass the reentrancy guard. In this situation, it reverts due to
-    /// error `BAL#400`, which means that `response.length = 100.`
-    /// To prevent read-only reentrancy, we simply need to verify that the revert corresponds to case 1,
-    /// rather than case 2. checking `response.length == 0` is sufficient.
+    /*
+    * The `manageUserBalance` function is a non-view function that includes a reentrancy guard
+        in the form of `_require(_status != _ENTERED, Errors.REENTRANCY);`. To prevent
+        read-only reentrancy, it's important to ensure that our `manageUserBalance` has enough gas
+        to reach this check, so that it can fail if necessary.
+
+    * On the way to the check, there's at most one `COLD_SLOAD` plus miscellaneous decoding &
+        require, which we've found through testing to cost no more than 3200 gas. Therefore,
+        attaching 7000 gas should guarantee that it's always possible to reach the check.
+
+    * Once we've reached the check, one of two scenarios can occur:
+    1. The call doesn't pass the check, and reverts with error `BAL#400` ⇒ `response.length = 100`.
+    2. The call passes the check. Then, the call can either:
+        a. continue on to set the `status` variable to 2, causing the EVM to revert (since
+        the sub-call is a `staticcall`), and `response.length == 0`
+        b. run out of gas, which will also lead to a revert with `response.length == 0`
+    In both cases, to differentiate between 1 and 2, we check `response.length != 0`. If it's
+    true, then it's a read-only reentrancy. Otherwise, we're good (and we can ignore
+    differentiating between 2a and 2b).
+    */
     function _checkBalancerReadOnlyReentrancy() internal view {
         IVault.UserBalanceOp[] memory noop = new IVault.UserBalanceOp[](0);
 
-        (bool isSuccess, bytes memory response) = BALANCER_VAULT.staticcall(
+        (bool isSuccess, bytes memory response) = BALANCER_VAULT.staticcall{
+            gas: gasForReentrancyCheck
+        }(
             abi.encodeWithSignature(
                 "manageUserBalance((uint8,address,uint256,address,address)[])",
                 noop
@@ -129,6 +145,11 @@ abstract contract PendleAuraBalancerStableLPSYV2 is SYBaseWithRewards {
 
         assert(!isSuccess);
         if (response.length != 0) revert Errors.SYBalancerReentrancy();
+    }
+
+    function setGasForReentrancyCheck(uint256 newGas) external onlyOwner {
+        require(newGas >= DEFAULT_GAS_REENTRANCY_CHECK, "lower than default");
+        gasForReentrancyCheck = newGas;
     }
 
     /*///////////////////////////////////////////////////////////////
