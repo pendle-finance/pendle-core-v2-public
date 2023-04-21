@@ -9,4 +9,6 @@ interface IGlpManager {
     function gov() external view returns (address);
 
     function setCooldownDuration(uint256 _cooldownDuration) external;
+
+    function getPrice(bool _maximise) external view returns (uint256);
 }

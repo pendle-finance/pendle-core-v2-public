@@ -84,4 +84,23 @@ interface IPMarket is IERC20Metadata, IPGauge {
     function isExpired() external view returns (bool);
 
     function expiry() external view returns (uint256);
+
+    function observations(
+        uint256 index
+    )
+        external
+        view
+        returns (uint32 blockTimestamp, uint216 lnImpliedRateCumulative, bool initialized);
+
+    function _storage()
+        external
+        view
+        returns (
+            int128 totalPt,
+            int128 totalSy,
+            uint96 lastLnImpliedRate,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext
+        );
 }
