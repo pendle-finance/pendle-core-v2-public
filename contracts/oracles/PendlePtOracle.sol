@@ -3,10 +3,12 @@ pragma solidity 0.8.17;
 
 import "./PendlePtOracleLib.sol";
 import "../interfaces/IPPtOracle.sol";
+import "../core/libraries/BoringOwnableUpgradeable.sol";
 
-contract PendlePtOracle is IPPtOracle {
+contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
     using PendlePtOracleLib for IPMarket;
 
+    error InvalidBlockRate(uint256 blockCycleNumerator);
     error TwapDurationTooLarge(uint32 duration, uint32 cardinalityRequired);
 
     /// @notice Oracles will be created ensuring a lowerbound in PendleMarket oracle's cardinality
@@ -16,12 +18,21 @@ contract PendlePtOracle is IPPtOracle {
     /// rate per timestamp
     /// For example, on Ethereum blockCycleNumerator = 11000, where 11000/1000 = 11 < 12
     ///                 Arbitrum blockCycleNumerator = 1000, since we can't do better than this
-    uint16 public immutable blockCycleNumerator;
+    uint16 public blockCycleNumerator;
     uint16 public constant BLOCK_CYCLE_DENOMINATOR = 1000;
 
-    constructor(uint16 _blockCycleNumerator) {
-        blockCycleNumerator = _blockCycleNumerator;
-        require(blockCycleNumerator >= BLOCK_CYCLE_DENOMINATOR, "Invalid block rate numerator");
+    constructor(uint16 _blockCycleNumerator) initializer {
+        __BoringOwnable_init();
+        setBlockCycleNumerator(_blockCycleNumerator);
+    }
+
+    function setBlockCycleNumerator(uint16 newBlockCycleNumerator) public onlyOwner {
+        if (newBlockCycleNumerator < BLOCK_CYCLE_DENOMINATOR) {
+            revert InvalidBlockRate(newBlockCycleNumerator);
+        }
+
+        blockCycleNumerator = newBlockCycleNumerator;
+        emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 
     /**
@@ -29,11 +40,10 @@ contract PendlePtOracle is IPPtOracle {
      * @param market market to get rate from
      * @param duration twap duration
      */
-    function getPtToAssetRate(address market, uint32 duration)
-        external
-        view
-        returns (uint256 ptToAssetRate)
-    {
+    function getPtToAssetRate(
+        address market,
+        uint32 duration
+    ) external view returns (uint256 ptToAssetRate) {
         ptToAssetRate = IPMarket(market).getPtToAssetRate(duration);
     }
 
@@ -44,7 +54,10 @@ contract PendlePtOracle is IPPtOracle {
      * @return increaseCardinalityRequired a boolean indicates whether the cardinality should be increased to serve the duration
      * @return cardinalityRequired the amount of cardinality required for the twap duration
      */
-    function getOracleState(address market, uint32 duration)
+    function getOracleState(
+        address market,
+        uint32 duration
+    )
         external
         view
         returns (

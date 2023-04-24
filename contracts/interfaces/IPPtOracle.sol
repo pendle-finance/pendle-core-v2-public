@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 interface IPPtOracle {
+    event SetBlockCycleNumerator(uint16 newBlockCycleNumerator);
+
     function getPtToAssetRate(
         address market,
         uint32 duration
