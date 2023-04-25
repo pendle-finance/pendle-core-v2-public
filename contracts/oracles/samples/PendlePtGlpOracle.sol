@@ -44,7 +44,7 @@ contract PendlePtGlpOracle {
         // using library directly to save 1 external call (gas optimization)
         uint256 ptRate = IPMarket(market).getPtToAssetRate(twapDuration);
         uint256 assetPrice = IGlpManager(glpManager).getPrice(true);
-        return (assetPrice * ptRate) / Math.ONE;
+        return (assetPrice * ptRate) / (10 ** 30);
     }
 
     function decimals() external pure virtual returns (uint8) {
