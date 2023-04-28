@@ -2,14 +2,21 @@
 
 pragma solidity 0.8.17;
 
-import "./PendleCamelotV1Base.sol";
+import "./PendleCamelotV1LPHelper.sol";
 import "./PendleCamelotRewardHelper.sol";
 import "../../SYBaseWithRewards.sol";
+import "./CamelotV1Preview.sol";
 
-contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCamelotRewardHelper {
-    address public constant PENDLE = 0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8;
-
+contract PendleCamelotV1SY is
+    PendleCamelotV1LPHelper,
+    SYBaseWithRewards,
+    PendleCamelotRewardHelper
+{
     using Math for uint256;
+    using ArrayLib for address[];
+
+    address[] public rewardTokens;
+    CamelotV1PreviewHelper public immutable previewHelper;
 
     constructor(
         string memory _name,
@@ -17,20 +24,27 @@ contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCam
         address _pair,
         address _factory,
         address _router,
-        address _nitroPool
+        address _nitroPool,
+        CamelotV1PreviewHelper _previewHelper
     )
-        PendleCamelotV1Base(_pair, _factory, _router)
+        PendleCamelotV1LPHelper(_pair, _factory, _router)
         SYBaseWithRewards(_name, _symbol, _pair)
         PendleCamelotRewardHelper(_nitroPool, _pair)
-    {}
+    {
+        rewardTokens.push(GRAIL);
+        updateRewardTokensList();
+        previewHelper = _previewHelper;
+    }
 
     /**
      * @dev See {SYBase-_deposit}
      */
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256) {
+    function _deposit(address tokenIn, uint256 amountDeposited)
+        internal
+        virtual
+        override
+        returns (uint256)
+    {
         uint256 amountLpDeposited;
         if (tokenIn == pair) {
             amountLpDeposited = amountDeposited;
@@ -57,14 +71,10 @@ contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCam
         _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
-    /**
-     * @notice Both Pendle and ETH has 18 decimals so this exchangeRate should not cause
-     * any readibility issues
-     */
     function exchangeRate() public view virtual override returns (uint256) {
         (uint256 reserve0, uint256 reserve1, , ) = ICamelotPair(pair).getReserves();
         uint256 supply = ICamelotPair(pair).totalSupply();
-        return sqrt(reserve0 * reserve1).divDown(supply);
+        return Math.sqrt(reserve0 * reserve1).divDown(supply);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -74,10 +84,22 @@ contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCam
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
-    function _getRewardTokens() internal view override returns (address[] memory res) {
-        res = new address[](2);
-        res[0] = PENDLE;
-        res[1] = GRAIL;
+    function _getRewardTokens() internal view virtual override returns (address[] memory res) {
+        uint256 extraRewardsLen = rewardTokens.length;
+        res = new address[](1 + extraRewardsLen);
+        res[0] = GRAIL;
+        for (uint256 i = 0; i < extraRewardsLen; i++) {
+            res[1 + i] = rewardTokens[i];
+        }
+    }
+
+    /// @notice allows anyone to add new rewardTokens to this SY if a new rewardToken is added to the Nitro pool
+    function updateRewardTokensList() public virtual {
+        address token1 = ICamelotNitroPool(nitroPool).rewardToken1().token;
+        address token2 = ICamelotNitroPool(nitroPool).rewardToken2().token;
+
+        if (token1 != address(0) && !rewardTokens.contains(token1)) rewardTokens.push(token1);
+        if (token2 != address(0) && !rewardTokens.contains(token2)) rewardTokens.push(token2);
     }
 
     function _redeemExternalReward() internal override {
@@ -87,30 +109,45 @@ contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCam
     }
 
     /*///////////////////////////////////////////////////////////////
-                MISC FUNCTIONS FOR METADATA
+                    PREVIEW-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view override returns (uint256) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        override
+        returns (uint256)
+    {
         if (tokenIn == pair) {
             return amountTokenToDeposit;
         } else {
-            return _previewZapIn(tokenIn, amountTokenToDeposit);
+            return previewHelper.previewZapIn(_getPairData(), tokenIn, amountTokenToDeposit);
         }
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view override returns (uint256) {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        override
+        returns (uint256)
+    {
         if (tokenOut == pair) {
             return amountSharesToRedeem;
         } else {
-            return _previewZapOut(tokenOut, amountSharesToRedeem);
+            return previewHelper.previewZapOut(_getPairData(), tokenOut, amountSharesToRedeem);
         }
     }
+
+    function _getPairData() internal view returns (CamelotPairData memory data) {
+        data.token0 = token0;
+        data.token1 = token1;
+        data.pair = pair;
+        (data.reserve0, data.reserve1, data.fee0, data.fee1) = ICamelotPair(pair).getReserves();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                MISC FUNCTIONS FOR METADATA
+    //////////////////////////////////////////////////////////////*/
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](3);
@@ -137,7 +174,11 @@ contract PendleCamelotPepSY is PendleCamelotV1Base, SYBaseWithRewards, PendleCam
     function assetInfo()
         external
         view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
+        returns (
+            AssetType assetType,
+            address assetAddress,
+            uint8 assetDecimals
+        )
     {
         return (AssetType.LIQUIDITY, pair, IERC20Metadata(pair).decimals());
     }

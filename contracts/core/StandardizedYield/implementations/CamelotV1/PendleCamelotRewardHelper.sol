@@ -14,12 +14,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
  * @dev This contract should leave at least MINIMUM_LIQUIDITY in NftPool position
  * to protect the position from being destroyed
  *
- * The reason for this is that once the position is destroyed, the deallocation of xGrail
+ * The reason for this is that once the position is destroyed, the de-allocation of xGrail
  * will be forced to occur and take away fees from our xGRAIL boosting
  */
 contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
-    uint256 public constant POSITION_UNINITIALIZED = type(uint256).max;
-    uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 private constant POSITION_UNINITIALIZED = type(uint256).max;
+    uint256 private constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     address public immutable nftPool;
@@ -62,13 +62,14 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
 
         // there should be no reward without minimum liquidity minted
         assert(positionId != POSITION_UNINITIALIZED);
-        
+
         IXGrail(xGRAIL).allocate(yieldBooster, amount, abi.encode(nftPool, positionId));
     }
 
-    function _increaseNftPoolPosition(
-        uint256 amountLp
-    ) internal returns (uint256 amountLpAccountedForUser) {
+    function _increaseNftPoolPosition(uint256 amountLp)
+        internal
+        returns (uint256 amountLpAccountedForUser)
+    {
         // first time minting from this contract
         if (positionId == POSITION_UNINITIALIZED) {
             positionId = ICamelotNFTPool(nftPool).lastTokenId() + 1;
@@ -112,7 +113,7 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         address,
         uint256 tokenId,
         bytes calldata
-    ) external ensureValidTokenId(tokenId) returns (bytes4) {
+    ) external view ensureValidTokenId(tokenId) returns (bytes4) {
         return _ERC721_RECEIVED;
     }
 
@@ -122,7 +123,7 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         uint256 tokenId,
         uint256,
         uint256
-    ) external ensureValidTokenId(tokenId) returns (bool) {
+    ) external view ensureValidTokenId(tokenId) returns (bool) {
         return true;
     }
 
@@ -130,7 +131,7 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         address,
         uint256 tokenId,
         uint256
-    ) external ensureValidTokenId(tokenId) returns (bool) {
+    ) external view ensureValidTokenId(tokenId) returns (bool) {
         return true;
     }
 
@@ -138,7 +139,7 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         address,
         uint256 tokenId,
         uint256
-    ) external ensureValidTokenId(tokenId) returns (bool) {
+    ) external view ensureValidTokenId(tokenId) returns (bool) {
         return true;
     }
 }
