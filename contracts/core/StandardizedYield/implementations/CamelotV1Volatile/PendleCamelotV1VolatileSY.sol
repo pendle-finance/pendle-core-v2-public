@@ -2,21 +2,21 @@
 
 pragma solidity 0.8.17;
 
-import "./PendleCamelotV1LPHelper.sol";
-import "./PendleCamelotRewardHelper.sol";
+import "./CamelotRewardHelper.sol";
 import "../../SYBaseWithRewards.sol";
-import "./CamelotV1Preview.sol";
+import "./CamelotV1VolatilePreview.sol";
+import "./CamelotV1VolatileLpHelper.sol";
 
-contract PendleCamelotV1SY is
-    PendleCamelotV1LPHelper,
+contract PendleCamelotV1VolatileSY is
     SYBaseWithRewards,
-    PendleCamelotRewardHelper
+    CamelotRewardHelper,
+    CamelotV1VolatileLpHelper
 {
     using Math for uint256;
     using ArrayLib for address[];
 
     address[] public rewardTokens;
-    CamelotV1PreviewHelper public immutable previewHelper;
+    CamelotV1VolatilePreview public immutable previewHelper;
     bool public isEmergencyActivated;
 
     constructor(
@@ -27,11 +27,11 @@ contract PendleCamelotV1SY is
         address _router,
         address _nitroPool,
         address _referrer,
-        CamelotV1PreviewHelper _previewHelper
+        CamelotV1VolatilePreview _previewHelper
     )
-        PendleCamelotV1LPHelper(_pair, _factory, _router, _referrer)
+        CamelotV1VolatileLpHelper(_pair, _factory, _router, _referrer)
         SYBaseWithRewards(_name, _symbol, _pair)
-        PendleCamelotRewardHelper(_nitroPool, _pair)
+        CamelotRewardHelper(_nitroPool, _pair)
     {
         rewardTokens.push(GRAIL);
         updateRewardTokensList();
@@ -69,6 +69,7 @@ contract PendleCamelotV1SY is
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
+        // solhint-disable-next-line
         if (isEmergencyActivated) {
             // if emergency is activated, the LP has been withdrawn from the pool
         } else {

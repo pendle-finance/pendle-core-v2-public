@@ -7,7 +7,7 @@ import "../../../../interfaces/Camelot/ICamelotRouter.sol";
 import "../../../../interfaces/Camelot/ICamelotFactory.sol";
 import "../../../libraries/TokenHelper.sol";
 import "../../../libraries/math/Math.sol";
-import "./CamelotV1Common.sol";
+import "./CamelotV1VolatileCommon.sol";
 
 /**
  * @notice This contract is intended to be launched on Arbitrum
@@ -19,7 +19,7 @@ import "./CamelotV1Common.sol";
  * for swap/add liquidity
  */
 
-abstract contract PendleCamelotV1LPHelper is TokenHelper, CamelotV1Common {
+abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCommon {
     address public immutable token0;
     address public immutable token1;
     address public immutable pair;

@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
  * The reason for this is that once the position is destroyed, the de-allocation of xGrail
  * will be forced to occur and take away fees from our xGRAIL boosting
  */
-contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
+contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
     uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;

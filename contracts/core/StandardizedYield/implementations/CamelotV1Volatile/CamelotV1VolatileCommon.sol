@@ -8,7 +8,7 @@ import "../../../../interfaces/Camelot/ICamelotFactory.sol";
 import "../../../libraries/TokenHelper.sol";
 import "../../../libraries/math/Math.sol";
 
-contract CamelotV1Common {
+contract CamelotV1VolatileCommon {
     struct CamelotPairData {
         address token0;
         address token1;
