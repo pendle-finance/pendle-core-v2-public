@@ -17,7 +17,7 @@ contract PendleCamelotV1VolatileSY is
 
     address[] public rewardTokens;
     CamelotV1VolatilePreview public immutable previewHelper;
-    bool public isEmergencyActivated;
+    bool public isRewardDisabled;
 
     constructor(
         string memory _name,
@@ -54,7 +54,7 @@ contract PendleCamelotV1VolatileSY is
             amountLpDeposited = _zapIn(tokenIn, amountDeposited);
         }
 
-        if (isEmergencyActivated) {
+        if (isRewardDisabled) {
             return amountLpDeposited;
         } else {
             return _increaseNftPoolPosition(amountLpDeposited);
@@ -70,8 +70,8 @@ contract PendleCamelotV1VolatileSY is
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
         // solhint-disable-next-line
-        if (isEmergencyActivated) {
-            // if emergency is activated, the LP has been withdrawn from the pool
+        if (isRewardDisabled) {
+            // if isRewardDisabled is activated, the LP has been withdrawn from the pool
         } else {
             _decreaseNftPoolPosition(amountSharesToRedeem);
         }
@@ -116,7 +116,7 @@ contract PendleCamelotV1VolatileSY is
     }
 
     function _redeemExternalReward() internal override {
-        if (isEmergencyActivated) {
+        if (isRewardDisabled) {
             return;
         }
 
@@ -204,13 +204,16 @@ contract PendleCamelotV1VolatileSY is
                         OWNER ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function activateEmergency() external onlyOwner {
-        isEmergencyActivated = true;
+    /// @dev Use emergencyWithdraw to ensure LP withdrawal is always successful
+    function setRewardDisabled(bool doRewardIndexUpdate) external onlyOwner {
+        if (doRewardIndexUpdate) _updateRewardIndex();
 
         if (positionId != POSITION_UNINITIALIZED) {
             ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
             ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
         }
+
+        isRewardDisabled = true;
     }
 
     function setReferrerForSwap(address newReferrer) external onlyOwner {
