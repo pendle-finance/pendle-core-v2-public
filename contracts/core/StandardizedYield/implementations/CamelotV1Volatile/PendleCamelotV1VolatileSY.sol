@@ -108,8 +108,9 @@ contract PendleCamelotV1VolatileSY is
 
     /// @notice allows anyone to add new rewardTokens to this SY if a new rewardToken is added to the Nitro pool
     function updateRewardTokensList() public virtual {
-        address token1 = ICamelotNitroPool(nitroPool).rewardToken1().token;
-        address token2 = ICamelotNitroPool(nitroPool).rewardToken2().token;
+        address token1 = ICamelotNitroPool(nitroPool).rewardsToken1().token;
+        address token2 = ICamelotNitroPool(nitroPool).rewardsToken2().token;
+
 
         if (token1 != address(0) && !rewardTokens.contains(token1)) rewardTokens.push(token1);
         if (token2 != address(0) && !rewardTokens.contains(token2)) rewardTokens.push(token2);
@@ -211,6 +212,7 @@ contract PendleCamelotV1VolatileSY is
         if (positionId != POSITION_UNINITIALIZED) {
             ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
             ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
+            positionId = POSITION_UNINITIALIZED;
         }
 
         isRewardDisabled = true;

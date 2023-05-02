@@ -31,7 +31,7 @@ contract CamelotV1VolatileCommon {
         uint256 fee
     ) internal pure returns (uint256) {
         return
-            (Math.sqrt(Math.sqr((TWO - fee) * reserve) + FOUR * (ONE - fee) * amountIn * reserve) -
+            (Math.sqrt(Math.square((TWO - fee) * reserve) + FOUR * (ONE - fee) * amountIn * reserve) -
                 (TWO - fee) *
                 reserve) / (2 * (ONE - fee));
     }
