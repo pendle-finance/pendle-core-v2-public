@@ -26,16 +26,20 @@ abstract contract PendleCamelotV1LPHelper is TokenHelper, CamelotV1Common {
     address public immutable factory;
     address public immutable router;
 
+    address public referrerForSwap;
+
     constructor(
         address _pair,
         address _factory,
-        address _router
+        address _router,
+        address _referrerForSwap
     ) {
         pair = _pair;
         factory = _factory;
         router = _router;
         token0 = ICamelotPair(pair).token0();
         token1 = ICamelotPair(pair).token1();
+        referrerForSwap = _referrerForSwap;
 
         _safeApproveInf(token0, router);
         _safeApproveInf(token1, router);
@@ -132,7 +136,7 @@ abstract contract PendleCamelotV1LPHelper is TokenHelper, CamelotV1Common {
             0,
             path,
             address(this),
-            address(0),
+            referrerForSwap,
             block.timestamp
         );
 

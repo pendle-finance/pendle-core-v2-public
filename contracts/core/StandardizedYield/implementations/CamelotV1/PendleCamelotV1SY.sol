@@ -26,9 +26,10 @@ contract PendleCamelotV1SY is
         address _factory,
         address _router,
         address _nitroPool,
+        address _referrer,
         CamelotV1PreviewHelper _previewHelper
     )
-        PendleCamelotV1LPHelper(_pair, _factory, _router)
+        PendleCamelotV1LPHelper(_pair, _factory, _router, _referrer)
         SYBaseWithRewards(_name, _symbol, _pair)
         PendleCamelotRewardHelper(_nitroPool, _pair)
     {
@@ -209,6 +210,10 @@ contract PendleCamelotV1SY is
             ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
             ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
         }
+    }
+
+    function setReferrerForSwap(address newReferrer) external onlyOwner {
+        referrerForSwap = newReferrer;
     }
 
     // XGRAIL related, to be used only when this SY is deprecated
