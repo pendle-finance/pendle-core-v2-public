@@ -210,4 +210,23 @@ contract PendleCamelotV1SY is
             ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
         }
     }
+
+    // XGRAIL related, to be used only when this SY is deprecated
+
+    function redeemXGrailOwner(uint256 xGrailAmount, uint256 duration) external onlyOwner {
+        IXGrail(xGRAIL).redeem(xGrailAmount, duration);
+    }
+
+    function finalizeRedeem(uint256 redeemIndex) external onlyOwner {
+        uint256 preBalance = _selfBalance(GRAIL);
+
+        IXGrail(xGRAIL).finalizeRedeem(redeemIndex);
+
+        uint256 amount = _selfBalance(GRAIL) - preBalance;
+        _transferOut(GRAIL, msg.sender, amount);
+    }
+
+    function cancelRedeem(uint256 redeemIndex) external onlyOwner {
+        IXGrail(xGRAIL).cancelRedeem(redeemIndex);
+    }
 }
