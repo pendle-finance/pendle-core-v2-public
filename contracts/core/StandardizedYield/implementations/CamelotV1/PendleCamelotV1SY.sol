@@ -17,6 +17,7 @@ contract PendleCamelotV1SY is
 
     address[] public rewardTokens;
     CamelotV1PreviewHelper public immutable previewHelper;
+    bool public isEmergencyActivated;
 
     constructor(
         string memory _name,
@@ -51,7 +52,12 @@ contract PendleCamelotV1SY is
         } else {
             amountLpDeposited = _zapIn(tokenIn, amountDeposited);
         }
-        return _increaseNftPoolPosition(amountLpDeposited);
+
+        if (isEmergencyActivated) {
+            return amountLpDeposited;
+        } else {
+            return _increaseNftPoolPosition(amountLpDeposited);
+        }
     }
 
     /**
@@ -62,7 +68,12 @@ contract PendleCamelotV1SY is
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
-        _removeNftPoolPosition(amountSharesToRedeem);
+        if (isEmergencyActivated) {
+            // if emergency is activated, the LP has been withdrawn from the pool
+        } else {
+            _decreaseNftPoolPosition(amountSharesToRedeem);
+        }
+
         if (tokenOut == pair) {
             amountTokenOut = amountSharesToRedeem;
         } else {
@@ -103,6 +114,10 @@ contract PendleCamelotV1SY is
     }
 
     function _redeemExternalReward() internal override {
+        if (isEmergencyActivated) {
+            return;
+        }
+
         ICamelotNitroPool(nitroPool).harvest();
         ICamelotNFTPool(nftPool).harvestPosition(positionId);
         _allocateXGrail();
@@ -181,5 +196,18 @@ contract PendleCamelotV1SY is
         )
     {
         return (AssetType.LIQUIDITY, pair, IERC20Metadata(pair).decimals());
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        OWNER ONLY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function activateEmergency() external onlyOwner {
+        isEmergencyActivated = true;
+
+        if (positionId != POSITION_UNINITIALIZED) {
+            ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
+            ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
+        }
     }
 }

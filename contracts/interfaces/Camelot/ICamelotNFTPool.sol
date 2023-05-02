@@ -14,4 +14,6 @@ interface ICamelotNFTPool is IERC721 {
     function harvestPosition(uint256 tokenId) external;
 
     function yieldBooster() external view returns (address);
+
+    function emergencyWithdraw(uint256 tokenId) external;
 }

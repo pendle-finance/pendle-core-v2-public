@@ -23,4 +23,6 @@ interface ICamelotNitroPool is IERC721 {
     function rewardToken1() external view returns (RewardsToken calldata);
 
     function rewardToken2() external view returns (RewardsToken calldata);
+
+    function emergencyWithdraw(uint256 tokenId) external;
 }

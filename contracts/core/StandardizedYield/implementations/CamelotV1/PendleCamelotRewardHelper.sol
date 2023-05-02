@@ -18,9 +18,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
  * will be forced to occur and take away fees from our xGRAIL boosting
  */
 contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
-    uint256 private constant POSITION_UNINITIALIZED = type(uint256).max;
-    uint256 private constant MINIMUM_LIQUIDITY = 10**3;
-    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+    uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
+    bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;
 
     address public immutable nftPool;
     address public immutable nitroPool;
@@ -80,14 +80,13 @@ contract PendleCamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
 
             return amountLp - MINIMUM_LIQUIDITY;
         } else {
-            // theres not a need to call nitro pool as Camelot nitro pool has a callback
-            // on nft pool position increases
+            // nftPool allows adding to position even if the position is in NitroPool
             ICamelotNFTPool(nftPool).addToPosition(positionId, amountLp);
             return amountLp;
         }
     }
 
-    function _removeNftPoolPosition(uint256 amountLp) internal {
+    function _decreaseNftPoolPosition(uint256 amountLp) internal {
         _withdrawFromNitroPool();
         ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
         _depositToNitroPool();
