@@ -18,7 +18,6 @@ import "./CamelotV1VolatileCommon.sol";
  * this contract should not take into account any floating balance
  * for swap/add liquidity
  */
-
 abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCommon {
     address public immutable token0;
     address public immutable token1;
@@ -34,6 +33,8 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
         address _router,
         address _referrerForSwap
     ) {
+        assert(ICamelotPair(_pair).stableSwap() == false);
+
         pair = _pair;
         factory = _factory;
         router = _router;
