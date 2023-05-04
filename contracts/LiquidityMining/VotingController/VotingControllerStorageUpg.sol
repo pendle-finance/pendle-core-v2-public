@@ -87,6 +87,21 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return weekData[wTime].poolVotes[pool];
     }
 
+    /// @notice deprecated, only kept for compatibility reasons
+    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256) {
+        return __dep_userPoolHistory[user][pool].length();
+    }
+
+    /// @notice deprecated, only kept for compatibility reasons
+    function getUserPoolHistoryAt(
+        address user,
+        address pool,
+        uint256 index
+    ) external view returns (Checkpoint memory) {
+        return __dep_userPoolHistory[user][pool].get(index);
+    }
+
+
     function getPoolData(
         address pool,
         uint128[] calldata wTimes

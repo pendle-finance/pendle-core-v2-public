@@ -22,6 +22,16 @@ interface IPVotingController {
 
     function applyPoolSlopeChanges(address pool) external;
 
+    /// @notice deprecated, only kept for compatibility reasons
+    function getUserPoolHistoryLength(address user, address pool) external view returns (uint256);
+
+    /// @notice deprecated, only kept for compatibility reasons
+    function getUserPoolHistoryAt(
+        address user,
+        address pool,
+        uint256 index
+    ) external view returns (Checkpoint memory);
+
     function getWeekData(uint128 wTime, address[] calldata pools)
         external
         view
