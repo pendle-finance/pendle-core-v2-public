@@ -77,7 +77,7 @@ library Math {
         }
     }
 
-    function sqr(uint256 x) internal pure returns (uint256) {
+    function square(uint256 x) internal pure returns (uint256) {
         return x * x;
     }
 
