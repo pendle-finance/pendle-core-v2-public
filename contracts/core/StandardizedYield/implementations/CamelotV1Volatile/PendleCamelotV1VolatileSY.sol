@@ -98,19 +98,13 @@ contract PendleCamelotV1VolatileSY is
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view virtual override returns (address[] memory res) {
-        uint256 extraRewardsLen = rewardTokens.length;
-        res = new address[](1 + extraRewardsLen);
-        res[0] = GRAIL;
-        for (uint256 i = 0; i < extraRewardsLen; i++) {
-            res[1 + i] = rewardTokens[i];
-        }
+        return rewardTokens;
     }
 
     /// @notice allows anyone to add new rewardTokens to this SY if a new rewardToken is added to the Nitro pool
     function updateRewardTokensList() public virtual {
         address token1 = ICamelotNitroPool(nitroPool).rewardsToken1().token;
         address token2 = ICamelotNitroPool(nitroPool).rewardsToken2().token;
-
 
         if (token1 != address(0) && !rewardTokens.contains(token1)) rewardTokens.push(token1);
         if (token2 != address(0) && !rewardTokens.contains(token2)) rewardTokens.push(token2);
