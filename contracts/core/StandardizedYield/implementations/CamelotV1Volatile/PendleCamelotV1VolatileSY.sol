@@ -205,6 +205,14 @@ contract PendleCamelotV1VolatileSY is
                         OWNER ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function prepareForReallocation() external onlyOwner {
+        _prepareForReallocation();
+    }
+
+    function finalizeReallocation() external onlyOwner {
+        _finalizeReallocation();
+    }
+
     /// @dev Use emergencyWithdraw to ensure LP withdrawal is always successful
     function setRewardDisabled(bool doRewardIndexUpdate) external onlyOwner {
         if (doRewardIndexUpdate) _updateRewardIndex();

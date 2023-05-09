@@ -19,15 +19,19 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
  */
 contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
-    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;
+
+    uint256 public YIELD_BOOSTER_STATUS = 1;
+
 
     address public immutable nftPool;
     address public immutable nitroPool;
-    address public immutable yieldBooster;
     address public immutable GRAIL;
     address public immutable xGRAIL;
     uint256 public positionId = POSITION_UNINITIALIZED;
+
+    address public yieldBooster;
 
     error InvalidTokenId(uint256 tokenId, uint256 positionId);
 
@@ -44,10 +48,9 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         nftPool = ICamelotNitroPool(nitroPool).nftPool();
         GRAIL = ICamelotNitroPool(nitroPool).grailToken();
         xGRAIL = ICamelotNitroPool(nitroPool).xGrailToken();
-        yieldBooster = ICamelotNFTPool(nftPool).yieldBooster();
 
         _safeApproveInf(_lp, nftPool);
-        IXGrail(xGRAIL).approveUsage(yieldBooster, type(uint256).max);
+        _updateYieldBoosterAddress();
     }
 
     /**
@@ -57,19 +60,33 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
      * We decided to go with the second option (keep allocating xGRAIL to boost APR)
      */
     function _allocateXGrail() internal {
+        if (YIELD_BOOSTER_STATUS == 2) return; // Yield booster update pending
+
         uint256 amount = _selfBalance(xGRAIL);
         if (amount == 0) return;
 
         // there should be no reward without minimum liquidity minted
         assert(positionId != POSITION_UNINITIALIZED);
 
-        IXGrail(xGRAIL).allocate(yieldBooster, amount, abi.encode(nftPool, positionId));
+        IXGrail(xGRAIL).allocate(yieldBooster, amount, _getAllocationData());
     }
 
-    function _increaseNftPoolPosition(uint256 amountLp)
-        internal
-        returns (uint256 amountLpAccountedForUser)
-    {
+    function _prepareForReallocation() internal {
+        uint256 amountAllocated = IXGrail(xGRAIL).usageAllocations(address(this), yieldBooster);
+        IXGrail(xGRAIL).deallocate(yieldBooster, amountAllocated, _getAllocationData());
+        IXGrail(xGRAIL).approveUsage(yieldBooster, 0);
+        YIELD_BOOSTER_STATUS = 2;
+    }
+
+    function _finalizeReallocation() internal {
+        YIELD_BOOSTER_STATUS = 1;
+        _updateYieldBoosterAddress();
+        _allocateXGrail();
+    }
+
+    function _increaseNftPoolPosition(
+        uint256 amountLp
+    ) internal returns (uint256 amountLpAccountedForUser) {
         // first time minting from this contract
         if (positionId == POSITION_UNINITIALIZED) {
             positionId = ICamelotNFTPool(nftPool).lastTokenId() + 1;
@@ -99,6 +116,15 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
 
     function _withdrawFromNitroPool() private {
         ICamelotNitroPool(nitroPool).withdraw(positionId);
+    }
+
+    function _updateYieldBoosterAddress() private {
+        yieldBooster = ICamelotNFTPool(nftPool).yieldBooster();
+        IXGrail(xGRAIL).approveUsage(yieldBooster, type(uint256).max);
+    }
+
+    function _getAllocationData() private view returns (bytes memory) {
+        return abi.encode(nftPool, positionId);
     }
 
     /**
