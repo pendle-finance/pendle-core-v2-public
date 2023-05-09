@@ -7,6 +7,7 @@ import "../../../../interfaces/Camelot/ICamelotNFTFactory.sol";
 import "../../../../interfaces/Camelot/ICamelotNFTPool.sol";
 import "../../../../interfaces/Camelot/ICamelotNitroPool.sol";
 import "../../../../interfaces/Camelot/ICamelotNFTHandler.sol";
+import "../../../../interfaces/Camelot/ICamelotYieldBooster.sol";
 import "../../../../interfaces/Camelot/IXGrail.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
@@ -21,9 +22,6 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
     uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;
-
-    uint256 public YIELD_BOOSTER_STATUS = 1;
-
 
     address public immutable nftPool;
     address public immutable nitroPool;
@@ -48,9 +46,10 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         nftPool = ICamelotNitroPool(nitroPool).nftPool();
         GRAIL = ICamelotNitroPool(nitroPool).grailToken();
         xGRAIL = ICamelotNitroPool(nitroPool).xGrailToken();
-
         _safeApproveInf(_lp, nftPool);
-        _updateYieldBoosterAddress();
+
+        yieldBooster = ICamelotNFTPool(nftPool).yieldBooster();
+        IXGrail(xGRAIL).approveUsage(yieldBooster, type(uint256).max);
     }
 
     /**
@@ -60,7 +59,7 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
      * We decided to go with the second option (keep allocating xGRAIL to boost APR)
      */
     function _allocateXGrail() internal {
-        if (YIELD_BOOSTER_STATUS == 2) return; // Yield booster update pending
+        if (_ensureYieldBoosterMatched()) return;
 
         uint256 amount = _selfBalance(xGRAIL);
         if (amount == 0) return;
@@ -71,17 +70,30 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         IXGrail(xGRAIL).allocate(yieldBooster, amount, _getAllocationData());
     }
 
-    function _prepareForReallocation() internal {
-        uint256 amountAllocated = IXGrail(xGRAIL).usageAllocations(address(this), yieldBooster);
-        IXGrail(xGRAIL).deallocate(yieldBooster, amountAllocated, _getAllocationData());
-        IXGrail(xGRAIL).approveUsage(yieldBooster, 0);
-        YIELD_BOOSTER_STATUS = 2;
-    }
+    function _ensureYieldBoosterMatched() private returns (bool yieldBoosterUpdated) {
+        address oldYieldBooster = yieldBooster;
+        address newYieldBooster = ICamelotNFTPool(nftPool).yieldBooster();
 
-    function _finalizeReallocation() internal {
-        YIELD_BOOSTER_STATUS = 1;
-        _updateYieldBoosterAddress();
-        _allocateXGrail();
+        if (oldYieldBooster == newYieldBooster) return false;
+
+        // Avoid reverts from camelot's check for amount > 0
+        uint256 amountAllocated = IXGrail(xGRAIL).usageAllocations(address(this), oldYieldBooster);
+        if (amountAllocated > 0) {
+            ICamelotYieldBooster(oldYieldBooster).forceDeallocate();
+        }
+
+        // Revoke approvals and revnew
+        IXGrail(xGRAIL).approveUsage(oldYieldBooster, 0);
+        IXGrail(xGRAIL).approveUsage(newYieldBooster, type(uint256).max);
+
+        // reallocate
+        uint256 amountToReallocate = _selfBalance(xGRAIL);
+        if (amountToReallocate > 0) {
+            IXGrail(xGRAIL).allocate(newYieldBooster, amountToReallocate, _getAllocationData());
+        }
+
+        yieldBooster = newYieldBooster;
+        return true;
     }
 
     function _increaseNftPoolPosition(
@@ -116,11 +128,6 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
 
     function _withdrawFromNitroPool() private {
         ICamelotNitroPool(nitroPool).withdraw(positionId);
-    }
-
-    function _updateYieldBoosterAddress() private {
-        yieldBooster = ICamelotNFTPool(nftPool).yieldBooster();
-        IXGrail(xGRAIL).approveUsage(yieldBooster, type(uint256).max);
     }
 
     function _getAllocationData() private view returns (bytes memory) {
