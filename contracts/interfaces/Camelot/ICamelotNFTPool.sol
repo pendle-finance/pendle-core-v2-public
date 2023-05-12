@@ -17,6 +17,8 @@ interface ICamelotNFTPool is IERC721 {
 
     function emergencyWithdraw(uint256 tokenId) external;
 
+    function emergencyUnlock() external view returns (bool);
+
     function getPoolInfo()
         external
         view

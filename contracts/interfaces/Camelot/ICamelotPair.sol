@@ -56,6 +56,10 @@ interface ICamelotPair {
     );
     event Sync(uint112 reserve0, uint112 reserve1);
 
+    function precisionMultiplier0() external pure returns (uint256);
+
+    function precisionMultiplier1() external pure returns (uint256);
+    
     function MINIMUM_LIQUIDITY() external pure returns (uint256);
 
     function factory() external view returns (address);
