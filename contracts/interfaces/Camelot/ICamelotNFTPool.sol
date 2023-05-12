@@ -16,4 +16,18 @@ interface ICamelotNFTPool is IERC721 {
     function yieldBooster() external view returns (address);
 
     function emergencyWithdraw(uint256 tokenId) external;
+
+    function getPoolInfo()
+        external
+        view
+        returns (
+            address lpToken,
+            address grailToken,
+            address xGrailToken,
+            uint256 lastRewardTime,
+            uint256 accRewardsPerShare,
+            uint256 lpSupply,
+            uint256 lpSupplyWithMultiplier,
+            uint256 allocPoint
+        );
 }

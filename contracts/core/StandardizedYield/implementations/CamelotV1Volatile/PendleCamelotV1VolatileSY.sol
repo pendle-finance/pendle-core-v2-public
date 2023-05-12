@@ -25,13 +25,14 @@ contract PendleCamelotV1VolatileSY is
         address _pair,
         address _factory,
         address _router,
+        address _nftPool,
         address _nitroPool,
         address _referrer,
         CamelotV1VolatilePreview _previewHelper
     )
         CamelotV1VolatileLpHelper(_pair, _factory, _router, _referrer)
         SYBaseWithRewards(_name, _symbol, _pair)
-        CamelotRewardHelper(_nitroPool, _pair)
+        CamelotRewardHelper(_nftPool, _nitroPool)
     {
         rewardTokens.push(GRAIL);
         updateRewardTokensList();
@@ -103,6 +104,8 @@ contract PendleCamelotV1VolatileSY is
 
     /// @notice allows anyone to add new rewardTokens to this SY if a new rewardToken is added to the Nitro pool
     function updateRewardTokensList() public virtual {
+        if (nitroPool == address(0)) return; // if nitroPool is not set, we don't need to update rewardTokens list
+
         address token1 = ICamelotNitroPool(nitroPool).rewardsToken1().token;
         address token2 = ICamelotNitroPool(nitroPool).rewardsToken2().token;
 
@@ -115,7 +118,9 @@ contract PendleCamelotV1VolatileSY is
             return;
         }
 
-        ICamelotNitroPool(nitroPool).harvest();
+        if (nitroPool != address(0)) {
+            ICamelotNitroPool(nitroPool).harvest();
+        }
         ICamelotNFTPool(nftPool).harvestPosition(positionId);
         _allocateXGrail();
     }
@@ -204,7 +209,9 @@ contract PendleCamelotV1VolatileSY is
         if (doRewardIndexUpdate) _updateRewardIndex();
 
         if (positionId != POSITION_UNINITIALIZED) {
-            ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
+            if (nitroPool != address(0)) {
+                ICamelotNitroPool(nitroPool).emergencyWithdraw(positionId);
+            }
             ICamelotNFTPool(nftPool).emergencyWithdraw(positionId);
             positionId = POSITION_UNINITIALIZED;
         }
@@ -214,6 +221,10 @@ contract PendleCamelotV1VolatileSY is
 
     function setReferrerForSwap(address newReferrer) external onlyOwner {
         referrerForSwap = newReferrer;
+    }
+
+    function setNewNitroPool(address _nitroPool) external onlyOwner {
+        nitroPool = _nitroPool;
     }
 
     // XGRAIL related, to be used only when this SY is deprecated
