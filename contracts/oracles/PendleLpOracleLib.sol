@@ -18,42 +18,46 @@ library PendleLpOracleLib {
      * @param duration twap duration
      *
      */
-    function getLpToAssetRate(
-        IPMarket market,
-        uint32 duration
-    ) internal view returns (uint256 lpToAssetRate) {
+    function getLpToAssetRate(IPMarket market, uint32 duration)
+        internal
+        view
+        returns (uint256 lpToAssetRate)
+    {
         MarketState memory state = market.readState(address(0));
         MarketPreCompute memory comp = _getMarketPreCompute(market, state);
 
-        // PENDING: Do we need ptOracle rate for this?
+        int256 totalHypotheticalAsset;
         if (state.expiry <= block.timestamp) {
-            // market expired
-            return _calcLpPrice(state.totalPt + comp.totalAsset, state.totalLp);
+            // 1 PT = 1 Asset post-expiry
+            totalHypotheticalAsset = state.totalPt + comp.totalAsset;
+        } else {
+            (int256 rateOracle, int256 rateLastTrade, int256 rateHypTrade) = _getPtRates(
+                market,
+                state,
+                duration
+            );
+            int256 cParam = LogExpMath.exp(
+                comp.rateScalar.mulDown((rateOracle - comp.rateAnchor))
+            );
+
+            int256 tradeSize = (cParam.mulDown(comp.totalAsset) - state.totalPt).divDown(
+                Math.IONE + cParam.divDown(rateHypTrade)
+            );
+
+            totalHypotheticalAsset =
+                comp.totalAsset -
+                tradeSize.divDown(rateHypTrade) +
+                (state.totalPt + tradeSize).divDown(rateLastTrade);
         }
 
-        (int rateOracle, int256 rateLastTrade, int256 rateHypTrade) = _getPtRates(
-            market,
-            state,
-            duration
-        );
-        int256 cParam = LogExpMath.exp(comp.rateScalar.mulDown((rateOracle - comp.rateAnchor)));
-
-        int256 tradeSize = (cParam.mulDown(comp.totalAsset) - state.totalPt).divDown(
-            Math.IONE + cParam.divDown(rateHypTrade)
-        );
-
-        lpToAssetRate = _calcLpPrice(
-            comp.totalAsset -
-                tradeSize.divDown(rateHypTrade) +
-                (state.totalPt + tradeSize).divDown(rateLastTrade),
-            state.totalLp
-        );
+        lpToAssetRate = _calcLpPrice(totalHypotheticalAsset, state.totalLp).Uint();
     }
 
-    function _getMarketPreCompute(
-        IPMarket market,
-        MarketState memory state
-    ) private view returns (MarketPreCompute memory) {
+    function _getMarketPreCompute(IPMarket market, MarketState memory state)
+        private
+        view
+        returns (MarketPreCompute memory)
+    {
         return state.getMarketPreCompute(_getPYIndexCurrent(market), block.timestamp);
     }
 
@@ -74,7 +78,15 @@ library PendleLpOracleLib {
         IPMarket market,
         MarketState memory state,
         uint32 duration
-    ) private view returns (int256 rateOracle, int256 rateLastTrade, int256 rateHypTrade) {
+    )
+        private
+        view
+        returns (
+            int256 rateOracle,
+            int256 rateLastTrade,
+            int256 rateHypTrade
+        )
+    {
         rateOracle = Math.IONE.divDown(market.getPtToAssetRate(duration).Int());
         rateLastTrade = MarketMathCore._getExchangeRateFromImpliedRate(
             state.lastLnImpliedRate,
@@ -83,10 +95,11 @@ library PendleLpOracleLib {
         rateHypTrade = (rateLastTrade + rateOracle) / 2;
     }
 
-    function _calcLpPrice(
-        int256 totalHypotheticalAsset,
-        int256 totalLp
-    ) private pure returns (uint256) {
-        return totalHypotheticalAsset.divDown(totalLp).Uint();
+    function _calcLpPrice(int256 totalHypotheticalAsset, int256 totalLp)
+        private
+        pure
+        returns (int256)
+    {
+        return totalHypotheticalAsset.divDown(totalLp);
     }
 }
