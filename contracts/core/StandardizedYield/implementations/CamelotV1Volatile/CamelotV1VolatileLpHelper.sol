@@ -22,21 +22,18 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
     address public immutable token0;
     address public immutable token1;
     address public immutable pair;
-    address public immutable factory;
     address public immutable router;
 
     address public referrerForSwap;
 
     constructor(
         address _pair,
-        address _factory,
         address _router,
         address _referrerForSwap
     ) {
         assert(ICamelotPair(_pair).stableSwap() == false);
 
         pair = _pair;
-        factory = _factory;
         router = _router;
         token0 = ICamelotPair(pair).token0();
         token1 = ICamelotPair(pair).token1();

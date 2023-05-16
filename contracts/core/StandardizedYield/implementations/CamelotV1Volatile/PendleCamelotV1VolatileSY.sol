@@ -19,20 +19,20 @@ contract PendleCamelotV1VolatileSY is
     CamelotV1VolatilePreview public immutable previewHelper;
     bool public isRewardDisabled;
 
+    /// @notice _nitroPoolIndex set to uint256(max) to indicate that this SY is not using Nitro Pool
     constructor(
         string memory _name,
         string memory _symbol,
         address _pair,
-        address _factory,
         address _router,
         address _nftPool,
-        address _nitroPool,
+        uint256 _nitroPoolIndex,
         address _referrer,
         CamelotV1VolatilePreview _previewHelper
     )
-        CamelotV1VolatileLpHelper(_pair, _factory, _router, _referrer)
+        CamelotV1VolatileLpHelper(_pair, _router, _referrer)
         SYBaseWithRewards(_name, _symbol, _pair)
-        CamelotRewardHelper(_nftPool, _nitroPool)
+        CamelotRewardHelper(_nftPool, _nitroPoolIndex)
     {
         rewardTokens.push(GRAIL);
         updateRewardTokensList();
@@ -223,10 +223,19 @@ contract PendleCamelotV1VolatileSY is
         referrerForSwap = newReferrer;
     }
 
-    function setNewNitroPool(address _nitroPool) external onlyOwner {
-        _withdrawFromNitroPool();
-        nitroPool = _nitroPool;
-        _depositToNitroPool();
+    /// @dev only callable if there is already a deposit. Else, best to redeploy
+    function setNewNitroPool(uint256 newPoolIndex) external onlyOwner {
+        assert(!isRewardDisabled);
+
+        if (nitroPool != address(0) && positionId != POSITION_UNINITIALIZED)
+            _withdrawFromNitroPool();
+
+        nitroPool = NITRO_POOL_FACTORY.getNitroPool(newPoolIndex);
+        require(ICamelotNitroPool(nitroPool).nftPool() == nftPool);
+
+        if (positionId != POSITION_UNINITIALIZED) _depositToNitroPool();
+
+        updateRewardTokensList();
     }
 
     // XGRAIL related, to be used only when this SY is deprecated

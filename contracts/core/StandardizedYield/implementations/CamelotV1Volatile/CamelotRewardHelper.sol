@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 
 import "../../../libraries/TokenHelper.sol";
 import "../../../../interfaces/Camelot/ICamelotNFTFactory.sol";
+import "../../../../interfaces/Camelot/ICamelotNitroPoolFactory.sol";
 import "../../../../interfaces/Camelot/ICamelotNFTPool.sol";
 import "../../../../interfaces/Camelot/ICamelotNitroPool.sol";
 import "../../../../interfaces/Camelot/ICamelotNFTHandler.sol";
@@ -19,8 +20,10 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
  * will be forced to occur and take away fees from our xGRAIL boosting
  */
 contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
+    ICamelotNitroPoolFactory internal constant NITRO_POOL_FACTORY =
+        ICamelotNitroPoolFactory(0xe0a6b372Ac6AF4B37c7F3a989Fe5d5b194c24569);
     uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
-    uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;
 
     address public nitroPool;
@@ -41,9 +44,12 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         _;
     }
 
-    constructor(address _nftPool, address _nitroPool) {
-        nitroPool = _nitroPool;
+    constructor(address _nftPool, uint256 _nitroPoolIndex) {
         nftPool = _nftPool;
+        if (_nitroPoolIndex != type(uint256).max) {
+            nitroPool = NITRO_POOL_FACTORY.getNitroPool(_nitroPoolIndex);
+            require(ICamelotNitroPool(nitroPool).nftPool() == nftPool);
+        }
 
         address lp;
         (lp, GRAIL, xGRAIL, , , , , ) = ICamelotNFTPool(nftPool).getPoolInfo();
@@ -97,16 +103,16 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         return true;
     }
 
-    function _increaseNftPoolPosition(
-        uint256 amountLp
-    ) internal returns (uint256 amountLpAccountedForUser) {
+    function _increaseNftPoolPosition(uint256 amountLp)
+        internal
+        returns (uint256 amountLpAccountedForUser)
+    {
         // first time minting from this contract
         if (positionId == POSITION_UNINITIALIZED) {
             positionId = ICamelotNFTPool(nftPool).lastTokenId() + 1;
             ICamelotNFTPool(nftPool).createPosition(amountLp, 0);
 
-            // deposit nft to nitro pool (first time)
-            _depositToNitroPool();
+            if (nitroPool != address(0)) _depositToNitroPool();
 
             return amountLp - MINIMUM_LIQUIDITY;
         } else {
@@ -117,20 +123,21 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     }
 
     function _decreaseNftPoolPosition(uint256 amountLp) internal {
-        _withdrawFromNitroPool();
-        ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
-        _depositToNitroPool();
+        if (nitroPool != address(0)) {
+            _withdrawFromNitroPool();
+            ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
+            _depositToNitroPool();
+        } else {
+            ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
+        }
     }
 
     function _depositToNitroPool() internal {
-        if (nitroPool == address(0)) return;
         // Nitro pool's on receive callback will execute the accounting logic
         IERC721(nftPool).safeTransferFrom(address(this), nitroPool, positionId);
     }
 
     function _withdrawFromNitroPool() internal {
-        if (nitroPool == address(0)) return;
-
         ICamelotNitroPool(nitroPool).withdraw(positionId);
     }
 
