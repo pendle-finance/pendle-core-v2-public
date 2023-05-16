@@ -42,12 +42,10 @@ contract PendleCamelotV1VolatileSY is
     /**
      * @dev See {SYBase-_deposit}
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256) {
         uint256 amountLpDeposited;
         if (tokenIn == pair) {
             amountLpDeposited = amountDeposited;
@@ -109,8 +107,10 @@ contract PendleCamelotV1VolatileSY is
         address token1 = ICamelotNitroPool(nitroPool).rewardsToken1().token;
         address token2 = ICamelotNitroPool(nitroPool).rewardsToken2().token;
 
-        if (token1 != address(0) && !rewardTokens.contains(token1)) rewardTokens.push(token1);
-        if (token2 != address(0) && !rewardTokens.contains(token2)) rewardTokens.push(token2);
+        if (token1 != address(0) && token1 != xGRAIL && !rewardTokens.contains(token1))
+            rewardTokens.push(token1);
+        if (token2 != address(0) && token2 != xGRAIL && !rewardTokens.contains(token2))
+            rewardTokens.push(token2);
     }
 
     function _redeemExternalReward() internal override {
@@ -129,12 +129,10 @@ contract PendleCamelotV1VolatileSY is
                     PREVIEW-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256) {
         if (tokenIn == pair) {
             return amountTokenToDeposit;
         } else {
@@ -142,12 +140,10 @@ contract PendleCamelotV1VolatileSY is
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256) {
         if (tokenOut == pair) {
             return amountSharesToRedeem;
         } else {
@@ -191,11 +187,7 @@ contract PendleCamelotV1VolatileSY is
     function assetInfo()
         external
         view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, pair, IERC20Metadata(pair).decimals());
     }
@@ -226,15 +218,13 @@ contract PendleCamelotV1VolatileSY is
     function setNewNitroPool(uint256 newPoolIndex) external onlyOwner {
         assert(!isRewardDisabled);
 
-        if (nitroPool != address(0) && positionId != POSITION_UNINITIALIZED) {
-            _updateRewardIndex();
-            _withdrawFromNitroPool();
-        }
+        _updateRewardIndex();
+        _withdrawFromNitroPool();
 
         nitroPool = NITRO_POOL_FACTORY.getNitroPool(newPoolIndex);
-        require(ICamelotNitroPool(nitroPool).nftPool() == nftPool);
+        require(ICamelotNitroPool(nitroPool).nftPool() == nftPool, "invalid nitro pool");
 
-        if (positionId != POSITION_UNINITIALIZED) _depositToNitroPool();
+        _depositToNitroPool();
 
         updateRewardTokensList();
     }

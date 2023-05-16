@@ -23,7 +23,7 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     ICamelotNitroPoolFactory internal constant NITRO_POOL_FACTORY =
         ICamelotNitroPoolFactory(0xe0a6b372Ac6AF4B37c7F3a989Fe5d5b194c24569);
     uint256 internal constant POSITION_UNINITIALIZED = type(uint256).max;
-    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 internal constant _ERC721_RECEIVED = 0x150b7a02;
 
     address public nitroPool;
@@ -103,16 +103,15 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         return true;
     }
 
-    function _increaseNftPoolPosition(uint256 amountLp)
-        internal
-        returns (uint256 amountLpAccountedForUser)
-    {
+    function _increaseNftPoolPosition(
+        uint256 amountLp
+    ) internal returns (uint256 amountLpAccountedForUser) {
         // first time minting from this contract
         if (positionId == POSITION_UNINITIALIZED) {
             positionId = ICamelotNFTPool(nftPool).lastTokenId() + 1;
             ICamelotNFTPool(nftPool).createPosition(amountLp, 0);
 
-            if (nitroPool != address(0)) _depositToNitroPool();
+            _depositToNitroPool();
 
             return amountLp - MINIMUM_LIQUIDITY;
         } else {
@@ -123,21 +122,19 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
     }
 
     function _decreaseNftPoolPosition(uint256 amountLp) internal {
-        if (nitroPool != address(0)) {
-            _withdrawFromNitroPool();
-            ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
-            _depositToNitroPool();
-        } else {
-            ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
-        }
+        _withdrawFromNitroPool();
+        ICamelotNFTPool(nftPool).withdrawFromPosition(positionId, amountLp);
+        _depositToNitroPool();
     }
 
     function _depositToNitroPool() internal {
         // Nitro pool's on receive callback will execute the accounting logic
+        if (nitroPool == address(0) || positionId == POSITION_UNINITIALIZED) return;
         IERC721(nftPool).safeTransferFrom(address(this), nitroPool, positionId);
     }
 
     function _withdrawFromNitroPool() internal {
+        if (nitroPool == address(0) || positionId == POSITION_UNINITIALIZED) return;
         ICamelotNitroPool(nitroPool).withdraw(positionId);
     }
 
