@@ -223,7 +223,6 @@ contract PendleCamelotV1VolatileSY is
         referrerForSwap = newReferrer;
     }
 
-    /// @dev only callable if there is already a deposit. Else, best to redeploy
     function setNewNitroPool(uint256 newPoolIndex) external onlyOwner {
         assert(!isRewardDisabled);
 
