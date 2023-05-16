@@ -27,10 +27,9 @@ contract PendleCamelotV1VolatileSY is
         address _router,
         address _nftPool,
         uint256 _nitroPoolIndex,
-        address _referrer,
         CamelotV1VolatilePreview _previewHelper
     )
-        CamelotV1VolatileLpHelper(_pair, _router, _referrer)
+        CamelotV1VolatileLpHelper(_pair, _router)
         SYBaseWithRewards(_name, _symbol, _pair)
         CamelotRewardHelper(_nftPool, _nitroPoolIndex)
     {
@@ -209,10 +208,6 @@ contract PendleCamelotV1VolatileSY is
         }
 
         isRewardDisabled = true;
-    }
-
-    function setReferrerForSwap(address newReferrer) external onlyOwner {
-        referrerForSwap = newReferrer;
     }
 
     function setNewNitroPool(uint256 newPoolIndex) external onlyOwner {
