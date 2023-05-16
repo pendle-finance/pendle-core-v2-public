@@ -224,7 +224,9 @@ contract PendleCamelotV1VolatileSY is
     }
 
     function setNewNitroPool(address _nitroPool) external onlyOwner {
+        _withdrawFromNitroPool();
         nitroPool = _nitroPool;
+        _depositToNitroPool();
     }
 
     // XGRAIL related, to be used only when this SY is deprecated

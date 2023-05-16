@@ -122,13 +122,13 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         _depositToNitroPool();
     }
 
-    function _depositToNitroPool() private {
+    function _depositToNitroPool() internal {
         if (nitroPool == address(0)) return;
         // Nitro pool's on receive callback will execute the accounting logic
         IERC721(nftPool).safeTransferFrom(address(this), nitroPool, positionId);
     }
 
-    function _withdrawFromNitroPool() private {
+    function _withdrawFromNitroPool() internal {
         if (nitroPool == address(0)) return;
 
         ICamelotNitroPool(nitroPool).withdraw(positionId);
