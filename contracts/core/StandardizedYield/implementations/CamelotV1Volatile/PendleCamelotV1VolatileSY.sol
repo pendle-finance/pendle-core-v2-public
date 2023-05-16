@@ -226,8 +226,10 @@ contract PendleCamelotV1VolatileSY is
     function setNewNitroPool(uint256 newPoolIndex) external onlyOwner {
         assert(!isRewardDisabled);
 
-        if (nitroPool != address(0) && positionId != POSITION_UNINITIALIZED)
+        if (nitroPool != address(0) && positionId != POSITION_UNINITIALIZED) {
+            _updateRewardIndex();
             _withdrawFromNitroPool();
+        }
 
         nitroPool = NITRO_POOL_FACTORY.getNitroPool(newPoolIndex);
         require(ICamelotNitroPool(nitroPool).nftPool() == nftPool);
