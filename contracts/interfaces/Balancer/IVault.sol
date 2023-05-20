@@ -27,6 +27,19 @@ interface IVault {
         bool fromInternalBalance;
     }
 
+    struct SwapRequest {
+        IVault.SwapKind kind;
+        IERC20 tokenIn;
+        IERC20 tokenOut;
+        uint256 amount;
+        // Misc data
+        bytes32 poolId;
+        uint256 lastChangeBlock;
+        address from;
+        address to;
+        bytes userData;
+    }
+
     function joinPool(
         bytes32 poolId,
         address sender,
