@@ -6,7 +6,7 @@ import "./IHashflow.sol";
 import "./IExecutorHelper.sol";
 import "./ScalingDataLib.sol";
 
-abstract contract KyberHelperEthereum {
+abstract contract InputScalingHelper {
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;

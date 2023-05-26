@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/utils/Address.sol";
 import "../../core/libraries/TokenHelper.sol";
-import "../../core/libraries/Errors.sol";
 import "./IPSwapAggregator.sol";
-import "./1inch/OneInchAggregationRouterHelper.sol";
-import "./kyberswap/arbitrum/KyberHelperArbitrum.sol";
+import "./kyberswap/InputScalingHelper.sol";
 
-contract PendleSwapArbitrum is
-    IPSwapAggregator,
-    TokenHelper,
-    KyberHelperArbitrum,
-    OneInchAggregationRouterHelper
-{
+contract PendleSwap is IPSwapAggregator, TokenHelper, InputScalingHelper {
     using Address for address;
 
-    function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
+    function swap(
+        address tokenIn,
+        uint256 amountIn,
+        SwapData calldata data
+    ) external payable {
         _safeApproveInf(tokenIn, data.extRouter);
         data.extRouter.functionCallWithValue(
             data.needScale
@@ -34,12 +30,11 @@ contract PendleSwapArbitrum is
         if (swapType == SwapType.KYBERSWAP) {
             scaledCallData = _getKyberScaledInputData(rawCallData, amountIn);
         } else if (swapType == SwapType.ONE_INCH) {
-            scaledCallData = _get1inchScaledInputData(rawCallData, amountIn);
+            revert("not supported");
         } else {
             assert(false);
         }
     }
 
     receive() external payable {}
-
 }
