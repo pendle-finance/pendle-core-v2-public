@@ -3,9 +3,9 @@ pragma solidity 0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
-import "./kyberswap/InputScalingHelper.sol";
+import "./kyberswap/KyberInputScalingHelper.sol";
 
-contract PendleSwap is IPSwapAggregator, TokenHelper, InputScalingHelper {
+contract PendleSwap is IPSwapAggregator, TokenHelper, KyberInputScalingHelper {
     using Address for address;
 
     function swap(

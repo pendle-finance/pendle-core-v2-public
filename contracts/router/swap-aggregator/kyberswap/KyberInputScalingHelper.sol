@@ -6,7 +6,7 @@ import "./IHashflow.sol";
 import "./IExecutorHelper.sol";
 import "./ScalingDataLib.sol";
 
-abstract contract InputScalingHelper {
+abstract contract KyberInputScalingHelper {
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;
@@ -115,7 +115,9 @@ abstract contract InputScalingHelper {
         desc.minReturnAmount = (desc.minReturnAmount * newAmount) / oldAmount;
         if (desc.minReturnAmount == 0) desc.minReturnAmount = 1;
         desc.amount = newAmount;
-        for (uint256 i = 0; i < desc.srcReceivers.length; ) {
+
+        uint256 nReceivers = desc.srcReceivers.length;
+        for (uint256 i = 0; i < nReceivers; ) {
             desc.srcAmounts[i] = (desc.srcAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -131,7 +133,9 @@ abstract contract InputScalingHelper {
         uint256 newAmount
     ) internal pure returns (bytes memory) {
         SimpleSwapData memory swapData = abi.decode(data, (SimpleSwapData));
-        for (uint256 i = 0; i < swapData.firstPools.length; ) {
+
+        uint256 nPools = swapData.firstPools.length;
+        for (uint256 i = 0; i < nPools; ) {
             swapData.firstSwapAmounts[i] = (swapData.firstSwapAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -159,7 +163,8 @@ abstract contract InputScalingHelper {
             newAmount
         );
 
-        for (uint256 i = 0; i < executorDesc.swapSequences.length; ) {
+        uint256 nSequences = executorDesc.swapSequences.length;
+        for (uint256 i = 0; i < nSequences; ) {
             Swap memory swap = executorDesc.swapSequences[i][0];
             bytes4 functionSelector = swap.functionSelector;
 
@@ -208,23 +213,20 @@ abstract contract InputScalingHelper {
     }
 
     function _scaledPositiveSlippageFeeData(
-        bytes memory encodedData,
+        bytes memory data,
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory newData) {
-        newData = encodedData;
-        if (encodedData.length > 32) {
-            PositiveSlippageFeeData memory psData = abi.decode(
-                encodedData,
-                (PositiveSlippageFeeData)
-            );
+        if (data.length > 32) {
+            PositiveSlippageFeeData memory psData = abi.decode(data, (PositiveSlippageFeeData));
             psData.expectedReturnAmount = (psData.expectedReturnAmount * newAmount) / oldAmount;
-            newData = abi.encode(psData);
-        } else if (encodedData.length == 32) {
-            uint256 expectedReturnAmount = abi.decode(encodedData, (uint256));
+            data = abi.encode(psData);
+        } else if (data.length == 32) {
+            uint256 expectedReturnAmount = abi.decode(data, (uint256));
             expectedReturnAmount = (expectedReturnAmount * newAmount) / oldAmount;
-            newData = abi.encode(expectedReturnAmount);
+            data = abi.encode(expectedReturnAmount);
         }
+        return data;
     }
 
     function _flagsChecked(uint256 number, uint256 flag) internal pure returns (bool) {
