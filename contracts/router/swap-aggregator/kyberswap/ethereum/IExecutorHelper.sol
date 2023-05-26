@@ -1,9 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./IHashflow.sol";
+interface IExecutorHelper {
+    struct Swap {
+        bytes data;
+        bytes4 functionSelector;
+    }
 
-interface IExecutorHelperEthereum1 {
+    struct SwapExecutorDescription {
+        Swap[][] swapSequences;
+        address tokenIn;
+        address tokenOut;
+        uint256 minTotalAmountOut;
+        address to;
+        uint256 deadline;
+        bytes destTokenFeeData;
+    }
+
     struct UniSwap {
         address pool;
         address tokenIn;
@@ -61,14 +74,6 @@ interface IExecutorHelperEthereum1 {
         uint256 limit;
     }
 
-    struct KyberRFQ {
-        address rfq;
-        bytes order;
-        bytes signature;
-        uint256 amount;
-        address payable target;
-    }
-
     struct DODO {
         address recipient;
         address pool;
@@ -79,6 +84,15 @@ interface IExecutorHelperEthereum1 {
         address sellHelper;
         bool isSellBase;
         bool isVersion2;
+    }
+
+    struct GMX {
+        address vault;
+        address tokenIn;
+        address tokenOut;
+        uint256 amount;
+        uint256 minOut;
+        address receiver;
     }
 
     struct Synthetix {
@@ -92,17 +106,21 @@ interface IExecutorHelperEthereum1 {
         bool useAtomicExchange;
     }
 
+    struct Platypus {
+        address pool;
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+        uint256 collectAmount; // amount that should be transferred to the pool
+        uint256 limitReturnAmount;
+    }
+
     struct PSM {
         address router;
         address tokenIn;
         address tokenOut;
         uint256 amountIn;
         address recipient;
-    }
-
-    struct Hashflow {
-        address router;
-        IHashflow.Quote quote;
     }
 
     struct WSTETH {
@@ -159,6 +177,24 @@ interface IExecutorHelperEthereum1 {
         uint256 previousAmountOut
     ) external payable returns (uint256);
 
+    function executeVelodromeSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
+    function executeGMXSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
+    function executePlatypusSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
     function executeWrappedstETHSwap(
         uint256 index,
         bytes memory data,
@@ -171,19 +207,31 @@ interface IExecutorHelperEthereum1 {
         uint256 previousAmountOut
     ) external payable returns (uint256);
 
-    function executePSMSwap(
-        uint256 index,
-        bytes memory data,
-        uint256 previousAmountOut
-    ) external payable returns (uint256);
-
     function executeHashflowSwap(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut
     ) external payable returns (uint256);
 
+    function executePSMSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
     function executeFraxSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
+    function executeCamelotSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut
+    ) external payable returns (uint256);
+
+    function executeKyberLimitOrder(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut

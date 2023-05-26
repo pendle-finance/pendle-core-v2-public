@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IAggregationExecutor.sol";
+import { IAggregationExecutor } from "./IAggregationExecutor.sol";
 
 interface IMetaAggregationRouterV2 {
     struct SwapDescriptionV2 {
@@ -28,9 +28,10 @@ interface IMetaAggregationRouterV2 {
         bytes clientData;
     }
 
-    function swap(
-        SwapExecutionParams calldata execution
-    ) external payable returns (uint256, uint256);
+    function swap(SwapExecutionParams calldata execution)
+        external
+        payable
+        returns (uint256, uint256);
 
     function swapSimpleMode(
         IAggregationExecutor caller,

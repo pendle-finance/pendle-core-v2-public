@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./IExecutorHelperEthereum1.sol";
+import "./IExecutorHelper.sol";
 
-library ScaleDataHelperEthereum {
+library ScalingDataLib {
     function newUniSwap(
         bytes memory data,
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.UniSwap memory uniSwap = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.UniSwap)
-        );
+        IExecutorHelper.UniSwap memory uniSwap = abi.decode(data, (IExecutorHelper.UniSwap));
         uniSwap.collectAmount = (uniSwap.collectAmount * newAmount) / oldAmount;
         return abi.encode(uniSwap);
     }
@@ -22,9 +19,9 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.StableSwap memory stableSwap = abi.decode(
+        IExecutorHelper.StableSwap memory stableSwap = abi.decode(
             data,
-            (IExecutorHelperEthereum1.StableSwap)
+            (IExecutorHelper.StableSwap)
         );
         stableSwap.dx = (stableSwap.dx * newAmount) / oldAmount;
         return abi.encode(stableSwap);
@@ -35,10 +32,7 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.CurveSwap memory curveSwap = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.CurveSwap)
-        );
+        IExecutorHelper.CurveSwap memory curveSwap = abi.decode(data, (IExecutorHelper.CurveSwap));
         curveSwap.dx = (curveSwap.dx * newAmount) / oldAmount;
         return abi.encode(curveSwap);
     }
@@ -48,10 +42,7 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.UniSwap memory kyberDMMSwap = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.UniSwap)
-        );
+        IExecutorHelper.UniSwap memory kyberDMMSwap = abi.decode(data, (IExecutorHelper.UniSwap));
         kyberDMMSwap.collectAmount = (kyberDMMSwap.collectAmount * newAmount) / oldAmount;
         return abi.encode(kyberDMMSwap);
     }
@@ -61,9 +52,9 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.UniSwapV3ProMM memory uniSwapV3ProMM = abi.decode(
+        IExecutorHelper.UniSwapV3ProMM memory uniSwapV3ProMM = abi.decode(
             data,
-            (IExecutorHelperEthereum1.UniSwapV3ProMM)
+            (IExecutorHelper.UniSwapV3ProMM)
         );
         uniSwapV3ProMM.swapAmount = (uniSwapV3ProMM.swapAmount * newAmount) / oldAmount;
 
@@ -75,9 +66,9 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.BalancerV2 memory balancerV2 = abi.decode(
+        IExecutorHelper.BalancerV2 memory balancerV2 = abi.decode(
             data,
-            (IExecutorHelperEthereum1.BalancerV2)
+            (IExecutorHelper.BalancerV2)
         );
         balancerV2.amount = (balancerV2.amount * newAmount) / oldAmount;
         return abi.encode(balancerV2);
@@ -88,12 +79,29 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.DODO memory dodo = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.DODO)
-        );
+        IExecutorHelper.DODO memory dodo = abi.decode(data, (IExecutorHelper.DODO));
         dodo.amount = (dodo.amount * newAmount) / oldAmount;
         return abi.encode(dodo);
+    }
+
+    function newVelodrome(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.UniSwap memory velodrome = abi.decode(data, (IExecutorHelper.UniSwap));
+        velodrome.collectAmount = (velodrome.collectAmount * newAmount) / oldAmount;
+        return abi.encode(velodrome);
+    }
+
+    function newGMX(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.GMX memory gmx = abi.decode(data, (IExecutorHelper.GMX));
+        gmx.amount = (gmx.amount * newAmount) / oldAmount;
+        return abi.encode(gmx);
     }
 
     function newSynthetix(
@@ -101,12 +109,29 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.Synthetix memory synthetix = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.Synthetix)
-        );
+        IExecutorHelper.Synthetix memory synthetix = abi.decode(data, (IExecutorHelper.Synthetix));
         synthetix.sourceAmount = (synthetix.sourceAmount * newAmount) / oldAmount;
         return abi.encode(synthetix);
+    }
+
+    function newCamelot(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.UniSwap memory camelot = abi.decode(data, (IExecutorHelper.UniSwap));
+        camelot.collectAmount = (camelot.collectAmount * newAmount) / oldAmount;
+        return abi.encode(camelot);
+    }
+
+    function newPlatypus(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.Platypus memory platypus = abi.decode(data, (IExecutorHelper.Platypus));
+        platypus.collectAmount = (platypus.collectAmount * newAmount) / oldAmount;
+        return abi.encode(platypus);
     }
 
     function newWrappedstETHSwap(
@@ -114,10 +139,7 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.WSTETH memory wstEthData = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.WSTETH)
-        );
+        IExecutorHelper.WSTETH memory wstEthData = abi.decode(data, (IExecutorHelper.WSTETH));
         wstEthData.amount = (wstEthData.amount * newAmount) / oldAmount;
         return abi.encode(wstEthData);
     }
@@ -127,7 +149,7 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.PSM memory psm = abi.decode(data, (IExecutorHelperEthereum1.PSM));
+        IExecutorHelper.PSM memory psm = abi.decode(data, (IExecutorHelper.PSM));
         psm.amountIn = (psm.amountIn * newAmount) / oldAmount;
         return abi.encode(psm);
     }
@@ -137,10 +159,7 @@ library ScaleDataHelperEthereum {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelperEthereum1.UniSwap memory frax = abi.decode(
-            data,
-            (IExecutorHelperEthereum1.UniSwap)
-        );
+        IExecutorHelper.UniSwap memory frax = abi.decode(data, (IExecutorHelper.UniSwap));
         frax.collectAmount = (frax.collectAmount * newAmount) / oldAmount;
         return abi.encode(frax);
     }
