@@ -2,6 +2,8 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
 import "../../../../../../interfaces/Balancer/IComposableStable.sol";
 
 import "../FixedPoint.sol";
@@ -9,8 +11,9 @@ import "./ComposableStableMath.sol";
 import "../StablePoolUserData.sol";
 
 import "../StablePreviewBase.sol";
+import "../../../../../libraries/BoringOwnableUpgradeable.sol";
 
-contract ComposableStablePreview is StablePreviewBase {
+contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSUpgradeable {
     using ComposableStableMath for uint256;
     using StablePoolUserData for bytes;
     using FixedPoint for uint256;
@@ -32,6 +35,14 @@ contract ComposableStablePreview is StablePreviewBase {
         uint256 currentRate;
         uint256 oldRate;
     }
+
+    constructor() initializer {}
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function onJoinPool(
         bytes32 poolId,
