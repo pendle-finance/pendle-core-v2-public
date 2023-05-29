@@ -1,0 +1,10 @@
+{
+    "name": "SY swETH-BbAWeth_BalancerLP Aura",
+    "SY": "0xCb611D0BD02a74C491B75d51D6EA5558f1887Da3",
+    "YT": "0x9ddc69eB24329365e96Cdca508e37dDf1CD4478d",
+    "PT": "0xe82db015E01E93381991d14b5bAA30fE73bb3240",
+    "market": "0x8225dD26DdFaaa321E5388e0F4C090Ba16217c21",
+    "expiry": 1727308800,
+    "scalarRoot": "47978000000000000000",
+    "initAnchor": "1074162000000000000"
+}
