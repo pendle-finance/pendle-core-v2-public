@@ -7,7 +7,7 @@ import "../../interfaces/GMX/IGlpManager.sol";
 import "../../core/libraries/math/Math.sol";
 
 /**
- * @notice The returned price from this contract is multiply with the USD price of GLP read from
+ * @notice The LP/GLP price gotten from the market using the LpOracleLib is multiplied with the USD price of GLP read from
  * GLPManager contract
  */
 contract PendleLpGlpOracle {
