@@ -146,24 +146,29 @@ interface IStandardizedYield is IERC20Metadata {
 
     function isValidTokenOut(address token) external view returns (bool);
 
-    function previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) external view returns (uint256 amountSharesOut);
+    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        external
+        view
+        returns (uint256 amountSharesOut);
 
-    function previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) external view returns (uint256 amountTokenOut);
+    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        external
+        view
+        returns (uint256 amountTokenOut);
 
     /**
      * @notice This function contains information to interpret what the asset is
-     * @return assetType the type of the asset (0 for ERC20 tokens, 1 for AMM liquidity tokens)
+     * @return assetType the type of the asset (0 for ERC20 tokens, 1 for AMM liquidity tokens,
+        2 for bridged yield bearing tokens like wstETH, rETH on Arbi whose the underlying asset doesn't exist on the chain)
      * @return assetAddress the address of the asset
      * @return assetDecimals the decimals of the asset
      */
     function assetInfo()
         external
         view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals);
+        returns (
+            AssetType assetType,
+            address assetAddress,
+            uint8 assetDecimals
+        );
 }

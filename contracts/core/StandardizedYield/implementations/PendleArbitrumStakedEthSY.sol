@@ -8,14 +8,20 @@ contract PendleArbitrumStakedEthSY is SYBase {
     using Math for int256;
 
     address public immutable chainlinkFeed;
+    address internal immutable underlyingAssetOnEthAddr;
+    uint8 internal immutable underlyingAssetOnEthDecimals;
 
     constructor(
         string memory _name,
         string memory _symbol,
         address _token,
-        address _chainlinkFeed
+        address _chainlinkFeed,
+        address _underlyingAssetOnEthAddr,
+        uint8 _underlyingAssetOnEthDecimals
     ) SYBase(_name, _symbol, _token) {
         chainlinkFeed = _chainlinkFeed;
+        underlyingAssetOnEthAddr = _underlyingAssetOnEthAddr;
+        underlyingAssetOnEthDecimals = _underlyingAssetOnEthDecimals;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -109,6 +115,6 @@ contract PendleArbitrumStakedEthSY is SYBase {
             uint8 assetDecimals
         )
     {
-        return (AssetType.TOKEN, yieldToken, IERC20Metadata(yieldToken).decimals());
+        return (AssetType.TOKEN, underlyingAssetOnEthAddr, underlyingAssetOnEthDecimals);
     }
 }
