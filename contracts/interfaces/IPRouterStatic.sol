@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
 import "./IPActionMarketAuxStatic.sol";
@@ -8,6 +9,7 @@ import "./IPActionVePendleStatic.sol";
 import "./IPMiniDiamond.sol";
 import "./IPActionStorageStatic.sol";
 
+//solhint-disable-next-line no-empty-blocks
 interface IPRouterStatic is
     IPActionMintRedeemStatic,
     IPActionInfoStatic,
@@ -16,4 +18,6 @@ interface IPRouterStatic is
     IPActionVePendleStatic,
     IPMiniDiamond,
     IPActionStorageStatic
-{}
+{
+
+}

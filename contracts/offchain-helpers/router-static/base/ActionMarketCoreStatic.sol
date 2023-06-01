@@ -22,7 +22,15 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address market,
         uint256 netSyDesired,
         uint256 netPtDesired
-    ) public view returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed) {
+    )
+        public
+        view
+        returns (
+            uint256 netLpOut,
+            uint256 netSyUsed,
+            uint256 netPtUsed
+        )
+    {
         MarketState memory state = _readState(market);
         (, netLpOut, netSyUsed, netPtUsed) = state.addLiquidity(
             netSyDesired,
@@ -63,11 +71,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netPtToSwap is the parameter to approx
-    function addLiquiditySinglePtStatic(
-        address market,
-        uint256 netPtIn
-    )
+    function addLiquiditySinglePtStatic(address market, uint256 netPtIn)
         public
+        view
         returns (
             uint256 netLpOut,
             uint256 netPtToSwap,
@@ -105,11 +111,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netPtFromSwap is the parameter to approx
-    function addLiquiditySingleSyStatic(
-        address market,
-        uint256 netSyIn
-    )
+    function addLiquiditySingleSyStatic(address market, uint256 netSyIn)
         public
+        view
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
@@ -153,6 +157,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netLpOut,
             uint256 netPtFromSwap,
@@ -182,6 +187,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netLpOut,
             uint256 netYtOut,
@@ -194,11 +200,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         (netLpOut, netYtOut, netSyToPY) = addLiquiditySingleSyKeepYtStatic(market, netSyMinted);
     }
 
-    function addLiquiditySingleSyKeepYtStatic(
-        address market,
-        uint256 netSyIn
-    )
+    function addLiquiditySingleSyKeepYtStatic(address market, uint256 netSyIn)
         public
+        view
         returns (
             uint256 netLpOut,
             uint256 netYtOut,
@@ -218,10 +222,11 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         (, netLpOut, , ) = state.addLiquidity(netSyIn - netSyToPY, netYtOut, block.timestamp);
     }
 
-    function removeLiquidityDualSyAndPtStatic(
-        address market,
-        uint256 netLpToRemove
-    ) public view returns (uint256 netSyOut, uint256 netPtOut) {
+    function removeLiquidityDualSyAndPtStatic(address market, uint256 netLpToRemove)
+        public
+        view
+        returns (uint256 netSyOut, uint256 netPtOut)
+    {
         MarketState memory state = _readState(market);
         (netSyOut, netPtOut) = state.removeLiquidity(netLpToRemove);
     }
@@ -231,18 +236,24 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         uint256 netLpToRemove,
         address tokenOut,
         address bulk
-    ) public view returns (uint256 netTokenOut, uint256 netPtOut, uint256 netSyToRedeem) {
+    )
+        public
+        view
+        returns (
+            uint256 netTokenOut,
+            uint256 netPtOut,
+            uint256 netSyToRedeem
+        )
+    {
         (netSyToRedeem, netPtOut) = removeLiquidityDualSyAndPtStatic(market, netLpToRemove);
         netTokenOut = _redeemSyToTokenStatic(market, tokenOut, netSyToRedeem, bulk);
     }
 
     /// @dev netPtFromSwap is the parameter to approx
     /// @notice should revert post-expiry
-    function removeLiquiditySinglePtStatic(
-        address market,
-        uint256 netLpToRemove
-    )
+    function removeLiquiditySinglePtStatic(address market, uint256 netLpToRemove)
         public
+        view
         returns (
             uint256 netPtOut,
             uint256 netPtFromSwap,
@@ -272,11 +283,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function removeLiquiditySingleSyStatic(
-        address market,
-        uint256 netLpToRemove
-    )
+    function removeLiquiditySingleSyStatic(address market, uint256 netLpToRemove)
         public
+        view
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
@@ -317,6 +326,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netTokenOut,
             uint256 netSyFee,
@@ -344,11 +354,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
 
     // ============ SWAP PT ============
 
-    function swapExactPtForSyStatic(
-        address market,
-        uint256 exactPtIn
-    )
+    function swapExactPtForSyStatic(address market, uint256 exactPtIn)
         public
+        view
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
@@ -366,12 +374,15 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function swapSyForExactPtStatic(
-        address market,
-        uint256 exactPtOut
-    )
+    function swapSyForExactPtStatic(address market, uint256 exactPtOut)
         public
-        returns (uint256 netSyIn, uint256 netSyFee, uint256 priceImpact, uint256 exchangeRateAfter)
+        view
+        returns (
+            uint256 netSyIn,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
+        )
     {
         MarketState memory state = _readState(market);
         (netSyIn, netSyFee, ) = state.swapSyForExactPt(
@@ -384,11 +395,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netPtOut is the parameter to approx
-    function swapExactSyForPtStatic(
-        address market,
-        uint256 exactSyIn
-    )
+    function swapExactSyForPtStatic(address market, uint256 exactSyIn)
         public
+        view
         returns (
             uint256 netPtOut,
             uint256 netSyFee,
@@ -411,12 +420,15 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netPtIn is the parameter to approx
-    function swapPtForExactSyStatic(
-        address market,
-        uint256 exactSyOut
-    )
+    function swapPtForExactSyStatic(address market, uint256 exactSyOut)
         public
-        returns (uint256 netPtIn, uint256 netSyFee, uint256 priceImpact, uint256 exchangeRateAfter)
+        view
+        returns (
+            uint256 netPtIn,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
+        )
     {
         MarketState memory state = _readState(market);
 
@@ -440,6 +452,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netPtOut,
             uint256 netSyMinted,
@@ -463,6 +476,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netTokenOut,
             uint256 netSyToRedeem,
@@ -481,11 +495,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
 
     // ============ SWAP YT ============
 
-    function swapSyForExactYtStatic(
-        address market,
-        uint256 exactYtOut
-    )
+    function swapSyForExactYtStatic(address market, uint256 exactYtOut)
         public
+        view
         returns (
             uint256 netSyIn,
             uint256 netSyFee,
@@ -514,11 +526,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netYtOut is the parameter to approx
-    function swapExactSyForYtStatic(
-        address market,
-        uint256 exactSyIn
-    )
+    function swapExactSyForYtStatic(address market, uint256 exactSyIn)
         public
+        view
         returns (
             uint256 netYtOut,
             uint256 netSyFee,
@@ -543,11 +553,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function swapExactYtForSyStatic(
-        address market,
-        uint256 exactYtIn
-    )
+    function swapExactYtForSyStatic(address market, uint256 exactYtIn)
         public
+        view
         returns (
             uint256 netSyOut,
             uint256 netSyFee,
@@ -581,6 +589,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netTokenOut,
             uint256 netSyFee,
@@ -607,12 +616,15 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     /// @dev netYtIn is the parameter to approx
-    function swapYtForExactSyStatic(
-        address market,
-        uint256 exactSyOut
-    )
+    function swapYtForExactSyStatic(address market, uint256 exactSyOut)
         public
-        returns (uint256 netYtIn, uint256 netSyFee, uint256 priceImpact, uint256 exchangeRateAfter)
+        view
+        returns (
+            uint256 netYtIn,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter
+        )
     {
         MarketState memory state = _readState(market);
 
@@ -638,6 +650,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         address bulk
     )
         public
+        view
         returns (
             uint256 netYtOut,
             uint256 netSyMinted,
@@ -654,11 +667,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     // totalPtToSwap is the param to approx
-    function swapExactPtForYtStatic(
-        address market,
-        uint256 exactPtIn
-    )
+    function swapExactPtForYtStatic(address market, uint256 exactPtIn)
         public
+        view
         returns (
             uint256 netYtOut,
             uint256 totalPtToSwap,
@@ -684,11 +695,9 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     }
 
     // totalPtSwapped is the param to approx
-    function swapExactYtForPtStatic(
-        address market,
-        uint256 exactYtIn
-    )
+    function swapExactYtForPtStatic(address market, uint256 exactYtIn)
         public
+        view
         returns (
             uint256 netPtOut,
             uint256 totalPtSwapped,
@@ -714,15 +723,15 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function _calcPriceImpactPY(address market, int256 netPtOut) internal returns (uint256) {
+    function _calcPriceImpactPY(address market, int256 netPtOut) internal view returns (uint256) {
         return IPRouterStatic(address(this)).calcPriceImpactPY(market, netPtOut);
     }
 
-    function _calcPriceImpactPt(address market, int256 netPtOut) internal returns (uint256) {
+    function _calcPriceImpactPt(address market, int256 netPtOut) internal view returns (uint256) {
         return IPRouterStatic(address(this)).calcPriceImpactPt(market, netPtOut);
     }
 
-    function _calcPriceImpactYt(address market, int256 netPtOut) internal returns (uint256) {
+    function _calcPriceImpactYt(address market, int256 netPtOut) internal view returns (uint256) {
         return IPRouterStatic(address(this)).calcPriceImpactYt(market, netPtOut);
     }
 
@@ -756,10 +765,11 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
             );
     }
 
-    function _getTradeExchangeRateExcludeFee(
-        address market,
-        MarketState memory state
-    ) internal returns (uint256) {
+    function _getTradeExchangeRateExcludeFee(address market, MarketState memory state)
+        internal
+        view
+        returns (uint256)
+    {
         return IPRouterStatic(address(this)).getTradeExchangeRateExcludeFee(market, state);
     }
 
@@ -767,10 +777,8 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         return IPMarket(market).readState(address(this));
     }
 
-    function _pyIndex(address market) internal returns (PYIndex index) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
-
-        return YT.newIndex();
+    function _pyIndex(address market) private view returns (PYIndex) {
+        return PYIndex.wrap(IPRouterStatic(address(this)).pyIndexCurrentViewMarket(market));
     }
 
     function _getSyMarket(address market) internal view returns (address) {

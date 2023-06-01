@@ -13,10 +13,9 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
-    function getMarketState(
-        address market
-    )
+    function getMarketState(address market)
         public
+        view
         returns (
             address pt,
             address yt,
@@ -26,9 +25,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
             MarketState memory state
         )
     {
-        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
-            .readTokens();
-
+        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = _readTokens(market);
         pt = address(PT);
         yt = address(YT);
         sy = address(SY);
@@ -37,10 +34,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         marketExchangeRateExcludeFee = getTradeExchangeRateExcludeFee(market, state);
     }
 
-    function getTradeExchangeRateExcludeFee(
-        address market,
-        MarketState memory state
-    ) public returns (uint256) {
+    function getTradeExchangeRateExcludeFee(address market, MarketState memory state)
+        public
+        view
+        returns (uint256)
+    {
         if (IPMarket(market).isExpired()) return Math.ONE;
 
         MarketPreCompute memory comp = state.getMarketPreCompute(
@@ -57,10 +55,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return preFeeExchangeRate.Uint();
     }
 
-    function getTradeExchangeRateIncludeFee(
-        address market,
-        int256 netPtOut
-    ) public returns (uint256) {
+    function getTradeExchangeRateIncludeFee(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256)
+    {
         if (IPMarket(market).isExpired()) return Math.ONE;
 
         int256 netPtToAccount = netPtOut;
@@ -88,19 +87,21 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         }
     }
 
-    function calcPriceImpactPt(
-        address market,
-        int256 netPtOut
-    ) public returns (uint256 priceImpact) {
+    function calcPriceImpactPt(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256 priceImpact)
+    {
         uint256 preTradeRate = getTradeExchangeRateIncludeFee(market, _getSign(netPtOut));
         uint256 tradedRate = getTradeExchangeRateIncludeFee(market, netPtOut);
         priceImpact = _calculateImpact(preTradeRate, tradedRate);
     }
 
-    function calcPriceImpactYt(
-        address market,
-        int256 netPtOut
-    ) public returns (uint256 priceImpact) {
+    function calcPriceImpactYt(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256 priceImpact)
+    {
         uint256 ytPreTradeRate = _calcVirtualYTPrice(
             getTradeExchangeRateIncludeFee(market, _getSign(netPtOut))
         );
@@ -110,10 +111,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         priceImpact = _calculateImpact(ytPreTradeRate, ytTradedRate);
     }
 
-    function calcPriceImpactPY(
-        address market,
-        int256 netPtOut
-    ) public returns (uint256 priceImpact) {
+    function calcPriceImpactPY(address market, int256 netPtOut)
+        public
+        view
+        returns (uint256 priceImpact)
+    {
         uint256 ptPreTradeRate = getTradeExchangeRateIncludeFee(market, _getSign(netPtOut));
         uint256 ytPreTradeRate = _calcVirtualYTPrice(ptPreTradeRate);
         uint256 ptTradeRate = getTradeExchangeRateIncludeFee(market, netPtOut);
@@ -124,6 +126,50 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         priceImpact = _calculateImpact(pyPreTradeRate, pyTradeRate);
     }
 
+    function getLpToSyRate(address market) public view returns (uint256) {
+        (IStandardizedYield SY, , ) = _readTokens(market);
+        return getLpToAssetRate(market).divDown(SY.exchangeRate());
+    }
+
+    function getPtToSyRate(address market) public view returns (uint256) {
+        (IStandardizedYield SY, , ) = _readTokens(market);
+        return getPtToAssetRate(market).divDown(SY.exchangeRate());
+    }
+
+    function getLpToAssetRate(address market) public view returns (uint256) {
+        MarketState memory state = _readState(market);
+        PYIndex pyIndexCurrent = _pyIndex(market);
+        MarketPreCompute memory comp = state.getMarketPreCompute(pyIndexCurrent, block.timestamp);
+
+        int256 totalHypotheticalAsset = comp.totalAsset +
+            state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
+
+        return uint256(totalHypotheticalAsset.divDown(state.totalLp));
+    }
+
+    function getPtToAssetRate(address market) public view returns (uint256) {
+        MarketState memory state = _readState(market);
+        return _getPtToAssetRate(market, state, _pyIndex(market));
+    }
+
+    function _getPtToAssetRate(
+        address market,
+        MarketState memory state,
+        PYIndex pyIndexCurrent
+    ) internal view returns (uint256 ptToAssetRate) {
+        if (state.expiry <= block.timestamp) {
+            (IStandardizedYield SY, , ) = _readTokens(market);
+            return (SY.exchangeRate().divDown(PYIndex.unwrap(pyIndexCurrent)));
+        }
+        uint256 timeToExpiry = state.expiry - block.timestamp;
+        int256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(
+            state.lastLnImpliedRate,
+            timeToExpiry
+        );
+
+        ptToAssetRate = uint256(Math.IONE.divDown(assetToPtRate));
+    }
+
     function _getPtImpliedYield(address market) internal view returns (int256) {
         MarketState memory state = _readState(market);
 
@@ -131,9 +177,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return lnImpliedRate.exp();
     }
 
-    function _calcVirtualYTPrice(
-        uint256 ptAssetExchangeRate
-    ) private pure returns (uint256 ytAssetExchangeRate) {
+    function _calcVirtualYTPrice(uint256 ptAssetExchangeRate)
+        private
+        pure
+        returns (uint256 ytAssetExchangeRate)
+    {
         // 1 asset = EX pt
         // 1 pt = 1/EX Asset
         // 1 yt + 1/EX Asset = 1 Asset
@@ -146,20 +194,31 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return IPMarket(market).readState(address(this));
     }
 
+    function _readTokens(address market)
+        internal
+        view
+        returns (
+            IStandardizedYield _SY,
+            IPPrincipalToken _PT,
+            IPYieldToken _YT
+        )
+    {
+        return IPMarket(market).readTokens();
+    }
+
     function _getSign(int256 netPtOut) private pure returns (int256) {
         return netPtOut > 0 ? int256(1) : int256(-1);
     }
 
-    function _calculateImpact(
-        uint256 rateBefore,
-        uint256 rateTraded
-    ) private pure returns (uint256 impact) {
+    function _calculateImpact(uint256 rateBefore, uint256 rateTraded)
+        private
+        pure
+        returns (uint256 impact)
+    {
         impact = (rateBefore.Int() - rateTraded.Int()).abs().divDown(rateBefore);
     }
 
-    function _pyIndex(address market) internal returns (PYIndex index) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
-
-        return YT.newIndex();
+    function _pyIndex(address market) private view returns (PYIndex) {
+        return PYIndex.wrap(IPRouterStatic(address(this)).pyIndexCurrentViewMarket(market));
     }
 }

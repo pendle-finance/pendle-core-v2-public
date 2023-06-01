@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
 interface IPActionMintRedeemStatic {
@@ -13,19 +14,26 @@ interface IPActionMintRedeemStatic {
         address SY,
         uint256 netTokenIn,
         uint256 netSyIn
-    ) external view returns (address bulk, uint256 totalToken, uint256 totalSy);
+    )
+        external
+        view
+        returns (
+            address bulk,
+            uint256 totalToken,
+            uint256 totalSy
+        );
 
-    function mintPyFromSyStatic(
-        address YT,
-        uint256 netSyToMint
-    ) external returns (uint256 netPYOut);
+    function mintPyFromSyStatic(address YT, uint256 netSyToMint)
+        external
+        view
+        returns (uint256 netPYOut);
 
     function mintPyFromTokenStatic(
         address YT,
         address tokenIn,
         uint256 netTokenIn,
         address bulk
-    ) external returns (uint256 netPyOut);
+    ) external view returns (uint256 netPyOut);
 
     function mintSyFromTokenStatic(
         address SY,
@@ -34,17 +42,17 @@ interface IPActionMintRedeemStatic {
         address bulk
     ) external view returns (uint256 netSyOut);
 
-    function redeemPyToSyStatic(
-        address YT,
-        uint256 netPYToRedeem
-    ) external returns (uint256 netSyOut);
+    function redeemPyToSyStatic(address YT, uint256 netPYToRedeem)
+        external
+        view
+        returns (uint256 netSyOut);
 
     function redeemPyToTokenStatic(
         address YT,
         uint256 netPYToRedeem,
         address tokenOut,
         address bulk
-    ) external returns (uint256 netTokenOut);
+    ) external view returns (uint256 netTokenOut);
 
     function redeemSyToTokenStatic(
         address SY,
@@ -52,4 +60,8 @@ interface IPActionMintRedeemStatic {
         uint256 netSyIn,
         address bulk
     ) external view returns (uint256 netTokenOut);
+
+    function pyIndexCurrentViewMarket(address market) external view returns (uint256);
+
+    function pyIndexCurrentViewYt(address yt) external view returns (uint256);
 }

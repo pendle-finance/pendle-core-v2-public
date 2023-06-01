@@ -21,9 +21,11 @@ contract ActionInfoStatic is IPActionInfoStatic {
     }
 
     /// can be SY, PY or Market
-    function getTokensInOut(
-        address token
-    ) external view returns (address[] memory tokensIn, address[] memory tokensOut) {
+    function getTokensInOut(address token)
+        external
+        view
+        returns (address[] memory tokensIn, address[] memory tokensOut)
+    {
         try IStandardizedYield(token).getTokensIn() returns (address[] memory res) {
             return (res, IStandardizedYield(token).getTokensOut());
         } catch {}
@@ -78,10 +80,10 @@ contract ActionInfoStatic is IPActionInfoStatic {
         res.unclaimedRewards = _zipTokenAmounts(rewardTokens, rewardsOut);
     }
 
-    function getUserMarketInfo(
-        address market,
-        address user
-    ) external returns (UserMarketInfo memory res) {
+    function getUserMarketInfo(address market, address user)
+        external
+        returns (UserMarketInfo memory res)
+    {
         IPMarket _market = IPMarket(market);
         MarketState memory state = _market.readState(address(this));
 
@@ -105,10 +107,11 @@ contract ActionInfoStatic is IPActionInfoStatic {
         res.unclaimedRewards = _zipTokenAmounts(rewardTokens, rewardsOut);
     }
 
-    function _zipTokenAmounts(
-        address[] memory tokens,
-        uint256[] memory amounts
-    ) internal pure returns (TokenAmount[] memory res) {
+    function _zipTokenAmounts(address[] memory tokens, uint256[] memory amounts)
+        internal
+        pure
+        returns (TokenAmount[] memory res)
+    {
         res = new TokenAmount[](tokens.length);
 
         for (uint256 i = 0; i < tokens.length; i++) {
