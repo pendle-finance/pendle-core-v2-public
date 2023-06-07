@@ -106,7 +106,7 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
     }
 
     function _getBPTIndex() internal pure override returns (uint256) {
-        return 0;
+        return 1;
     }
 
     function _getRateProviders() internal pure returns (address[] memory res) {
