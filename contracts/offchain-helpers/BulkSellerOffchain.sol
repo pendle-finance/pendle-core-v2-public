@@ -3,15 +3,16 @@ pragma solidity 0.8.17;
 
 import "../core/BulkSeller/BulkSellerMathCore.sol";
 import "../core/BulkSeller/BulkSeller.sol";
-import "hardhat/console.sol";
 
 contract BulkSellerOffchain {
     using BulkSellerMathCore for BulkSellerState;
     using Math for uint256;
 
-    function calcCurrentRates(
-        IPBulkSeller bulk
-    ) external view returns (uint256 rateTokenToSy, uint256 rateSyToToken) {
+    function calcCurrentRates(IPBulkSeller bulk)
+        external
+        view
+        returns (uint256 rateTokenToSy, uint256 rateSyToToken)
+    {
         BulkSellerState memory state = bulk.readState();
         address SY = bulk.SY();
         address token = bulk.token();
@@ -30,12 +31,14 @@ contract BulkSellerOffchain {
         }
     }
 
-    function getCurrentState(
-        IPBulkSeller bulk
-    )
+    function getCurrentState(IPBulkSeller bulk)
         external
         view
-        returns (BulkSellerState memory state, uint256 tokenProp, uint256 hypoTokenBal)
+        returns (
+            BulkSellerState memory state,
+            uint256 tokenProp,
+            uint256 hypoTokenBal
+        )
     {
         state = bulk.readState();
 
