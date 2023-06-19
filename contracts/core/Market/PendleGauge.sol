@@ -40,10 +40,11 @@ abstract contract PendleGauge is RewardManager, IPGauge {
         rewards is updated
      * @dev It's intended to have user's activeBalance updated when rewards is redeemed
      */
-    function _redeemRewards(address user) internal virtual returns (uint256[] memory) {
+    function _redeemRewards(address user) internal virtual returns (uint256[] memory rewardsOut) {
         _updateAndDistributeRewards(user);
         _updateUserActiveBalance(user);
-        return _doTransferOutRewards(user, user);
+        rewardsOut = _doTransferOutRewards(user, user);
+        emit RedeemRewards(user, rewardsOut);
     }
 
     function _updateUserActiveBalance(address user) internal virtual {
