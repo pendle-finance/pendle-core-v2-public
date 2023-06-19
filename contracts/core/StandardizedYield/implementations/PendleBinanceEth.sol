@@ -4,21 +4,21 @@ pragma solidity 0.8.17;
 import "../SYBase.sol";
 import "../../../interfaces/BinanceEth/IWBETH.sol";
 
-contract PendleBinanceEth is SYBase {
+contract PendleWbEthSY is SYBase {
     using Math for uint256;
 
     address public immutable eth;
-    address public immutable wbeth;
+    address public immutable wbETH;
 
     constructor(
         string memory _name,
         string memory _symbol,
         address _eth,
-        address _wbeth
-    ) SYBase(_name, _symbol, _wbeth) {
+        address _wbETH
+    ) SYBase(_name, _symbol, _wbETH) {
         eth = _eth;
-        wbeth = _wbeth;
-        _safeApproveInf(eth, wbeth);
+        wbETH = _wbETH;
+        _safeApproveInf(eth, wbETH);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -30,11 +30,11 @@ contract PendleBinanceEth is SYBase {
         uint256 amountDeposited
     ) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == eth) {
-            uint256 previousBalance = _selfBalance(wbeth);
-            IWBETH(wbeth).deposit(amountDeposited, address(this));
-            amountSharesOut = _selfBalance(wbeth) - previousBalance;
+            uint256 previousBalance = _selfBalance(wbETH);
+            IWBETH(wbETH).deposit(amountDeposited, address(this));
+            amountSharesOut = _selfBalance(wbETH) - previousBalance;
         } else {
-            // wbeth
+            // wbETH
             amountSharesOut = amountDeposited;
         }
     }
@@ -53,8 +53,8 @@ contract PendleBinanceEth is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view override returns (uint256) {
-        // exchangeRate is set by wbeth's oracle
-        return IWBETH(wbeth).exchangeRate();
+        // exchangeRate is set by wbETH's oracle
+        return IWBETH(wbETH).exchangeRate();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -81,21 +81,21 @@ contract PendleBinanceEth is SYBase {
 
     function getTokensIn() public view override returns (address[] memory res) {
         res = new address[](2);
-        res[0] = wbeth;
+        res[0] = wbETH;
         res[1] = eth;
     }
 
     function getTokensOut() public view override returns (address[] memory res) {
         res = new address[](1);
-        res[0] = wbeth;
+        res[0] = wbETH;
     }
 
     function isValidTokenIn(address token) public view override returns (bool) {
-        return token == eth || token == wbeth;
+        return token == eth || token == wbETH;
     }
 
     function isValidTokenOut(address token) public view override returns (bool) {
-        return token == wbeth;
+        return token == wbETH;
     }
 
     function assetInfo()
