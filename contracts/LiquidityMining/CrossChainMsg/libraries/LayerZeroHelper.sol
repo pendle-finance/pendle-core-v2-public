@@ -13,6 +13,8 @@ library LayerZeroHelper {
         // avax mainnet
         else if (chainId == 42161) return 110;
         // arbitrum one
+        else if (chainId == 56) return 102;
+        // binance smart chain
         else if (chainId == 1) return 101;
         assert(false);
     }
@@ -26,6 +28,8 @@ library LayerZeroHelper {
         // avax mainnet
         else if (chainId == 110) return 42161;
         // arbitrum one
+        else if (chainId == 102) return 56;
+        // binance smart chain
         else if (chainId == 101) return 1;
         assert(false);
     }
