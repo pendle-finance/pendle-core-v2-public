@@ -3,12 +3,12 @@ pragma solidity 0.8.17;
 
 import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "./base/ComposableStable/ComposableStablePreview.sol";
+import "../../StEthHelper.sol";
 
-contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2 {
+contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper {
     uint256 internal constant AURA_PID = 125;
     address internal constant LP = 0xdfE6e7e18f6Cc65FA13C8D8966013d4FdA74b6ba;
     address internal constant ANKRETH = 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
-    address internal constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     bool internal constant NO_TOKENS_EXEMPT = true;
     bool internal constant ALL_TOKENS_EXEMPT = false;
@@ -24,11 +24,17 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2 {
 
     }
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal override returns (uint256 amountSharesOut) {
-        amountSharesOut = super._deposit(tokenIn, amount);
+    function _deposit(address tokenIn, uint256 amount)
+        internal
+        override
+        returns (uint256 amountSharesOut)
+    {
+        if (tokenIn == NATIVE || tokenIn == STETH) {
+            uint256 amountWstETH = _depositWstETH(STETH, amount);
+            amountSharesOut = super._deposit(WSTETH, amountWstETH);
+        } else {
+            amountSharesOut = super._deposit(tokenIn, amount);
+        }
     }
 
     function _redeem(
@@ -36,21 +42,40 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2 {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal override returns (uint256 amountTokenOut) {
-        return super._redeem(receiver, tokenOut, amountSharesToRedeem);
+        if (tokenOut == STETH) {
+            uint256 amountWstETH = super._redeem(address(this), WSTETH, amountSharesToRedeem);
+            amountTokenOut = _redeemWstETH(receiver, amountWstETH);
+        } else {
+            amountTokenOut = super._redeem(receiver, tokenOut, amountSharesToRedeem);
+        }
     }
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view override returns (uint256) {
-        return super._previewDeposit(tokenIn, amountTokenToDeposit);
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        internal
+        view
+        override
+        returns (uint256)
+    {
+        if (tokenIn == NATIVE || tokenIn == STETH) {
+            uint256 amountWstETH = _previewDepositWstETH(tokenIn, amountTokenToDeposit);
+            return super._previewDeposit(WSTETH, amountWstETH);
+        } else {
+            return super._previewDeposit(tokenIn, amountTokenToDeposit);
+        }
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view override returns (uint256) {
-        return super._previewRedeem(tokenOut, amountSharesToRedeem);
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        internal
+        view
+        override
+        returns (uint256)
+    {
+        if (tokenOut == STETH) {
+            uint256 amountWstETH = super._previewRedeem(WSTETH, amountSharesToRedeem);
+            return _previewRedeemWstETH(amountWstETH);
+        } else {
+            return super._previewRedeem(tokenOut, amountSharesToRedeem);
+        }
     }
 
     function _getImmutablePoolData() internal pure override returns (bytes memory ret) {
@@ -98,24 +123,31 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2 {
     }
 
     function getTokensIn() public pure override returns (address[] memory res) {
-        res = new address[](3);
-        res[0] = WSTETH;
-        res[1] = ANKRETH;
-        res[2] = LP;
+        res = new address[](5);
+        res[0] = NATIVE;
+        res[1] = STETH;
+        res[2] = WSTETH;
+        res[3] = ANKRETH;
+        res[4] = LP;
     }
 
     function getTokensOut() public pure override returns (address[] memory res) {
-        res = new address[](3);
-        res[0] = WSTETH;
-        res[1] = ANKRETH;
-        res[2] = LP;
+        res = new address[](4);
+        res[0] = STETH;
+        res[1] = WSTETH;
+        res[2] = ANKRETH;
+        res[3] = LP;
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {
-        return (token == WSTETH || token == ANKRETH || token == LP);
+        return (token == NATIVE ||
+            token == STETH ||
+            token == WSTETH ||
+            token == ANKRETH ||
+            token == LP);
     }
 
     function isValidTokenOut(address token) public pure override returns (bool) {
-        return (token == WSTETH || token == ANKRETH || token == LP);
+        return (token == STETH || token == WSTETH || token == ANKRETH || token == LP);
     }
 }
