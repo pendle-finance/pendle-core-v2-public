@@ -30,7 +30,7 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper 
         returns (uint256 amountSharesOut)
     {
         if (tokenIn == NATIVE || tokenIn == STETH) {
-            uint256 amountWstETH = _depositWstETH(STETH, amount);
+            uint256 amountWstETH = _depositWstETH(tokenIn, amount);
             amountSharesOut = super._deposit(WSTETH, amountWstETH);
         } else {
             amountSharesOut = super._deposit(tokenIn, amount);
