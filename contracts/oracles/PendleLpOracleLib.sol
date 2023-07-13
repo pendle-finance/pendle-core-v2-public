@@ -3,8 +3,6 @@ pragma solidity 0.8.17;
 
 import "./PendlePtOracleLib.sol";
 
-// Reference: https://file.notion.so/f/s/15d1406b-0d81-41a4-8ac3-9b56e30fdf50/LP_Oracle_Doc.pdf?id=201fc56f-959b-4836-9511-73852e166816&table=block&spaceId=33abd05a-56a2-4ce6-8673-929c5984a0fd&expirationTimestamp=1683863581610&signature=IY3jlxvXkWRJZhsccYpQdQaKlm1_NUIb1ypDmuaR7hI&downloadName=LP_Oracle_Doc.pdf
-
 library PendleLpOracleLib {
     using PendlePtOracleLib for IPMarket;
     using Math for uint256;
