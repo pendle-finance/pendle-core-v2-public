@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 import "../../SYBase.sol";
 import "../../../../interfaces/ISwETH.sol";
 
-contract PendleSwETH is SYBase {
+contract SwETHSY is SYBase {
     using Math for uint256;
 
     address public immutable swETH;
@@ -34,10 +34,6 @@ contract PendleSwETH is SYBase {
         }
     }
 
-    /**
-     * Withdrawal to sfrxETH and frxETH is done normally as other ERC4626.
-     * Withdrawal to ETH is on the other hand not possible
-     */
     function _redeem(
         address receiver,
         address /*tokenOut*/,
@@ -51,10 +47,6 @@ contract PendleSwETH is SYBase {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Calculates and updates the exchange rate of shares to underlying asset token
-     * @dev It is the exchange rate of sfrxETH to frxETH
-     */
     function exchangeRate() public view virtual override returns (uint256) {
         return ISwETH(swETH).getRate();
     }
