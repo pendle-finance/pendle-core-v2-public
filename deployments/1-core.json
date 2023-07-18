@@ -12,7 +12,8 @@
         "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
         "initialPendlePerSec": "826719576719576719",
-        "safeWaitTime": 15000
+        "safeWaitTime": 15000,
+        "sySwapper": "0xd965c925Fd933029F8e5b7AD0C13bC875a026b09"
     },
     "baseCodeSplitter": "0x35878C2Cff38cC4032E85283183428170BA618A2",
     "PENDLE": "0x808507121b80c02388fad14726482e061b8da827",
@@ -24,7 +25,7 @@
     "routerStatic": "0x263833d47eA3fA4a30f269323aba6a107f9eB14C",
     "pendleSwap": "0x5719AcDB9ABBBC6Ba414C9DBFf5B2967342f465d",
     "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335",
-    "ptOracle": "0x414d3C8A26157085f286abE3BC6E1bb010733602",
+    "ptOracle": "0x14030836AEc15B2ad48bB097bd57032559339c92",
     "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",

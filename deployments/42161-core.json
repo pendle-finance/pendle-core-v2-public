@@ -11,7 +11,8 @@
         "initialInterestFee": "30000000000000000",
         "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
-        "safeWaitTime": 15000
+        "safeWaitTime": 15000,
+        "sySwapper": "0x02Adf72d5D06a9C92136562Eb237C07696833a84"
     },
     "baseCodeSplitter": "0x29deaEE5413a07C933C15B37d7deB6Eb744Ba9C8",
     "PENDLE": "0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8",
@@ -21,7 +22,7 @@
     "routerStatic": "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8",
     "pendleSwap": "0x150DD76FAd24C0715dB375d06f1C2C1d917D7d93",
     "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335",
-    "ptOracle": "0x428f2f93afAc3F96B0DE59854038c585e06165C8",
+    "ptOracle": "0x1f6Cee6740e1492C279532348137FF40E0f23D05",
     "receiverEndpoint": "0xC9215ae9EC67385F38C755D862C8eE3702B5793A",
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "gaugeController": "0x1e56299ebc8a1010cec26005d12e3e5c5cc2db00"
