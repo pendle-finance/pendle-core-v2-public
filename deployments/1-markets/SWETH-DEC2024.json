@@ -1,0 +1,12 @@
+{
+    "name": "SY swETH",
+    "symbol": "SY-swETH",
+    "expiry": 1735171200,
+    "scalarRoot": "71979373279000000000",
+    "initialRateAnchor": "1058544507000000000",
+    "doCacheIndex": true,
+    "SY": "0xaa68CA9C69a4ff22203cE189Ce4448d7401875E8",
+    "PT": "0x330c4DD05dB16db6323505262C57CFdE5f0A78Ea",
+    "YT": "0x3199c7c3c972a8da5F9faD2A838383f827b735F1",
+    "market": "0x0e1C5509B503358eA1Dac119C1D413e28Cc4b303"
+}
