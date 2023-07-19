@@ -2,7 +2,6 @@
 
 pragma solidity 0.8.17;
 import "./IMetaAggregationRouterV2.sol";
-import "./IHashflow.sol";
 import "./IExecutorHelper.sol";
 import "./ScalingDataLib.sol";
 
@@ -22,7 +21,7 @@ abstract contract KyberInputScalingHelper {
 
     struct Swap {
         bytes data;
-        bytes4 functionSelector;
+        bytes32 selectorAndFlags; // [selector (32 bits) + flags (224 bits)]; selector is 4 most significant bytes; flags are stored in 4 least significant bytes.
     }
 
     struct SimpleSwapData {
@@ -37,7 +36,6 @@ abstract contract KyberInputScalingHelper {
         Swap[][] swapSequences;
         address tokenIn;
         address tokenOut;
-        uint256 minTotalAmountOut;
         address to;
         uint256 deadline;
         bytes positiveSlippageData;
@@ -156,7 +154,6 @@ abstract contract KyberInputScalingHelper {
         uint256 newAmount
     ) internal pure returns (bytes memory) {
         SwapExecutorDescription memory executorDesc = abi.decode(data, (SwapExecutorDescription));
-        executorDesc.minTotalAmountOut = (executorDesc.minTotalAmountOut * newAmount) / oldAmount;
         executorDesc.positiveSlippageData = _scaledPositiveSlippageFeeData(
             executorDesc.positiveSlippageData,
             oldAmount,
@@ -166,44 +163,48 @@ abstract contract KyberInputScalingHelper {
         uint256 nSequences = executorDesc.swapSequences.length;
         for (uint256 i = 0; i < nSequences; ) {
             Swap memory swap = executorDesc.swapSequences[i][0];
-            bytes4 functionSelector = swap.functionSelector;
+            bytes4 functionSelector = bytes4(swap.selectorAndFlags);
 
-            if (functionSelector == IExecutorHelper.executeUniSwap.selector) {
+            if (functionSelector == IExecutorHelper.executeUniswap.selector) {
                 swap.data = ScalingDataLib.newUniSwap(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeStableSwap.selector) {
                 swap.data = ScalingDataLib.newStableSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeCurveSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeCurve.selector) {
                 swap.data = ScalingDataLib.newCurveSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeKyberDMMSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeKSClassic.selector) {
                 swap.data = ScalingDataLib.newKyberDMM(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeUniV3ProMMSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeUniV3KSElastic.selector) {
                 swap.data = ScalingDataLib.newUniV3ProMM(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeRfqSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeRfq.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
-            } else if (functionSelector == IExecutorHelper.executeBalV2Swap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeBalV2.selector) {
                 swap.data = ScalingDataLib.newBalancerV2(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeWrappedstETHSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeWrappedstETH.selector) {
                 swap.data = ScalingDataLib.newWrappedstETHSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeDODOSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeStEth.selector) {
+                swap.data = ScalingDataLib.newStETHSwap(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeDODO.selector) {
                 swap.data = ScalingDataLib.newDODO(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeVelodromeSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeVelodrome.selector) {
                 swap.data = ScalingDataLib.newVelodrome(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeGMXSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeGMX.selector) {
                 swap.data = ScalingDataLib.newGMX(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeSynthetixSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeSynthetix.selector) {
                 swap.data = ScalingDataLib.newSynthetix(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeHashflowSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeHashflow.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
-            } else if (functionSelector == IExecutorHelper.executeCamelotSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeCamelot.selector) {
                 swap.data = ScalingDataLib.newCamelot(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeKyberLimitOrder.selector) {
                 revert("InputScalingHelper: Can not scale RFQ swap");
-            } else if (functionSelector == IExecutorHelper.executePSMSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executePSM.selector) {
                 swap.data = ScalingDataLib.newPSM(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeFraxSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executeFrax.selector) {
                 swap.data = ScalingDataLib.newFrax(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executePlatypusSwap.selector) {
+            } else if (functionSelector == IExecutorHelper.executePlatypus.selector) {
                 swap.data = ScalingDataLib.newPlatypus(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeMaverick.selector) {
+                swap.data = ScalingDataLib.newMaverick(swap.data, oldAmount, newAmount);
             } else revert("AggregationExecutor: Dex type not supported");
             unchecked {
                 ++i;
