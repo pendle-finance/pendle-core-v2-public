@@ -11,26 +11,31 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
     uint256 internal constant AURA_PID = 128;
     address internal constant LP = 0x156C02f3f7fEf64a3A9D80CCF7085f23ccE91D76;
 
+    address internal constant COMPOSABLE_PREVIEW = 0x4239Ddd3c50463383670E86c119220849BFaF64a;
+
     bool internal constant NO_TOKENS_EXEMPT = true;
     bool internal constant ALL_TOKENS_EXEMPT = false;
 
     constructor(
         string memory _name,
-        string memory _symbol,
-        ComposableStablePreview _composablePreviewHelper
+        string memory _symbol
     )
-        PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _composablePreviewHelper)
+        PendleAuraBalancerStableLPSYV2(
+            _name,
+            _symbol,
+            LP,
+            AURA_PID,
+            ComposableStablePreview(COMPOSABLE_PREVIEW)
+        )
     //solhint-disable-next-line
     {
 
     }
 
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amount
+    ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
             IWETH(WETH).deposit{ value: amount }();
             amountSharesOut = super._deposit(WETH, amount);
@@ -54,13 +59,10 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
         }
     }
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else {
@@ -68,13 +70,10 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else {
