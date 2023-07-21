@@ -118,6 +118,8 @@ library Errors {
 
     error SYBalancerReentrancy();
 
+    error NotFromTrustedRemote(uint16 srcChainId, bytes path);
+
     // Liquidity Mining
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);
