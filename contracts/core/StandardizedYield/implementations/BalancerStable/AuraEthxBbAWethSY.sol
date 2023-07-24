@@ -5,26 +5,33 @@ import "./base/PendleAuraBalancerStableLPSYV2.sol";
 import "./base/ComposableStable/ComposableStablePreview.sol";
 import "./base/Linear/BbAPoolHelper.sol";
 
-contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
-    uint256 internal constant AURA_PID = 86;
-    address internal constant LP = 0x02D928E68D8F10C0358566152677Db51E1e2Dc8C;
-    address internal constant SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
+contract AuraEthxBbAWethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
+    uint256 internal constant AURA_PID = 134;
+    address internal constant LP = 0x4CbdE5C4B4B53EBE4aF4adB85404725985406163;
+    address internal constant ETHx = 0xA35b1B31Ce002FBF2058D22F30f95D405200A15b;
 
-    address internal constant _BB_A_WETH = 0x60D604890feaa0b5460B28A424407c24fe89374a;
+    address internal constant LINEAR_PREVIEW = 0x73187e5b27F2aadD5fFee023d6a9E179365F2ad6;
+    address internal constant COMPOSABLE_PREVIEW = 0x4239Ddd3c50463383670E86c119220849BFaF64a;
+
+    address internal constant _BB_A_WETH = 0xbB6881874825E60e1160416D6C426eae65f2459E;
     bytes32 internal constant _BB_A_WETH_POOL_ID =
-        0x60d604890feaa0b5460b28a424407c24fe89374a0000000000000000000004fc;
+        0xbb6881874825e60e1160416d6c426eae65f2459e000000000000000000000592;
 
     bool internal constant NO_TOKENS_EXEMPT = true;
     bool internal constant ALL_TOKENS_EXEMPT = false;
 
     constructor(
         string memory _name,
-        string memory _symbol,
-        LinearPreview _linearPreviewHelper,
-        ComposableStablePreview _composablePreviewHelper
+        string memory _symbol
     )
-        BbAWethHelper(_linearPreviewHelper, _BB_A_WETH, _BB_A_WETH_POOL_ID)
-        PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _composablePreviewHelper)
+        PendleAuraBalancerStableLPSYV2(
+            _name,
+            _symbol,
+            LP,
+            AURA_PID,
+            ComposableStablePreview(COMPOSABLE_PREVIEW)
+        )
+        BbAWethHelper(LinearPreview(LINEAR_PREVIEW), _BB_A_WETH, _BB_A_WETH_POOL_ID)
     //solhint-disable-next-line
     {
 
@@ -98,8 +105,8 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
     function _getPoolTokenAddresses() internal pure override returns (address[] memory res) {
         res = new address[](3);
         res[0] = LP;
-        res[1] = _BB_A_WETH;
-        res[2] = SWETH;
+        res[1] = ETHx;
+        res[2] = _BB_A_WETH;
     }
 
     function _getBPTIndex() internal pure override returns (uint256) {
@@ -109,8 +116,8 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
     function _getRateProviders() internal pure returns (address[] memory res) {
         res = new address[](3);
         res[0] = 0x0000000000000000000000000000000000000000;
-        res[1] = 0x60D604890feaa0b5460B28A424407c24fe89374a;
-        res[2] = 0xf951E335afb289353dc249e82926178EaC7DEd78;
+        res[1] = 0xAAE054B9b822554dd1D9d1F48f892B4585D3bbf0;
+        res[2] = 0xbB6881874825E60e1160416D6C426eae65f2459E;
     }
 
     function _getRawScalingFactors() internal pure returns (uint256[] memory res) {
@@ -129,7 +136,7 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
         res[1] = WETH;
         res[2] = WA_WETH;
         res[3] = BB_A_WETH;
-        res[4] = SWETH;
+        res[4] = ETHx;
         res[5] = LP;
     }
 
@@ -142,7 +149,7 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
             token == WETH ||
             token == WA_WETH ||
             token == BB_A_WETH ||
-            token == SWETH ||
+            token == ETHx ||
             token == LP);
     }
 

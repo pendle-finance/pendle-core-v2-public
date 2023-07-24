@@ -49,22 +49,27 @@ abstract contract BbAPoolHelper is TokenHelper {
 }
 
 abstract contract BbAWethHelper is BbAPoolHelper {
-    address internal constant BB_A_WETH = 0x60D604890feaa0b5460B28A424407c24fe89374a;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address internal constant WA_WETH = 0x59463BB67dDD04fe58ED291ba36C26d99A39fbc6;
-    bytes32 internal constant BB_A_WETH_POOL_ID =
-        bytes32(0x60d604890feaa0b5460b28a424407c24fe89374a0000000000000000000004fc);
 
-    constructor(LinearPreview _linearPreviewHelper) BbAPoolHelper(_linearPreviewHelper) {
+    address internal immutable BB_A_WETH;
+    bytes32 internal immutable BB_A_WETH_POOL_ID;
+
+    constructor(
+        LinearPreview _linearPreviewHelper,
+        address _bbAWeth,
+        bytes32 bbAWethPoolId
+    ) BbAPoolHelper(_linearPreviewHelper) {
+        BB_A_WETH = _bbAWeth;
+        BB_A_WETH_POOL_ID = bbAWethPoolId;
         _safeApproveInfVault(WETH);
         _safeApproveInfVault(WA_WETH);
     }
 
-    function _depositBbAWeth(address tokenIn, uint256 amountDep)
-        internal
-        virtual
-        returns (uint256 amountOut)
-    {
+    function _depositBbAWeth(
+        address tokenIn,
+        uint256 amountDep
+    ) internal virtual returns (uint256 amountOut) {
         amountOut = joinExitPool(address(this), BB_A_WETH_POOL_ID, tokenIn, BB_A_WETH, amountDep);
     }
 
@@ -82,12 +87,10 @@ abstract contract BbAWethHelper is BbAPoolHelper {
         );
     }
 
-    function _previewDepositBbAWeth(address tokenIn, uint256 amountDep)
-        internal
-        view
-        virtual
-        returns (uint256 amountOut)
-    {
+    function _previewDepositBbAWeth(
+        address tokenIn,
+        uint256 amountDep
+    ) internal view virtual returns (uint256 amountOut) {
         return
             linearPreviewHelper.joinExitPoolPreview(
                 BB_A_WETH_POOL_ID,
@@ -97,11 +100,10 @@ abstract contract BbAWethHelper is BbAPoolHelper {
             );
     }
 
-    function _previewRedeemBbAWeth(address tokenOut, uint256 amountRedeem)
-        internal
-        view
-        returns (uint256 amountOut)
-    {
+    function _previewRedeemBbAWeth(
+        address tokenOut,
+        uint256 amountRedeem
+    ) internal view returns (uint256 amountOut) {
         return
             linearPreviewHelper.joinExitPoolPreview(
                 BB_A_WETH_POOL_ID,
