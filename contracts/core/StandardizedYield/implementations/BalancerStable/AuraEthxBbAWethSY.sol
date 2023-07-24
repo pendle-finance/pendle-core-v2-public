@@ -14,6 +14,7 @@ contract AuraEthxBbAWethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
     address internal constant COMPOSABLE_PREVIEW = 0x4239Ddd3c50463383670E86c119220849BFaF64a;
 
     address internal constant _BB_A_WETH = 0xbB6881874825E60e1160416D6C426eae65f2459E;
+    address internal constant _WA_WETH = 0x03928473f25bb2da6Bc880b07eCBaDC636822264;
     bytes32 internal constant _BB_A_WETH_POOL_ID =
         0xbb6881874825e60e1160416d6c426eae65f2459e000000000000000000000592;
 
@@ -24,6 +25,7 @@ contract AuraEthxBbAWethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
         string memory _name,
         string memory _symbol
     )
+        BbAWethHelper(LinearPreview(LINEAR_PREVIEW), _BB_A_WETH, _BB_A_WETH_POOL_ID, _WA_WETH)
         PendleAuraBalancerStableLPSYV2(
             _name,
             _symbol,
@@ -31,7 +33,6 @@ contract AuraEthxBbAWethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
             AURA_PID,
             ComposableStablePreview(COMPOSABLE_PREVIEW)
         )
-        BbAWethHelper(LinearPreview(LINEAR_PREVIEW), _BB_A_WETH, _BB_A_WETH_POOL_ID)
     //solhint-disable-next-line
     {
 

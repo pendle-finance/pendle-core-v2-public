@@ -50,18 +50,20 @@ abstract contract BbAPoolHelper is TokenHelper {
 
 abstract contract BbAWethHelper is BbAPoolHelper {
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address internal constant WA_WETH = 0x59463BB67dDD04fe58ED291ba36C26d99A39fbc6;
-
     address internal immutable BB_A_WETH;
     bytes32 internal immutable BB_A_WETH_POOL_ID;
+    address internal immutable WA_WETH;
 
     constructor(
         LinearPreview _linearPreviewHelper,
         address _bbAWeth,
-        bytes32 bbAWethPoolId
+        bytes32 _bbAWethPoolId,
+        address _waWeth
     ) BbAPoolHelper(_linearPreviewHelper) {
         BB_A_WETH = _bbAWeth;
-        BB_A_WETH_POOL_ID = bbAWethPoolId;
+        BB_A_WETH_POOL_ID = _bbAWethPoolId;
+        WA_WETH = _waWeth;
+
         _safeApproveInfVault(WETH);
         _safeApproveInfVault(WA_WETH);
     }
