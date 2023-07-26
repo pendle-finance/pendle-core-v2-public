@@ -1,0 +1,12 @@
+{
+    "name": "SY ETHx-BbAWeth_BalancerLP Aura",
+    "symbol": "SY-ETHx-BbAWeth_BalancerLP Aura",
+    "doCacheIndex": true,
+    "expiry": 1727308800,
+    "scalarRoot": "43572533013000000000",
+    "initialRateAnchor": "1059268791000000000",
+    "SY": "0xbA72de8B5B56552e537994DddFe82e7ce43409f5",
+    "PT": "0x880cC97A7222C6b7Ed77232143a220fd2dcB3004",
+    "YT": "0x2C4413364623d6AC247E0AF629cEC8ACc596f646",
+    "market": "0xC112B12aDDc11f988AbC1AAfb47e4C2F62fb6070"
+}
