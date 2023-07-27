@@ -12,6 +12,7 @@ import "../StablePoolUserData.sol";
 
 import "../StablePreviewBase.sol";
 import "../../../../../libraries/BoringOwnableUpgradeable.sol";
+import "../../../../../libraries/math/Math.sol";
 
 contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSUpgradeable {
     using ComposableStableMath for uint256;
@@ -395,15 +396,21 @@ contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable,
             uint256 swapFeeGrowthInvariant,
             uint256 totalNonExemptGrowthInvariant,
             uint256 totalGrowthInvariant
-        ) = _getGrowthInvariants(balances, lastJoinExitAmp, imd, caches);
+        ) = _getGrowthInvariants(
+                balances,
+                lastJoinExitAmp,
+                lastPostJoinExitInvariant,
+                imd,
+                caches
+            );
 
-        uint256 swapFeeGrowthInvariantDelta = (swapFeeGrowthInvariant > lastPostJoinExitInvariant)
-            ? swapFeeGrowthInvariant - lastPostJoinExitInvariant
-            : 0;
-        uint256 nonExemptYieldGrowthInvariantDelta = (totalNonExemptGrowthInvariant >
-            swapFeeGrowthInvariant)
-            ? totalNonExemptGrowthInvariant - swapFeeGrowthInvariant
-            : 0;
+        if (totalGrowthInvariant <= lastPostJoinExitInvariant) {
+            return (0, totalGrowthInvariant);
+        }
+
+        uint256 swapFeeGrowthInvariantDelta = swapFeeGrowthInvariant - lastPostJoinExitInvariant;
+        uint256 nonExemptYieldGrowthInvariantDelta = totalNonExemptGrowthInvariant -
+            swapFeeGrowthInvariant;
 
         uint256 protocolSwapFeePercentage = swapFeeGrowthInvariantDelta
             .divDown(totalGrowthInvariant)
@@ -425,6 +432,7 @@ contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable,
     function _getGrowthInvariants(
         uint256[] memory balances,
         uint256 lastJoinExitAmp,
+        uint256 lastPostJoinExitInvariant,
         ImmutableData memory imd,
         TokenRateCache[] memory caches
     )
@@ -436,28 +444,43 @@ contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable,
             uint256 totalGrowthInvariant
         )
     {
+        // Total growth invariant is always calculated with the current (scaled / unadjusted) balances.
+        totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
+
+        // If total invariant decreased, calculating the other approximations is unnecessary.
+        if (totalGrowthInvariant <= lastPostJoinExitInvariant) {
+            return (totalGrowthInvariant, totalGrowthInvariant, totalGrowthInvariant);
+        }
+
+        // Swap fee invariant is calculated with adjusted balances, to discount the yield.
         swapFeeGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-            _getAdjustedBalances(balances, true, imd, caches)
+            _getAdjustedBalances(balances, imd, caches) // Adjust all token balances with rate providers.
         );
 
-        if (imd.noTokensExempt) {
-            totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
-            totalGrowthInvariant = totalNonExemptGrowthInvariant;
-        } else if (imd.allTokensExempt) {
-            totalNonExemptGrowthInvariant = swapFeeGrowthInvariant;
-            totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
-        } else {
-            totalNonExemptGrowthInvariant = lastJoinExitAmp._calculateInvariant(
-                _getAdjustedBalances(balances, false, imd, caches)
-            );
+        // The `swapFeeGrowthInvariant` cannot ever be outside the bounds:
+        // totalGrowthInvariant >= swapFeeGrowthInvariant >= lastPostJoinExitInvariant
+        swapFeeGrowthInvariant = totalGrowthInvariant.min(swapFeeGrowthInvariant); // Set upper bound.
+        swapFeeGrowthInvariant = lastPostJoinExitInvariant.max(swapFeeGrowthInvariant); // Set lower bound.
 
-            totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
+        // The only two accepted possibilities are either all tokens exempt, or none tokens exempt.
+        // totalNonExemptGrowthInvariant will either be totalGrowthInvariant or swapFeeGrowthInvariant.
+        // At this point,
+        // - totalGrowthInvariant > lastPostJoinExitInvariant
+        // - totalGrowthInvariant >= swapFeeGrowthInvariant >= lastPostJoinExitInvariant
+        // So the complete inequality will apply by the end of this function:
+        // totalGrowthInvariant >= totalNonExemptGrowthInvariant >= swapFeeGrowthInvariant >= lastPostJoinExitInvariant
+        if (imd.allTokensExempt) {
+            // If no tokens are charged fees on yield, then the non-exempt growth is equal to the swap fee growth - no
+            // yield fees will be collected.
+
+            totalNonExemptGrowthInvariant = swapFeeGrowthInvariant;
+        } else {
+            totalNonExemptGrowthInvariant = totalGrowthInvariant;
         }
     }
 
     function _getAdjustedBalances(
         uint256[] memory balances,
-        bool ignoreExemptFlags,
         ImmutableData memory imd,
         TokenRateCache[] memory tokenRateCaches
     ) internal pure returns (uint256[] memory) {
@@ -466,8 +489,7 @@ contract ComposableStablePreview is StablePreviewBase, BoringOwnableUpgradeable,
 
         for (uint256 i = 0; i < totalTokensWithoutBpt; ++i) {
             uint256 skipBptIndex = i >= imd.bptIndex ? i + 1 : i;
-            adjustedBalances[i] = _isTokenExemptFromYieldProtocolFee(imd, skipBptIndex) ||
-                (ignoreExemptFlags && _hasRateProvider(imd, skipBptIndex))
+            adjustedBalances[i] = _hasRateProvider(imd, skipBptIndex)
                 ? _adjustedBalance(balances[i], tokenRateCaches[skipBptIndex])
                 : balances[i];
         }

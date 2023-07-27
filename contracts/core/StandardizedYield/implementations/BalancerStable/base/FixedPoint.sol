@@ -65,4 +65,12 @@ library FixedPoint {
             return (x < ONE) ? (ONE - x) : 0;
         }
     }
+
+    function max(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x > y ? x : y);
+    }
+
+    function min(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x < y ? x : y);
+    }
 }
