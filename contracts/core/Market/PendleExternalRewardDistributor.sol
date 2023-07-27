@@ -29,7 +29,7 @@ contract PendleExternalRewardDistributor is
     }
 
     mapping(address => address[]) internal rewardTokens;
-    mapping(address => mapping(address => RewardData)) internal rewardDatas;
+    mapping(address => mapping(address => MarketRewardData)) internal rewardData;
 
     function initialize() external initializer {
         __BoringOwnable_init();
@@ -41,56 +41,54 @@ contract PendleExternalRewardDistributor is
         return rewardTokens[market];
     }
 
+    function _getUpdatedMarketReward(
+        address token,
+        address market
+    ) internal view returns (MarketRewardData memory) {
+        MarketRewardData memory rwd = rewardData[market][token];
+        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
+        rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
+        rwd.lastUpdated = newLastUpdated;
+        return rwd;
+    }
+
     function redeemRewards() external onlyValidMarket(msg.sender) {
         address market = msg.sender;
         address[] memory tokens = rewardTokens[market];
         for (uint256 i = 0; i < tokens.length; ++i) {
             address token = tokens[i];
-            RewardData memory data = rewardDatas[market][token];
 
-            if (data.lastDistributedTime >= data.endTime) {
-                continue;
+            rewardData[market][token] = _getUpdatedMarketReward(market, token);
+            uint256 amountToDistribute = rewardData[market][token].accumulatedReward;
+
+            if (amountToDistribute > 0) {
+                rewardData[market][token].accumulatedReward = 0;
+                _transferOut(token, market, amountToDistribute);
+                emit DistributeReward(market, token, amountToDistribute);
             }
-
-            uint256 distributeFrom = Math.max(data.lastDistributedTime, data.startTime);
-            uint256 distributeTo = Math.min(block.timestamp, data.endTime);
-
-            if (distributeTo < distributeFrom) {
-                continue;
-            }
-
-            uint256 amountToDistribute = (distributeTo - distributeFrom) * data.rewardPerSec;
-
-            data.lastDistributedTime = uint32(block.timestamp);
-            rewardDatas[market][token] = data;
-
-            _transferOut(token, market, amountToDistribute);
-
-            emit DistributeReward(market, token, amountToDistribute);
         }
     }
 
-    function setRewardData(
+    function addRewardToMarket(
         address market,
         address token,
-        uint160 rewardPerSec,
-        uint32 startTime,
-        uint32 endTime
+        uint128 rewardAmount,
+        uint128 duration
     ) external onlyValidMarket(market) onlyOwner {
-        RewardData memory data = rewardDatas[market][token];
-        if (startTime != data.startTime) {
-            require(data.endTime < block.timestamp, "Previous reward batch not ended");
-        }
+        MarketRewardData memory rwd = _getUpdatedMarketReward(market, token);
+        require(block.timestamp + duration > rwd.incentiveEndsAt, "Invalid incentive duration");
 
-        data.rewardPerSec = rewardPerSec;
-        data.startTime = startTime;
-        data.endTime = endTime;
-        rewardDatas[market][token] = data;
+        uint128 leftover = (rwd.incentiveEndsAt - rwd.lastUpdated) * rwd.rewardPerSec;
+        uint128 newSpeed = (leftover + rewardAmount) / duration;
 
-        if (!rewardTokens[market].contains(token)) {
-            rewardTokens[market].push(token);
-        }
-        emit SetRewardData(market, token, data);
+        rewardData[market][token] = MarketRewardData({
+            rewardPerSec: newSpeed,
+            accumulatedReward: rwd.accumulatedReward,
+            lastUpdated: uint128(block.timestamp),
+            incentiveEndsAt: uint128(block.timestamp) + duration
+        });
+
+        emit AddRewardToMarket(market, token, rewardData[market][token]);
     }
 
     function _authorizeUpgrade(address) internal virtual override onlyOwner {}

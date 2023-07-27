@@ -2,16 +2,16 @@
 pragma solidity 0.8.17;
 
 interface IPExternalRewardDistributor {
-    struct RewardData {
-        uint160 rewardPerSec;
-        uint32 lastDistributedTime;
-        uint32 startTime;
-        uint32 endTime;
+    struct MarketRewardData {
+        uint128 rewardPerSec;
+        uint128 accumulatedReward;
+        uint128 lastUpdated;
+        uint128 incentiveEndsAt;
     }
 
     event DistributeReward(address indexed market, address indexed rewardToken, uint256 amount);
 
-    event SetRewardData(address indexed market, address indexed token, RewardData data);
+    event AddRewardToMarket(address indexed market, address indexed token, MarketRewardData data);
 
     function getRewardTokens(address market) external view returns (address[] memory);
 
