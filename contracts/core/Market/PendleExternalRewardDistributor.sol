@@ -15,8 +15,11 @@ contract PendleExternalRewardDistributor is
     UUPSUpgradeable,
     TokenHelper
 {
+    using Math for uint256;
     using ArrayLib for address[];
+    using ArrayLib for uint256[];
 
+    uint128 internal constant WEEK = 7 days;
     address public immutable marketFactory;
 
     modifier onlyValidMarket(address market) {
@@ -74,7 +77,31 @@ contract PendleExternalRewardDistributor is
         address token,
         uint128 rewardAmount,
         uint128 duration
-    ) external onlyValidMarket(market) onlyOwner {
+    ) external onlyOwner {
+        _addRewardToMaret(market, token, rewardAmount, duration);
+    }
+
+    function addWeeklyRewardBatch(
+        address token,
+        address[] memory markets,
+        uint256[] memory weights,
+        uint256 totalRewardToDistribute
+    ) external onlyOwner {
+        require(markets.length == weights.length, "array lengths mismatched");
+
+        uint256 totalWeight = weights.sum();
+        for (uint256 i = 0; i < markets.length; ++i) {
+            uint256 rewardToDistribute = (totalRewardToDistribute * weights[i]) / totalWeight;
+            _addRewardToMaret(markets[i], token, rewardToDistribute.Uint128(), WEEK);
+        }
+    }
+
+    function _addRewardToMaret(
+        address market,
+        address token,
+        uint128 rewardAmount,
+        uint128 duration
+    ) internal onlyValidMarket(market) {
         MarketRewardData memory rwd = _getUpdatedMarketReward(market, token);
         require(block.timestamp + duration > rwd.incentiveEndsAt, "Invalid incentive duration");
 
