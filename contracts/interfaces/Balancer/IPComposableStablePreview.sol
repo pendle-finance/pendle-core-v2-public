@@ -1,8 +1,8 @@
 pragma solidity 0.8.17;
 
-import "../StablePreviewBase.sol";
+import "./IBalancerStablePreview.sol";
 
-abstract contract ComposableStablePreview is StablePreviewBase {
+interface IPComposableStablePreview is IBalancerStablePreview {
     struct ImmutableData {
         address[] poolTokens;
         address[] rateProviders;
