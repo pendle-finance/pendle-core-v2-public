@@ -60,10 +60,16 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         int256 _scalarRoot,
         int256 _initialAnchor,
         address _vePendle,
-        address _gaugeController
+        address _gaugeController,
+        address _externalRewardDistributor
     )
         PendleERC20Permit(NAME, SYMBOL, 18)
-        PendleGaugeV2(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController, msg.sender)
+        PendleGaugeV2(
+            IPPrincipalToken(_PT).SY(),
+            _vePendle,
+            _gaugeController,
+            _externalRewardDistributor
+        )
     {
         PT = IPPrincipalToken(_PT);
         SY = IStandardizedYield(PT.SY());

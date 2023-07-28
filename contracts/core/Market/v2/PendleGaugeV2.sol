@@ -31,12 +31,17 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
     uint256 public totalActiveSupply;
     mapping(address => uint256) public activeBalance;
 
-    constructor(address _SY, address _vePendle, address _gaugeController, address _factory) {
+    constructor(
+        address _SY,
+        address _vePendle,
+        address _gaugeController,
+        address _externalRewardDistributor
+    ) {
         SY = _SY;
         vePENDLE = IPVeToken(_vePendle);
         gaugeController = _gaugeController;
         PENDLE = IPGaugeController(gaugeController).pendle();
-        externalRewardDistributor = IPMarketFactoryV2(_factory).rewardDistributor();
+        externalRewardDistributor = _externalRewardDistributor;
     }
 
     /**
@@ -122,7 +127,7 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
         address[] memory externalRewards = IPExternalRewardDistributor(externalRewardDistributor)
             .getRewardTokens(address(this));
 
-        rewardTokens = SYRewards.concat(externalRewards);
+        rewardTokens = SYRewards.merge(externalRewards);
         if (rewardTokens.contains(PENDLE)) return rewardTokens;
         return rewardTokens.append(PENDLE);
     }

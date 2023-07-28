@@ -22,6 +22,9 @@ contract PendleExternalRewardDistributor is
     uint128 internal constant WEEK = 7 days;
     address public immutable marketFactory;
 
+    mapping(address => address[]) internal rewardTokens;
+    mapping(address => mapping(address => MarketRewardData)) internal rewardData;
+
     modifier onlyValidMarket(address market) {
         require(IPMarketFactory(marketFactory).isValidMarket(market), "invalid market");
         _;
@@ -30,9 +33,6 @@ contract PendleExternalRewardDistributor is
     constructor(address _marketFactory) initializer {
         marketFactory = _marketFactory;
     }
-
-    mapping(address => address[]) internal rewardTokens;
-    mapping(address => mapping(address => MarketRewardData)) internal rewardData;
 
     function initialize() external initializer {
         __BoringOwnable_init();
@@ -45,18 +45,6 @@ contract PendleExternalRewardDistributor is
         returns (address[] memory)
     {
         return rewardTokens[market];
-    }
-
-    function _getUpdatedMarketReward(address token, address market)
-        internal
-        view
-        returns (MarketRewardData memory)
-    {
-        MarketRewardData memory rwd = rewardData[market][token];
-        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
-        rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
-        rwd.lastUpdated = newLastUpdated;
-        return rwd;
     }
 
     function redeemRewards() external onlyValidMarket(msg.sender) {
@@ -120,6 +108,18 @@ contract PendleExternalRewardDistributor is
         });
 
         emit AddRewardToMarket(market, token, rewardData[market][token]);
+    }
+
+    function _getUpdatedMarketReward(address token, address market)
+        internal
+        view
+        returns (MarketRewardData memory)
+    {
+        MarketRewardData memory rwd = rewardData[market][token];
+        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
+        rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
+        rwd.lastUpdated = newLastUpdated;
+        return rwd;
     }
 
     function _authorizeUpgrade(address) internal virtual override onlyOwner {}

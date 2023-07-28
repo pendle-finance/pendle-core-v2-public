@@ -24,7 +24,7 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
     int256 public constant minInitialAnchor = Math.IONE;
 
     address public treasury;
-    address public rewardDistributor;
+    address public externalRewardDistributor;
     FeeConfig public defaultFee;
     /// 1 SLOT
 
@@ -59,7 +59,7 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
         uint8 _defaultReserveFeePercent,
         address newVePendle,
         address newGaugeController,
-        address newRewardDistributor
+        address newExternalRewardDistributor
     ) external initializer {
         __BoringOwnable_init();
         setTreasury(_treasury);
@@ -67,7 +67,7 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
 
         vePendle = newVePendle;
         gaugeController = newGaugeController;
-        rewardDistributor = newRewardDistributor;
+        externalRewardDistributor = newExternalRewardDistributor;
     }
 
     /**
@@ -92,7 +92,14 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
         market = BaseSplitCodeFactory._create2(
             0,
             bytes32(block.chainid),
-            abi.encode(PT, scalarRoot, initialAnchor, vePendle, gaugeController),
+            abi.encode(
+                PT,
+                scalarRoot,
+                initialAnchor,
+                vePendle,
+                gaugeController,
+                externalRewardDistributor
+            ),
             marketCreationCodeContractA,
             marketCreationCodeSizeA,
             marketCreationCodeContractB,

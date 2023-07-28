@@ -40,32 +40,34 @@ library ArrayLib {
         out[length] = element;
     }
     /**
-     * @dev This function assumes a and b each contains unidentical elements 
+     * @dev This function assumes a and b each contains unidentical elements
      * @param a array of addresses a
      * @param b array of addresses b
      * @return out Concatenation of a and b containing unidentical elements
      */
-    function concat(
+    function merge(
         address[] memory a,
         address[] memory b
     ) internal pure returns (address[] memory out) {
-        uint256 countUnidenticalB = 0;
-        bool[] memory isUnidentical = new bool[](b.length);
-        for(uint256 i = 0; i < b.length; ++i) {
-            if (!contains(a, b[i])) {
-                countUnidenticalB++;
-                isUnidentical[i] = true;
+        unchecked {
+            uint256 countUnidenticalB = 0;
+            bool[] memory isUnidentical = new bool[](b.length);
+            for(uint256 i = 0; i < b.length; ++i) {
+                if (!contains(a, b[i])) {
+                    countUnidenticalB++;
+                    isUnidentical[i] = true;
+                }
             }
-        }
 
-        out = new address[](a.length + countUnidenticalB);
-        for(uint256 i = 0; i < a.length; ++i) {
-            out[i] = a[i];
-        }
-        uint256 id = a.length;
-        for(uint256 i = 0; i < b.length; ++i) {
-            if (isUnidentical[i]) {
-                out[id++] = b[i];
+            out = new address[](a.length + countUnidenticalB);
+            for(uint256 i = 0; i < a.length; ++i) {
+                out[i] = a[i];
+            }
+            uint256 id = a.length;
+            for(uint256 i = 0; i < b.length; ++i) {
+                if (isUnidentical[i]) {
+                    out[id++] = b[i];
+                }
             }
         }
     }
