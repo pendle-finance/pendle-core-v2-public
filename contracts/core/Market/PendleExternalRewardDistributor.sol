@@ -38,16 +38,20 @@ contract PendleExternalRewardDistributor is
         __BoringOwnable_init();
     }
 
-    function getRewardTokens(
-        address market
-    ) external view onlyValidMarket(market) returns (address[] memory) {
+    function getRewardTokens(address market)
+        external
+        view
+        onlyValidMarket(market)
+        returns (address[] memory)
+    {
         return rewardTokens[market];
     }
 
-    function _getUpdatedMarketReward(
-        address token,
-        address market
-    ) internal view returns (MarketRewardData memory) {
+    function _getUpdatedMarketReward(address token, address market)
+        internal
+        view
+        returns (MarketRewardData memory)
+    {
         MarketRewardData memory rwd = rewardData[market][token];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
@@ -78,7 +82,7 @@ contract PendleExternalRewardDistributor is
         uint128 rewardAmount,
         uint128 duration
     ) external onlyOwner {
-        _addRewardToMaret(market, token, rewardAmount, duration);
+        _addRewardToMarket(market, token, rewardAmount, duration);
     }
 
     function addWeeklyRewardBatch(
@@ -92,11 +96,11 @@ contract PendleExternalRewardDistributor is
         uint256 totalWeight = weights.sum();
         for (uint256 i = 0; i < markets.length; ++i) {
             uint256 rewardToDistribute = (totalRewardToDistribute * weights[i]) / totalWeight;
-            _addRewardToMaret(markets[i], token, rewardToDistribute.Uint128(), WEEK);
+            _addRewardToMarket(markets[i], token, rewardToDistribute.Uint128(), WEEK);
         }
     }
 
-    function _addRewardToMaret(
+    function _addRewardToMarket(
         address market,
         address token,
         uint128 rewardAmount,
