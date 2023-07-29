@@ -6,7 +6,12 @@ import "./IPSwapAggregator.sol";
 import "./kyberswap/KyberInputScalingHelper.sol";
 import "./oneinch/OneInchAggregationRouterHelper.sol";
 
-contract PendleSwap is IPSwapAggregator, TokenHelper, KyberInputScalingHelper, OneInchAggregationRouterHelper {
+contract PendleSwap is
+    IPSwapAggregator,
+    TokenHelper,
+    KyberInputScalingHelper,
+    OneInchAggregationRouterHelper
+{
     using Address for address;
 
     function swap(
