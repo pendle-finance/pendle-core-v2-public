@@ -13,6 +13,8 @@ import "./RewardManagerAbstract.sol";
 abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
     using Math for uint256;
 
+    uint256 internal constant INITIAL_REWARD_INDEX = 1;
+
     struct RewardState {
         uint128 index;
         uint128 lastBalance;
@@ -56,8 +58,7 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
             uint256 userIndex = userReward[token][user].index;
 
             if (userIndex == 0) {
-                userReward[token][user].index = index.Uint128();
-                continue;
+                userIndex = INITIAL_REWARD_INDEX.Uint128();
             }
 
             if (userIndex == index) continue;

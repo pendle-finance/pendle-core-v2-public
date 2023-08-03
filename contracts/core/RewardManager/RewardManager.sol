@@ -13,7 +13,6 @@ abstract contract RewardManager is RewardManagerAbstract {
 
     mapping(address => RewardState) public rewardState;
 
-    uint256 internal constant INITIAL_REWARD_INDEX = 1;
 
     function _updateRewardIndex()
         internal
