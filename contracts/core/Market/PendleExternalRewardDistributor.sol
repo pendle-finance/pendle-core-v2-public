@@ -8,6 +8,7 @@ import "../libraries/TokenHelper.sol";
 import "../libraries/ArrayLib.sol";
 import "../../interfaces/IPExternalRewardDistributor.sol";
 import "../../interfaces/IPMarketFactory.sol";
+import "../../interfaces/IPMarket.sol";
 
 contract PendleExternalRewardDistributor is
     IPExternalRewardDistributor,
@@ -26,7 +27,11 @@ contract PendleExternalRewardDistributor is
     mapping(address => mapping(address => MarketRewardData)) internal rewardData;
 
     modifier onlyValidMarket(address market) {
-        require(IPMarketFactory(marketFactory).isValidMarket(market), "invalid market");
+        require(
+            IPMarketFactory(marketFactory).isValidMarket(market) &&
+                block.timestamp < IPMarket(market).expiry(),
+            "invalid market"
+        );
         _;
     }
 
@@ -38,12 +43,9 @@ contract PendleExternalRewardDistributor is
         __BoringOwnable_init();
     }
 
-    function getRewardTokens(address market)
-        external
-        view
-        onlyValidMarket(market)
-        returns (address[] memory)
-    {
+    function getRewardTokens(
+        address market
+    ) external view onlyValidMarket(market) returns (address[] memory) {
         return rewardTokens[market];
     }
 
@@ -53,13 +55,17 @@ contract PendleExternalRewardDistributor is
         for (uint256 i = 0; i < tokens.length; ++i) {
             address token = tokens[i];
 
-            rewardData[market][token] = _getUpdatedMarketReward(market, token);
-            uint256 amountToDistribute = rewardData[market][token].accumulatedReward;
+            MarketRewardData memory rwd = _getUpdatedMarketReward(market, token);
+            uint256 amountToDistribute = rwd.accumulatedReward;
 
             if (amountToDistribute > 0) {
-                rewardData[market][token].accumulatedReward = 0;
+                rwd.accumulatedReward = 0;
+                // prevent re-entrancy
+                rewardData[market][token] = rwd;
                 _transferOut(token, market, amountToDistribute);
                 emit DistributeReward(market, token, amountToDistribute);
+            } else {
+                rewardData[market][token] = rwd;
             }
         }
     }
@@ -94,6 +100,10 @@ contract PendleExternalRewardDistributor is
         uint128 rewardAmount,
         uint128 duration
     ) internal onlyValidMarket(market) {
+        if (!rewardTokens[market].contains(token)) {
+            rewardTokens[market].push(token);
+        }
+
         MarketRewardData memory rwd = _getUpdatedMarketReward(market, token);
         require(block.timestamp + duration > rwd.incentiveEndsAt, "Invalid incentive duration");
 
@@ -110,11 +120,10 @@ contract PendleExternalRewardDistributor is
         emit AddRewardToMarket(market, token, rewardData[market][token]);
     }
 
-    function _getUpdatedMarketReward(address token, address market)
-        internal
-        view
-        returns (MarketRewardData memory)
-    {
+    function _getUpdatedMarketReward(
+        address market,
+        address token
+    ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market][token];
         uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
