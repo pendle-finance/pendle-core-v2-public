@@ -16,6 +16,10 @@ library LayerZeroHelper {
         else if (chainId == 56) return 102;
         // binance smart chain
         else if (chainId == 1) return 101;
+        // mantle
+        else if (chainId == 5000) return 181;
+        // optimism
+        else if (chainId == 10) return 111;
         assert(false);
     }
 
@@ -31,6 +35,10 @@ library LayerZeroHelper {
         else if (chainId == 102) return 56;
         // binance smart chain
         else if (chainId == 101) return 1;
+        // mantle
+        else if (chainId == 181) return 5000;
+        // optimism
+        else if (chainId == 111) return 10;
         assert(false);
     }
 
