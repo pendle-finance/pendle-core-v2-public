@@ -45,11 +45,11 @@ contract PendleExternalRewardDistributor is
 
     function getRewardTokens(
         address market
-    ) external view onlyValidMarket(market) returns (address[] memory) {
+    ) external view returns (address[] memory) {
         return rewardTokens[market];
     }
 
-    function redeemRewards() external onlyValidMarket(msg.sender) {
+    function redeemRewards() external {
         address market = msg.sender;
         address[] memory tokens = rewardTokens[market];
         for (uint256 i = 0; i < tokens.length; ++i) {
