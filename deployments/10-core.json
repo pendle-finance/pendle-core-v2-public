@@ -1,0 +1,28 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 10,
+        "treasury": "0xE972D450ec5b11b99D97760422e0E054Afbc8042",
+        "governance": "0xa06C863fcf17cA6f24AA81aeA75E23953193fF6A",
+        "pendle": "0xBC7B1Ff1c6989f006a1185318eD4E7b5796e66E1",
+        "lzEndpoint": "0x3c2269811836af69497E5F486A85D7316753cf62",
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "initialRewardFee": "30000000000000000",
+        "initialInterestFee": "30000000000000000",
+        "initialFeeRateRoot": "999500333083533",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "sySwapper": ""
+    },
+    "baseCodeSplitter": "0x9a5aF6A35bb56443C577d57c303CDA39F56Dd173",
+    "PENDLE": "0xBC7B1Ff1c6989f006a1185318eD4E7b5796e66E1",
+    "yieldContractFactory": "0xf5a7De2D276dbda3EEf1b62A9E718EFf4d29dDC8",
+    "marketFactory": "0x17F100fB4bE2707675c6439468d38249DD993d58",
+    "routerStatic": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
+    "pendleSwap": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
+    "ptOracle": "0x4106FC9811a792130502Bb3A5b693894cca7bD8e",
+    "externalRewardDistributor": "0x1fBaCedf510dAA79dfD9B41227A7ba192d5D548D",
+    "receiverEndpoint": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
+    "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
+    "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C"
+}
