@@ -24,5 +24,7 @@
     "externalRewardDistributor": "0x1fBaCedf510dAA79dfD9B41227A7ba192d5D548D",
     "receiverEndpoint": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
-    "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C"
+    "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
+    "router": "0x0000000001e4ef00d069e71d6ba041b0a16f7ea0",
+    "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335"
 }
