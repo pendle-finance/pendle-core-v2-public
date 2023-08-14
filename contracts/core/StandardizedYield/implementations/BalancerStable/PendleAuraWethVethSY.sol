@@ -8,8 +8,8 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
     address internal constant VETH = 0x4Bc3263Eb5bb2Ef7Ad9aB6FB68be80E43b43801F;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    uint256 internal constant AURA_PID = 128;
-    address internal constant LP = 0x156C02f3f7fEf64a3A9D80CCF7085f23ccE91D76;
+    uint256 internal constant AURA_PID = 147;
+    address internal constant LP = 0xB54E6AADBF1ac1a3EF2A56E358706F0f8E320a03;
 
     address internal constant COMPOSABLE_PREVIEW = 0x4239Ddd3c50463383670E86c119220849BFaF64a;
 
@@ -99,19 +99,19 @@ contract PendleAuraWethVethSY is PendleAuraBalancerStableLPSYV2 {
     //  --------------------------------- POOL CONSTANTS ---------------------------------
     function _getPoolTokenAddresses() internal pure override returns (address[] memory res) {
         res = new address[](3);
-        res[0] = LP;
-        res[1] = VETH;
+        res[0] = VETH;
+        res[1] = LP;
         res[2] = WETH;
     }
 
     function _getBPTIndex() internal pure override returns (uint256) {
-        return 0;
+        return 1;
     }
 
     function _getRateProviders() internal pure returns (address[] memory res) {
         res = new address[](3);
-        res[0] = 0x0000000000000000000000000000000000000000;
-        res[1] = 0x12589A727aeFAc3fbE5025F890f1CB97c269BEc2;
+        res[0] = 0x12589A727aeFAc3fbE5025F890f1CB97c269BEc2;
+        res[1] = 0x0000000000000000000000000000000000000000;
         res[2] = 0x0000000000000000000000000000000000000000;
     }
 
