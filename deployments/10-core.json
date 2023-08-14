@@ -25,7 +25,7 @@
     "ptOracle": "0x4106FC9811a792130502Bb3A5b693894cca7bD8e",
     "externalRewardDistributor": "0x1fBaCedf510dAA79dfD9B41227A7ba192d5D548D",
     "liquiditySeedingHelper": "0xFc7A495389cD3454f5cC0Ecaa55D30E343A1Fc16",
-    "receiverEndpoint": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
+    "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C"
 }
