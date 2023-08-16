@@ -67,12 +67,11 @@ library FluxTokenLib {
         uint256 totalBorrows,
         uint256 totalReserves
     ) private pure returns (uint256) {
-        uint256 _totalSupply = totalSupply;
         uint256 cashPlusBorrowsMinusReserves;
         uint256 exchangeRate;
 
         cashPlusBorrowsMinusReserves = totalCash + totalBorrows - totalReserves;
-        exchangeRate = (cashPlusBorrowsMinusReserves * 1e18) / _totalSupply;
+        exchangeRate = (cashPlusBorrowsMinusReserves * 1e18) / totalSupply;
 
         return exchangeRate;
     }
