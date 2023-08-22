@@ -40,7 +40,7 @@ library FluxTokenLib {
         params.borrowRateMantissa = IFluxInterestRateModel(IFluxErc20(fToken).interestRateModel())
             .getBorrowRate(params.cashPrior, params.borrowsPrior, params.reservesPrior);
 
-        assert(params.borrowRateMantissa < borrowRateMaxMantissa);
+        assert(params.borrowRateMantissa <= borrowRateMaxMantissa);
 
         params.timestampDelta = params.currentBlockNumber - params.accrualBlockNumberPrior;
         params.simpleInterestFactor = params.borrowRateMantissa * params.timestampDelta;
