@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface ICamelotNitroPool is IERC721 {
@@ -26,6 +26,6 @@ interface ICamelotNitroPool is IERC721 {
     function rewardsToken2() external view returns (RewardsToken calldata);
 
     function emergencyWithdraw(uint256 tokenId) external;
- 
+
     function emergencyClose() external view returns (bool);
 }

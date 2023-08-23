@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface IERC4626 is IERC20Metadata {
@@ -34,7 +34,7 @@ interface IERC4626 is IERC20Metadata {
     function convertToAssets(uint256 shares) external view returns (uint256);
 
     function previewDeposit(uint256 assets) external view returns (uint256);
-    
+
     function previewRedeem(uint256 shares) external view returns (uint256);
 
     function totalAssets() external view returns (uint256);

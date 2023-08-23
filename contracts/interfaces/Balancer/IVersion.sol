@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 
 /**
  * @notice Simple interface to retrieve the version of a deployed contract.

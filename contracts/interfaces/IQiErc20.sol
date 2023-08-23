@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 import "./IQiToken.sol";
 
 interface IQiErc20 is IQiToken {

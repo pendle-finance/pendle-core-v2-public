@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 
 interface IPYieldContractFactory {
     event CreateYieldContract(address indexed SY, uint256 indexed expiry, address PT, address YT);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 
 contract LegacyNFTHelper {
     address private constant ADDR = 0x9B1Bfa5D13375e8E21FDCb0A5F965974f9DcfDd1;

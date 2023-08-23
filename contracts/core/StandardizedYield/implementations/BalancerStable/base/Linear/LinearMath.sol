@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 import "../FixedPoint.sol";
 
 // These functions start with an underscore, as if they were part of a contract and not a library. At some point this
