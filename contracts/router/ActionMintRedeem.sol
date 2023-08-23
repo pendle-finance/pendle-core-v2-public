@@ -8,8 +8,8 @@ import "../core/libraries/Errors.sol";
 
 contract ActionMintRedeem is IPActionMintRedeem, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
 
     /**
      * @notice swaps input token for SY-mintable tokens (if needed), then mints SY from such

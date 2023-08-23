@@ -16,8 +16,8 @@ Invariance to maintain:
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
 contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;

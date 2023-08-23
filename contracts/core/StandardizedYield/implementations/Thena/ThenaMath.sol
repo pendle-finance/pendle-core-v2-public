@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../libraries/math/Math.sol";
+import "../../../libraries/math/PMath.sol";
 import "../../../../interfaces/Thena/IThenaPair.sol";
 
 abstract contract ThenaMath {
-    using Math for uint256;
+    using PMath for uint256;
 
     struct ThenaData {
         address pair;
@@ -53,11 +53,11 @@ abstract contract ThenaMath {
     ) private pure returns (uint256) {
 
         uint256 numer0 = (TWO - FEE_DENOMINATOR) * data.reserve0 / FEE_DENOMINATOR;
-        uint256 numer1 = Math.square(numer0);
-        uint256 numer2 = 4 * Math.square(ONE - data.fee) * amountIn * data.reserve0;
+        uint256 numer1 = PMath.square(numer0);
+        uint256 numer2 = 4 * PMath.square(ONE - data.fee) * amountIn * data.reserve0;
 
-        uint256 numer = Math.sqrt(numer1 + numer2) - numer0;
-        uint256 denom = 2 * Math.square(ONE - data.fee);
+        uint256 numer = PMath.sqrt(numer1 + numer2) - numer0;
+        uint256 denom = 2 * PMath.square(ONE - data.fee);
 
         return numer * FEE_DENOMINATOR / denom;
     }
@@ -69,7 +69,7 @@ abstract contract ThenaMath {
     ) private view returns (uint256) {
         StableBinarySearchParams memory params = _prepareStableBinarySearchParams(amountIn, data);
 
-        while (!Math.isAApproxB(params.guessMin, params.guessMax, binarySearchEps)) {
+        while (!PMath.isAApproxB(params.guessMin, params.guessMax, binarySearchEps)) {
             params.amountSwapIn = (params.guessMax + params.guessMin) / 2;
             params.amount1ToAddLiq = IThenaPair(data.pair).getAmountOut(
                 params.amountSwapIn,
@@ -122,7 +122,7 @@ abstract contract ThenaMath {
 
     // this returns the fourthRoot of y in base 18
     function _fourthRoot(uint256 y) private pure returns (uint256) {
-        uint256 root = Math.sqrt(y) * (10 ** 9);
-        return Math.sqrt(root) * (10 ** 9);
+        uint256 root = PMath.sqrt(y) * (10 ** 9);
+        return PMath.sqrt(root) * (10 ** 9);
     }
 }

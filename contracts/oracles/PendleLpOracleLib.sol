@@ -5,8 +5,8 @@ import "./PendlePtOracleLib.sol";
 
 library PendleLpOracleLib {
     using PendlePtOracleLib for IPMarket;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using MarketMathCore for MarketState;
 
     /**
@@ -44,7 +44,7 @@ library PendleLpOracleLib {
             );
 
             int256 tradeSize = (cParam.mulDown(comp.totalAsset) - state.totalPt).divDown(
-                Math.IONE + cParam.divDown(rateHypTrade)
+                PMath.IONE + cParam.divDown(rateHypTrade)
             );
 
             totalHypotheticalAsset =
@@ -61,7 +61,7 @@ library PendleLpOracleLib {
         MarketState memory state,
         uint32 duration
     ) private view returns (int256 rateOracle, int256 rateHypTrade) {
-        rateOracle = Math.IONE.divDown(market.getPtToAssetRateRaw(duration).Int());
+        rateOracle = PMath.IONE.divDown(market.getPtToAssetRateRaw(duration).Int());
         int256 rateLastTrade = MarketMathCore._getExchangeRateFromImpliedRate(
             state.lastLnImpliedRate,
             state.expiry - block.timestamp

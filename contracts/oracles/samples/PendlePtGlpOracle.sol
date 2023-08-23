@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../PendlePtOracleLib.sol";
 import "../../interfaces/IPPtOracle.sol";
 import "../../interfaces/GMX/IGlpManager.sol";
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 
 /**
  * @notice The returned price from this contract is multiply with the USD price of GLP read from

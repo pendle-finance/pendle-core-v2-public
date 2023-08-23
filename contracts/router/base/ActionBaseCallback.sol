@@ -13,8 +13,8 @@ import "./CallbackHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, TokenHelper {
-    using Math for int256;
-    using Math for uint256;
+    using PMath for int256;
+    using PMath for uint256;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 

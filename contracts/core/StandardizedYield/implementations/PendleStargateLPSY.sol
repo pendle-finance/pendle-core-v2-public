@@ -9,7 +9,7 @@ import "../../../interfaces/IStargateStaking.sol";
 contract PendleStargateLPSY is SYBaseWithRewards {
     uint256 public constant STARGATE_BP_DENOMINATOR = 10000;
 
-    using Math for uint256;
+    using PMath for uint256;
 
     uint16 public immutable pid; // pool id
     uint256 public immutable sid; // staking id

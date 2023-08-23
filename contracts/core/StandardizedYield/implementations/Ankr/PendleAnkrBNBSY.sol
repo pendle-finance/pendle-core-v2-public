@@ -12,7 +12,7 @@ contract PendleAnkrBNBSY is SYBase {
 
     error UnstakeCapacityTooLow(uint256 amountBondToRedeem, uint256 unstakeCapacity);
 
-    using Math for uint256;
+    using PMath for uint256;
 
     uint256 internal constant FEE_MAX = 10000;
 
@@ -70,7 +70,7 @@ contract PendleAnkrBNBSY is SYBase {
 
     function exchangeRate() public view virtual override returns (uint256) {
         // ankr uses inversed exchangeRate
-        return Math.ONE.divDown(IAnkrBNB(ankrBNB).ratio());
+        return PMath.ONE.divDown(IAnkrBNB(ankrBNB).ratio());
     }
 
     /*///////////////////////////////////////////////////////////////

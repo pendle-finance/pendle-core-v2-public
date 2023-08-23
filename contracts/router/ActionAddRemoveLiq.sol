@@ -15,8 +15,8 @@ import "../core/libraries/Errors.sol";
  * This is because swapping and adding liquidity are not allowed on an expired market.
  */
 contract ActionAddRemoveLiq is IPActionAddRemoveLiq, ActionBaseMintRedeem {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;

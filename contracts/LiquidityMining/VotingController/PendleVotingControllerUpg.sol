@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "./VotingControllerStorageUpg.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 import "../libraries/VeBalanceLib.sol";
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
@@ -38,8 +38,8 @@ contract PendleVotingControllerUpg is
     UUPSUpgradeable
 {
     using VeBalanceLib for VeBalance;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 

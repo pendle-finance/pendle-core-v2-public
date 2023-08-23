@@ -4,13 +4,13 @@ import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
 import "./SYUtils.sol";
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 
 type PYIndex is uint256;
 
 library PYIndexLib {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
 
     function newIndex(IPYieldToken YT) internal returns (PYIndex) {
         return PYIndex.wrap(YT.pyIndexCurrent());

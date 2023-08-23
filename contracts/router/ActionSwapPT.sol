@@ -11,8 +11,8 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using PYIndexLib for IPYieldToken;
 
     /**

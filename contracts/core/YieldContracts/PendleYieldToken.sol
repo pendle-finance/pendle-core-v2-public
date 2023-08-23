@@ -7,7 +7,7 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
 
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/ArrayLib.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
 import "../StandardizedYield/SYUtils.sol";
@@ -29,7 +29,7 @@ contract PendleYieldToken is
     RewardManagerAbstract,
     InterestManagerYT
 {
-    using Math for uint256;
+    using PMath for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for uint256[];
 
@@ -369,7 +369,7 @@ contract PendleYieldToken is
     }
 
     function _getAmountPYToRedeem() internal view returns (uint256) {
-        if (!isExpired()) return Math.min(_selfBalance(PT), balanceOf(address(this)));
+        if (!isExpired()) return PMath.min(_selfBalance(PT), balanceOf(address(this)));
         else return _selfBalance(PT);
     }
 
@@ -410,7 +410,7 @@ contract PendleYieldToken is
         if (doCacheIndexSameBlock && pyIndexLastUpdatedBlock == block.number)
             return _pyIndexStored;
 
-        uint128 index128 = Math
+        uint128 index128 = PMath
             .max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored)
             .Uint128();
 

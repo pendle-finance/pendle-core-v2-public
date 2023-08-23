@@ -113,7 +113,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
      * @dev 1 SY = 1 GLP
      */
     function exchangeRate() public view virtual override returns (uint256) {
-        return Math.ONE;
+        return PMath.ONE;
     }
 
     /*///////////////////////////////////////////////////////////////

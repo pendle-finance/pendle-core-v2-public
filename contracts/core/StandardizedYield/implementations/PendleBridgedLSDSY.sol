@@ -5,7 +5,7 @@ import "../SYBase.sol";
 import { AggregatorV2V3Interface as IChainlinkAggregator } from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
 contract PendleBridgedLSDSY is SYBase {
-    using Math for int256;
+    using PMath for int256;
 
     address public immutable chainlinkFeed;
     address internal immutable underlyingAssetOnEthAddr;

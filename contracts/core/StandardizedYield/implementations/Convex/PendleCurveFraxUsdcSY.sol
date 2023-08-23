@@ -44,7 +44,7 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
     ) internal virtual override returns (uint256 amountTokenOut) {
         amountTokenOut = ICrvPool(crvPool).remove_liquidity_one_coin(
             amountLpToRedeem,
-            Math.Int128(_getIndex(tokenOut)),
+            PMath.Int128(_getIndex(tokenOut)),
             0
         );
     }
@@ -63,7 +63,7 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         return
             ICrvPool(crvPool).calc_withdraw_one_coin(
                 amountLpToRedeem,
-                Math.Int128(_getIndex(tokenOut))
+                PMath.Int128(_getIndex(tokenOut))
             );
     }
 

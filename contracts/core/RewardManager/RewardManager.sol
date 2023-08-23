@@ -6,7 +6,7 @@ import "./RewardManagerAbstract.sol";
 /// NOTE: This RewardManager is used with SY & YTv2 & PendleMarket. For YTv1, it will use RewardManagerAbstract
 /// NOTE: RewardManager must not have duplicated rewardTokens
 abstract contract RewardManager is RewardManagerAbstract {
-    using Math for uint256;
+    using PMath for uint256;
     using ArrayLib for uint256[];
 
     uint256 public lastRewardBlock;

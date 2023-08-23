@@ -6,7 +6,7 @@ import "../core/BulkSeller/BulkSeller.sol";
 
 contract BulkSellerOffchain {
     using BulkSellerMathCore for BulkSellerState;
-    using Math for uint256;
+    using PMath for uint256;
 
     function calcCurrentRates(IPBulkSeller bulk)
         external

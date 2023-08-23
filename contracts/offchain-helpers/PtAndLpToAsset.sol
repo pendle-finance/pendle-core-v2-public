@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IPMarket.sol";
-import "../core/libraries/math/Math.sol";
+import "../core/libraries/math/PMath.sol";
 import "../core/Market/MarketMathCore.sol";
 
 contract PtAndLpToAsset {
-    using Math for int256;
-    using Math for uint256;
+    using PMath for int256;
+    using PMath for uint256;
     using MarketMathCore for MarketState;
 
     function getLpToAssetRate(IPMarket market) public view returns (uint256 lpToAssetRate) {
@@ -44,7 +44,7 @@ contract PtAndLpToAsset {
             timeToExpiry
         );
 
-        ptToAssetRate = uint256(Math.IONE.divDown(assetToPtRate));
+        ptToAssetRate = uint256(PMath.IONE.divDown(assetToPtRate));
     }
 
     function _getPYIndexCurrent(IPMarket market) private view returns (uint256) {
@@ -56,7 +56,7 @@ contract PtAndLpToAsset {
         if (YT.doCacheIndexSameBlock() && YT.pyIndexLastUpdatedBlock() == block.number) {
             return pyIndexStored;
         } else {
-            return Math.max(syIndex, pyIndexStored);
+            return PMath.max(syIndex, pyIndexStored);
         }
     }
 }

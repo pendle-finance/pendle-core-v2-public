@@ -6,7 +6,7 @@ import "../../../interfaces/ILooksFeeSharing.sol";
 import "../../../interfaces/ILooksStaking.sol";
 
 contract PendleLooksStakingSY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     address public immutable looks;
     address public immutable stakingContract;

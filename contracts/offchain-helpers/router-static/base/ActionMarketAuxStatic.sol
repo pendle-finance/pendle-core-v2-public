@@ -7,8 +7,8 @@ import "./StorageLayout.sol";
 
 contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using MarketMathCore for MarketState;
-    using Math for int256;
-    using Math for uint256;
+    using PMath for int256;
+    using PMath for uint256;
     using LogExpMath for int256;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
@@ -39,7 +39,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         view
         returns (uint256)
     {
-        if (IPMarket(market).isExpired()) return Math.ONE;
+        if (IPMarket(market).isExpired()) return PMath.ONE;
 
         MarketPreCompute memory comp = state.getMarketPreCompute(
             _pyIndex(market),
@@ -60,7 +60,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         view
         returns (uint256)
     {
-        if (IPMarket(market).isExpired()) return Math.ONE;
+        if (IPMarket(market).isExpired()) return PMath.ONE;
 
         int256 netPtToAccount = netPtOut;
         MarketState memory state = _readState(market);
@@ -79,7 +79,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
 
         if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(comp.feeRate);
-            if (postFeeExchangeRate < Math.IONE)
+            if (postFeeExchangeRate < PMath.IONE)
                 revert Errors.MarketExchangeRateBelowOne(postFeeExchangeRate);
             return postFeeExchangeRate.Uint();
         } else {
@@ -167,7 +167,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
             timeToExpiry
         );
 
-        ptToAssetRate = uint256(Math.IONE.divDown(assetToPtRate));
+        ptToAssetRate = uint256(PMath.IONE.divDown(assetToPtRate));
     }
 
     function _getPtImpliedYield(address market) internal view returns (int256) {
@@ -187,7 +187,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         // 1 yt + 1/EX Asset = 1 Asset
         // 1 yt = 1 Asset - 1/EX Asset
         // 1 yt = (EX - 1) / EX Asset
-        return (ptAssetExchangeRate - Math.ONE).divDown(ptAssetExchangeRate);
+        return (ptAssetExchangeRate - PMath.ONE).divDown(ptAssetExchangeRate);
     }
 
     function _readState(address market) internal view returns (MarketState memory) {

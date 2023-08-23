@@ -12,8 +12,8 @@ import "./base/ActionBaseCallback.sol";
 
 /// @dev All swap actions will revert if market is expired
 contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedeem {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using MarketMathCore for MarketState;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;

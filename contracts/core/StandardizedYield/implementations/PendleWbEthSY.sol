@@ -5,7 +5,7 @@ import "../SYBase.sol";
 import "../../../interfaces/BinanceEth/IWBETH.sol";
 
 contract PendleWbEthSY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     address public immutable eth;
     address public immutable wbETH;

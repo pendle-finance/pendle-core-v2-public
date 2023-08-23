@@ -22,7 +22,7 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
     address public immutable yieldContractFactory;
     uint256 public immutable maxLnFeeRateRoot;
     uint8 public constant maxReserveFeePercent = 100;
-    int256 public constant minInitialAnchor = Math.IONE;
+    int256 public constant minInitialAnchor = PMath.IONE;
 
     address public treasury;
     address public externalRewardDistributor;
@@ -46,7 +46,7 @@ contract PendleMarketFactoryV2 is BoringOwnableUpgradeable, IPMarketFactory {
         uint256 _marketCreationCodeSizeB
     ) {
         yieldContractFactory = _yieldContractFactory;
-        maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * Math.IONE) / 100))); // ln(1.05)
+        maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * PMath.IONE) / 100))); // ln(1.05)
 
         marketCreationCodeContractA = _marketCreationCodeContractA;
         marketCreationCodeSizeA = _marketCreationCodeSizeA;

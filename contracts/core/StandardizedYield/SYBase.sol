@@ -4,7 +4,7 @@ import "../../interfaces/IStandardizedYield.sol";
 
 import "../erc20/PendleERC20Permit.sol";
 
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
@@ -17,7 +17,7 @@ abstract contract SYBase is
     BoringOwnableUpgradeable,
     Pausable
 {
-    using Math for uint256;
+    using PMath for uint256;
 
     address public immutable yieldToken;
 

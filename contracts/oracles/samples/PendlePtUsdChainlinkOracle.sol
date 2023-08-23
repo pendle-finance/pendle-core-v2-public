@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../../interfaces/IPPtOracle.sol";
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import { AggregatorV2V3Interface as IChainlinkAggregator } from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
 /**
@@ -44,7 +44,7 @@ contract PendlePtUsdChainlinkOracle {
     function getPtPrice() external view virtual returns (uint256) {
         uint256 ptRate = IPPtOracle(ptOracle).getPtToAssetRate(market, twapDuration);
         uint256 assetPrice = _getUnderlyingAssetPrice();
-        return (assetPrice * ptRate) / Math.ONE;
+        return (assetPrice * ptRate) / PMath.ONE;
     }
 
     function _getUnderlyingAssetPrice() internal view virtual returns (uint256) {

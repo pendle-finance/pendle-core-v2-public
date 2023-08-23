@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../libraries/TokenHelper.sol";
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/Errors.sol";
 
 struct BulkSellerState {
@@ -14,7 +14,7 @@ struct BulkSellerState {
 }
 
 library BulkSellerMathCore {
-    using Math for uint256;
+    using PMath for uint256;
 
     function swapExactTokenForSy(
         BulkSellerState memory state,
@@ -38,7 +38,7 @@ library BulkSellerMathCore {
         BulkSellerState memory state,
         uint256 netTokenIn
     ) internal pure returns (uint256 netSyOut) {
-        uint256 postFeeRate = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
+        uint256 postFeeRate = state.rateTokenToSy.mulDown(PMath.ONE - state.feeRate);
         assert(postFeeRate != 0);
 
         netSyOut = netTokenIn.mulDown(postFeeRate);
@@ -50,7 +50,7 @@ library BulkSellerMathCore {
         BulkSellerState memory state,
         uint256 netSyIn
     ) internal pure returns (uint256 netTokenOut) {
-        uint256 postFeeRate = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
+        uint256 postFeeRate = state.rateSyToToken.mulDown(PMath.ONE - state.feeRate);
         assert(postFeeRate != 0);
 
         netTokenOut = netSyIn.mulDown(postFeeRate);
@@ -76,7 +76,7 @@ library BulkSellerMathCore {
                 .mulDown(currentTokenProp - targetTokenProp)
                 .divDown(currentTokenProp);
         } else {
-            uint256 currentSyProp = Math.ONE - currentTokenProp;
+            uint256 currentSyProp = PMath.ONE - currentTokenProp;
             netSyToRedeem = state.totalSy.mulDown(targetTokenProp - currentTokenProp).divDown(
                 currentSyProp
             );
@@ -91,7 +91,7 @@ library BulkSellerMathCore {
     ) internal pure {
         uint256 rate = netSyFromToken.divDown(netTokenToDeposit);
 
-        if (!Math.isAApproxB(rate, state.rateTokenToSy, maxDiff))
+        if (!PMath.isAApproxB(rate, state.rateTokenToSy, maxDiff))
             revert Errors.BulkBadRateTokenToSy(rate, state.rateTokenToSy, maxDiff);
 
         state.totalToken -= netTokenToDeposit;
@@ -106,7 +106,7 @@ library BulkSellerMathCore {
     ) internal pure {
         uint256 rate = netTokenFromSy.divDown(netSyToRedeem);
 
-        if (!Math.isAApproxB(rate, state.rateSyToToken, maxDiff))
+        if (!PMath.isAApproxB(rate, state.rateSyToToken, maxDiff))
             revert Errors.BulkBadRateSyToToken(rate, state.rateSyToToken, maxDiff);
 
         state.totalToken += netTokenFromSy;
@@ -121,14 +121,14 @@ library BulkSellerMathCore {
     ) internal pure {
         if (
             state.rateTokenToSy != 0 &&
-            !Math.isAApproxB(rateTokenToSy, state.rateTokenToSy, maxDiff)
+            !PMath.isAApproxB(rateTokenToSy, state.rateTokenToSy, maxDiff)
         ) {
             revert Errors.BulkBadRateTokenToSy(rateTokenToSy, state.rateTokenToSy, maxDiff);
         }
 
         if (
             state.rateSyToToken != 0 &&
-            !Math.isAApproxB(rateSyToToken, state.rateSyToToken, maxDiff)
+            !PMath.isAApproxB(rateSyToToken, state.rateSyToToken, maxDiff)
         ) {
             revert Errors.BulkBadRateSyToToken(rateSyToToken, state.rateSyToToken, maxDiff);
         }

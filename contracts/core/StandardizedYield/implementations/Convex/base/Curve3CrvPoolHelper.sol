@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../../../libraries/math/Math.sol";
+import "../../../../libraries/math/PMath.sol";
 import "../../../../../interfaces/Curve/ITriCrvPool.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 library Curve3CrvPoolHelper {
-    using Math for uint256;
+    using PMath for uint256;
 
     uint256 internal constant N_COINS = 3;
     uint256 internal constant PRECISION = 10 ** 18;

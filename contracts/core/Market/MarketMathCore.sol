@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/math/LogExpMath.sol";
 
 import "../StandardizedYield/PYIndex.sol";
@@ -33,8 +33,8 @@ struct MarketPreCompute {
 
 // solhint-disable ordering
 library MarketMathCore {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using LogExpMath for int256;
     using PYIndexLib for PYIndex;
 
@@ -45,8 +45,8 @@ library MarketMathCore {
 
     int256 internal constant MAX_MARKET_PROPORTION = (1e18 * 96) / 100;
 
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
 
     /*///////////////////////////////////////////////////////////////
                 UINT FUNCTIONS TO PROXY TO CORE FUNCTIONS
@@ -145,7 +145,7 @@ library MarketMathCore {
         /// MATH
         /// ------------------------------------------------------------
         if (market.totalLp == 0) {
-            lpToAccount = Math.sqrt((syDesired * ptDesired).Uint()).Int() - MINIMUM_LIQUIDITY;
+            lpToAccount = PMath.sqrt((syDesired * ptDesired).Uint()).Int() - MINIMUM_LIQUIDITY;
             lpToReserve = MINIMUM_LIQUIDITY;
             syUsed = syDesired;
             ptUsed = ptDesired;
@@ -281,12 +281,12 @@ library MarketMathCore {
 
         if (netPtToAccount > 0) {
             int256 postFeeExchangeRate = preFeeExchangeRate.divDown(fee);
-            if (postFeeExchangeRate < Math.IONE)
+            if (postFeeExchangeRate < PMath.IONE)
                 revert Errors.MarketExchangeRateBelowOne(postFeeExchangeRate);
 
-            fee = preFeeAssetToAccount.mulDown(Math.IONE - fee);
+            fee = preFeeAssetToAccount.mulDown(PMath.IONE - fee);
         } else {
-            fee = ((preFeeAssetToAccount * (Math.IONE - fee)) / fee).neg();
+            fee = ((preFeeAssetToAccount * (PMath.IONE - fee)) / fee).neg();
         }
 
         int256 netAssetToReserve = (fee * market.reserveFeePercent.Int()) / PERCENTAGE_DECIMALS;
@@ -333,7 +333,7 @@ library MarketMathCore {
     ) internal pure returns (int256 rateAnchor) {
         int256 newExchangeRate = _getExchangeRateFromImpliedRate(lastLnImpliedRate, timeToExpiry);
 
-        if (newExchangeRate < Math.IONE) revert Errors.MarketExchangeRateBelowOne(newExchangeRate);
+        if (newExchangeRate < PMath.IONE) revert Errors.MarketExchangeRateBelowOne(newExchangeRate);
 
         {
             int256 proportion = totalPt.divDown(totalPt + totalAsset);
@@ -353,7 +353,7 @@ library MarketMathCore {
         int256 rateAnchor,
         uint256 timeToExpiry
     ) internal pure returns (uint256 lnImpliedRate) {
-        // This will check for exchange rates < Math.IONE
+        // This will check for exchange rates < PMath.IONE
         int256 exchangeRate = _getExchangeRate(totalPt, totalAsset, rateScalar, rateAnchor, 0);
 
         // exchangeRate >= 1 so its ln >= 0
@@ -391,13 +391,13 @@ library MarketMathCore {
 
         exchangeRate = lnProportion.divDown(rateScalar) + rateAnchor;
 
-        if (exchangeRate < Math.IONE) revert Errors.MarketExchangeRateBelowOne(exchangeRate);
+        if (exchangeRate < PMath.IONE) revert Errors.MarketExchangeRateBelowOne(exchangeRate);
     }
 
     function _logProportion(int256 proportion) internal pure returns (int256 res) {
-        if (proportion == Math.IONE) revert Errors.MarketProportionMustNotEqualOne();
+        if (proportion == PMath.IONE) revert Errors.MarketProportionMustNotEqualOne();
 
-        int256 logitP = proportion.divDown(Math.IONE - proportion);
+        int256 logitP = proportion.divDown(PMath.IONE - proportion);
 
         res = logitP.ln();
     }

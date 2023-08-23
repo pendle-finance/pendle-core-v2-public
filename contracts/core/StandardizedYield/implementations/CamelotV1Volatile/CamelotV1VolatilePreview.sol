@@ -132,7 +132,7 @@ contract CamelotV1VolatilePreview is
 
         uint256 supply = _getTotalSupplyAfterMintFee(data);
         return
-            Math.min(
+            PMath.min(
                 (amount0ToAddLiq * supply) / data.reserve0,
                 (amount1ToAddLiq * supply) / data.reserve1
             );
@@ -159,8 +159,8 @@ contract CamelotV1VolatilePreview is
         // gas savings
         if (feeOn) {
             if (_kLast != 0) {
-                uint256 rootK = Math.sqrt(data.reserve0 * data.reserve1);
-                uint256 rootKLast = Math.sqrt(_kLast);
+                uint256 rootK = PMath.sqrt(data.reserve0 * data.reserve1);
+                uint256 rootKLast = PMath.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint256 d = (FEE_DENOMINATOR * 100) / ownerFeeShare - 100;
                     uint256 numerator = totalSupply * (rootK - rootKLast) * 100;

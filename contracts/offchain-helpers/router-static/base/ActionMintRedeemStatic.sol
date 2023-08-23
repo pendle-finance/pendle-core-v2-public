@@ -7,7 +7,7 @@ import "../../../interfaces/IPBulkSellerFactory.sol";
 import "./StorageLayout.sol";
 
 contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
-    using Math for uint256;
+    using PMath for uint256;
     using BulkSellerMathCore for BulkSellerState;
 
     function mintPyFromSyStatic(address YT, uint256 netSyToMint)
@@ -148,8 +148,8 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
         }
 
         // Liquidity check
-        uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(Math.ONE - state.feeRate);
-        uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(Math.ONE - state.feeRate);
+        uint256 postFeeRateTokenToSy = state.rateTokenToSy.mulDown(PMath.ONE - state.feeRate);
+        uint256 postFeeRateSyToToken = state.rateSyToToken.mulDown(PMath.ONE - state.feeRate);
         if (
             netTokenIn.mulDown(postFeeRateTokenToSy) > state.totalSy ||
             netSyIn.mulDown(postFeeRateSyToToken) > state.totalToken
@@ -177,7 +177,7 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
         if (YT.doCacheIndexSameBlock() && YT.pyIndexLastUpdatedBlock() == block.number) {
             return pyIndexStored;
         } else {
-            return Math.max(syIndex, pyIndexStored);
+            return PMath.max(syIndex, pyIndexStored);
         }
     }
 

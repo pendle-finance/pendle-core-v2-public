@@ -8,13 +8,13 @@ import "../../interfaces/IPBulkSellerFactory.sol";
 import "../../interfaces/IPBulkSeller.sol";
 
 import "../libraries/TokenHelper.sol";
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/Errors.sol";
 
 import "./BulkSellerMathCore.sol";
 
 contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuardUpgradeable {
-    using Math for uint256;
+    using PMath for uint256;
     using SafeERC20 for IERC20;
     using BulkSellerMathCore for BulkSellerState;
 

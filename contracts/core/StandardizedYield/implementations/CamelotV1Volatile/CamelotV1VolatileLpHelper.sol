@@ -6,7 +6,7 @@ import "../../../../interfaces/Camelot/ICamelotPair.sol";
 import "../../../../interfaces/Camelot/ICamelotRouter.sol";
 import "../../../../interfaces/Camelot/ICamelotFactory.sol";
 import "../../../libraries/TokenHelper.sol";
-import "../../../libraries/math/Math.sol";
+import "../../../libraries/math/PMath.sol";
 import "./CamelotV1VolatileCommon.sol";
 
 /**

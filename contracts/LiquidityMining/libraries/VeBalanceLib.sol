@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import "../../core/libraries/Errors.sol";
 
 struct VeBalance {
@@ -15,7 +15,7 @@ struct LockedPosition {
 }
 
 library VeBalanceLib {
-    using Math for uint256;
+    using PMath for uint256;
     uint128 internal constant MAX_LOCK_TIME = 104 weeks;
     uint256 internal constant USER_VOTE_MAX_WEIGHT = 10 ** 18;
 

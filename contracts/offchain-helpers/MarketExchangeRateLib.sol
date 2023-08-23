@@ -5,7 +5,7 @@ import "../core/Market/MarketMathCore.sol";
 import "../interfaces/IPMarket.sol";
 
 library MarketExchangeRateLib {
-    using Math for int256;
+    using PMath for int256;
     using MarketMathCore for MarketState;
     using MarketMathCore for MarketPreCompute;
 
@@ -36,7 +36,7 @@ library MarketExchangeRateLib {
             pyIndexCurrent = ytIndex;
         } else {
             uint256 syIndex = SY.exchangeRate();
-            pyIndexCurrent = Math.max(syIndex, ytIndex);
+            pyIndexCurrent = PMath.max(syIndex, ytIndex);
         }
         return PYIndex.wrap(pyIndexCurrent);
     }

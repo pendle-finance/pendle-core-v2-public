@@ -8,7 +8,7 @@ import "../../interfaces/IPYieldContractFactory.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/TokenHelper.sol";
 import "../StandardizedYield/SYUtils.sol";
 
@@ -21,7 +21,7 @@ It has been proven and tested that totalSyRedeemable will not change over time, 
 Due to this, it is required to update users' accruedReward STRICTLY BEFORE redeeming their interest.
 */
 abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYTV2 {
-    using Math for uint256;
+    using PMath for uint256;
 
     struct UserInterest {
         uint128 index;

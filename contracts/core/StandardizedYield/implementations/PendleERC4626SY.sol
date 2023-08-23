@@ -5,7 +5,7 @@ import "../SYBase.sol";
 import "../../../interfaces/IERC4626.sol";
 
 contract PendleERC4626SY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
     address public immutable asset;
 
     constructor(

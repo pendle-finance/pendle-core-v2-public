@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../../../libraries/math/Math.sol";
+import "../../../../libraries/math/PMath.sol";
 import "../../../../../interfaces/Curve/ICrvPool.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -18,7 +18,7 @@ library CurveFraxUsdcPoolHelper {
     address internal constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
     address internal constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
-    using Math for uint256;
+    using PMath for uint256;
 
     function previewAddLiquidity(address token, uint256 amount) internal view returns (uint256) {
         uint256 amp = ICrvPool(POOL).A_precise();

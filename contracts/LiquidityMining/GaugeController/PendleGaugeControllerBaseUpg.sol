@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import "../../core/libraries/Errors.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
@@ -30,7 +30,7 @@ abstract contract PendleGaugeControllerBaseUpg is
     UUPSUpgradeable
 {
     using SafeERC20 for IERC20;
-    using Math for uint256;
+    using PMath for uint256;
 
     struct MarketRewardData {
         uint128 pendlePerSec;
@@ -136,7 +136,7 @@ abstract contract PendleGaugeControllerBaseUpg is
         address market
     ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market];
-        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
+        uint128 newLastUpdated = uint128(PMath.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);
         rwd.lastUpdated = newLastUpdated;
         return rwd;

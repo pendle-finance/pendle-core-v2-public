@@ -67,7 +67,7 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
 
         ICrvPool(crvPool).remove_liquidity_one_coin(
             amountLpToRedeem,
-            Math.Int128(_getIndex(tokenToRemove)),
+            PMath.Int128(_getIndex(tokenToRemove)),
             0
         );
 
@@ -95,7 +95,7 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
         address tokenToRemove = tokenOut == USDD ? USDD : LP_3CRV;
         uint256 amountTokenRemoved = ICrvPool(crvPool).calc_withdraw_one_coin(
             amountLpToRedeem,
-            Math.Int128(_getIndex(tokenToRemove))
+            PMath.Int128(_getIndex(tokenToRemove))
         );
 
         if (Curve3CrvPoolHelper.is3CrvToken(tokenOut)) {

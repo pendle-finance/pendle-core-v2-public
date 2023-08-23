@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import "../../core/Market/MarketMathCore.sol";
 
 struct ApproxParams {
@@ -31,8 +31,8 @@ struct ApproxParams {
 library MarketApproxPtInLib {
     using MarketMathCore for MarketState;
     using PYIndexLib for PYIndex;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using LogExpMath for int256;
 
     /**
@@ -52,7 +52,7 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtIn(market, comp));
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
             validateApprox(approx);
         }
 
@@ -61,7 +61,7 @@ library MarketApproxPtInLib {
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
 
             if (netSyOut >= minSyOut) {
-                if (Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
+                if (PMath.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
                     return (guess, netSyOut, netSyFee);
                 approx.guessMax = guess;
             } else {
@@ -89,8 +89,8 @@ library MarketApproxPtInLib {
     ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
-            approx.guessMin = Math.max(approx.guessMin, index.syToAsset(exactSyIn));
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtIn(market, comp));
+            approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
             validateApprox(approx);
         }
 
@@ -107,7 +107,7 @@ library MarketApproxPtInLib {
             uint256 netSyToPull = netSyToTokenizePt - netSyOut;
 
             if (netSyToPull <= exactSyIn) {
-                if (Math.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps))
+                if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps))
                     return (guess, netSyFee);
                 approx.guessMin = guess;
             } else {
@@ -139,8 +139,8 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtIn(market, comp));
-            approx.guessMax = Math.min(approx.guessMax, totalPtIn);
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
+            approx.guessMax = PMath.min(approx.guessMax, totalPtIn);
             validateApprox(approx);
             require(market.totalLp != 0, "no existing lp");
         }
@@ -156,7 +156,7 @@ library MarketApproxPtInLib {
 
             ) = calcNumerators(market, index, totalPtIn, comp, guess);
 
-            if (Math.isAApproxB(syNumerator, ptNumerator, approx.eps))
+            if (PMath.isAApproxB(syNumerator, ptNumerator, approx.eps))
                 return (guess, netSyOut, netSyFee);
 
             if (syNumerator <= ptNumerator) {
@@ -230,8 +230,8 @@ library MarketApproxPtInLib {
     {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
-            approx.guessMin = Math.max(approx.guessMin, exactPtIn);
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtIn(market, comp));
+            approx.guessMin = PMath.max(approx.guessMin, exactPtIn);
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
             validateApprox(approx);
         }
 
@@ -246,7 +246,7 @@ library MarketApproxPtInLib {
             uint256 netPtToPull = guess - netAssetOut;
 
             if (netPtToPull <= exactPtIn) {
-                if (Math.isASmallerApproxB(netPtToPull, exactPtIn, approx.eps))
+                if (PMath.isASmallerApproxB(netPtToPull, exactPtIn, approx.eps))
                     return (netAssetOut, guess, netSyFee);
                 approx.guessMin = guess;
             } else {
@@ -283,7 +283,7 @@ library MarketApproxPtInLib {
     /// INTENDED TO BE CALLED BY WHEN GUESS.OFFCHAIN == 0 ONLY ///
 
     function validateApprox(ApproxParams memory approx) internal pure {
-        if (approx.guessMin > approx.guessMax || approx.eps > Math.ONE)
+        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE)
             revert Errors.ApproxParamsInvalid(approx.guessMin, approx.guessMax, approx.eps);
     }
 
@@ -317,7 +317,7 @@ library MarketApproxPtInLib {
         );
 
         int256 part2 = sumPt.divDown(diffAssetPtToMarket).ln();
-        int256 part3 = Math.IONE.divDown(comp.rateScalar);
+        int256 part3 = PMath.IONE.divDown(comp.rateScalar);
 
         return comp.rateAnchor - (part1 - part2).mulDown(part3);
     }
@@ -326,8 +326,8 @@ library MarketApproxPtInLib {
 library MarketApproxPtOutLib {
     using MarketMathCore for MarketState;
     using PYIndexLib for PYIndex;
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
     using LogExpMath for int256;
 
     /**
@@ -347,7 +347,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
             validateApprox(approx);
         }
 
@@ -357,7 +357,7 @@ library MarketApproxPtOutLib {
             (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
-                if (Math.isASmallerApproxB(netSyIn, exactSyIn, approx.eps))
+                if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps))
                     return (guess, netSyFee);
                 approx.guessMin = guess;
             } else {
@@ -386,7 +386,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
             validateApprox(approx);
         }
 
@@ -399,7 +399,7 @@ library MarketApproxPtOutLib {
             uint256 netSyOut = index.assetToSy(guess - netAssetToRepay);
 
             if (netSyOut >= minSyOut) {
-                if (Math.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
+                if (PMath.isAGreaterApproxB(netSyOut, minSyOut, approx.eps))
                     return (guess, netSyOut, netSyFee);
                 approx.guessMax = guess;
             } else {
@@ -441,7 +441,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         if (a.approx.guessOffchain == 0) {
             // no limit on min
-            a.approx.guessMax = Math.min(a.approx.guessMax, calcMaxPtOut(comp, a.market.totalPt));
+            a.approx.guessMax = PMath.min(a.approx.guessMax, calcMaxPtOut(comp, a.market.totalPt));
             validateApprox(a.approx);
             require(a.market.totalLp != 0, "no existing lp");
         }
@@ -477,7 +477,7 @@ library MarketApproxPtOutLib {
                 syNumerator = (a.totalSyIn - netSyIn) * newTotalPt;
             }
 
-            if (Math.isAApproxB(ptNumerator, syNumerator, a.approx.eps))
+            if (PMath.isAApproxB(ptNumerator, syNumerator, a.approx.eps))
                 return (guess, netSyIn, netSyFee);
 
             if (ptNumerator <= syNumerator) {
@@ -513,8 +513,8 @@ library MarketApproxPtOutLib {
     {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
-            approx.guessMin = Math.max(approx.guessMin, exactYtIn);
-            approx.guessMax = Math.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
+            approx.guessMin = PMath.max(approx.guessMin, exactYtIn);
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
             validateApprox(approx);
         }
 
@@ -526,7 +526,7 @@ library MarketApproxPtOutLib {
             uint256 netYtToPull = index.syToAssetUp(netSyOwed);
 
             if (netYtToPull <= exactYtIn) {
-                if (Math.isASmallerApproxB(netYtToPull, exactYtIn, approx.eps))
+                if (PMath.isASmallerApproxB(netYtToPull, exactYtIn, approx.eps))
                     return (guess - netYtToPull, guess, netSyFee);
                 approx.guessMin = guess;
             } else {
@@ -561,7 +561,7 @@ library MarketApproxPtOutLib {
         int256 totalPt
     ) internal pure returns (uint256) {
         int256 logitP = (comp.feeRate - comp.rateAnchor).mulDown(comp.rateScalar).exp();
-        int256 proportion = logitP.divDown(logitP + Math.IONE);
+        int256 proportion = logitP.divDown(logitP + PMath.IONE);
         int256 numerator = proportion.mulDown(totalPt + comp.totalAsset);
         int256 maxPtOut = totalPt - numerator;
         // only get 99.9% of the theoretical max to accommodate some precision issues
@@ -575,7 +575,7 @@ library MarketApproxPtOutLib {
     }
 
     function validateApprox(ApproxParams memory approx) internal pure {
-        if (approx.guessMin > approx.guessMax || approx.eps > Math.ONE)
+        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE)
             revert Errors.ApproxParamsInvalid(approx.guessMin, approx.guessMax, approx.eps);
     }
 }

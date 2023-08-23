@@ -12,7 +12,7 @@ contract PendleCamelotV1VolatileSY is
     CamelotRewardHelper,
     CamelotV1VolatileLpHelper
 {
-    using Math for uint256;
+    using PMath for uint256;
     using ArrayLib for address[];
 
     address[] public rewardTokens;
@@ -85,7 +85,7 @@ contract PendleCamelotV1VolatileSY is
     function exchangeRate() public view virtual override returns (uint256) {
         (uint256 reserve0, uint256 reserve1, , ) = ICamelotPair(pair).getReserves();
         uint256 supply = ICamelotPair(pair).totalSupply();
-        return Math.sqrt(reserve0 * reserve1).divDown(supply);
+        return PMath.sqrt(reserve0 * reserve1).divDown(supply);
     }
 
     /*///////////////////////////////////////////////////////////////

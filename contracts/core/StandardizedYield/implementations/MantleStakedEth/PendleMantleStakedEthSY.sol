@@ -5,7 +5,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/IPOracleForSy.sol";
 
 contract PendleMantleStakedEthSY is SYBase {
-    using Math for int256;
+    using PMath for int256;
 
     address internal immutable underlyingAssetOnEthAddr;
     uint8 internal immutable underlyingAssetOnEthDecimals;

@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IPMarket.sol";
-import "../core/libraries/math/Math.sol";
+import "../core/libraries/math/PMath.sol";
 
 library PendlePtOracleLib {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
 
     /**
      * This function returns the twap rate PT/Asset on market, but take into account the current rate of SY
@@ -23,13 +23,13 @@ library PendlePtOracleLib {
         uint256 expiry = market.expiry();
 
         if (expiry <= block.timestamp) {
-            return Math.ONE;
+            return PMath.ONE;
         } else {
             uint256 lnImpliedRate = _getMarketLnImpliedRate(market, duration);
             uint256 timeToExpiry = expiry - block.timestamp;
             uint256 assetToPtRate =
                 MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry).Uint();
-            return Math.ONE.divDown(assetToPtRate);
+            return PMath.ONE.divDown(assetToPtRate);
         }
     }
 
@@ -46,7 +46,7 @@ library PendlePtOracleLib {
         if (YT.doCacheIndexSameBlock() && YT.pyIndexLastUpdatedBlock() == block.number) {
             pyIndex = pyIndexStored;
         } else {
-            pyIndex = Math.max(syIndex, pyIndexStored);
+            pyIndex = PMath.max(syIndex, pyIndexStored);
         }
     }
 

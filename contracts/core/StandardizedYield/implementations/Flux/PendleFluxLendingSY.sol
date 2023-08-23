@@ -6,7 +6,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/Flux/IFluxErc20.sol";
 
 contract PendleFluxLendingSY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     error FluxLendingError(uint256 errCode);
 

@@ -6,7 +6,7 @@ import "../../../../interfaces/Thena/IThenaPair.sol";
 import "../../../../interfaces/Thena/IThenaRouter.sol";
 import "../../../../interfaces/Thena/IThenaFactory.sol";
 import "../../../libraries/TokenHelper.sol";
-import "../../../libraries/math/Math.sol";
+import "../../../libraries/math/PMath.sol";
 import "./ThenaMath.sol";
 
 abstract contract ThenaLpHelper is TokenHelper, ThenaMath {

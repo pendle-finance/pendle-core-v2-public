@@ -16,7 +16,7 @@ pragma solidity ^0.8.0;
 
 /* solhint-disable private-vars-leading-underscore, reason-string */
 
-library Math {
+library PMath {
     uint256 internal constant ONE = 1e18; // 18 decimal places
     int256 internal constant IONE = 1e18; // 18 decimal places
 

@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import "../PendleLpOracleLib.sol";
 import "../../interfaces/IPPtOracle.sol";
 import "../../interfaces/GMX/IGlpManager.sol";
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 
 /**
  * @notice The LP/GLP price gotten from the market using the LpOracleLib is multiplied with the USD price of GLP read from

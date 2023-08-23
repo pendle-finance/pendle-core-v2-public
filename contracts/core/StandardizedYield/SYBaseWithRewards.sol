@@ -6,7 +6,7 @@ import "./SYBase.sol";
 
 /// NOTE: yieldToken MUST NEVER BE a rewardToken, else the rewardManager will behave erroneously
 abstract contract SYBaseWithRewards is SYBase, RewardManager {
-    using Math for uint256;
+    using PMath for uint256;
     using ArrayLib for address[];
 
     constructor(

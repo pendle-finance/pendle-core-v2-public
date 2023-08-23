@@ -15,7 +15,7 @@ Invariants to maintain:
 - before any changes to active balance, updateAndDistributeRewards() must be called
  */
 abstract contract PendleGaugeV2 is RewardManager, IPGauge {
-    using Math for uint256;
+    using PMath for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for address[];
 
@@ -74,7 +74,7 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
         uint256 lpBalance = _stakedBalance(user);
         uint256 veBoostedLpBalance = _calcVeBoostedLpBalance(user, lpBalance);
 
-        uint256 newActiveBalance = Math.min(veBoostedLpBalance, lpBalance);
+        uint256 newActiveBalance = PMath.min(veBoostedLpBalance, lpBalance);
 
         totalActiveSupply = totalActiveSupply - activeBalance[user] + newActiveBalance;
         activeBalance[user] = newActiveBalance;

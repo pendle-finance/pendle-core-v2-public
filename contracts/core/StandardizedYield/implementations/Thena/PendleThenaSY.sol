@@ -12,7 +12,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
     event SetNewBinarySearchEps(uint256 newEps);
     event AddExternalRewardToken(address indexed token);
 
-    using Math for uint256;
+    using PMath for uint256;
     using ArrayLib for address[];
 
     address[] public externalRewardTokens;
@@ -73,7 +73,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return Math.ONE;
+        return PMath.ONE;
     }
 
     /*///////////////////////////////////////////////////////////////

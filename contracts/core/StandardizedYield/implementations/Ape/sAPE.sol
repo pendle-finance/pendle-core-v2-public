@@ -5,7 +5,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/IApeStaking.sol";
 
 contract sAPE is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     uint256 public constant APE_COIN_POOL_ID = 0;
     uint256 public constant MIN_APE_DEPOSIT = 10 ** 18;

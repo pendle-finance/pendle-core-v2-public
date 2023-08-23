@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../libraries/math/Math.sol";
+import "../libraries/math/PMath.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/ArrayLib.sol";
@@ -16,7 +16,7 @@ contract PendleExternalRewardDistributor is
     UUPSUpgradeable,
     TokenHelper
 {
-    using Math for uint256;
+    using PMath for uint256;
     using ArrayLib for address[];
     using ArrayLib for uint256[];
 
@@ -125,7 +125,7 @@ contract PendleExternalRewardDistributor is
         address token
     ) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market][token];
-        uint128 newLastUpdated = uint128(Math.min(uint128(block.timestamp), rwd.incentiveEndsAt));
+        uint128 newLastUpdated = uint128(PMath.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);
         rwd.lastUpdated = newLastUpdated;
         return rwd;

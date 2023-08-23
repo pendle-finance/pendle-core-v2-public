@@ -2,7 +2,7 @@
 // Forked from OpenZeppelin (v4.5.0) (utils/Checkpoints.sol)
 pragma solidity ^0.8.0;
 
-import "../../core/libraries/math/Math.sol";
+import "../../core/libraries/math/PMath.sol";
 import "./VeBalanceLib.sol";
 import "./WeekMath.sol";
 

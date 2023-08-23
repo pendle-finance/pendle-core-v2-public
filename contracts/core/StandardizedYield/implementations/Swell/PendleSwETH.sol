@@ -4,7 +4,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/ISwETH.sol";
 
 contract SwETHSY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     address public immutable swETH;
 

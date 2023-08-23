@@ -6,8 +6,8 @@ import "../../../interfaces/IPRouterStatic.sol";
 import "./StorageLayout.sol";
 
 contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
-    using Math for uint256;
-    using Math for int256;
+    using PMath for uint256;
+    using PMath for int256;
 
     using LogExpMath for int256;
     using PYIndexLib for PYIndex;
@@ -305,7 +305,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
             netSyOut = netSyFromBurn + _pyIndex(market).assetToSy(netPtFromBurn);
             netSyFee = 0;
             priceImpact = 0;
-            exchangeRateAfter = Math.ONE;
+            exchangeRateAfter = PMath.ONE;
         } else {
             (netSyFromSwap, netSyFee, ) = state.swapExactPtForSy(
                 _pyIndex(market),

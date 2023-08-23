@@ -20,7 +20,7 @@ contract ThenaPreview is
     BoringOwnableUpgradeable,
     UUPSUpgradeable
 {
-    using Math for uint256;
+    using PMath for uint256;
 
     address internal immutable factory;
 
@@ -118,7 +118,7 @@ contract ThenaPreview is
 
         uint256 supply = IThenaPair(data.pair).totalSupply();
         return
-            Math.min(
+            PMath.min(
                 (amount0ToAddLiq * supply) / data.reserve0,
                 (amount1ToAddLiq * supply) / data.reserve1
             );
