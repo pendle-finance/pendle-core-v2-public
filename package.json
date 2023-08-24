@@ -25,12 +25,12 @@
   "devDependencies": {
     "@typechain/ethers-v5": "^9.0.0",
     "@typechain/hardhat": "^4.0.0",
-    "hardhat": "^2.17.0",
+    "hardhat": "^2.17.1",
     "hardhat-contract-sizer": "^2.10.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.2",
     "prettier-plugin-solidity": "^1.1.3",
     "solc": "^0.8.21",
-    "solhint": "^3.4.1",
+    "solhint": "^3.6.2",
     "ts-node": "^10.9.1",
     "typechain": "^8.3.1",
     "typescript": "^5.1.6"
