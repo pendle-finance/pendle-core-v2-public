@@ -8,11 +8,13 @@ import "./libraries/TickMath.sol";
 import "./libraries/SwapMath.sol";
 import "./libraries/LiqDeltaMath.sol";
 import { MathConstants as C } from "./libraries/MathConstants.sol";
+import "../../../libraries/math/Math.sol";
 
-contract KyberMathHelper {
+abstract contract KyberMathHelper {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SafeCast for int128;
+    using Math for int24;
 
     address public immutable factory;
     address public immutable kyberPool;
@@ -63,9 +65,11 @@ contract KyberMathHelper {
         swapData.isExactInput = swapData.specifiedAmount > 0;
 
         bool willUpTick = (swapData.isExactInput != isToken0);
+        uint128 cachedReinvestLLast;
         (
             swapData.baseL,
             swapData.reinvestL,
+            cachedReinvestLLast,
             swapData.sqrtP,
             swapData.currentTick,
             swapData.nextTick
@@ -113,13 +117,14 @@ contract KyberMathHelper {
                 break;
             }
             swapData.currentTick = willUpTick ? tempNextTick : tempNextTick - 1;
+
             // if tempNextTick is not next initialized tick
             if (tempNextTick != swapData.nextTick) continue;
 
             if (cache.rTotalSupply == 0) {
                 // load variables that are only initialized when crossing a tick
                 cache.rTotalSupply = IKyberElasticPool(kyberPool).totalSupply();
-                (, , cache.reinvestLLast) = IKyberElasticPool(kyberPool).getLiquidityState();
+                cache.reinvestLLast = cachedReinvestLLast;
                 cache.feeGrowthGlobal = IKyberElasticPool(kyberPool).getFeeGrowthGlobal();
 
                 // not sure if this is necessary for the amount out & current tick computation
@@ -203,12 +208,13 @@ contract KyberMathHelper {
         returns (
             uint128 baseL,
             uint128 reinvestL,
+            uint128 reinvestLLast,
             uint160 sqrtP,
             int24 currentTick,
             int24 nextTick
         )
     {
-        (baseL, reinvestL, ) = IKyberElasticPool(kyberPool).getLiquidityState();
+        (baseL, reinvestL, reinvestLLast) = IKyberElasticPool(kyberPool).getLiquidityState();
         (sqrtP, currentTick, nextTick, ) = IKyberElasticPool(kyberPool).getPoolState();
         if (willUpTick) {
             (, nextTick) = IKyberElasticPool(kyberPool).initializedTicks(nextTick);
