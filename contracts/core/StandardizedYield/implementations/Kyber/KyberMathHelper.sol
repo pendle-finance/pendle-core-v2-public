@@ -23,24 +23,38 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
     using Math for int256;
     using Math for uint256;
 
-    uint256 public constant DEFAULT_NUMBER_OF_ITERS = 20;
+    uint256 public constant DEFAULT_NUMBER_OF_ITERS = 30;
 
     address public immutable factory;
 
-    uint256 numBinarySearchIter = DEFAULT_NUMBER_OF_ITERS;
+    uint256 numBinarySearchIter;
 
     constructor(address _factory) {
-        factory = IKyberElasticPool(_factory).factory();
+        factory = _factory;
     }
 
     function _authorizeUpgrade(address) internal virtual override onlyOwner {}
 
     function initialize() external initializer {
         __BoringOwnable_init();
+        numBinarySearchIter = DEFAULT_NUMBER_OF_ITERS;
     }
 
     function setNumBinarySearchIter(uint256 newNumBinarySearchIter) external onlyOwner {
         numBinarySearchIter = newNumBinarySearchIter;
+    }
+
+    struct BinarySearchParams {
+        uint256 low;
+        uint256 high;
+        uint160 lowerSqrtP;
+        uint160 upperSqrtP;
+        uint256 guess;
+        uint256 amountOut;
+        int24 newTick;
+        uint160 currentSqrtP;
+        uint128 liq0;
+        uint128 liq1;
     }
 
     function getSingleSidedSwapAmount(
@@ -49,76 +63,78 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         bool isToken0,
         int24 tickLower,
         int24 tickUpper
-    ) internal view returns (uint256 amountToSwap) {
-        uint256 low = 0;
-        uint256 high = startAmount;
-        uint160 lowerSqrtP = TickMath.getSqrtRatioAtTick(tickLower);
-        uint160 upperSqrtP = TickMath.getSqrtRatioAtTick(tickUpper);
+    ) public view returns (uint256 amountToSwap) {
+        BinarySearchParams memory params;
 
-        for (uint256 iter = 0; iter < numBinarySearchIter && low != high; ++iter) {
-            uint256 guess;
+        params.low = 0;
+        params.high = startAmount;
+        params.lowerSqrtP = TickMath.getSqrtRatioAtTick(tickLower);
+        params.upperSqrtP = TickMath.getSqrtRatioAtTick(tickUpper);
 
+        for (uint256 iter = 0; iter < numBinarySearchIter && params.low != params.high; ++iter) {
             // First 2 iterations are reserved for 2 bounds (0) and (startAmount)
             // If either of the bounds satisfies, the loop should ends itself with low != high condition
             if (iter == 0) {
-                guess = 0;
+                params.guess = 0;
             } else if (iter == 1) {
-                guess = startAmount;
+                params.guess = startAmount;
             } else {
-                guess = (low + high) / 2;
+                params.guess = (params.low + params.high) / 2;
             }
 
-            (uint256 amountOut, int24 newTick) = _simulateSwapExactIn(kyberPool, guess, isToken0);
+            (params.amountOut, params.newTick, params.currentSqrtP) = _simulateSwapExactIn(
+                kyberPool,
+                params.guess,
+                isToken0
+            );
 
             if (isToken0) {
-                if (newTick < tickLower) {
-                    high = guess;
-                } else if (newTick >= tickUpper) {
-                    low = guess;
+                if (params.newTick < tickLower) {
+                    params.high = params.guess;
+                } else if (params.newTick >= tickUpper) {
+                    params.low = params.guess;
                 } else {
-                    uint160 currentSqrtP = TickMath.getSqrtRatioAtTick(newTick);
                     uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
-                        currentSqrtP,
-                        upperSqrtP,
-                        startAmount - guess
+                        params.currentSqrtP,
+                        params.upperSqrtP,
+                        startAmount - params.guess
                     );
                     uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
-                        lowerSqrtP,
-                        currentSqrtP,
-                        amountOut
+                        params.lowerSqrtP,
+                        params.currentSqrtP,
+                        params.amountOut
                     );
                     if (liq0 < liq1) {
-                        high = guess;
+                        params.high = params.guess;
                     } else {
-                        low = guess;
+                        params.low = params.guess;
                     }
                 }
             } else {
-                if (newTick < tickLower) {
-                    low = guess;
-                } else if (newTick >= tickUpper) {
-                    high = guess;
+                if (params.newTick < tickLower) {
+                    params.low = params.guess;
+                } else if (params.newTick >= tickUpper) {
+                    params.high = params.guess;
                 } else {
-                    uint160 currentSqrtP = TickMath.getSqrtRatioAtTick(newTick);
                     uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
-                        currentSqrtP,
-                        upperSqrtP,
-                        amountOut
+                        params.currentSqrtP,
+                        params.upperSqrtP,
+                        params.amountOut
                     );
                     uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
-                        lowerSqrtP,
-                        currentSqrtP,
-                        startAmount - guess
+                        params.lowerSqrtP,
+                        params.currentSqrtP,
+                        startAmount - params.guess
                     );
                     if (liq1 < liq0) {
-                        high = guess;
+                        params.high = params.guess;
                     } else {
-                        low = guess;
+                        params.low = params.guess;
                     }
                 }
             }
         }
-        amountToSwap = low;
+        amountToSwap = params.high;
     }
 
     // temporary swap variables, some of which will be used to update the pool state
@@ -155,14 +171,13 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         address kyberPool,
         uint256 swapQty,
         bool isToken0
-    ) internal view returns (uint256 amountOut, int24 newTick) {
+    ) internal view returns (uint256 amountOut, int24 newTick, uint160 newSqrtP) {
         SwapData memory swapData;
         swapData.specifiedAmount = swapQty.Int();
         swapData.isToken0 = isToken0;
         swapData.isExactInput = swapData.specifiedAmount > 0;
 
         bool willUpTick = (swapData.isExactInput != isToken0);
-        uint128 cachedReinvestLLast;
         (
             swapData.baseL,
             swapData.reinvestL,
@@ -222,7 +237,7 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
             if (cache.rTotalSupply == 0) {
                 // load variables that are only initialized when crossing a tick
                 cache.rTotalSupply = IKyberElasticPool(kyberPool).totalSupply();
-                cache.reinvestLLast = cachedReinvestLLast;
+                cache.reinvestLLast = swapData.reinvestLLast.toUint128();
                 cache.feeGrowthGlobal = IKyberElasticPool(kyberPool).getFeeGrowthGlobal();
 
                 // not sure if this is necessary for the amount out & current tick computation
@@ -274,6 +289,7 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
 
         amountOut = swapData.returnedAmount.abs();
         newTick = swapData.currentTick;
+        newSqrtP = swapData.sqrtP;
     }
 
     function _updateLiquidityAndCrossTick(
