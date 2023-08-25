@@ -4,6 +4,11 @@ pragma solidity >=0.8.0;
 import {MathConstants as C} from './MathConstants.sol';
 import {FullMath} from './FullMath.sol';
 
+
+/**
+ *      ---------      [DIRECT COPIED FROM KYBERSWAP]      ---------
+ */
+
 /// @title Contains helper function to calculate the number of reinvestment tokens to be minted
 library ReinvestmentMath {
   /// @dev calculate the mint amount with given reinvestL, reinvestLLast, baseL and rTotalSupply

@@ -7,23 +7,107 @@ import "./libraries/ReinvestmentMath.sol";
 import "./libraries/TickMath.sol";
 import "./libraries/SwapMath.sol";
 import "./libraries/LiqDeltaMath.sol";
+import "./libraries/LiquidityMath.sol";
+import "./libraries/QtyDeltaMath.sol";
 import { MathConstants as C } from "./libraries/MathConstants.sol";
 import "../../../libraries/math/Math.sol";
 
-abstract contract KyberMathHelper {
+import "../../../libraries/BoringOwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
+contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
     using SafeCast for uint256;
     using SafeCast for int256;
     using SafeCast for int128;
     using Math for int24;
+    using Math for int256;
+    using Math for uint256;
+
+    uint256 public constant DEFAULT_NUMBER_OF_ITERS = 20;
 
     address public immutable factory;
-    address public immutable kyberPool;
-    uint24 public immutable swapFeeUnits;
 
-    constructor(address _kyberPool) {
-        kyberPool = _kyberPool;
-        factory = IKyberElasticPool(_kyberPool).factory();
-        swapFeeUnits = IKyberElasticPool(_kyberPool).swapFeeUnits();
+    uint256 numBinarySearchIter = DEFAULT_NUMBER_OF_ITERS;
+
+    constructor(address _factory) {
+        factory = IKyberElasticPool(_factory).factory();
+    }
+
+    function _authorizeUpgrade(address) internal virtual override onlyOwner {}
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
+
+    function setNumBinarySearchIter(uint256 newNumBinarySearchIter) external onlyOwner {
+        numBinarySearchIter = newNumBinarySearchIter;
+    }
+
+    function getSingleSidedSwapAmount(
+        address kyberPool,
+        uint256 startAmount,
+        bool isToken0,
+        int24 tickLower,
+        int24 tickUpper
+    ) internal view returns (uint256 amountToSwap) {
+        uint256 low = 1;
+        uint256 high = startAmount;
+        uint160 lowerSqrtP = TickMath.getSqrtRatioAtTick(tickLower);
+        uint160 upperSqrtP = TickMath.getSqrtRatioAtTick(tickUpper);
+
+        for (uint256 iter = 0; iter < numBinarySearchIter; ++iter) {
+            uint256 guess = low + (high - low) / 2;
+            (uint256 amountOut, int24 newTick) = _simulateSwapExactIn(kyberPool, guess, isToken0);
+
+            if (isToken0) {
+                if (newTick < tickLower) {
+                    high = guess;
+                } else if (newTick >= tickUpper) {
+                    low = guess;
+                } else {
+                    uint160 currentSqrtP = TickMath.getSqrtRatioAtTick(newTick);
+                    uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
+                        currentSqrtP,
+                        upperSqrtP,
+                        startAmount - guess
+                    );
+                    uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
+                        lowerSqrtP,
+                        currentSqrtP,
+                        amountOut
+                    );
+                    if (liq0 < liq1) {
+                        high = guess;
+                    } else {
+                        low = guess;
+                    }
+                }
+            } else {
+                if (newTick < tickLower) {
+                    low = guess;
+                } else if (newTick >= tickUpper) {
+                    high = guess;
+                } else {
+                    uint160 currentSqrtP = TickMath.getSqrtRatioAtTick(newTick);
+                    uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
+                        currentSqrtP,
+                        upperSqrtP,
+                        amountOut
+                    );
+                    uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
+                        lowerSqrtP,
+                        currentSqrtP,
+                        startAmount - guess
+                    );
+                    if (liq1 < liq0) {
+                        high = guess;
+                    } else {
+                        low = guess;
+                    }
+                }
+            }
+        }
+        amountToSwap = low;
     }
 
     // temporary swap variables, some of which will be used to update the pool state
@@ -39,6 +123,9 @@ abstract contract KyberMathHelper {
         uint128 baseL; // the cached base pool liquidity without reinvestment liquidity
         uint128 reinvestL; // the cached reinvestment liquidity
         uint160 startSqrtP; // the start sqrt price before each iteration
+        /// PENDLE additional data
+        uint256 feeUnit;
+        uint256 reinvestLLast;
     }
 
     // variables below are loaded only when crossing a tick
@@ -53,14 +140,15 @@ abstract contract KyberMathHelper {
         uint256 lpFee; // qty of reinvestment token for liquidity provider
     }
 
-    function _simulateSwap(
-        int256 swapQty,
+    function _simulateSwapExactIn(
+        address kyberPool,
+        uint256 swapQty,
         bool isToken0
-    ) internal view returns (int deltaQty0, int deltaQty1, int24 newTick) {
+    ) internal view returns (uint256 amountOut, int24 newTick) {
         require(swapQty != 0, "0 swapQty");
 
         SwapData memory swapData;
-        swapData.specifiedAmount = swapQty;
+        swapData.specifiedAmount = swapQty.Int();
         swapData.isToken0 = isToken0;
         swapData.isExactInput = swapData.specifiedAmount > 0;
 
@@ -69,11 +157,12 @@ abstract contract KyberMathHelper {
         (
             swapData.baseL,
             swapData.reinvestL,
-            cachedReinvestLLast,
+            swapData.reinvestLLast,
             swapData.sqrtP,
             swapData.currentTick,
-            swapData.nextTick
-        ) = _getInitialSwapData(willUpTick);
+            swapData.nextTick,
+            swapData.feeUnit
+        ) = _getInitialSwapData(kyberPool, willUpTick);
 
         SwapCache memory cache;
         while (swapData.specifiedAmount != 0) {
@@ -97,7 +186,7 @@ abstract contract KyberMathHelper {
                     swapData.baseL + swapData.reinvestL,
                     swapData.sqrtP,
                     targetSqrtP,
-                    swapFeeUnits,
+                    swapData.feeUnit,
                     swapData.specifiedAmount,
                     swapData.isExactInput,
                     swapData.isToken0
@@ -165,6 +254,7 @@ abstract contract KyberMathHelper {
             cache.reinvestLLast = swapData.reinvestL;
 
             (swapData.baseL, swapData.nextTick) = _updateLiquidityAndCrossTick(
+                kyberPool,
                 swapData.nextTick,
                 swapData.baseL,
                 cache.feeGrowthGlobal,
@@ -173,13 +263,12 @@ abstract contract KyberMathHelper {
             );
         }
 
-        (deltaQty0, deltaQty1) = isToken0
-            ? (swapQty - swapData.specifiedAmount, swapData.returnedAmount)
-            : (swapData.returnedAmount, swapQty - swapData.specifiedAmount);
+        amountOut = swapData.returnedAmount.abs();
         newTick = swapData.currentTick;
     }
 
     function _updateLiquidityAndCrossTick(
+        address kyberPool,
         int24 nextTick,
         uint128 currentLiquidity,
         uint256,
@@ -201,6 +290,7 @@ abstract contract KyberMathHelper {
     }
 
     function _getInitialSwapData(
+        address kyberPool,
         bool willUpTick
     )
         internal
@@ -211,7 +301,8 @@ abstract contract KyberMathHelper {
             uint128 reinvestLLast,
             uint160 sqrtP,
             int24 currentTick,
-            int24 nextTick
+            int24 nextTick,
+            uint256 feeUnit
         )
     {
         (baseL, reinvestL, reinvestLLast) = IKyberElasticPool(kyberPool).getLiquidityState();
@@ -219,5 +310,6 @@ abstract contract KyberMathHelper {
         if (willUpTick) {
             (, nextTick) = IKyberElasticPool(kyberPool).initializedTicks(nextTick);
         }
+        feeUnit = IKyberElasticPool(kyberPool).swapFeeUnits();
     }
 }
