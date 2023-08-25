@@ -50,13 +50,24 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         int24 tickLower,
         int24 tickUpper
     ) internal view returns (uint256 amountToSwap) {
-        uint256 low = 1;
+        uint256 low = 0;
         uint256 high = startAmount;
         uint160 lowerSqrtP = TickMath.getSqrtRatioAtTick(tickLower);
         uint160 upperSqrtP = TickMath.getSqrtRatioAtTick(tickUpper);
 
-        for (uint256 iter = 0; iter < numBinarySearchIter; ++iter) {
-            uint256 guess = low + (high - low) / 2;
+        for (uint256 iter = 0; iter < numBinarySearchIter && low != high; ++iter) {
+            uint256 guess;
+
+            // First 2 iterations are reserved for 2 bounds (0) and (startAmount)
+            // If either of the bounds satisfies, the loop should ends itself with low != high condition
+            if (iter == 0) {
+                guess = 0;
+            } else if (iter == 1) {
+                guess = startAmount;
+            } else {
+                guess = (low + high) / 2;
+            }
+
             (uint256 amountOut, int24 newTick) = _simulateSwapExactIn(kyberPool, guess, isToken0);
 
             if (isToken0) {
@@ -145,8 +156,6 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         uint256 swapQty,
         bool isToken0
     ) internal view returns (uint256 amountOut, int24 newTick) {
-        require(swapQty != 0, "0 swapQty");
-
         SwapData memory swapData;
         swapData.specifiedAmount = swapQty.Int();
         swapData.isToken0 = isToken0;
