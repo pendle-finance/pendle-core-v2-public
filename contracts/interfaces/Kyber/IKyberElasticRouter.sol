@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
-pragma abicoder v2;
 
 /// @notice Functions for swapping tokens via KyberSwap v2
 /// - Support swap with exact input or exact output

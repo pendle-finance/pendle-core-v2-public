@@ -150,7 +150,7 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         uint128 baseL; // the cached base pool liquidity without reinvestment liquidity
         uint128 reinvestL; // the cached reinvestment liquidity
         uint160 startSqrtP; // the start sqrt price before each iteration
-        /// PENDLE additional data
+        /// ---------------- PENDLE additional data --------------------------
         uint256 feeUnit;
         uint256 reinvestLLast;
     }

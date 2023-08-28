@@ -94,4 +94,9 @@ library ArrayLib {
         }
         return false;
     }
+
+    function create(uint256 ele0) internal pure returns (uint256[] memory out) {
+        out = new uint256[](1);
+        out[0] = ele0;
+    }
 }
