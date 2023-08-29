@@ -57,6 +57,63 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         uint128 liq1;
     }
 
+    function previewDeposit(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        bool isToken0,
+        uint256 amountIn
+    ) external view returns (uint256) {
+        uint256 amountToSwap = getSingleSidedSwapAmount(
+            kyberPool,
+            amountIn,
+            isToken0,
+            tickLower,
+            tickUpper
+        );
+        (uint256 amountOut, , uint160 newSqrtP) = _simulateSwapExactIn(
+            kyberPool,
+            amountToSwap,
+            isToken0
+        );
+        return
+            LiquidityMath.getLiquidityFromQties(
+                newSqrtP,
+                TickMath.getSqrtRatioAtTick(tickLower),
+                TickMath.getSqrtRatioAtTick(tickUpper),
+                amountIn - amountToSwap,
+                amountOut
+            );
+    }
+
+    /**
+     * @dev preview redeem function is intentionally left incorrect
+     * as it uses the old state of the pool to calculate the final swap
+     * instead of the state of the pool after removing liquidity
+     */
+    function previewRedeem(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        bool isToken0,
+        uint256 amountShares
+    ) external view returns (uint256) {
+        (uint256 amount0, uint256 amount1) = _simulateBurn(
+            kyberPool,
+            tickLower,
+            tickUpper,
+            amountShares
+        );
+
+        (uint256 amountOut, , ) = _simulateSwapExactIn(
+            kyberPool,
+            isToken0 ? amount1 : amount0,
+            isToken0
+        );
+
+        return (isToken0 ? amount0 : amount1) + amountOut;
+    }
+
     function getSingleSidedSwapAmount(
         address kyberPool,
         uint256 startAmount,
@@ -290,6 +347,52 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         amountOut = swapData.returnedAmount.abs();
         newTick = swapData.currentTick;
         newSqrtP = swapData.sqrtP;
+    }
+
+    function _simulateBurn(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 liquidity
+    ) internal view returns (uint256 amount0, uint256 amount1) {
+        (uint160 sqrtP, int24 currentTick, , ) = IKyberElasticPool(kyberPool).getPoolState();
+
+        if (currentTick < tickLower) {
+            amount0 = QtyDeltaMath
+                .calcRequiredQty0(
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
+        } else if (currentTick >= tickUpper) {
+            amount1 = QtyDeltaMath
+                .calcRequiredQty1(
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
+        } else {
+            amount0 = QtyDeltaMath
+                .calcRequiredQty0(
+                    sqrtP,
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
+            amount1 = QtyDeltaMath
+                .calcRequiredQty1(
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    sqrtP,
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
+        }
     }
 
     function _updateLiquidityAndCrossTick(
