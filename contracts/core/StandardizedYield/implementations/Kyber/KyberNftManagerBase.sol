@@ -187,7 +187,6 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
     function _claimKyberRewards() internal {
         uint256 tokenId = positionTokenId;
-        IKyberLiquidityMining(liquidityMining).claimReward(farmId, ArrayLib.create(tokenId));
 
         // NOTE: Kyber LM reverts if there's no rTOKEN to be burned
         // Kyber also doesnt allow calling syncFee() for unauthorized address so there is no good way to check if there's any rTOKEN to be burned
@@ -196,7 +195,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
         // Should verify this assumption that positions.rTokenOwed is always 0 before _claimKyberRewards is called
         // If not, there's a workaround to just fetch the whole IKyberPositionManager.positions() and use the according rTokenOwed
-        _withdrawNftFromFarm();
+        _withdrawNftFromFarm(); // withdraw nft should also claim reward
         uint256 additionalRTokenOwed = IKyberPositionManager(positionManager).syncFeeGrowth(
             tokenId
         );
