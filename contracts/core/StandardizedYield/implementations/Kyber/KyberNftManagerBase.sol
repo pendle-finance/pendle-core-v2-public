@@ -78,7 +78,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
         _safeApproveInf(token0, positionManager);
         _safeApproveInf(token1, positionManager);
-        _safeApproveInf(token1, router);
+        _safeApproveInf(token0, router);
         _safeApproveInf(token1, router);
     }
 
