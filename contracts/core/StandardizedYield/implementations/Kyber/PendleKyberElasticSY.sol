@@ -52,7 +52,8 @@ contract PendleKyberElasticSY is KyberNftManagerBase, SYBaseWithRewards {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
-        return _zapOut(tokenOut, amountSharesToRedeem, receiver);
+        amountTokenOut = _zapOut(tokenOut, amountSharesToRedeem);
+        _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -91,26 +92,28 @@ contract PendleKyberElasticSY is KyberNftManagerBase, SYBaseWithRewards {
         address tokenIn,
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 amountSharesOut) {
-        return IKyberMathHelper(kyberMathHelper).previewDeposit(
-            pool,
-            tickLower,
-            tickUpper,
-            tokenIn == token0,
-            amountTokenToDeposit
-        );
+        return
+            IKyberMathHelper(kyberMathHelper).previewDeposit(
+                pool,
+                tickLower,
+                tickUpper,
+                tokenIn == token0,
+                amountTokenToDeposit
+            );
     }
 
     function _previewRedeem(
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal view override returns (uint256 amountTokenOut) {
-        return IKyberMathHelper(kyberMathHelper).previewRedeem(
-            pool,
-            tickLower,
-            tickUpper,
-            tokenOut == token0,
-            amountSharesToRedeem
-        );
+        return
+            IKyberMathHelper(kyberMathHelper).previewRedeem(
+                pool,
+                tickLower,
+                tickUpper,
+                tokenOut == token0,
+                amountSharesToRedeem
+            );
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

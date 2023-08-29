@@ -72,6 +72,15 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
         kyberMathHelper = params.kyberMathHelper;
 
+        _validateFarmInfo(
+            params.pool,
+            params.tickLower,
+            params.tickUpper,
+            params.liquidityMining,
+            params.farmId,
+            params.rangeId
+        );
+
         token0 = IKyberElasticPool(pool).token0();
         token1 = IKyberElasticPool(pool).token1();
         fee = IKyberElasticPool(pool).swapFeeUnits();
@@ -101,13 +110,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             require(liquidity > MINIMUM_LIQUIDITY, "minimum liquidity not met");
             sharesMinted = liquidity - MINIMUM_LIQUIDITY;
 
-            // only need to call this once
-            IKyberLiquidityMining(liquidityMining).deposit(
-                farmId,
-                rangeId,
-                ArrayLib.create(tokenId),
-                address(this)
-            );
+            _depositNftToFarm();
         } else {
             // Tho most of the case sharesMinted = liquidity
             // should re-calc it to prevent any precision issue
@@ -156,7 +159,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         );
 
         address tokenOut = tokenIn == token0 ? token1 : token0;
-        uint256 amountOut = _swap(tokenIn, tokenOut, amountToSwap, address(this));
+        uint256 amountOut = _swap(tokenIn, tokenOut, amountToSwap);
 
         (uint256 amount0, uint256 amount1) = tokenIn == token0
             ? (amountTokenIn - amountToSwap, amountOut)
@@ -167,15 +170,13 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
     function _zapOut(
         address tokenOut,
-        uint256 amountSharesToRedeem,
-        address receipent
+        uint256 amountSharesToRedeem
     ) internal returns (uint256 amountTokenOut) {
         (uint256 amount0, uint256 amount1) = _removeLiquidity(amountSharesToRedeem.Uint128());
-
         bool isToken0 = tokenOut == token0;
         address tokenIn = isToken0 ? token1 : token0;
         uint256 amountIn = isToken0 ? amount1 : amount0;
-        uint256 amountOut = _swap(tokenIn, tokenOut, amountIn, receipent);
+        uint256 amountOut = _swap(tokenIn, tokenOut, amountIn);
 
         return amountOut + (isToken0 ? amount0 : amount1);
     }
@@ -185,19 +186,47 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
     //////////////////////////////////////////////////////////////*/
 
     function _claimKyberRewards() internal {
-        IKyberLiquidityMining(liquidityMining).claimReward(
-            farmId,
-            ArrayLib.create(positionTokenId)
+        uint256 tokenId = positionTokenId;
+        IKyberLiquidityMining(liquidityMining).claimReward(farmId, ArrayLib.create(tokenId));
+
+        // NOTE: Kyber LM reverts if there's no rTOKEN to be burned
+        // Kyber also doesnt allow calling syncFee() for unauthorized address so there is no good way to check if there's any rTOKEN to be burned
+        // Thus IKyberLiquidityMining.claimFee() should only be called after this painful process of [withdraw nft -> syncFee -> deposit -> claimFee]
+        // smh very gas-inefficient
+
+        // Should verify this assumption that positions.rTokenOwed is always 0 before _claimKyberRewards is called
+        // If not, there's a workaround to just fetch the whole IKyberPositionManager.positions() and use the according rTokenOwed
+        _withdrawNftFromFarm();
+        uint256 additionalRTokenOwed = IKyberPositionManager(positionManager).syncFeeGrowth(
+            tokenId
         );
-        IKyberLiquidityMining(liquidityMining).claimFee(
+        _depositNftToFarm();
+
+        if (additionalRTokenOwed > 0) {
+            IKyberLiquidityMining(liquidityMining).claimFee(
+                farmId,
+                ArrayLib.create(tokenId),
+                0,
+                0,
+                type(uint256).max,
+                false
+            );
+        }
+    }
+
+    function _depositNftToFarm() internal {
+        uint256 tokenId = positionTokenId;
+        IERC721(positionManager).approve(liquidityMining, tokenId);
+        IKyberLiquidityMining(liquidityMining).deposit(
             farmId,
-            ArrayLib.create(positionTokenId),
-            0,
-            0,
-            type(uint256).max,
-            false
+            rangeId,
+            ArrayLib.create(tokenId),
+            address(this)
         );
-        _collectPositionManagerFloatingTokens();
+    }
+
+    function _withdrawNftFromFarm() internal {
+        IKyberLiquidityMining(liquidityMining).withdraw(farmId, ArrayLib.create(positionTokenId));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -233,8 +262,8 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         uint256 tokenId = positionTokenId;
         assert(tokenId != DEFAULT_POSITION_TOKEN_ID);
 
-        // Kyber uses amount0Min and amount1Min as the final outcome to transfer out
-        // A workaround here is to set the amountMins to 0 and collect the tokens from positionManager later
+        uint256 prevBalance0 = _selfBalance(token0);
+        uint256 prevBalance1 = _selfBalance(token1);
         IKyberLiquidityMining(liquidityMining).removeLiquidity(
             tokenId,
             liquidity,
@@ -244,8 +273,8 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             false,
             false
         );
-
-        (amount0, amount1) = _collectPositionManagerFloatingTokens();
+        amount0 = _selfBalance(token0) - prevBalance0;
+        amount1 = _selfBalance(token1) - prevBalance1;
     }
 
     function _mintKyberNft(
@@ -271,36 +300,21 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         );
     }
 
-    function _swap(
-        address tokenIn,
-        address tokenOut,
-        uint256 amountIn,
-        address receipent
-    ) private returns (uint256) {
+    function _swap(address tokenIn, address tokenOut, uint256 amountIn) private returns (uint256) {
+        if (amountIn == 0) return 0;
         return
             IKyberElasticRouter(router).swapExactInputSingle(
                 IKyberElasticRouter.ExactInputSingleParams({
                     tokenIn: tokenIn,
                     tokenOut: tokenOut,
                     fee: fee,
-                    recipient: receipent,
+                    recipient: address(this),
                     deadline: type(uint256).max,
                     amountIn: amountIn,
                     minAmountOut: 0,
                     limitSqrtP: 0 // Kyber router shall assign the appropriate inf price limit if set to 0
                 })
             );
-    }
-
-    function _collectPositionManagerFloatingTokens()
-        private
-        returns (uint256 amount0, uint256 amount1)
-    {
-        amount0 = IERC20(token0).balanceOf(positionManager);
-        amount1 = IERC20(token1).balanceOf(positionManager);
-
-        IKyberPositionManager(positionManager).transferAllTokens(token0, amount0, address(this));
-        IKyberPositionManager(positionManager).transferAllTokens(token1, amount1, address(this));
     }
 
     function _validateTokenIdAndGetLiquidity(
@@ -326,7 +340,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
     }
 
     /*///////////////////////////////////////////////////////////////
-                        ERC-721 RECEIVER IMPLEMENTATION
+                            MISC FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function onERC721Received(
@@ -336,5 +350,31 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         bytes calldata
     ) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function _validateFarmInfo(
+        address _pool,
+        int24 _tickLower,
+        int24 _tickUpper,
+        address _liquidityMining,
+        uint256 _farmId,
+        uint256 _rangeId
+    ) private view {
+        (
+            address farmPool,
+            IKyberLiquidityMining.RangeInfo[] memory farmRanges,
+            ,
+            ,
+            ,
+            ,
+
+        ) = IKyberLiquidityMining(_liquidityMining).getFarm(_farmId);
+
+        require(
+            _pool == farmPool &&
+                _tickLower == farmRanges[_rangeId].tickLower &&
+                _tickUpper == farmRanges[_rangeId].tickUpper,
+            "invalid pool info"
+        );
     }
 }
