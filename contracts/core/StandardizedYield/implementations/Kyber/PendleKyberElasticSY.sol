@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./KyberNftManagerBase.sol";
 import "../../SYBaseWithRewards.sol";
 
+
+
 contract PendleKyberElasticSY is KyberNftManagerBase, SYBaseWithRewards {
     using ArrayLib for address[];
 
@@ -85,7 +87,7 @@ contract PendleKyberElasticSY is KyberNftManagerBase, SYBaseWithRewards {
     }
 
     /*///////////////////////////////////////////////////////////////
-                MISC FUNCTIONS FOR METADATA
+                        MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
     function _previewDeposit(
@@ -142,5 +144,15 @@ contract PendleKyberElasticSY is KyberNftManagerBase, SYBaseWithRewards {
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, pool, 18);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        EMERGENCY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function toggleEmergencyStatus() external {
+        // This function only acts as a POC. Any other call to this SY should also execute the withdraw emergency
+        require(IKyberLiquidityMining(liquidityMining).emergencyEnabled(), "not emergency");
+        _withdrawNftFromFarm(KyberLiquidityMiningStatus.EMERGENCY);
     }
 }

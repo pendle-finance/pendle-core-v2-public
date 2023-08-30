@@ -14,9 +14,15 @@ import "../../../libraries/ArrayLib.sol";
 import "../../../libraries/math/Math.sol";
 
 abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
-    error InvalidNft(uint256 tokenId);
-
     using Math for uint256;
+
+    enum KyberLiquidityMiningStatus {
+        ACTIVE,
+        INACTIVE, // phase settled or range removed
+        EMERGENCY
+    }
+
+    error InvalidNft(uint256 tokenId);
 
     uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
     uint256 public constant DEFAULT_POSITION_TOKEN_ID = type(uint256).max;
@@ -110,6 +116,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             require(liquidity > MINIMUM_LIQUIDITY, "minimum liquidity not met");
             sharesMinted = liquidity - MINIMUM_LIQUIDITY;
 
+            // It's okay to revert due to Kyber emergency or inactive farm in this initialization step
             _depositNftToFarm();
         } else {
             // Tho most of the case sharesMinted = liquidity
@@ -195,21 +202,32 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
 
         // Should verify this assumption that positions.rTokenOwed is always 0 before _claimKyberRewards is called
         // If not, there's a workaround to just fetch the whole IKyberPositionManager.positions() and use the according rTokenOwed
-        _withdrawNftFromFarm(); // withdraw nft should also claim reward
+
+        KyberLiquidityMiningStatus status = _getKyberLiquidityMiningStatus();
+        bool nftInLm = _isNftInLiquidityMining();
+
+        if (nftInLm) {
+            _withdrawNftFromFarm(status); // withdraw nft (without emergency) should also claim reward
+        }
+
         uint256 additionalRTokenOwed = IKyberPositionManager(positionManager).syncFeeGrowth(
             tokenId
         );
-        _depositNftToFarm();
 
         if (additionalRTokenOwed > 0) {
-            IKyberLiquidityMining(liquidityMining).claimFee(
-                farmId,
-                ArrayLib.create(tokenId),
-                0,
-                0,
-                type(uint256).max,
-                false
+            IKyberPositionManager(positionManager).burnRTokens(
+                IKyberPositionManager.BurnRTokenParams({
+                    tokenId: tokenId,
+                    amount0Min: 0,
+                    amount1Min: 0,
+                    deadline: type(uint256).max
+                })
             );
+            _collectPositionManagerFloatingTokens();
+        }
+
+        if (status == KyberLiquidityMiningStatus.ACTIVE) {
+            _depositNftToFarm();
         }
     }
 
@@ -224,8 +242,17 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         );
     }
 
-    function _withdrawNftFromFarm() internal {
-        IKyberLiquidityMining(liquidityMining).withdraw(farmId, ArrayLib.create(positionTokenId));
+    function _withdrawNftFromFarm(KyberLiquidityMiningStatus status) internal {
+        if (status == KyberLiquidityMiningStatus.EMERGENCY) {
+            IKyberLiquidityMining(liquidityMining).withdrawEmergency(
+                ArrayLib.create(positionTokenId)
+            );
+        } else {
+            IKyberLiquidityMining(liquidityMining).withdraw(
+                farmId,
+                ArrayLib.create(positionTokenId)
+            );
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -248,11 +275,13 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             })
         );
 
-        IKyberLiquidityMining(liquidityMining).addLiquidity(
-            farmId,
-            rangeId,
-            ArrayLib.create(tokenId)
-        );
+        if (_isAddLiquidityValid()) {
+            IKyberLiquidityMining(liquidityMining).addLiquidity(
+                farmId,
+                rangeId,
+                ArrayLib.create(tokenId)
+            );
+        }
     }
 
     function _removeLiquidity(
@@ -261,19 +290,33 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         uint256 tokenId = positionTokenId;
         assert(tokenId != DEFAULT_POSITION_TOKEN_ID);
 
-        uint256 prevBalance0 = _selfBalance(token0);
-        uint256 prevBalance1 = _selfBalance(token1);
-        IKyberLiquidityMining(liquidityMining).removeLiquidity(
-            tokenId,
-            liquidity,
-            0,
-            0,
-            type(uint256).max,
-            false,
-            false
-        );
-        amount0 = _selfBalance(token0) - prevBalance0;
-        amount1 = _selfBalance(token1) - prevBalance1;
+        if (_isNftInLiquidityMining()) {
+            uint256 prevBalance0 = _selfBalance(token0);
+            uint256 prevBalance1 = _selfBalance(token1);
+            IKyberLiquidityMining(liquidityMining).removeLiquidity(
+                tokenId,
+                liquidity,
+                0,
+                0,
+                type(uint256).max,
+                false,
+                false
+            );
+            amount0 = _selfBalance(token0) - prevBalance0;
+            amount1 = _selfBalance(token1) - prevBalance1;
+        } else {
+            // TODO: remove using position manager
+            IKyberPositionManager(positionManager).removeLiquidity(
+                IKyberPositionManager.RemoveLiquidityParams({
+                    tokenId: tokenId,
+                    liquidity: liquidity,
+                    amount0Min: 0,
+                    amount1Min: 0,
+                    deadline: type(uint256).max
+                })
+            );
+            (amount0, amount1) = _collectPositionManagerFloatingTokens();
+        }
     }
 
     function _mintKyberNft(
@@ -316,40 +359,10 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             );
     }
 
-    function _validateTokenIdAndGetLiquidity(
-        uint256 tokenId
-    ) private view returns (uint128 liquidity) {
-        (
-            IKyberPositionManager.Position memory position,
-            IKyberPositionManager.PoolInfo memory poolInfo
-        ) = IKyberPositionManager(positionManager).positions(tokenId);
-
-        if (
-            IKyberElasticFactory(factory).getPool(
-                poolInfo.token0,
-                poolInfo.token1,
-                poolInfo.fee
-            ) != pool
-        ) revert InvalidNft(tokenId);
-
-        if (position.tickLower != tickLower || position.tickUpper != tickUpper)
-            revert InvalidNft(tokenId);
-
-        return position.liquidity;
-    }
-
     /*///////////////////////////////////////////////////////////////
-                            MISC FUNCTIONS
+                            VALIDATION FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external pure returns (bytes4) {
-        return IERC721Receiver.onERC721Received.selector;
-    }
 
     function _validateFarmInfo(
         address _pool,
@@ -375,5 +388,87 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
                 _tickUpper == farmRanges[_rangeId].tickUpper,
             "invalid pool info"
         );
+    }
+
+    function _getKyberLiquidityMiningStatus() private view returns (KyberLiquidityMiningStatus) {
+        if (IKyberLiquidityMining(liquidityMining).emergencyEnabled()) {
+            return KyberLiquidityMiningStatus.EMERGENCY;
+        }
+
+        (
+            ,
+            IKyberLiquidityMining.RangeInfo[] memory ranges,
+            IKyberLiquidityMining.PhaseInfo memory phase,
+            ,
+            ,
+            ,
+
+        ) = IKyberLiquidityMining(liquidityMining).getFarm(farmId); // expensive call urg... but no other way
+
+        if (rangeId >= ranges.length || ranges[rangeId].isRemoved) {
+            return KyberLiquidityMiningStatus.INACTIVE;
+        }
+
+        if (phase.endTime < block.timestamp || phase.isSettled) {
+            return KyberLiquidityMiningStatus.INACTIVE;
+        }
+        return KyberLiquidityMiningStatus.ACTIVE;
+    }
+
+    function _isNftInLiquidityMining() private view returns (bool) {
+        return IERC721(positionManager).ownerOf(positionTokenId) == liquidityMining;
+    }
+
+    function _isAddLiquidityValid() private view returns (bool) {
+        return
+            _getKyberLiquidityMiningStatus() == KyberLiquidityMiningStatus.ACTIVE &&
+            _isNftInLiquidityMining();
+    }
+
+    function _validateTokenIdAndGetLiquidity(
+        uint256 tokenId
+    ) private view returns (uint128 liquidity) {
+        (
+            IKyberPositionManager.Position memory position,
+            IKyberPositionManager.PoolInfo memory poolInfo
+        ) = IKyberPositionManager(positionManager).positions(tokenId);
+
+        if (
+            IKyberElasticFactory(factory).getPool(
+                poolInfo.token0,
+                poolInfo.token1,
+                poolInfo.fee
+            ) != pool
+        ) revert InvalidNft(tokenId);
+
+        if (position.tickLower != tickLower || position.tickUpper != tickUpper)
+            revert InvalidNft(tokenId);
+
+        return position.liquidity;
+    }
+
+
+    /*///////////////////////////////////////////////////////////////
+                            MISC FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+    
+    function _collectPositionManagerFloatingTokens()
+        private
+        returns (uint256 amount0, uint256 amount1)
+    {
+        amount0 = IERC20(token0).balanceOf(positionManager);
+        amount1 = IERC20(token1).balanceOf(positionManager);
+
+        IKyberPositionManager(positionManager).transferAllTokens(token0, amount0, address(this));
+        IKyberPositionManager(positionManager).transferAllTokens(token1, amount1, address(this));
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }

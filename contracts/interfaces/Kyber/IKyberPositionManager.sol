@@ -122,7 +122,7 @@ interface IKyberPositionManager {
     /// @param token0 the token0 of the pool
     /// @param token1 the token1 of the pool
     /// @param fee the fee for the pool
-    /// @param currentSqrtP the initial price of the pool
+    /// @param currentSqrtP the initia'l price of the pool
     /// @return pool returns the pool address
     function createAndUnlockPoolIfNecessary(
         address token0,

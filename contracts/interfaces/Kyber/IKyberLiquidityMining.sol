@@ -189,6 +189,9 @@ interface IKyberLiquidityMining {
     /// @param nftIds nfts to withdraw
     function withdrawEmergency(uint256[] calldata nftIds) external;
 
+    function emergencyEnabled() external view returns (bool);
+
+
     // ======== view ============
 
     function getFarm(
