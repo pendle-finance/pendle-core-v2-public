@@ -18,12 +18,13 @@ contract PendleHlpSY is SYBaseWithRewards {
     address public immutable usdc;
     address public immutable compounder;
 
-    address public immutable hmxStakingPool;
     address public immutable hlpStakingPool;
-
     address public immutable hlpUsdcRewarder;
     address public immutable hlpEsHmxRewarder;
+
+    address public immutable hmxStakingPool;
     address public immutable hmxUsdcRewarder;
+    address public immutable hmxEsHmxRewarder;
 
     constructor(
         string memory _name,
@@ -31,22 +32,24 @@ contract PendleHlpSY is SYBaseWithRewards {
         address _hlp,
         address _usdc,
         address _compounder,
-        address _hmxStakingPool,
         address _hlpStakingPool,
         address _hlpUsdcRewarder,
         address _hlpEsHmxRewarder,
-        address _hmxUsdcRewarder
+        address _hmxStakingPool,
+        address _hmxUsdcRewarder,
+        address _hmxEsHmxRewarder
     ) SYBaseWithRewards(_name, _symbol, _hlp) {
         hlp = _hlp;
         usdc = _usdc;
         compounder = _compounder;
 
-        hmxStakingPool = _hmxStakingPool;
         hlpStakingPool = _hlpStakingPool;
-
         hlpUsdcRewarder = _hlpUsdcRewarder;
         hlpEsHmxRewarder = _hlpEsHmxRewarder;
+
+        hmxStakingPool = _hmxStakingPool;
         hmxUsdcRewarder = _hmxUsdcRewarder;
+        hmxEsHmxRewarder = _hmxEsHmxRewarder;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -105,8 +108,9 @@ contract PendleHlpSY is SYBaseWithRewards {
         pools[1] = hlpStakingPool;
 
         address[][] memory rewarders = new address[][](2);
-        rewarders[0] = new address[](1);
+        rewarders[0] = new address[](2);
         rewarders[0][0] = hmxUsdcRewarder;
+        rewarders[0][1] = hmxEsHmxRewarder;
 
         rewarders[1] = new address[](2);
         rewarders[1][0] = hlpUsdcRewarder;
