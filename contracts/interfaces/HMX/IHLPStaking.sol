@@ -2,7 +2,9 @@
 pragma solidity 0.8.17;
 
 interface IHLPStaking {
-    function deposit(address account, address token, uint256 amount) external;
+    function deposit(address to, uint256 amount) external;
 
-    function withdraw(address stakingToken, uint256 amount) external;
+    function withdraw(uint256 amount) external;
+
+    function getRewarders() external view returns (address[] memory);
 }

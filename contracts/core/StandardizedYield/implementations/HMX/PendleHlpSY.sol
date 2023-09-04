@@ -11,12 +11,11 @@ contract PendleHlpSY is SYBaseWithRewards {
     address public immutable compounder;
 
     address public immutable hlpStakingPool;
-    address public immutable hlpUsdcRewarder;
-    address public immutable hlpEsHmxRewarder;
 
     address public immutable hmxStakingPool;
     address public immutable hmxUsdcRewarder;
     address public immutable hmxEsHmxRewarder;
+    address public immutable hmxDpRewarder;
 
     constructor(
         string memory _name,
@@ -25,23 +24,23 @@ contract PendleHlpSY is SYBaseWithRewards {
         address _usdc,
         address _compounder,
         address _hlpStakingPool,
-        address _hlpUsdcRewarder,
-        address _hlpEsHmxRewarder,
         address _hmxStakingPool,
         address _hmxUsdcRewarder,
-        address _hmxEsHmxRewarder
+        address _hmxEsHmxRewarder,
+        address _hmxDpRewarder
     ) SYBaseWithRewards(_name, _symbol, _hlp) {
         hlp = _hlp;
         usdc = _usdc;
         compounder = _compounder;
 
         hlpStakingPool = _hlpStakingPool;
-        hlpUsdcRewarder = _hlpUsdcRewarder;
-        hlpEsHmxRewarder = _hlpEsHmxRewarder;
 
         hmxStakingPool = _hmxStakingPool;
         hmxUsdcRewarder = _hmxUsdcRewarder;
         hmxEsHmxRewarder = _hmxEsHmxRewarder;
+        hmxDpRewarder = _hmxDpRewarder;
+
+        _safeApproveInf(hlp, hlpStakingPool);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -55,7 +54,7 @@ contract PendleHlpSY is SYBaseWithRewards {
         address /*tokenIn*/,
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
-        IHLPStaking(hlpStakingPool).deposit(address(this), hlp, amountDeposited);
+        IHLPStaking(hlpStakingPool).deposit(address(this), amountDeposited);
         return amountDeposited;
     }
 
@@ -67,7 +66,7 @@ contract PendleHlpSY is SYBaseWithRewards {
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
-        IHLPStaking(hlpStakingPool).withdraw(hlp, amountSharesToRedeem);
+        IHLPStaking(hlpStakingPool).withdraw(amountSharesToRedeem);
         _transferOut(hlp, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
@@ -76,10 +75,6 @@ contract PendleHlpSY is SYBaseWithRewards {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Calculates and updates the exchange rate of shares to underlying asset token
-     * @dev 1 SY = 1 GLP
-     */
     function exchangeRate() public view virtual override returns (uint256) {
         return Math.ONE;
     }
@@ -101,14 +96,15 @@ contract PendleHlpSY is SYBaseWithRewards {
         pools[0] = hmxStakingPool;
         pools[1] = hlpStakingPool;
 
+        /* Can't use .getAllRewarders here because HMX has not configured it */
         address[][] memory rewarders = new address[][](2);
-        rewarders[0] = new address[](2);
+        rewarders[0] = new address[](3);
         rewarders[0][0] = hmxUsdcRewarder;
         rewarders[0][1] = hmxEsHmxRewarder;
+        rewarders[0][2] = hmxDpRewarder;
 
-        rewarders[1] = new address[](2);
-        rewarders[1][0] = hlpUsdcRewarder;
-        rewarders[1][1] = hlpEsHmxRewarder;
+        /* Surge HLP programme is redundent but that's okay  */
+        rewarders[1] = IHLPStaking(hlpStakingPool).getRewarders();
 
         IHMXCompounder(compounder).compound(pools, rewarders, 0, 0, new uint256[](0));
     }
