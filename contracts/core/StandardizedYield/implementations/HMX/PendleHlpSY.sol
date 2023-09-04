@@ -2,16 +2,8 @@
 pragma solidity 0.8.17;
 
 import "../../SYBaseWithRewards.sol";
-
-interface IHMXCompounder {
-    function compound(
-        address[] memory pools,
-        address[][] memory rewarders,
-        uint256 startEpochTimestamp,
-        uint256 noOfEpochs,
-        uint256[] calldata tokenIds
-    ) external;
-}
+import "../../../../interfaces/HMX/IHMXCompounder.sol";
+import "../../../../interfaces/HMX/IHLPStaking.sol";
 
 contract PendleHlpSY is SYBaseWithRewards {
     address public immutable hlp;
@@ -63,6 +55,7 @@ contract PendleHlpSY is SYBaseWithRewards {
         address /*tokenIn*/,
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
+        IHLPStaking(hlpStakingPool).deposit(address(this), hlp, amountDeposited);
         return amountDeposited;
     }
 
@@ -74,6 +67,7 @@ contract PendleHlpSY is SYBaseWithRewards {
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
+        IHLPStaking(hlpStakingPool).withdraw(hlp, amountSharesToRedeem);
         _transferOut(hlp, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
