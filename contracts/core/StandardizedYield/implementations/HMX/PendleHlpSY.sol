@@ -2,20 +2,22 @@
 pragma solidity 0.8.17;
 
 import "../../SYBaseWithRewards.sol";
+import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/HMX/IHMXCompounder.sol";
 import "../../../../interfaces/HMX/IHLPStaking.sol";
+import "../../../../interfaces/HMX/IHMXStaking.sol";
 
 contract PendleHlpSY is SYBaseWithRewards {
+    using ArrayLib for address[];
+
     address public immutable hlp;
     address public immutable usdc;
     address public immutable compounder;
 
     address public immutable hlpStakingPool;
-
     address public immutable hmxStakingPool;
-    address public immutable hmxUsdcRewarder;
-    address public immutable hmxEsHmxRewarder;
-    address public immutable hmxDpRewarder;
+
+    address[] public allRewardTokens;
 
     constructor(
         string memory _name,
@@ -24,22 +26,15 @@ contract PendleHlpSY is SYBaseWithRewards {
         address _usdc,
         address _compounder,
         address _hlpStakingPool,
-        address _hmxStakingPool,
-        address _hmxUsdcRewarder,
-        address _hmxEsHmxRewarder,
-        address _hmxDpRewarder
+        address _hmxStakingPool
     ) SYBaseWithRewards(_name, _symbol, _hlp) {
         hlp = _hlp;
         usdc = _usdc;
         compounder = _compounder;
-
         hlpStakingPool = _hlpStakingPool;
-
         hmxStakingPool = _hmxStakingPool;
-        hmxUsdcRewarder = _hmxUsdcRewarder;
-        hmxEsHmxRewarder = _hmxEsHmxRewarder;
-        hmxDpRewarder = _hmxDpRewarder;
 
+        allRewardTokens.push(_usdc);
         _safeApproveInf(hlp, hlpStakingPool);
     }
 
@@ -86,9 +81,14 @@ contract PendleHlpSY is SYBaseWithRewards {
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
+
+    function addRewardToken(address token) external onlyOwner {
+        require(!allRewardTokens.contains(token), "invalid additional reward token");
+        allRewardTokens.push(token);
+    }
+
     function _getRewardTokens() internal view override returns (address[] memory res) {
-        res = new address[](1);
-        res[0] = usdc;
+        return allRewardTokens;
     }
 
     function _redeemExternalReward() internal override {
@@ -96,15 +96,10 @@ contract PendleHlpSY is SYBaseWithRewards {
         pools[0] = hmxStakingPool;
         pools[1] = hlpStakingPool;
 
-        /* Can't use .getAllRewarders here because HMX has not configured it */
         address[][] memory rewarders = new address[][](2);
-        rewarders[0] = new address[](3);
-        rewarders[0][0] = hmxUsdcRewarder;
-        rewarders[0][1] = hmxEsHmxRewarder;
-        rewarders[0][2] = hmxDpRewarder;
 
-        /* Surge HLP programme is redundent but that's okay  */
-        rewarders[1] = IHLPStaking(hlpStakingPool).getRewarders();
+        rewarders[0] = IHMXStaking(hmxStakingPool).getAllRewarders();
+        rewarders[1] = IHLPStaking(hlpStakingPool).getRewarders(); // Surge HLP programme is redundent but it's not very gas-sensitive
 
         IHMXCompounder(compounder).compound(pools, rewarders, 0, 0, new uint256[](0));
     }
