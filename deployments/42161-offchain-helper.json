@@ -1,4 +1,5 @@
 {
     "multicall": "0xfd6Df9EFACfEfdF4E610d687A9c9b941D1b1Bf75",
+    "pendleMulticallV2": "0x539fd510fE352CC81822a222F821c340133Ed41C",
     "implicitSwapfeeContract": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0"
 }
