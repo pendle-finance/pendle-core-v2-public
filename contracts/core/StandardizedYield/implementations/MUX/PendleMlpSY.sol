@@ -113,21 +113,23 @@ contract PendleMlpSY is SYBaseWithRewards {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](1);
+        res = new address[](2);
         res[0] = mlp;
+        res[1] = sMlp;
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
-        res = new address[](1);
+        res = new address[](2);
         res[0] = mlp;
+        res[1] = sMlp;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == mlp;
+        return token == mlp || token == sMlp;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == mlp;
+        return token == mlp || token == sMlp;
     }
 
     function assetInfo()
