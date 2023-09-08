@@ -8,8 +8,11 @@ import "../../../../interfaces/IPPriceFeed.sol";
 contract PendleMlpSY is SYBaseWithRewards {
     using Math for uint256;
 
+    uint256 constant VEMUX_MAXTIME = 4 * 365 * 86400; // 4 years
+
     address public immutable mlp;
     address public immutable sMlp;
+    address public immutable mux;
     address public immutable weth;
     address public immutable rewardRouter;
 
@@ -24,12 +27,14 @@ contract PendleMlpSY is SYBaseWithRewards {
         weth = IMUXRewardRouter(_rewardRouter).weth();
         mlp = IMUXRewardRouter(_rewardRouter).mlp();
         sMlp = IMUXRewardRouter(_rewardRouter).mlpMuxTracker();
+        mux = IMUXRewardRouter(_rewardRouter).mux();
 
         mlpPriceFeed = _mlpPriceFeed;
 
         // Dont have to approve for mlpMuxTracker as the contract allows whitelisted handlers
         // to transfer from anyone (MUX's reward router in this case)
         _safeApproveInf(mlp, IMUXRewardRouter(_rewardRouter).mlpFeeTracker());
+        _safeApproveInf(mux, IMUXRewardRouter(_rewardRouter).votingEscrow());
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -79,9 +84,14 @@ contract PendleMlpSY is SYBaseWithRewards {
     }
 
     function _redeemExternalReward() internal override {
-        IMUXRewardRouter(rewardRouter).compound(); // compound should only claim
+        // IMUXRewardRouter(rewardRouter).compound() would revert in the case mux to be compounded = 0 (2 txns in the same block)
+        // So we should not use that method
         IMUXRewardRouter(rewardRouter).claimAll();
-        // this contract now should have 0 balance on MUX (all compounded to veMUX in the first step)
+
+        uint256 muxBalance = _selfBalance(mux);
+        if (muxBalance > 0) {
+            IMUXRewardRouter(rewardRouter).stakeMux(muxBalance, block.timestamp + VEMUX_MAXTIME);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
