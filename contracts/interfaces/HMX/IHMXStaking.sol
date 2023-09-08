@@ -3,4 +3,8 @@ pragma solidity 0.8.17;
 
 interface IHMXStaking {
     function getAllRewarders() external view returns (address[] memory);
+
+    function userTokenAmount(address, address) external view returns (uint256);
+
+    function withdraw(address stakingToken, uint256 amount) external;
 }

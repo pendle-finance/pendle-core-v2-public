@@ -6,6 +6,7 @@ import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/HMX/IHMXCompounder.sol";
 import "../../../../interfaces/HMX/IHLPStaking.sol";
 import "../../../../interfaces/HMX/IHMXStaking.sol";
+import "../../../../interfaces/HMX/IHMXVester.sol";
 import "./HLPPricingHelper.sol";
 
 contract PendleHlpSY is SYBaseWithRewards {
@@ -15,11 +16,11 @@ contract PendleHlpSY is SYBaseWithRewards {
     address public immutable usdc;
     address public immutable compounder;
 
+    address public immutable vester;
     address public immutable hlpStakingPool;
     address public immutable hmxStakingPool;
 
     address[] public allRewardTokens;
-
 
     // off-chain usage only, no security related, no auditing required
     address public immutable hlpPriceHelper;
@@ -30,13 +31,17 @@ contract PendleHlpSY is SYBaseWithRewards {
         address _hlp,
         address _usdc,
         address _compounder,
+        address _vester,
         address _hlpStakingPool,
         address _hmxStakingPool,
         address _hlpPriceHelper
     ) SYBaseWithRewards(_name, _symbol, _hlp) {
         hlp = _hlp;
         usdc = _usdc;
+
         compounder = _compounder;
+        vester = _vester;
+
         hlpStakingPool = _hlpStakingPool;
         hmxStakingPool = _hmxStakingPool;
 
@@ -156,7 +161,20 @@ contract PendleHlpSY is SYBaseWithRewards {
         return (AssetType.LIQUIDITY, hlp, IERC20Metadata(hlp).decimals());
     }
 
-     /*///////////////////////////////////////////////////////////////
+    /*///////////////////////////////////////////////////////////////
+                        esHMX vest & claim
+    //////////////////////////////////////////////////////////////*/
+
+    function vestAllEsHMX(address to) external onlyOwner {
+        address esHMX = IHMXVester(vester).esHMX();
+        uint256 amountToVest = IHMXStaking(hmxStakingPool).userTokenAmount(esHMX, address(this));
+        IHMXStaking(hmxStakingPool).withdraw(esHMX, amountToVest);
+
+        _safeApproveInf(esHMX, vester);
+        IHMXVester(vester).vestFor(to, amountToVest, 365 days);
+    }
+
+    /*///////////////////////////////////////////////////////////////
                         OFF-CHAIN USAGE ONLY
             (NO SECURITY RELATED && CAN BE LEFT UNAUDITED)
     //////////////////////////////////////////////////////////////*/
