@@ -44,7 +44,7 @@ contract PendleOffchainStorage is IPOffchainStorage, UUPSUpgradeable, AccessCont
     /*///////////////////////////////////////////////////////////////
                             UPGRADABLE RELATED
     //////////////////////////////////////////////////////////////*/
-    function initialize(address) external initializer {
+    function initialize() external initializer {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
