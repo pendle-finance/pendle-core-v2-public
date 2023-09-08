@@ -6,6 +6,7 @@ import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/HMX/IHMXCompounder.sol";
 import "../../../../interfaces/HMX/IHLPStaking.sol";
 import "../../../../interfaces/HMX/IHMXStaking.sol";
+import "./HLPPricingHelper.sol";
 
 contract PendleHlpSY is SYBaseWithRewards {
     using ArrayLib for address[];
@@ -19,6 +20,10 @@ contract PendleHlpSY is SYBaseWithRewards {
 
     address[] public allRewardTokens;
 
+
+    // off-chain usage only, no security related, no auditing required
+    address public immutable hlpPriceHelper;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -26,13 +31,16 @@ contract PendleHlpSY is SYBaseWithRewards {
         address _usdc,
         address _compounder,
         address _hlpStakingPool,
-        address _hmxStakingPool
+        address _hmxStakingPool,
+        address _hlpPriceHelper
     ) SYBaseWithRewards(_name, _symbol, _hlp) {
         hlp = _hlp;
         usdc = _usdc;
         compounder = _compounder;
         hlpStakingPool = _hlpStakingPool;
         hmxStakingPool = _hmxStakingPool;
+
+        hlpPriceHelper = _hlpPriceHelper;
 
         allRewardTokens.push(_usdc);
         _safeApproveInf(hlp, hlpStakingPool);
@@ -146,5 +154,14 @@ contract PendleHlpSY is SYBaseWithRewards {
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, hlp, IERC20Metadata(hlp).decimals());
+    }
+
+     /*///////////////////////////////////////////////////////////////
+                        OFF-CHAIN USAGE ONLY
+            (NO SECURITY RELATED && CAN BE LEFT UNAUDITED)
+    //////////////////////////////////////////////////////////////*/
+
+    function getPrice() external view returns (uint256) {
+        return HLPPricingHelper(hlpPriceHelper).getPrice();
     }
 }
