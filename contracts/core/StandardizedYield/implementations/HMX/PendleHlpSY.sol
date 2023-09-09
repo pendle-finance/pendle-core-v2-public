@@ -166,6 +166,7 @@ contract PendleHlpSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function vestAllEsHMX(address to) external onlyOwner {
+        _updateAndDistributeRewards(to); // to correctly trigger _redeemExternalReward
         address esHMX = IHMXVester(vester).esHMX();
         uint256 amountToVest = IHMXStaking(hmxStakingPool).userTokenAmount(esHMX, address(this));
         IHMXStaking(hmxStakingPool).withdraw(esHMX, amountToVest);
