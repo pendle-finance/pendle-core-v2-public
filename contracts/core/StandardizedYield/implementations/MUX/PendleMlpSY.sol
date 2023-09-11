@@ -16,6 +16,9 @@ contract PendleMlpSY is SYBaseWithRewards {
     address public immutable weth;
     address public immutable rewardRouter;
 
+    // reward status
+    bool public isRewardSettled;
+
     // non-security related
     address public immutable mlpPriceFeed;
 
@@ -88,6 +91,8 @@ contract PendleMlpSY is SYBaseWithRewards {
         // So we should not use that method
         IMUXRewardRouter(rewardRouter).claimAll();
 
+        if (isRewardSettled) return;
+
         uint256 muxBalance = _selfBalance(mux);
         if (muxBalance > 0) {
             IMUXRewardRouter(rewardRouter).stakeMux(muxBalance, block.timestamp + VEMUX_MAXTIME);
@@ -138,6 +143,40 @@ contract PendleMlpSY is SYBaseWithRewards {
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, mlp, IERC20Metadata(mlp).decimals());
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        GOVERNANCE WITHDRAWAL
+    //////////////////////////////////////////////////////////////*/
+
+    function setRewardStatus(bool _isRewardSettled) external onlyOwner {
+        isRewardSettled = _isRewardSettled;
+    }
+
+    /**
+     * @dev this function assumes revert if the lock hasnt expired
+     * @dev There are two methods for vesting MUX (one through veMUX culmulative reward and one through paired staked MLP)
+     *
+     * Will not go with the later one as this contract should not utilize users' sMLP for other purposes
+     */
+    function withdrawAndVestMux() external onlyOwner {
+        IMUXRewardRouter(rewardRouter).unstakeMcbAndMux();
+
+        uint256 amountToVest = Math.min(
+            _selfBalance(mux),
+            IMUXRewardRouter(rewardRouter).maxVestableTokenFromVe(address(this))
+        );
+        IMUXRewardRouter(rewardRouter).depositToVeVester(amountToVest);
+    }
+
+    function claimVestedRewards(address receiver) external onlyOwner {
+        uint256 amountClaimed = IMUXRewardRouter(rewardRouter).claimVestedTokenFromVe(
+            address(this)
+        );
+        if (amountClaimed != 0) {
+            address mcb = IMUXRewardRouter(rewardRouter).mcb();
+            _transferOut(mcb, receiver, amountClaimed);
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
