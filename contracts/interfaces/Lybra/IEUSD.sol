@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.17;
+pragma solidity ^0.8.0;
 
 interface IEUSD {
     function transferShares(address _recipient, uint256 _sharesAmount) external returns (uint256);
