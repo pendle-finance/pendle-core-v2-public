@@ -39,6 +39,7 @@ library ArrayLib {
         }
         out[length] = element;
     }
+
     /**
      * @dev This function assumes a and b each contains unidentical elements
      * @param a array of addresses a
@@ -52,7 +53,7 @@ library ArrayLib {
         unchecked {
             uint256 countUnidenticalB = 0;
             bool[] memory isUnidentical = new bool[](b.length);
-            for(uint256 i = 0; i < b.length; ++i) {
+            for (uint256 i = 0; i < b.length; ++i) {
                 if (!contains(a, b[i])) {
                     countUnidenticalB++;
                     isUnidentical[i] = true;
@@ -60,11 +61,11 @@ library ArrayLib {
             }
 
             out = new address[](a.length + countUnidenticalB);
-            for(uint256 i = 0; i < a.length; ++i) {
+            for (uint256 i = 0; i < a.length; ++i) {
                 out[i] = a[i];
             }
             uint256 id = a.length;
-            for(uint256 i = 0; i < b.length; ++i) {
+            for (uint256 i = 0; i < b.length; ++i) {
                 if (isUnidentical[i]) {
                     out[id++] = b[i];
                 }
