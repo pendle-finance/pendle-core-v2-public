@@ -7,13 +7,16 @@ import "../../../../interfaces/Stader/IStaderStakeManager.sol";
 contract PendleETHXSY is SYBase {
     using Math for uint256;
 
+    error StaderMaxDepositExceed(uint256 amountToDeposit, uint256 maxDeposit);
+    error StaderMinDepositUnreached(uint256 amountToDeposit, uint256 minDeposit);
+
     address public immutable stakeManager;
     address public immutable ethx;
 
     constructor(
         address _stakeManager,
         address _ethx
-    ) SYBase("SY Stader Staking ETHx", "SY-ETHx", _stakeManager) {
+    ) SYBase("SY Stader Staking ETHx", "SY-ETHx", _ethx) {
         stakeManager = _stakeManager;
         ethx = _ethx;
     }
@@ -60,6 +63,14 @@ contract PendleETHXSY is SYBase {
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
+            uint256 maxDeposit = IStaderStakeManager(stakeManager).maxDeposit();
+            uint256 minDeposit = IStaderStakeManager(stakeManager).minDeposit();
+            if (amountTokenToDeposit > maxDeposit) {
+                revert StaderMaxDepositExceed(amountTokenToDeposit, maxDeposit);
+            }
+            if (amountTokenToDeposit < minDeposit) {
+                revert StaderMinDepositUnreached(amountTokenToDeposit, minDeposit);
+            }
             return IStaderStakeManager(stakeManager).previewDeposit(amountTokenToDeposit);
         } else {
             return amountTokenToDeposit;
