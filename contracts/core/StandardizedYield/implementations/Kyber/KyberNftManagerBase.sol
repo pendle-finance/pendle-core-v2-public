@@ -145,6 +145,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
                 })
             );
 
+        _collectPositionManagerFloatingTokens();
         IKyberPositionManager(positionManager).burn(tokenId);
         return _addLiquidity(amount0, amount1);
     }
@@ -306,7 +307,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
             amount1 = _selfBalance(token1) - prevBalance1;
         } else {
             // TODO: remove using position manager
-            IKyberPositionManager(positionManager).removeLiquidity(
+            (amount0, amount1, ) = IKyberPositionManager(positionManager).removeLiquidity(
                 IKyberPositionManager.RemoveLiquidityParams({
                     tokenId: tokenId,
                     liquidity: liquidity,
@@ -315,7 +316,7 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
                     deadline: type(uint256).max
                 })
             );
-            (amount0, amount1) = _collectPositionManagerFloatingTokens();
+            _collectPositionManagerFloatingTokens();
         }
     }
 
@@ -362,7 +363,6 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
     /*///////////////////////////////////////////////////////////////
                             VALIDATION FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-
 
     function _validateFarmInfo(
         address _pool,
@@ -447,20 +447,21 @@ abstract contract KyberNftManagerBase is TokenHelper, IERC721Receiver {
         return position.liquidity;
     }
 
-
     /*///////////////////////////////////////////////////////////////
                             MISC FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-    
-    function _collectPositionManagerFloatingTokens()
-        private
-        returns (uint256 amount0, uint256 amount1)
-    {
-        amount0 = IERC20(token0).balanceOf(positionManager);
-        amount1 = IERC20(token1).balanceOf(positionManager);
 
-        IKyberPositionManager(positionManager).transferAllTokens(token0, amount0, address(this));
-        IKyberPositionManager(positionManager).transferAllTokens(token1, amount1, address(this));
+    function _collectPositionManagerFloatingTokens() private {
+        IKyberPositionManager(positionManager).transferAllTokens(
+            token0,
+            IERC20(token0).balanceOf(positionManager),
+            address(this)
+        );
+        IKyberPositionManager(positionManager).transferAllTokens(
+            token1,
+            IERC20(token1).balanceOf(positionManager),
+            address(this)
+        );
     }
 
     function onERC721Received(
