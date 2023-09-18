@@ -76,10 +76,6 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return _exchangeRate();
-    }
-
-    function _exchangeRate() internal view returns (uint256) {
         (uint256 td, uint256 ts) = _getSiloInterestData();
         return td.divDown(ts);
     }
