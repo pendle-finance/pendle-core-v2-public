@@ -1,0 +1,12 @@
+{
+    "name": "SY mPendle",
+    "symbol": "SY-mPendle",
+    "doCacheIndex": false,
+    "expiry": 1727308800,
+    "scalarRoot": "21899787320000000000",
+    "initialRateAnchor": "1153945483000000000",
+    "SY": "0x5C4110eD760470f79E469a901Bd6fb45a65BE0F4",
+    "PT": "0xaD22fCA714559Da1Eb25FB24443B0446B54246Fc",
+    "YT": "0x9DbD1fC6D2731ebD42a5E5B8e268bFA7C68980Ae",
+    "market": "0xf617792eA9Dceb2208F4C440258B21d2f3FdB9A3"
+}
