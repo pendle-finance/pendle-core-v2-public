@@ -93,7 +93,7 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
 
     function _redeemExternalReward() internal override {
         ISiloIncentiveController(incentiveController).claimRewardsToSelf(
-            ArrayLib.create(asset),
+            ArrayLib.create(collateralToken),
             type(uint256).max
         );
     }
