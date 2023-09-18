@@ -61,13 +61,8 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
             // Silo withdrawing interface only accepts amount of asset as input
             // Therefore we need to ensure that assetInput.toShareRoundUp() <= amountSharesToRedeem
 
-            // Preview functions go through base 1e18 before getting the result (using _exchangeRate()),
-            // so it's easier to prove the accuracy of this method if we do it manually here
-            uint256 totalDeposit = ISiloLens(siloLens).totalDepositsWithInterest(silo, asset);
-
-            amountTokenOut =
-                (totalDeposit * amountSharesToRedeem) /
-                IERC20(collateralToken).totalSupply(); // round down should ensure that shares being burned <= amountSharesToRedeem
+            (uint256 td, uint256 ts) = _getSiloInterestData();
+            amountTokenOut = (td * amountSharesToRedeem) / ts; // round down should ensure that shares being burned <= amountSharesToRedeem
 
             // amountAssetToWithdraw should = withdrawnAmount as withdrawing does not
             // bear any fees
@@ -85,9 +80,8 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
     }
 
     function _exchangeRate() internal view returns (uint256) {
-        uint256 totalDeposit = ISiloLens(siloLens).totalDepositsWithInterest(silo, asset);
-        uint256 totalShares = IERC20(collateralToken).totalSupply();
-        return totalDeposit.divDown(totalShares);
+        (uint256 td, uint256 ts) = _getSiloInterestData();
+        return td.divDown(ts);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -109,6 +103,19 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
     }
 
     /*///////////////////////////////////////////////////////////////
+                        SILO DATA FUNCITONS
+    //////////////////////////////////////////////////////////////*/
+
+    function _getSiloInterestData()
+        internal
+        view
+        returns (uint256 totalDeposit, uint256 totalCollateralTokenSupply)
+    {
+        totalDeposit = ISiloLens(siloLens).totalDepositsWithInterest(silo, asset);
+        totalCollateralTokenSupply = IERC20(collateralToken).totalSupply();
+    }
+
+    /*///////////////////////////////////////////////////////////////
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
@@ -119,7 +126,8 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
         if (tokenIn == collateralToken) {
             return amountTokenToDeposit;
         } else {
-            return amountTokenToDeposit.divDown(_exchangeRate());
+            (uint256 td, uint256 ts) = _getSiloInterestData();
+            return (amountTokenToDeposit * ts) / td;
         }
     }
 
@@ -130,7 +138,8 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
         if (tokenOut == collateralToken) {
             return amountSharesToRedeem;
         } else {
-            return amountSharesToRedeem.mulDown(_exchangeRate());
+            (uint256 td, uint256 ts) = _getSiloInterestData();
+            return (amountSharesToRedeem * td) / ts;
         }
     }
 
