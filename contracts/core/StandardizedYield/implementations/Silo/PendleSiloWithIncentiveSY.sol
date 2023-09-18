@@ -164,6 +164,6 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
         view
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
-        return (AssetType.TOKEN, collateralToken, IERC20Metadata(collateralToken).decimals());
+        return (AssetType.TOKEN, asset, IERC20Metadata(asset).decimals());
     }
 }
