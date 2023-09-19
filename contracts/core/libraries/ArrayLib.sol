@@ -94,4 +94,15 @@ library ArrayLib {
         }
         return false;
     }
+
+    function create(address a) internal pure returns (address[] memory res) {
+        res = new address[](1);
+        res[0] = a;
+    }
+
+    function create(address a, address b) internal pure returns (address[] memory res) {
+        res = new address[](2);
+        res[0] = a;
+        res[1] = b;
+    }
 }
