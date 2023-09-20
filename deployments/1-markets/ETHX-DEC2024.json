@@ -1,0 +1,12 @@
+{
+    "name": "SY ETHx",
+    "symbol": "SY-ETHx",
+    "doCacheIndex": true,
+    "expiry": 1735171200,
+    "scalarRoot": "217398112666000000000",
+    "initialRateAnchor": "1051139274000000000",
+    "SY": "0xcb166f0148Ae815313039d735E28FCeC617B21Fe",
+    "PT": "0x0F44751f3555133eFd972e2B580941c3e5577b6b",
+    "YT": "0x025417aF44EBe9521b80187514e92F6093dE78bE",
+    "market": "0xFf262396f2A35Cd7Aa24b7255E7d3f45f057Cdba"
+}
