@@ -5,7 +5,7 @@ import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/Stader/IStaderStakeManager.sol";
 
 contract PendleETHXSY is SYBase {
-    using Math for uint256;
+    using PMath for uint256;
 
     error StaderMaxDepositExceed(uint256 amountToDeposit, uint256 maxDeposit);
     error StaderMinDepositUnreached(uint256 amountToDeposit, uint256 minDeposit);
