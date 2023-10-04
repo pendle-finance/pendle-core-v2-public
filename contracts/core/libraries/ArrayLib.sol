@@ -106,4 +106,9 @@ library ArrayLib {
         res[0] = a;
         res[1] = b;
     }
+
+    function create(uint256 a) internal pure returns (uint256[] memory res) {
+        res = new uint256[](1);
+        res[0] = a;
+    }
 }
