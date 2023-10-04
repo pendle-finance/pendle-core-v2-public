@@ -1,0 +1,10 @@
+{
+    "name": "SY Kyber Elastic axlWstEth-wstETH",
+    "SY": "0x6f14d3cD37a0647a3eE60eb2214486f8A1CDdccc",
+    "YT": "0xFafA2b178cB40Ac28E034548D9ba6085bcc5CA28",
+    "PT": "0x8491F9a5Ba93ab2def499d956fd7CaAf1e9f6040",
+    "market": "0xb7ffe52EA584d2169Ae66e7F0423574A5E15056F",
+    "expiry": 1711584000,
+    "scalarRoot": "38277548936000000000",
+    "initAnchor": "1042001573000000000"
+}
