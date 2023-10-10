@@ -6,7 +6,7 @@ import "../../../../interfaces/MUX/IMUXRewardRouter.sol";
 import "../../../../interfaces/IPPriceFeed.sol";
 
 contract PendleMlpSY is SYBaseWithRewards {
-    using Math for uint256;
+    using PMath for uint256;
 
     uint256 constant VEMUX_MAXTIME = 4 * 365 * 86400; // 4 years
 
@@ -71,7 +71,7 @@ contract PendleMlpSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return Math.ONE;
+        return PMath.ONE;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ contract PendleMlpSY is SYBaseWithRewards {
     function withdrawAndVestMux() external onlyOwner {
         IMUXRewardRouter(rewardRouter).unstakeMcbAndMux();
 
-        uint256 amountToVest = Math.min(
+        uint256 amountToVest = PMath.min(
             _selfBalance(mux),
             IMUXRewardRouter(rewardRouter).maxVestableTokenFromVe(address(this))
         );
