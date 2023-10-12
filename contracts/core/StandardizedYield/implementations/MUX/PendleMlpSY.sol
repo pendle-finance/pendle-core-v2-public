@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "../../SYBaseWithRewards.sol";
 import "../../../../interfaces/MUX/IMUXRewardRouter.sol";
 import "../../../../interfaces/IPPriceFeed.sol";
+import "../../../libraries/ArrayLib.sol";
 
 contract PendleMlpSY is SYBaseWithRewards {
     using PMath for uint256;
@@ -14,6 +15,7 @@ contract PendleMlpSY is SYBaseWithRewards {
     address public immutable sMlp;
     address public immutable mux;
     address public immutable weth;
+    address public immutable arb;
     address public immutable rewardRouter;
 
     // reward status
@@ -24,13 +26,15 @@ contract PendleMlpSY is SYBaseWithRewards {
 
     constructor(
         address _rewardRouter,
-        address _mlpPriceFeed
+        address _mlpPriceFeed,
+        address _arb
     ) SYBaseWithRewards("SY MUXLP", "SY-MUXLP", IMUXRewardRouter(_rewardRouter).mlp()) {
         rewardRouter = _rewardRouter;
         weth = IMUXRewardRouter(_rewardRouter).weth();
         mlp = IMUXRewardRouter(_rewardRouter).mlp();
         sMlp = IMUXRewardRouter(_rewardRouter).mlpMuxTracker();
         mux = IMUXRewardRouter(_rewardRouter).mux();
+        arb = _arb;
 
         mlpPriceFeed = _mlpPriceFeed;
 
@@ -81,9 +85,8 @@ contract PendleMlpSY is SYBaseWithRewards {
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
-    function _getRewardTokens() internal view override returns (address[] memory res) {
-        res = new address[](1);
-        res[0] = weth;
+    function _getRewardTokens() internal view override returns (address[] memory) {
+        return ArrayLib.create(weth, arb);
     }
 
     function _redeemExternalReward() internal override {
@@ -117,16 +120,12 @@ contract PendleMlpSY is SYBaseWithRewards {
         return amountSharesToRedeem;
     }
 
-    function getTokensIn() public view virtual override returns (address[] memory res) {
-        res = new address[](2);
-        res[0] = mlp;
-        res[1] = sMlp;
+    function getTokensIn() public view virtual override returns (address[] memory) {
+        return ArrayLib.create(mlp, sMlp);
     }
 
-    function getTokensOut() public view virtual override returns (address[] memory res) {
-        res = new address[](2);
-        res[0] = mlp;
-        res[1] = sMlp;
+    function getTokensOut() public view virtual override returns (address[] memory) {
+        return ArrayLib.create(mlp, sMlp);
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
