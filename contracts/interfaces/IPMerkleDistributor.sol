@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 interface IPMerkleDistributor {
     event Claimed(address indexed owner, address indexed receiver, uint256 amount);
     event Verified(address indexed owner, uint256 amount);
-    event SetMerkleRootAndFund(bytes32 indexed merkleRoot, uint256 amountFunded);
+    event SetMerkleRootAndFund(bytes32 indexed merkleRoot);
 
     error InvalidMerkleProof();
 

@@ -85,13 +85,10 @@ contract PendleMerkleDistributor is
 
     // ----------------- owner logic -----------------
     function setMerkleRootAndFund(
-        bytes32 newMerkleRoot,
-        uint256 amountToFund
+        bytes32 newMerkleRoot
     ) external payable onlyOwner {
-        _transferIn(token, msg.sender, amountToFund);
         merkleRoot = newMerkleRoot;
-
-        emit SetMerkleRootAndFund(merkleRoot, amountToFund);
+        emit SetMerkleRootAndFund(merkleRoot);
     }
 
     // ----------------- upgrade-related -----------------
