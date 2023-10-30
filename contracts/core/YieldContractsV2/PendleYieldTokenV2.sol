@@ -175,8 +175,6 @@ contract PendleYieldTokenV2 is
     ) external nonReentrant updateData returns (uint256 interestOut, uint256[] memory rewardsOut) {
         if (!redeemInterest && !redeemRewards) revert Errors.YCNothingToRedeem();
 
-        // if redeemRewards == true, this line must be here for obvious reason
-        // if redeemInterest == true, this line must be here because of the reason above
         if (redeemInterest) {
             _updateAndDistributeInterest(user);
             interestOut = _doTransferOutInterest(user, SY);
@@ -304,23 +302,13 @@ contract PendleYieldTokenV2 is
         if (!isExpired()) _burn(address(this), totalAmountPYToRedeem);
 
         uint256 index = _pyIndexCurrent();
-        uint256 totalSyInterestPostExpiry;
         amountSyOuts = new uint256[](receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
-            uint256 syInterestPostExpiry;
-            (amountSyOuts[i], syInterestPostExpiry) = _calcSyRedeemableFromPY(
-                amountPYToRedeems[i],
-                index
-            );
+            amountSyOuts[i] = SYUtils.assetToSy(index, amountPYToRedeems[i]);
             _transferOut(SY, receivers[i], amountSyOuts[i]);
-            totalSyInterestPostExpiry += syInterestPostExpiry;
-
             emit Burn(msg.sender, receivers[i], amountPYToRedeems[i], amountSyOuts[i]);
         }
-
-        address treasury = IPYieldContractFactory(factory).treasury();
-        _transferOut(SY, treasury, totalSyInterestPostExpiry);
     }
 
     function _calcPYToMint(
@@ -329,17 +317,6 @@ contract PendleYieldTokenV2 is
     ) internal pure returns (uint256 amountPY) {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
         return SYUtils.syToAsset(indexCurrent, amountSy);
-    }
-
-    function _calcSyRedeemableFromPY(
-        uint256 amountPY,
-        uint256 indexCurrent
-    ) internal view returns (uint256 syToUser, uint256 syInterestPostExpiry) {
-        syToUser = SYUtils.assetToSy(indexCurrent, amountPY);
-        if (isExpired()) {
-            uint256 totalSyRedeemable = SYUtils.assetToSy(postExpiry.firstPYIndex, amountPY);
-            syInterestPostExpiry = totalSyRedeemable - syToUser;
-        }
     }
 
     function _getAmountPYToRedeem() internal view returns (uint256) {
