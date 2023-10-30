@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../core/StandardizedYield/implementations/ChainlinkRelayer/PendleChainlinkRelayer.sol";
-import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
 contract ChainlinkRelayerAutomation is AutomationCompatible, BoringOwnableUpgradeable {
     PendleChainlinkRelayer internal immutable relayer;
