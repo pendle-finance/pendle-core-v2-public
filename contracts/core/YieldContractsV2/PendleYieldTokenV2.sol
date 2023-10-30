@@ -207,8 +207,22 @@ contract PendleYieldTokenV2 is
     }
 
     /// @notice updates and returns the reward indexes
-    function rewardIndexesCurrent() external override nonReentrant returns (uint256[] memory) {
-        return IStandardizedYield(SY).rewardIndexesCurrent();
+    function rewardIndexesCurrent()
+        external
+        override
+        nonReentrant
+        returns (uint256[] memory indexes)
+    {
+        _updateInterestIndex();
+        _updateRewardIndex();
+        address[] memory rewardTokens = _getRewardTokens();
+        indexes = new uint256[](rewardTokens.length);
+        for (uint256 i = 0; i < rewardTokens.length; ) {
+            indexes[i] = rewardState[rewardTokens[i]].index;
+            unchecked {
+                i++;
+            }
+        }
     }
 
     /**
