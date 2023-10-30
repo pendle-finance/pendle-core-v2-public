@@ -177,22 +177,21 @@ contract PendleYieldTokenV2 is
 
         // if redeemRewards == true, this line must be here for obvious reason
         // if redeemInterest == true, this line must be here because of the reason above
-        _updateAndDistributeRewards(user);
-
-        if (redeemRewards) {
-            rewardsOut = _doTransferOutRewards(user, user);
-            emit RedeemRewards(user, rewardsOut);
-        } else {
-            address[] memory tokens = getRewardTokens();
-            rewardsOut = new uint256[](tokens.length);
-        }
-
         if (redeemInterest) {
             _updateAndDistributeInterest(user);
             interestOut = _doTransferOutInterest(user, SY);
             emit RedeemInterest(user, interestOut);
         } else {
             interestOut = 0;
+        }
+
+        _updateAndDistributeRewards(user);
+        if (redeemRewards) {
+            rewardsOut = _doTransferOutRewards(user, user);
+            emit RedeemRewards(user, rewardsOut);
+        } else {
+            address[] memory tokens = getRewardTokens();
+            rewardsOut = new uint256[](tokens.length);
         }
     }
 
@@ -465,7 +464,7 @@ contract PendleYieldTokenV2 is
     //solhint-disable-next-line ordering
     function _beforeTokenTransfer(address from, address to, uint256) internal override {
         if (isExpired()) _setPostExpiryData();
-        _updateAndDistributeRewardsForTwo(from, to);
         _updateAndDistributeInterestForTwo(from, to);
+        _updateAndDistributeRewardsForTwo(from, to);
     }
 }
