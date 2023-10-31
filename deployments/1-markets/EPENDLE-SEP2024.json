@@ -1,0 +1,12 @@
+{
+    "name": "SY ePendle",
+    "symbol": "SY-ePendle",
+    "doCacheIndex": true,
+    "expiry": 1727308800,
+    "scalarRoot": "22259416476000000000",
+    "initialRateAnchor": "1134651159000000000",
+    "SY": "0x887bdD18D042A85b9c702698eFE71E1C38d5C868",
+    "PT": "0x0Ba11DEe8b63f08EA25d0cc733601e8C15325a8D",
+    "YT": "0x41535fc6AdCb81a7af1bD4669d221983Ed4e33Af",
+    "market": "0x0eB3f11ed8ca69813744868D02D83D4Fbf72841e"
+}
