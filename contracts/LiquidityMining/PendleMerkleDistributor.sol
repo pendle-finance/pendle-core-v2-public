@@ -43,35 +43,35 @@ contract PendleMerkleDistributor is
         claimed[user] = totalAccrued;
 
         _transferOut(token, receiver, amountOut);
-        emit Claimed(owner, receiver, amountOut);
+        emit Claimed(user, receiver, amountOut);
     }
 
     function claimVerified(address receiver) external returns (uint256 amountOut) {
-        address owner = msg.sender;
-        uint256 amountVerified = verified[owner];
-        uint256 amountClaimed = claimed[owner];
+        address user = msg.sender;
+        uint256 amountVerified = verified[user];
+        uint256 amountClaimed = claimed[user];
 
         if (amountVerified <= amountClaimed) {
             return 0;
         }
 
         amountOut = amountVerified - amountClaimed;
-        claimed[owner] = amountVerified;
+        claimed[user] = amountVerified;
 
         _transferOut(token, receiver, amountOut);
-        emit Claimed(owner, receiver, amountOut);
+        emit Claimed(user, receiver, amountOut);
     }
 
     function verify(
-        address owner,
+        address user,
         uint256 totalAccrued,
         bytes32[] calldata proof
-    ) external returns (uint256 amountVerified) {
-        if (!_verifyMerkleData(owner, totalAccrued, proof)) revert InvalidMerkleProof();
-        amountVerified = totalAccrued - claimed[owner];
-        verified[owner] = totalAccrued;
+    ) external returns (uint256 amountClaimable) {
+        if (!_verifyMerkleData(user, totalAccrued, proof)) revert InvalidMerkleProof();
+        amountClaimable = totalAccrued - claimed[user];
+        verified[user] = totalAccrued;
 
-        emit Verified(owner, amountVerified);
+        emit Verified(user, amountClaimable);
     }
 
     function _verifyMerkleData(
@@ -84,11 +84,9 @@ contract PendleMerkleDistributor is
     }
 
     // ----------------- owner logic -----------------
-    function setMerkleRootAndFund(
-        bytes32 newMerkleRoot
-    ) external payable onlyOwner {
+    function setMerkleRoot(bytes32 newMerkleRoot) external payable onlyOwner {
         merkleRoot = newMerkleRoot;
-        emit SetMerkleRootAndFund(merkleRoot);
+        emit SetMerkleRoot(merkleRoot);
     }
 
     // ----------------- upgrade-related -----------------
