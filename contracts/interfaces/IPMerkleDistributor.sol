@@ -17,7 +17,7 @@ interface IPMerkleDistributor {
     function claimVerified(address receiver) external returns (uint256 amountOut);
 
     function verify(
-        address owner,
+        address user,
         uint256 totalAccrued,
         bytes32[] calldata proof
     ) external returns (uint256 amountVerified);
