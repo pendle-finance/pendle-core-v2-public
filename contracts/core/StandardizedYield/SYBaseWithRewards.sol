@@ -9,11 +9,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     using Math for uint256;
     using ArrayLib for address[];
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _yieldToken
-    )
+    constructor(string memory _name, string memory _symbol, address _yieldToken)
         SYBase(_name, _symbol, _yieldToken) // solhint-disable-next-line no-empty-blocks
     {}
 
@@ -41,29 +37,17 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
-    function getRewardTokens()
-        external
-        view
-        virtual
-        override
-        returns (address[] memory rewardTokens)
-    {
+    function getRewardTokens() external view virtual override returns (address[] memory rewardTokens) {
         rewardTokens = _getRewardTokens();
     }
 
     /**
      * @dev See {IStandardizedYield-accruedRewards}
      */
-    function accruedRewards(address user)
-        external
-        view
-        virtual
-        override
-        returns (uint256[] memory rewardAmounts)
-    {
+    function accruedRewards(address user) external view virtual override returns (uint256[] memory rewardAmounts) {
         address[] memory rewardTokens = _getRewardTokens();
         rewardAmounts = new uint256[](rewardTokens.length);
-        for (uint256 i = 0; i < rewardTokens.length; ) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             rewardAmounts[i] = userReward[rewardTokens[i]][user].accrued;
             unchecked {
                 i++;
@@ -71,27 +55,14 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
         }
     }
 
-    function rewardIndexesCurrent()
-        external
-        override
-        nonReentrant
-        whenNotPaused
-        returns (uint256[] memory indexes)
-    {
-        _updateRewardIndex();
-        return rewardIndexesStored();
+    function rewardIndexesCurrent() external override nonReentrant returns (uint256[] memory indexes) {
+        (, indexes) = _updateRewardIndex();
     }
 
-    function rewardIndexesStored()
-        public
-        view
-        virtual
-        override
-        returns (uint256[] memory indexes)
-    {
+    function rewardIndexesStored() public view virtual override returns (uint256[] memory indexes) {
         address[] memory rewardTokens = _getRewardTokens();
         indexes = new uint256[](rewardTokens.length);
-        for (uint256 i = 0; i < rewardTokens.length; ) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             indexes[i] = rewardState[rewardTokens[i]].index;
             unchecked {
                 i++;
@@ -118,11 +89,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
     /*///////////////////////////////////////////////////////////////
                             TRANSFER HOOKS
     //////////////////////////////////////////////////////////////*/
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal virtual override whenNotPaused {
+    function _beforeTokenTransfer(address from, address to, uint256) internal virtual override whenNotPaused {
         _updateAndDistributeRewardsForTwo(from, to);
     }
 }
