@@ -364,7 +364,7 @@ contract PendleYieldTokenV2 is
     function _collectInterest()
         internal
         override
-        returns (uint256 accuredAmount, uint256 currentIndex)
+        returns (uint256 accruedAmount, uint256 currentIndex)
     {
         uint256 prevIndex = _lastCollectedInterestIndex;
         currentIndex = _pyIndexCurrent();
@@ -378,7 +378,7 @@ contract PendleYieldTokenV2 is
 
             uint256 totalInterest = _calcInterest(totalSupply(), prevIndex, currentIndex);
             uint256 feeAmount = totalInterest.mulDown(interestFeeRate);
-            accuredAmount = totalInterest - feeAmount;
+            accruedAmount = totalInterest - feeAmount;
 
             _transferOut(SY, treasury, feeAmount);
             _updateSyReserve();
