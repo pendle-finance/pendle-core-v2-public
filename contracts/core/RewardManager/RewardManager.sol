@@ -13,7 +13,6 @@ abstract contract RewardManager is RewardManagerAbstract {
 
     mapping(address => RewardState) public rewardState;
 
-
     function _updateRewardIndex()
         internal
         virtual
@@ -45,18 +44,23 @@ abstract contract RewardManager is RewardManagerAbstract {
 
                 rewardState[token].index = index.Uint128();
                 rewardState[token].lastBalance += accrued.Uint128();
+                indexes[i] = index;
+            }
+        } else {
+            for (uint256 i = 0; i < tokens.length; i++) {
+                indexes[i] = rewardState[tokens[i]].index;
             }
         }
-
-        for (uint256 i = 0; i < tokens.length; i++) indexes[i] = rewardState[tokens[i]].index;
     }
 
     /// @dev this function doesn't need redeemExternal since redeemExternal is bundled in updateRewardIndex
     /// @dev this function also has to update rewardState.lastBalance
-    function _doTransferOutRewards(
-        address user,
-        address receiver
-    ) internal virtual override returns (uint256[] memory rewardAmounts) {
+    function _doTransferOutRewards(address user, address receiver)
+        internal
+        virtual
+        override
+        returns (uint256[] memory rewardAmounts)
+    {
         address[] memory tokens = _getRewardTokens();
         rewardAmounts = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
