@@ -24,7 +24,8 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     int256 public constant minInitialAnchor = Math.IONE;
 
     address public treasury;
-    FeeConfig public defaultFee;
+    uint80 public defaultLnFeeRateRoot;
+    uint8 public defaultReserveFeePercent;
     /// 1 SLOT
 
     // router -> overriddenFee
@@ -108,8 +109,8 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     ) external view returns (address _treasury, uint80 _lnFeeRateRoot, uint8 _reserveFeePercent) {
         (_treasury, _lnFeeRateRoot, _reserveFeePercent) = (
             treasury,
-            defaultFee.lnFeeRateRoot,
-            defaultFee.reserveFeePercent
+            defaultLnFeeRateRoot,
+            defaultReserveFeePercent
         );
 
         FeeConfig memory over = overriddenFee[router];
@@ -132,7 +133,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
 
     function setDefaultFee(uint80 newLnFeeRateRoot, uint8 newReserveFeePercent) public onlyOwner {
         _verifyFeeConfig(newLnFeeRateRoot, newReserveFeePercent);
-        defaultFee = FeeConfig(newLnFeeRateRoot, newReserveFeePercent, true);
+        (defaultLnFeeRateRoot, defaultReserveFeePercent) = (newLnFeeRateRoot, newReserveFeePercent);
         _emitNewMarketConfigEvent();
     }
 
@@ -162,6 +163,6 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
     }
 
     function _emitNewMarketConfigEvent() internal {
-        emit NewMarketConfig(treasury, defaultFee.lnFeeRateRoot, defaultFee.reserveFeePercent);
+        emit NewMarketConfig(treasury, defaultLnFeeRateRoot, defaultReserveFeePercent);
     }
 }
