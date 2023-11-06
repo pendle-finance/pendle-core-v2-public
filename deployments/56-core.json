@@ -22,6 +22,7 @@
     "routerStatic": "0x2700ADB035F82a11899ce1D3f1BF8451c296eABb",
     "pendleSwap": "0x59f0c4a186744b573f15fbbc3737014f7f3da835",
     "routerHelper": "0x09D65812dCD0f276e052583d41885cA5C7Dd0086",
+    "routerHelper2": "0x46aCbe071f580bfC09C6F48326f01148991DB107",
     "ptOracle": "0xA48A88EbF6683324bAf17aEB51A6d89294D4bedc",
     "liquiditySeedingHelper": "0x203D3A2Fd52973A34bAb6fC50E3B69863bdb769C",
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
