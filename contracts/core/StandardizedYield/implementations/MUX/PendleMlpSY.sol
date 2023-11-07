@@ -19,6 +19,7 @@ contract PendleMlpSY is SYBaseWithRewards {
     address public immutable rewardRouter;
 
     // reward status
+    bool public hasVeMuxPosition;
     bool public isRewardSettled;
 
     // non-security related
@@ -42,6 +43,7 @@ contract PendleMlpSY is SYBaseWithRewards {
         // to transfer from anyone (MUX's reward router in this case)
         _safeApproveInf(mlp, IMUXRewardRouter(_rewardRouter).mlpFeeTracker());
         _safeApproveInf(mux, IMUXRewardRouter(_rewardRouter).votingEscrow());
+        _safeApproveInf(mux, IMUXRewardRouter(_rewardRouter).muxVester());
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -94,11 +96,21 @@ contract PendleMlpSY is SYBaseWithRewards {
         // So we should not use that method
         IMUXRewardRouter(rewardRouter).claimAll();
 
-        if (isRewardSettled) return;
+        bool _hasVeMuxPosition = hasVeMuxPosition;
+        bool _isRewardSettled = isRewardSettled;
+
+        if (_isRewardSettled) return;
 
         uint256 muxBalance = _selfBalance(mux);
         if (muxBalance > 0) {
             IMUXRewardRouter(rewardRouter).stakeMux(muxBalance, block.timestamp + VEMUX_MAXTIME);
+            if (!_hasVeMuxPosition) {
+                hasVeMuxPosition = true;
+            }
+        } else if (_hasVeMuxPosition) {
+            IMUXRewardRouter(rewardRouter).increaseStakeUnlockTime(
+                block.timestamp + VEMUX_MAXTIME
+            );
         }
     }
 
@@ -168,12 +180,14 @@ contract PendleMlpSY is SYBaseWithRewards {
         IMUXRewardRouter(rewardRouter).depositToVeVester(amountToVest);
     }
 
-    function claimVestedRewards(address receiver) external onlyOwner {
-        uint256 amountClaimed = IMUXRewardRouter(rewardRouter).claimVestedTokenFromVe(
-            address(this)
-        );
+    function claimVestedRewards(
+        address receiver
+    ) external onlyOwner returns (uint256 amountClaimed) {
+        IMUXRewardRouter(rewardRouter).claimVestedTokenFromVe(address(this));
+
+        address mcb = IMUXRewardRouter(rewardRouter).mcb();
+        amountClaimed = _selfBalance(mcb);
         if (amountClaimed != 0) {
-            address mcb = IMUXRewardRouter(rewardRouter).mcb();
             _transferOut(mcb, receiver, amountClaimed);
         }
     }
