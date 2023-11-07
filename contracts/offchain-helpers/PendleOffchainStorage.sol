@@ -8,6 +8,8 @@ import "../interfaces/IPOffchainStorage.sol";
 contract PendleOffchainStorage is IPOffchainStorage, UUPSUpgradeable, AccessControlUpgradeable {
     bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
 
+    constructor() initializer {}
+
     modifier onlyMaintainer() {
         require(isMaintainer(msg.sender), "not maintainer");
         _;
@@ -37,6 +39,7 @@ contract PendleOffchainStorage is IPOffchainStorage, UUPSUpgradeable, AccessCont
 
     function _setStorage(bytes32 key, bytes memory value) internal {
         _storage[key] = value;
+        emit SetStorage(key, value);
     }
 
     // TODO: update more getSomething functions later when theres a need

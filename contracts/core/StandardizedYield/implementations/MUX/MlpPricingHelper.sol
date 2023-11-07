@@ -8,9 +8,9 @@ import "../../../../interfaces/IPOffchainStorage.sol";
 
 contract MlpPricingHelper is BoringOwnableUpgradeable, UUPSUpgradeable, IPPriceFeed {
     address public immutable pendleStorage; 
-    bytes32 constant KEY = keccak256("MLP.price");
+    bytes32 public constant KEY = keccak256("MLP.price");
 
-    constructor(address _pendleStorage) {
+    constructor(address _pendleStorage) initializer {
         pendleStorage = _pendleStorage;
     }
 
