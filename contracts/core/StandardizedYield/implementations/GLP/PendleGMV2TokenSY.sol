@@ -1,24 +1,30 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.17;
 
+import "../../../../interfaces/IPPriceFeed.sol";
 import "../../SYBaseWithRewards.sol";
 import "../../../libraries/ArrayLib.sol";
+import "./GMTokenPricingHelper.sol";
 
-contract PendleGMV2TokenSY is SYBaseWithRewards {
+contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
     using ArrayLib for address[];
 
     address public immutable gm;
     address public immutable arb;
+    address public immutable pricingHelper;
 
     constructor(
         string memory _name,
         string memory _symbol,
         address _gm,
-        address _arb
+        address _arb,
+        address _pricingHelper
     ) SYBaseWithRewards(_name, _symbol, _gm) {
         gm = _gm;
         arb = _arb;
+        pricingHelper = _pricingHelper;
     }
+
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
@@ -106,5 +112,9 @@ contract PendleGMV2TokenSY is SYBaseWithRewards {
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.LIQUIDITY, gm, IERC20Metadata(gm).decimals());
+    }
+
+    function getPrice() external view returns (uint256) {
+        return GMTokenPricingHelper(pricingHelper).getPrice(gm);
     }
 }
