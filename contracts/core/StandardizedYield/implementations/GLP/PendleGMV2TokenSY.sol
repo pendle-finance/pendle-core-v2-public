@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 import "../../../../interfaces/IPPriceFeed.sol";
+import "../../../../interfaces/IPLinearDistributor.sol";
 import "../../SYBaseWithRewards.sol";
 import "../../../libraries/ArrayLib.sol";
 import "./GMTokenPricingHelper.sol";
@@ -11,6 +12,7 @@ contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
 
     address public immutable gm;
     address public immutable arb;
+    address public immutable linearDistributor;
     address public immutable pricingHelper;
 
     constructor(
@@ -18,11 +20,15 @@ contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
         string memory _symbol,
         address _gm,
         address _arb,
+        address _linearDistributor,
         address _pricingHelper
     ) SYBaseWithRewards(_name, _symbol, _gm) {
         gm = _gm;
         arb = _arb;
+        linearDistributor = _linearDistributor;
         pricingHelper = _pricingHelper;
+
+        _safeApproveInf(_arb, _linearDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -70,7 +76,14 @@ contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
         return ArrayLib.create(arb);
     }
 
-    function _redeemExternalReward() internal override {}
+    function _redeemExternalReward() internal override {
+        uint256 amountToVest = _selfBalance(arb) - rewardState[arb].lastBalance;
+        if (amountToVest > 0) {
+            IPLinearDistributor(linearDistributor).vestAndClaim(arb, amountToVest, 1 weeks);
+        } else {
+            IPLinearDistributor(linearDistributor).claim(arb);
+        }
+    }
 
     /*///////////////////////////////////////////////////////////////
                     MISC FUNCTIONS FOR METADATA
