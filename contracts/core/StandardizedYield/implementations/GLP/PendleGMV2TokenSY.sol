@@ -79,7 +79,7 @@ contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
     function _redeemExternalReward() internal override {
         uint256 amountToVest = _selfBalance(arb) - rewardState[arb].lastBalance;
         if (amountToVest > 0) {
-            IPLinearDistributor(linearDistributor).vestAndClaim(arb, amountToVest, 1 weeks);
+            IPLinearDistributor(linearDistributor).queueVestAndClaim(arb, amountToVest);
         } else {
             IPLinearDistributor(linearDistributor).claim(arb);
         }

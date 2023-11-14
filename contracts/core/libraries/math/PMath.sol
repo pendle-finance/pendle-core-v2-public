@@ -145,6 +145,12 @@ library PMath {
         return uint32(x);
     }
 
+    function Uint64(uint256 x) internal pure returns (uint64) {
+        require(x <= type(uint64).max);
+        return uint64(x);
+    }
+
+
     function Uint112(uint256 x) internal pure returns (uint112) {
         require(x <= type(uint112).max);
         return uint112(x);
