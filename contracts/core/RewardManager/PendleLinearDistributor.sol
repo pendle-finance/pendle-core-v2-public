@@ -15,6 +15,7 @@ contract PendleLinearDistributor is
     IPLinearDistributor
 {
     using PMath for uint128;
+    using PMath for uint192;
     using PMath for uint256;
 
     bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
@@ -96,6 +97,10 @@ contract PendleLinearDistributor is
         DistributionData memory data = _updateRewardView(token, addr);
 
         uint256 amountVesting = data.unvestedReward;
+        if (amountVesting == 0) {
+            return;
+        }
+
         uint256 leftOver = data.rewardPerSec.mulDown(
             (data.endTime - PMath.min(block.timestamp, data.endTime))
         );
@@ -103,7 +108,7 @@ contract PendleLinearDistributor is
 
         data.unvestedReward = 0;
         data.endTime = (block.timestamp + duration).Uint32();
-        data.rewardPerSec = undistrbutedReward.divDown(duration).Uint128();
+        data.rewardPerSec = undistrbutedReward.divDown(duration).Uint192();
         distributionDatas[token][addr] = data;
 
         emit Vested(token, addr, amountVesting, duration);

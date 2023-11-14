@@ -9,7 +9,8 @@ interface IPLinearDistributor {
     struct DistributionData {
         uint128 accruedReward;
         uint128 unvestedReward;
-        uint128 rewardPerSec;
+        // [irregular uint192] reward tokens might be up to 1e18 decimals, at 1e18 based, the reward per sec might be very close to 1e38 limit of uint128
+        uint192 rewardPerSec;
         uint32 lastDistributedTime;
         uint32 endTime;
     }
@@ -19,7 +20,5 @@ interface IPLinearDistributor {
         uint256 amountToVest
     ) external returns (uint256 amountOut);
 
-    function claim(
-        address token
-    ) external returns (uint256 amountOut);
+    function claim(address token) external returns (uint256 amountOut);
 }
