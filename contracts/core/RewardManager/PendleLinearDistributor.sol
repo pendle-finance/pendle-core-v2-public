@@ -10,7 +10,6 @@ import "../../interfaces/IPLinearDistributor.sol";
 
 contract PendleLinearDistributor is
     UUPSUpgradeable,
-    BoringOwnableUpgradeable,
     AccessControlUpgradeable,
     TokenHelper,
     IPLinearDistributor
@@ -24,6 +23,10 @@ contract PendleLinearDistributor is
 
     // [token, addr] => distribution
     mapping(address => mapping(address => DistributionData)) public distributionDatas;
+
+    constructor() {
+        _disableInitializers();
+    }
 
     modifier onlyWhitelisted() {
         require(isWhitelisted[msg.sender], "not whitelisted");
@@ -39,7 +42,10 @@ contract PendleLinearDistributor is
         _;
     }
 
-    constructor() initializer {}
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "not admin");
+        _;
+    }
 
     // ----------------- core-logic ----------------------
 
@@ -95,7 +101,7 @@ contract PendleLinearDistributor is
         );
         uint256 undistrbutedReward = amountVesting + leftOver;
 
-        data.unvestedReward = 0;       
+        data.unvestedReward = 0;
         data.endTime = (block.timestamp + duration).Uint32();
         data.rewardPerSec = undistrbutedReward.divDown(duration).Uint128();
         distributionDatas[token][addr] = data;
@@ -131,15 +137,15 @@ contract PendleLinearDistributor is
 
     // ----------------- governance-related --------------
 
-    function setWhitelisted(address addr, bool status) external onlyOwner {
+    function setWhitelisted(address addr, bool status) external onlyAdmin {
         isWhitelisted[addr] = status;
     }
 
     function initialize() external initializer {
-        __BoringOwnable_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // ----------------- upgrade-related -----------------
 
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    function _authorizeUpgrade(address) internal override onlyAdmin {}
 }
