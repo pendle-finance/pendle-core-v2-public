@@ -174,16 +174,16 @@ contract PendleYieldTokenV2 is
         bool redeemRewards
     ) external nonReentrant updateData returns (uint256 interestOut, uint256[] memory rewardsOut) {
         if (!redeemInterest && !redeemRewards) revert Errors.YCNothingToRedeem();
+        _updateAndDistributeInterest(user);
+        _updateAndDistributeRewards(user);
 
         if (redeemInterest) {
-            _updateAndDistributeInterest(user);
             interestOut = _doTransferOutInterest(user, SY);
             emit RedeemInterest(user, interestOut);
         } else {
             interestOut = 0;
         }
 
-        _updateAndDistributeRewards(user);
         if (redeemRewards) {
             rewardsOut = _doTransferOutRewards(user, user);
             emit RedeemRewards(user, rewardsOut);
