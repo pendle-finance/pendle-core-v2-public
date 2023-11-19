@@ -16,7 +16,7 @@ library PendlePtOracleLib {
      */
     function getPtToAssetRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
-        return (getPtToAssetRateRaw(market,duration) * syIndex) / pyIndex;
+        return (getPtToAssetRateRaw(market, duration) * syIndex) / pyIndex;
     }
 
     function getPtToAssetRateRaw(IPMarket market, uint32 duration) internal view returns (uint256) {
@@ -27,17 +27,12 @@ library PendlePtOracleLib {
         } else {
             uint256 lnImpliedRate = _getMarketLnImpliedRate(market, duration);
             uint256 timeToExpiry = expiry - block.timestamp;
-            uint256 assetToPtRate =
-                MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry).Uint();
+            uint256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry).Uint();
             return PMath.ONE.divDown(assetToPtRate);
         }
     }
 
-    function getSYandPYIndexCurrent(IPMarket market)
-        internal
-        view
-        returns (uint256 syIndex, uint256 pyIndex)
-    {
+    function getSYandPYIndexCurrent(IPMarket market) internal view returns (uint256 syIndex, uint256 pyIndex) {
         (IStandardizedYield SY, , IPYieldToken YT) = market.readTokens();
 
         syIndex = SY.exchangeRate();
@@ -50,11 +45,7 @@ library PendlePtOracleLib {
         }
     }
 
-    function _getMarketLnImpliedRate(IPMarket market, uint32 duration)
-        private
-        view
-        returns (uint256)
-    {
+    function _getMarketLnImpliedRate(IPMarket market, uint32 duration) private view returns (uint256) {
         uint32[] memory durations = new uint32[](2);
         durations[0] = duration;
 

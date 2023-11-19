@@ -25,11 +25,12 @@ contract PendleRouterHelper2 is TokenHelper {
      *  generated for the main Router, except that input.tokenIn & swapData should be generated
      *  for tokenIn == WETH instead of ETH
      */
-    function mintSyFromToken(address receiver, address SY, uint256 minSyOut, TokenInput calldata input)
-        external
-        payable
-        returns (uint256 netSyOut)
-    {
+    function mintSyFromToken(
+        address receiver,
+        address SY,
+        uint256 minSyOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netSyOut) {
         require(input.tokenIn == WETH);
 
         _transferIn(NATIVE, msg.sender, input.netTokenIn);

@@ -24,11 +24,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * on inheriting contracts
  */
 
-abstract contract PendleGaugeControllerBaseUpg is
-    IPGaugeController,
-    BoringOwnableUpgradeable,
-    UUPSUpgradeable
-{
+abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
     using PMath for uint256;
 
@@ -88,19 +84,14 @@ abstract contract PendleGaugeControllerBaseUpg is
      * @notice receive voting results from VotingController. Only the first message for a timestamp
      * will be accepted, all subsequent messages will be ignored
      */
-    function _receiveVotingResults(
-        uint128 wTime,
-        address[] memory markets,
-        uint256[] memory pendleAmounts
-    ) internal {
+    function _receiveVotingResults(uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) internal {
         if (markets.length != pendleAmounts.length) revert Errors.ArrayLengthMismatch();
 
         if (epochRewardReceived[wTime]) return; // only accept the first message for the wTime
         epochRewardReceived[wTime] = true;
 
         for (uint256 i = 0; i < markets.length; ++i) {
-            if (!IPMarket(markets[i]).isExpired())
-                _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
+            if (!IPMarket(markets[i]).isExpired()) _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
         }
 
         emit ReceiveVotingResults(wTime, markets, pendleAmounts);
@@ -132,9 +123,7 @@ abstract contract PendleGaugeControllerBaseUpg is
      * Pendle distributed to the accumulatedPendle
      * @dev expect to update accumulatedPendle & lastUpdated in MarketRewardData
      */
-    function _getUpdatedMarketReward(
-        address market
-    ) internal view returns (MarketRewardData memory) {
+    function _getUpdatedMarketReward(address market) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market];
         uint128 newLastUpdated = uint128(PMath.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedPendle += rwd.pendlePerSec * (newLastUpdated - rwd.lastUpdated);

@@ -76,8 +76,7 @@ abstract contract GLPPreviewHelper {
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private pure returns (uint256) {
-        uint256 afterFeeAmount = (_amount * (BASIS_POINTS_DIVISOR - _feeBasisPoints)) /
-            (BASIS_POINTS_DIVISOR);
+        uint256 afterFeeAmount = (_amount * (BASIS_POINTS_DIVISOR - _feeBasisPoints)) / (BASIS_POINTS_DIVISOR);
         return afterFeeAmount;
     }
 
@@ -109,9 +108,7 @@ abstract contract GLPPreviewHelper {
         uint256 initialDiff = initialAmount > targetAmount
             ? initialAmount - targetAmount
             : targetAmount - initialAmount;
-        uint256 nextDiff = nextAmount > targetAmount
-            ? nextAmount - targetAmount
-            : targetAmount - nextAmount;
+        uint256 nextDiff = nextAmount > targetAmount ? nextAmount - targetAmount : targetAmount - nextAmount;
 
         // action improves relative asset balance
         if (nextDiff < initialDiff) {
@@ -127,10 +124,7 @@ abstract contract GLPPreviewHelper {
         return _feeBasisPoints + taxBps;
     }
 
-    function __getTargetUsdgAmount(
-        address _token,
-        uint256 _burnedUsdg
-    ) private view returns (uint256) {
+    function __getTargetUsdgAmount(address _token, uint256 _burnedUsdg) private view returns (uint256) {
         uint256 supply = IERC20(usdg).totalSupply() - _burnedUsdg;
         if (supply == 0) {
             return 0;

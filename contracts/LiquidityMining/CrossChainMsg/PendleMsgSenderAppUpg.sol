@@ -38,20 +38,11 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         uint256 estimatedGasAmount = approxDstExecutionGas;
         uint256 fee = pendleMsgSendEndpoint.calcFee(toAddr, chainId, message, estimatedGasAmount);
         // LM contracts won't hold ETH on its own so this is fine
-        if (address(this).balance < fee)
-            revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
-        pendleMsgSendEndpoint.sendMessage{ value: fee }(
-            toAddr,
-            chainId,
-            message,
-            estimatedGasAmount
-        );
+        if (address(this).balance < fee) revert Errors.InsufficientFeeToSendMsg(address(this).balance, fee);
+        pendleMsgSendEndpoint.sendMessage{value: fee}(toAddr, chainId, message, estimatedGasAmount);
     }
 
-    function addDestinationContract(
-        address _address,
-        uint256 _chainId
-    ) external payable onlyOwner {
+    function addDestinationContract(address _address, uint256 _chainId) external payable onlyOwner {
         destinationContracts.set(_chainId, _address);
     }
 
@@ -59,11 +50,7 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         approxDstExecutionGas = gas;
     }
 
-    function getAllDestinationContracts()
-        public
-        view
-        returns (uint256[] memory chainIds, address[] memory addrs)
-    {
+    function getAllDestinationContracts() public view returns (uint256[] memory chainIds, address[] memory addrs) {
         uint256 length = destinationContracts.length();
         chainIds = new uint256[](length);
         addrs = new address[](length);
@@ -73,16 +60,8 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
         }
     }
 
-    function _getSendMessageFee(
-        uint256 chainId,
-        bytes memory message
-    ) internal view returns (uint256) {
+    function _getSendMessageFee(uint256 chainId, bytes memory message) internal view returns (uint256) {
         return
-            pendleMsgSendEndpoint.calcFee(
-                destinationContracts.get(chainId),
-                chainId,
-                message,
-                approxDstExecutionGas
-            );
+            pendleMsgSendEndpoint.calcFee(destinationContracts.get(chainId), chainId, message, approxDstExecutionGas);
     }
 }

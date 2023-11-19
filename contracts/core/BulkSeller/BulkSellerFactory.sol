@@ -12,13 +12,7 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPBulkSellerFactory.sol";
 import "../libraries/Errors.sol";
 
-contract BulkSellerFactory is
-    IBeacon,
-    IPBulkSellerFactory,
-    Initializable,
-    AccessControlUpgradeable,
-    UUPSUpgradeable
-{
+contract BulkSellerFactory is IBeacon, IPBulkSellerFactory, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant MAINTAINER = keccak256("MAINTAINER");
 
     address public implementation;
@@ -37,22 +31,14 @@ contract BulkSellerFactory is
         upgradeBeacon(implementation_);
     }
 
-    function createBulkSeller(
-        address token,
-        address SY
-    ) external onlyMaintainer returns (address bulk) {
+    function createBulkSeller(address token, address SY) external onlyMaintainer returns (address bulk) {
         IStandardizedYield _SY = IStandardizedYield(SY);
         if (syToBulkSeller[token][SY] != address(0))
             revert Errors.BulkSellerAlreadyExisted(token, SY, syToBulkSeller[token][SY]);
         if (_SY.isValidTokenIn(token) == false || _SY.isValidTokenOut(token) == false)
             revert Errors.BulkSellerInvalidToken(token, SY);
 
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address)",
-            token,
-            SY,
-            address(this)
-        );
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address)", token, SY, address(this));
 
         bulk = address(new BeaconProxy(address(this), data));
 

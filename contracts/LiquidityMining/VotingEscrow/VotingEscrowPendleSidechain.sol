@@ -9,11 +9,7 @@ import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
-contract VotingEscrowPendleSidechain is
-    VotingEscrowTokenBase,
-    PendleMsgReceiverAppUpg,
-    BoringOwnableUpgradeable
-{
+contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg, BoringOwnableUpgradeable {
     uint256 public lastTotalSupplyReceivedAt;
 
     mapping(address => address) internal delegatorOf;
@@ -59,10 +55,7 @@ contract VotingEscrowPendleSidechain is
     }
 
     function _setNewUserPosition(bytes memory userData) internal {
-        (address userAddr, LockedPosition memory position) = abi.decode(
-            userData,
-            (address, LockedPosition)
-        );
+        (address userAddr, LockedPosition memory position) = abi.decode(userData, (address, LockedPosition));
         positionData[userAddr] = position;
         emit SetNewUserPosition(position);
     }

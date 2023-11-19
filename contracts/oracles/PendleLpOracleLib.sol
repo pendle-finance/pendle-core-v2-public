@@ -28,10 +28,7 @@ library PendleLpOracleLib {
     ) private view returns (uint256 lpToAssetRateRaw) {
         MarketState memory state = market.readState(address(0));
 
-        MarketPreCompute memory comp = state.getMarketPreCompute(
-            PYIndex.wrap(pyIndex),
-            block.timestamp
-        );
+        MarketPreCompute memory comp = state.getMarketPreCompute(PYIndex.wrap(pyIndex), block.timestamp);
 
         int256 totalHypotheticalAsset;
         if (state.expiry <= block.timestamp) {
@@ -39,9 +36,7 @@ library PendleLpOracleLib {
             totalHypotheticalAsset = state.totalPt + comp.totalAsset;
         } else {
             (int256 rateOracle, int256 rateHypTrade) = _getPtRatesRaw(market, state, duration);
-            int256 cParam = LogExpMath.exp(
-                comp.rateScalar.mulDown((rateOracle - comp.rateAnchor))
-            );
+            int256 cParam = LogExpMath.exp(comp.rateScalar.mulDown((rateOracle - comp.rateAnchor)));
 
             int256 tradeSize = (cParam.mulDown(comp.totalAsset) - state.totalPt).divDown(
                 PMath.IONE + cParam.divDown(rateHypTrade)

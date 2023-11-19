@@ -215,12 +215,7 @@ library BaseSplitCodeFactory {
                 // Next, we concatenate the creation code stored in A and B.
                 let dataStart := add(code, 32)
                 extcodecopy(creationCodeContractA, dataStart, 0, creationCodeSizeA)
-                extcodecopy(
-                    creationCodeContractB,
-                    add(dataStart, creationCodeSizeA),
-                    0,
-                    creationCodeSizeB
-                )
+                extcodecopy(creationCodeContractB, add(dataStart, creationCodeSizeA), 0, creationCodeSizeB)
             }
 
             // Finally, we copy the constructorArgs to the end of the array. Unfortunately there is no way to avoid this

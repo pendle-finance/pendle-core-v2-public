@@ -16,15 +16,7 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
     constructor(
         string memory _name,
         string memory _symbol
-    )
-        PendleConvexLPSY(
-            _name,
-            _symbol,
-            PID,
-            CurveFraxUsdcPoolHelper.LP,
-            CurveFraxUsdcPoolHelper.POOL
-        )
-    {
+    ) PendleConvexLPSY(_name, _symbol, PID, CurveFraxUsdcPoolHelper.LP, CurveFraxUsdcPoolHelper.POOL) {
         _safeApproveInf(FRAX, crvPool);
         _safeApproveInf(USDC, crvPool);
     }
@@ -60,11 +52,7 @@ contract PendleCurveFraxUsdcSY is PendleConvexLPSY {
         address tokenOut,
         uint256 amountLpToRedeem
     ) internal view virtual override returns (uint256) {
-        return
-            ICrvPool(crvPool).calc_withdraw_one_coin(
-                amountLpToRedeem,
-                PMath.Int128(_getIndex(tokenOut))
-            );
+        return ICrvPool(crvPool).calc_withdraw_one_coin(amountLpToRedeem, PMath.Int128(_getIndex(tokenOut)));
     }
 
     function _getIndex(address token) internal pure returns (uint256) {

@@ -59,10 +59,7 @@ library CurveFraxUsdcPoolHelper {
         return (total_supply * (D2 - D0)) / D0;
     }
 
-    function _get_D_mem(
-        uint256[N_COINS] memory balances,
-        uint256 _amp
-    ) internal pure returns (uint256) {
+    function _get_D_mem(uint256[N_COINS] memory balances, uint256 _amp) internal pure returns (uint256) {
         uint256[N_COINS] memory _xp;
         _xp[0] = (RATE_0 * balances[0]) / PRECISION;
         _xp[1] = (RATE_1 * balances[1]) / PRECISION;
@@ -116,10 +113,7 @@ library CurveFraxUsdcPoolHelper {
         }
     }
 
-    function _getTokenAmounts(
-        address token,
-        uint256 amount
-    ) internal pure returns (uint256[N_COINS] memory res) {
+    function _getTokenAmounts(address token, uint256 amount) internal pure returns (uint256[N_COINS] memory res) {
         res[token == FRAX ? 0 : 1] = amount;
     }
 }

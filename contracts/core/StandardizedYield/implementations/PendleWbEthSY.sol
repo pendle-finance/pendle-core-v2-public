@@ -25,10 +25,7 @@ contract PendleWbEthSY is SYBase {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amountDeposited) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == eth) {
             uint256 previousBalance = _selfBalance(wbETH);
             IWBETH(wbETH).deposit(amountDeposited, address(this));
@@ -98,11 +95,7 @@ contract PendleWbEthSY is SYBase {
         return token == wbETH;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, eth, 18);
     }
 }

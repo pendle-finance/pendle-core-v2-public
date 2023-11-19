@@ -102,11 +102,7 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
                         SILO DATA FUNCITONS
     //////////////////////////////////////////////////////////////*/
 
-    function _getSiloInterestData()
-        internal
-        view
-        returns (uint256 totalDeposit, uint256 totalCollateralTokenSupply)
-    {
+    function _getSiloInterestData() internal view returns (uint256 totalDeposit, uint256 totalCollateralTokenSupply) {
         totalDeposit = ISiloLens(siloLens).totalDepositsWithInterest(silo, asset);
         totalCollateralTokenSupply = IERC20(collateralToken).totalSupply();
     }
@@ -155,11 +151,7 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
         return token == asset || token == collateralToken;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, asset, IERC20Metadata(asset).decimals());
     }
 }

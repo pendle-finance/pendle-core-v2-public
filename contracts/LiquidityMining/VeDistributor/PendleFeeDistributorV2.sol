@@ -9,12 +9,7 @@ import "../../core/libraries/TokenHelper.sol";
 import "../../core/libraries/Errors.sol";
 import "../../interfaces/IPFeeDistributorV2.sol";
 
-contract PendleFeeDistributorV2 is
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable,
-    IPFeeDistributorV2,
-    TokenHelper
-{
+contract PendleFeeDistributorV2 is UUPSUpgradeable, BoringOwnableUpgradeable, IPFeeDistributorV2, TokenHelper {
     bytes32 public merkleRoot;
 
     struct ProtocolData {
@@ -52,10 +47,10 @@ contract PendleFeeDistributorV2 is
         emit Claimed(user, amountOut);
     }
 
-    function claimProtocol(address receiver, address[] calldata pools)
-        external
-        returns (uint256 totalAmountOut, uint256[] memory amountsOut)
-    {
+    function claimProtocol(
+        address receiver,
+        address[] calldata pools
+    ) external returns (uint256 totalAmountOut, uint256[] memory amountsOut) {
         unchecked {
             address user = msg.sender;
 
@@ -81,11 +76,10 @@ contract PendleFeeDistributorV2 is
         }
     }
 
-    function getProtocolClaimables(address user, address[] calldata pools)
-        external
-        view
-        returns (uint256[] memory claimables)
-    {
+    function getProtocolClaimables(
+        address user,
+        address[] calldata pools
+    ) external view returns (uint256[] memory claimables) {
         unchecked {
             uint256 nPools = pools.length;
             claimables = new uint256[](nPools);
@@ -103,21 +97,13 @@ contract PendleFeeDistributorV2 is
         return protocol[user].totalAccrued;
     }
 
-    function _verifyMerkleData(
-        address user,
-        uint256 amount,
-        bytes32[] calldata proof
-    ) internal view returns (bool) {
+    function _verifyMerkleData(address user, uint256 amount, bytes32[] calldata proof) internal view returns (bool) {
         bytes32 leaf = keccak256(abi.encodePacked(user, amount));
         return MerkleProof.verify(proof, merkleRoot, leaf);
     }
 
     // ----------------- owner logic -----------------
-    function setMerkleRootAndFund(bytes32 newMerkleRoot, uint256 amountToFund)
-        external
-        payable
-        onlyOwner
-    {
+    function setMerkleRootAndFund(bytes32 newMerkleRoot, uint256 amountToFund) external payable onlyOwner {
         _transferIn(NATIVE, msg.sender, amountToFund);
         merkleRoot = newMerkleRoot;
         emit SetMerkleRootAndFund(newMerkleRoot, amountToFund);
@@ -134,12 +120,12 @@ contract PendleFeeDistributorV2 is
 
     function updateProtocolClaimable(UpdateProtocolStruct calldata ele) public onlyOwner {
         unchecked {
-            (
-                address user,
-                uint256[] calldata topUps,
-                address[] calldata pools,
-                bytes32[] calldata proof
-            ) = (ele.user, ele.topUps, ele.pools, ele.proof);
+            (address user, uint256[] calldata topUps, address[] calldata pools, bytes32[] calldata proof) = (
+                ele.user,
+                ele.topUps,
+                ele.pools,
+                ele.proof
+            );
 
             uint256 nPools = pools.length;
             if (nPools != topUps.length) revert Errors.ArrayLengthMismatch();
@@ -152,8 +138,7 @@ contract PendleFeeDistributorV2 is
             }
 
             uint256 newTotalAccrued = protocol[user].totalAccrued + sumTopUps;
-            if (!_verifyMerkleData(user, newTotalAccrued, proof))
-                revert Errors.InvalidMerkleProof();
+            if (!_verifyMerkleData(user, newTotalAccrued, proof)) revert Errors.InvalidMerkleProof();
 
             protocol[user].totalAccrued = newTotalAccrued;
             emit UpdateProtocolClaimable(user, sumTopUps);

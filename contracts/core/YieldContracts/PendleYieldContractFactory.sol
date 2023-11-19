@@ -106,8 +106,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
         uint32 expiry,
         bool doCacheIndexSameBlock
     ) external returns (address PT, address YT) {
-        if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0)
-            revert Errors.YCFactoryInvalidExpiry();
+        if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0) revert Errors.YCFactoryInvalidExpiry();
 
         if (getPT[SY][expiry] != address(0)) revert Errors.YCFactoryYieldContractExisted();
 

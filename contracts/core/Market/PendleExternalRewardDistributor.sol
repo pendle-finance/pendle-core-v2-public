@@ -28,8 +28,7 @@ contract PendleExternalRewardDistributor is
 
     modifier onlyValidMarket(address market) {
         require(
-            IPMarketFactory(marketFactory).isValidMarket(market) &&
-                block.timestamp < IPMarket(market).expiry(),
+            IPMarketFactory(marketFactory).isValidMarket(market) && block.timestamp < IPMarket(market).expiry(),
             "invalid market"
         );
         _;
@@ -43,9 +42,7 @@ contract PendleExternalRewardDistributor is
         __BoringOwnable_init();
     }
 
-    function getRewardTokens(
-        address market
-    ) external view returns (address[] memory) {
+    function getRewardTokens(address market) external view returns (address[] memory) {
         return rewardTokens[market];
     }
 
@@ -120,10 +117,7 @@ contract PendleExternalRewardDistributor is
         emit AddRewardToMarket(market, token, rewardData[market][token]);
     }
 
-    function _getUpdatedMarketReward(
-        address market,
-        address token
-    ) internal view returns (MarketRewardData memory) {
+    function _getUpdatedMarketReward(address market, address token) internal view returns (MarketRewardData memory) {
         MarketRewardData memory rwd = rewardData[market][token];
         uint128 newLastUpdated = uint128(PMath.min(uint128(block.timestamp), rwd.incentiveEndsAt));
         rwd.accumulatedReward += rwd.rewardPerSec * (newLastUpdated - rwd.lastUpdated);

@@ -23,10 +23,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
         bool isUnderlyingNative,
         address _WAVAX,
         uint256 _initialExchangeRateMantissa
-    )
-        SYBaseWithRewards(_name, _symbol, _qiToken)
-        PendleQiTokenHelper(_qiToken, _initialExchangeRateMantissa)
-    {
+    ) SYBaseWithRewards(_name, _symbol, _qiToken) PendleQiTokenHelper(_qiToken, _initialExchangeRateMantissa) {
         qiToken = _qiToken;
 
         underlying = isUnderlyingNative ? NATIVE : IQiErc20(qiToken).underlying();
@@ -50,10 +47,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
      *
      * The exchange rate of qiToken to shares is 1:1
      */
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == qiToken) {
             amountSharesOut = amount;
         } else {
@@ -61,7 +55,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
             uint256 preBalanceQiToken = _selfBalance(qiToken);
 
             if (underlying == NATIVE) {
-                IQiAvax(qiToken).mint{ value: amount }();
+                IQiAvax(qiToken).mint{value: amount}();
             } else {
                 uint256 errCode = IQiErc20(qiToken).mint(amount);
                 if (errCode != 0) revert Errors.SYQiTokenMintFailed(errCode);
@@ -135,19 +129,13 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
         IBenQiComptroller(comptroller).claimReward(0, holders, qiTokens, false, true);
         IBenQiComptroller(comptroller).claimReward(1, holders, qiTokens, false, true);
 
-        uint256 rewardAccruedType0 = IBenQiComptroller(comptroller).rewardAccrued(
-            0,
-            address(this)
-        );
-        uint256 rewardAccruedType1 = IBenQiComptroller(comptroller).rewardAccrued(
-            1,
-            address(this)
-        );
+        uint256 rewardAccruedType0 = IBenQiComptroller(comptroller).rewardAccrued(0, address(this));
+        uint256 rewardAccruedType1 = IBenQiComptroller(comptroller).rewardAccrued(1, address(this));
 
         if (rewardAccruedType0 > 0 || rewardAccruedType1 > 0)
             revert Errors.SYQiTokenRedeemRewardsFailed(rewardAccruedType0, rewardAccruedType1);
 
-        if (address(this).balance != 0) IWETH(WAVAX).deposit{ value: address(this).balance }();
+        if (address(this).balance != 0) IWETH(WAVAX).deposit{value: address(this).balance}();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -190,15 +178,7 @@ contract PendleQiTokenSY is SYBaseWithRewards, PendleQiTokenHelper {
         return token == qiToken || token == underlying;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
-        return (
-            AssetType.TOKEN,
-            underlying,
-            underlying == NATIVE ? 18 : IERC20Metadata(underlying).decimals()
-        );
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
+        return (AssetType.TOKEN, underlying, underlying == NATIVE ? 18 : IERC20Metadata(underlying).decimals());
     }
 }

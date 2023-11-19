@@ -25,10 +25,7 @@ library CurveUsdd3CrvPoolHelper {
         balances[1] = ICrvPool(POOL).balances(1);
     }
 
-    function _getTokenAmounts(
-        address token,
-        uint256 amount
-    ) internal pure returns (uint256[N_COINS] memory res) {
+    function _getTokenAmounts(address token, uint256 amount) internal pure returns (uint256[N_COINS] memory res) {
         res[token == USDD ? 0 : 1] = amount;
     }
 
@@ -138,9 +135,7 @@ library CurveUsdd3CrvPoolHelper {
         assert(false);
     }
 
-    function arrayClone(
-        uint256[N_COINS] memory a
-    ) internal pure returns (uint256[N_COINS] memory res) {
+    function arrayClone(uint256[N_COINS] memory a) internal pure returns (uint256[N_COINS] memory res) {
         for (uint256 i = 0; i < N_COINS; ++i) {
             res[i] = a[i];
         }

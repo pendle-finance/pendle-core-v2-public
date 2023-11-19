@@ -71,17 +71,11 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
      * @notice Create a market between PT and its corresponding SY with scalar & anchor config.
      * Anyone is allowed to create a market on their own.
      */
-    function createNewMarket(
-        address PT,
-        int256 scalarRoot,
-        int256 initialAnchor
-    ) external returns (address market) {
-        if (!IPYieldContractFactory(yieldContractFactory).isPT(PT))
-            revert Errors.MarketFactoryInvalidPt();
+    function createNewMarket(address PT, int256 scalarRoot, int256 initialAnchor) external returns (address market) {
+        if (!IPYieldContractFactory(yieldContractFactory).isPT(PT)) revert Errors.MarketFactoryInvalidPt();
         if (IPPrincipalToken(PT).isExpired()) revert Errors.MarketFactoryExpiredPt();
 
-        if (markets[PT][scalarRoot][initialAnchor] != address(0))
-            revert Errors.MarketFactoryMarketExists();
+        if (markets[PT][scalarRoot][initialAnchor] != address(0)) revert Errors.MarketFactoryMarketExists();
 
         if (initialAnchor < minInitialAnchor)
             revert Errors.MarketFactoryInitialAnchorTooLow(initialAnchor, minInitialAnchor);
@@ -136,11 +130,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         _emitNewMarketConfigEvent();
     }
 
-    function setOverriddenFee(
-        address router,
-        uint80 newLnFeeRateRoot,
-        uint8 newReserveFeePercent
-    ) public onlyOwner {
+    function setOverriddenFee(address router, uint80 newLnFeeRateRoot, uint8 newReserveFeePercent) public onlyOwner {
         _verifyFeeConfig(newLnFeeRateRoot, newReserveFeePercent);
         overriddenFee[router] = FeeConfig(newLnFeeRateRoot, newReserveFeePercent, true);
         emit SetOverriddenFee(router, newLnFeeRateRoot, newReserveFeePercent);
@@ -155,10 +145,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         if (newLnFeeRateRoot > maxLnFeeRateRoot)
             revert Errors.MarketFactoryLnFeeRateRootTooHigh(newLnFeeRateRoot, maxLnFeeRateRoot);
         if (newReserveFeePercent > maxReserveFeePercent)
-            revert Errors.MarketFactoryReserveFeePercentTooHigh(
-                newReserveFeePercent,
-                maxReserveFeePercent
-            );
+            revert Errors.MarketFactoryReserveFeePercentTooHigh(newReserveFeePercent, maxReserveFeePercent);
     }
 
     function _emitNewMarketConfigEvent() internal {

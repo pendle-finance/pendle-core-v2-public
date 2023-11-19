@@ -11,17 +11,9 @@ interface IXGrail is IERC20 {
 
     function usageAllocations(address user, address usage) external view returns (uint256);
 
-    function allocate(
-        address usageAddress,
-        uint256 amount,
-        bytes calldata usageData
-    ) external;
+    function allocate(address usageAddress, uint256 amount, bytes calldata usageData) external;
 
-    function deallocate(
-        address usageAddress,
-        uint256 amount,
-        bytes calldata usageData
-    ) external;
+    function deallocate(address usageAddress, uint256 amount, bytes calldata usageData) external;
 
     function redeem(uint256 xGrailAmount, uint256 duration) external;
 

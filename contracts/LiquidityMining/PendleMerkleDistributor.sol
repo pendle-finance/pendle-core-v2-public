@@ -8,12 +8,7 @@ import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IPMerkleDistributor.sol";
 
-contract PendleMerkleDistributor is
-    IPMerkleDistributor,
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable,
-    TokenHelper
-{
+contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, BoringOwnableUpgradeable, TokenHelper {
     address public immutable token;
 
     bytes32 public merkleRoot;
@@ -74,11 +69,7 @@ contract PendleMerkleDistributor is
         emit Verified(user, amountClaimable);
     }
 
-    function _verifyMerkleData(
-        address user,
-        uint256 amount,
-        bytes32[] calldata proof
-    ) internal view returns (bool) {
+    function _verifyMerkleData(address user, uint256 amount, bytes32[] calldata proof) internal view returns (bool) {
         bytes32 leaf = keccak256(abi.encodePacked(user, amount));
         return MerkleProof.verify(proof, merkleRoot, leaf);
     }

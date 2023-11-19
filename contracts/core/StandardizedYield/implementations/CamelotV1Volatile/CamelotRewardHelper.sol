@@ -103,9 +103,7 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         return true;
     }
 
-    function _increaseNftPoolPosition(
-        uint256 amountLp
-    ) internal returns (uint256 amountLpAccountedForUser) {
+    function _increaseNftPoolPosition(uint256 amountLp) internal returns (uint256 amountLpAccountedForUser) {
         // first time minting from this contract
         if (positionId == POSITION_UNINITIALIZED) {
             positionId = ICamelotNFTPool(nftPool).lastTokenId() + 1;
@@ -175,11 +173,7 @@ contract CamelotRewardHelper is TokenHelper, ICamelotNFTHandler {
         return true;
     }
 
-    function onNFTWithdraw(
-        address,
-        uint256 tokenId,
-        uint256
-    ) external view ensureValidTokenId(tokenId) returns (bool) {
+    function onNFTWithdraw(address, uint256 tokenId, uint256) external view ensureValidTokenId(tokenId) returns (bool) {
         return true;
     }
 }

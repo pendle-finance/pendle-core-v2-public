@@ -42,17 +42,11 @@ interface ICamelotNitroPoolFactory {
 
     function getExemptedAddress(uint256 index) external view returns (address);
 
-    function getNftPoolPublishedNitroPool(address nftPoolAddress, uint256 index)
-        external
-        view
-        returns (address);
+    function getNftPoolPublishedNitroPool(address nftPoolAddress, uint256 index) external view returns (address);
 
     function getNitroPool(uint256 index) external view returns (address);
 
-    function getNitroPoolFee(address nitroPoolAddress, address ownerAddress)
-        external
-        view
-        returns (uint256);
+    function getNitroPoolFee(address nitroPoolAddress, address ownerAddress) external view returns (uint256);
 
     function getOwnerNitroPool(address userAddress, uint256 index) external view returns (address);
 
@@ -62,10 +56,7 @@ interface ICamelotNitroPoolFactory {
 
     function isExemptedAddress(address checkedAddress) external view returns (bool);
 
-    function nftPoolPublishedNitroPoolsLength(address nftPoolAddress)
-        external
-        view
-        returns (uint256);
+    function nftPoolPublishedNitroPoolsLength(address nftPoolAddress) external view returns (uint256);
 
     function nitroPoolsLength() external view returns (uint256);
 

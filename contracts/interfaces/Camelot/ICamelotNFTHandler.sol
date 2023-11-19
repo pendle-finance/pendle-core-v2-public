@@ -12,15 +12,7 @@ interface ICamelotNFTHandler is IERC721Receiver {
         uint256 xGrailAmount
     ) external returns (bool);
 
-    function onNFTAddToPosition(
-        address operator,
-        uint256 tokenId,
-        uint256 lpAmount
-    ) external returns (bool);
+    function onNFTAddToPosition(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool);
 
-    function onNFTWithdraw(
-        address operator,
-        uint256 tokenId,
-        uint256 lpAmount
-    ) external returns (bool);
+    function onNFTWithdraw(address operator, uint256 tokenId, uint256 lpAmount) external returns (bool);
 }

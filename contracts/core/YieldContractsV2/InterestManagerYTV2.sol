@@ -44,27 +44,18 @@ abstract contract InterestManagerYTV2 is TokenHelper, IPInterestManagerYTV2 {
     function _updateAndDistributeInterestForTwo(address user1, address user2) internal virtual {
         (uint256 index, uint256 pyIndex) = _updateInterestIndex();
 
-        if (user1 != address(0) && user1 != address(this))
-            _distributeInterestPrivate(user1, index, pyIndex);
-        if (user2 != address(0) && user2 != address(this))
-            _distributeInterestPrivate(user2, index, pyIndex);
+        if (user1 != address(0) && user1 != address(this)) _distributeInterestPrivate(user1, index, pyIndex);
+        if (user2 != address(0) && user2 != address(this)) _distributeInterestPrivate(user2, index, pyIndex);
     }
 
-    function _doTransferOutInterest(
-        address user,
-        address SY
-    ) internal returns (uint256 interestAmount) {
+    function _doTransferOutInterest(address user, address SY) internal returns (uint256 interestAmount) {
         interestAmount = userInterest[user].accrued;
         userInterest[user].accrued = 0;
         _transferOut(SY, user, interestAmount);
     }
 
     // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)
-    function _distributeInterestPrivate(
-        address user,
-        uint256 currentIndex,
-        uint256 pyIndex
-    ) private {
+    function _distributeInterestPrivate(address user, uint256 currentIndex, uint256 pyIndex) private {
         assert(user != address(0) && user != address(this));
 
         uint256 prevIndex = userInterest[user].index;

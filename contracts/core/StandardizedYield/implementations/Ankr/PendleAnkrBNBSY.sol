@@ -39,7 +39,7 @@ contract PendleAnkrBNBSY is SYBase {
     ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
             uint256 preBalance = _selfBalance(ankrBNB);
-            IAnkrLiquidStaking(ankrLiquidStaking).stakeCerts{ value: amountDeposited }();
+            IAnkrLiquidStaking(ankrLiquidStaking).stakeCerts{value: amountDeposited}();
             amountSharesOut = _selfBalance(ankrBNB) - preBalance;
         } else {
             amountSharesOut = amountDeposited;
@@ -100,11 +100,7 @@ contract PendleAnkrBNBSY is SYBase {
             amountTokenOut = amountSharesToRedeem;
         } else {
             uint256 amountBondToRedeem = IAnkrBNB(ankrBNB).sharesToBonds(amountSharesToRedeem);
-            (
-                uint256 minUnstakeAmount,
-                uint256 unstakeCapacity,
-                uint256 unstakeFee
-            ) = _getAnkrRedeemInfo();
+            (uint256 minUnstakeAmount, uint256 unstakeCapacity, uint256 unstakeFee) = _getAnkrRedeemInfo();
 
             if (amountBondToRedeem < minUnstakeAmount) {
                 revert MinimumRedeemAmountNotReached(amountBondToRedeem, minUnstakeAmount);
@@ -153,11 +149,7 @@ contract PendleAnkrBNBSY is SYBase {
         return token == ankrBNB || token == NATIVE;
     }
 
-    function assetInfo()
-        external
-        pure
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, NATIVE, 18);
     }
 }

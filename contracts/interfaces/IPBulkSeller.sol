@@ -18,12 +18,7 @@ interface IPBulkSeller {
         uint256 newTokenProp,
         uint256 oldTokenProp
     );
-    event ReBalanceSyToToken(
-        uint256 netSyRedeem,
-        uint256 netTokenFromSy,
-        uint256 newTokenProp,
-        uint256 oldTokenProp
-    );
+    event ReBalanceSyToToken(uint256 netSyRedeem, uint256 netTokenFromSy, uint256 newTokenProp, uint256 oldTokenProp);
     event ReserveUpdated(uint256 totalToken, uint256 totalSy);
     event FeeRateUpdated(uint256 newFeeRate, uint256 oldFeeRate);
 

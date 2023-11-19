@@ -29,18 +29,19 @@ interface IPFeeDistributorV2 {
      * @notice Protocols that require the use of this function & feeData should contact the Pendle team.
      * @notice Protocols should NOT EVER use claimRetail. Using it will make getProtocolFeeData unreliable.
      */
-    function claimProtocol(address receiver, address[] calldata pools)
-        external
-        returns (uint256 totalAmountOut, uint256[] memory amountsOut);
+    function claimProtocol(
+        address receiver,
+        address[] calldata pools
+    ) external returns (uint256 totalAmountOut, uint256[] memory amountsOut);
 
     /**
     * @notice returns the claimable fees per pool. Only available if the Pendle team has specifically
     set up the data
      */
-    function getProtocolClaimables(address user, address[] calldata pools)
-        external
-        view
-        returns (uint256[] memory claimables);
+    function getProtocolClaimables(
+        address user,
+        address[] calldata pools
+    ) external view returns (uint256[] memory claimables);
 
     function getProtocolTotalAccrued(address user) external view returns (uint256);
 }

@@ -42,9 +42,7 @@ contract PendleMulticallV1 {
         for (uint256 i = 0; i < length; ) {
             call = calls[i];
 
-            (bool success, bytes memory resp) = call.target.call{ gas: gasLimit }(
-                calls[i].callData
-            );
+            (bool success, bytes memory resp) = call.target.call{gas: gasLimit}(calls[i].callData);
             if (!success && requireSuccess) {
                 assembly {
                     revert(add(32, resp), mload(resp))

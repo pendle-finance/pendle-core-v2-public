@@ -8,20 +8,11 @@ interface IPMarketFactory {
         bool active;
     }
 
-    event NewMarketConfig(
-        address indexed treasury,
-        uint80 defaultLnFeeRateRoot,
-        uint8 reserveFeePercent
-    );
+    event NewMarketConfig(address indexed treasury, uint80 defaultLnFeeRateRoot, uint8 reserveFeePercent);
     event SetOverriddenFee(address indexed router, uint80 lnFeeRateRoot, uint8 reserveFeePercent);
     event UnsetOverriddenFee(address indexed router);
 
-    event CreateNewMarket(
-        address indexed market,
-        address indexed PT,
-        int256 scalarRoot,
-        int256 initialAnchor
-    );
+    event CreateNewMarket(address indexed market, address indexed PT, int256 scalarRoot, int256 initialAnchor);
 
     function isValidMarket(address market) external view returns (bool);
 

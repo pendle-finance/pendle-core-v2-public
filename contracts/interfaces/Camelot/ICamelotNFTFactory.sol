@@ -1,4 +1,3 @@
-
 pragma solidity >=0.8.0;
 
 interface ICamelotNFTFactory {
@@ -7,5 +6,4 @@ interface ICamelotNFTFactory {
     function grailToken() external view returns (address);
 
     function xGrailToken() external view returns (address);
-
 }

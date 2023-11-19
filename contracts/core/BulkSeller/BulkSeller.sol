@@ -33,8 +33,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
     BulkSellerStorage public _storage;
 
     modifier onlyMaintainer() {
-        if (!IPBulkSellerFactory(factory).isMaintainer(msg.sender))
-            revert Errors.BulkNotMaintainer();
+        if (!IPBulkSellerFactory(factory).isMaintainer(msg.sender)) revert Errors.BulkNotMaintainer();
         _;
     }
 
@@ -78,14 +77,12 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         if (!swapFromInternalBalance) _transferIn(SY, msg.sender, exactSyIn);
         else {
             uint256 netSyReceived = _selfBalance(SY) - state.totalSy;
-            if (netSyReceived < exactSyIn)
-                revert Errors.BulkInsufficientSyReceived(netSyReceived, exactSyIn);
+            if (netSyReceived < exactSyIn) revert Errors.BulkInsufficientSyReceived(netSyReceived, exactSyIn);
         }
 
         netTokenOut = state.swapExactSyForToken(exactSyIn);
 
-        if (netTokenOut < minTokenOut)
-            revert Errors.BulkInSufficientTokenOut(netTokenOut, minTokenOut);
+        if (netTokenOut < minTokenOut) revert Errors.BulkInSufficientTokenOut(netTokenOut, minTokenOut);
 
         _transferOut(token, receiver, netTokenOut);
 
@@ -191,19 +188,10 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
         _writeState(state);
     }
 
-    function setRate(
-        uint256 newRateSyToToken,
-        uint256 newRateTokenToSy,
-        uint256 maxDiff
-    ) external onlyMaintainer {
+    function setRate(uint256 newRateSyToToken, uint256 newRateTokenToSy, uint256 maxDiff) external onlyMaintainer {
         BulkSellerState memory state = readState();
 
-        emit RateUpdated(
-            newRateTokenToSy,
-            newRateSyToToken,
-            state.rateTokenToSy,
-            state.rateSyToToken
-        );
+        emit RateUpdated(newRateTokenToSy, newRateSyToToken, state.rateTokenToSy, state.rateSyToToken);
 
         state.setRate(newRateSyToToken, newRateTokenToSy, maxDiff);
 
@@ -217,13 +205,7 @@ contract BulkSeller is IPBulkSeller, Initializable, TokenHelper, ReentrancyGuard
 
     function _depositToken(uint256 netTokenDeposit) internal returns (uint256 netSyFromToken) {
         uint256 nativeToDeposit = token == NATIVE ? netTokenDeposit : 0;
-        return
-            IStandardizedYield(SY).deposit{ value: nativeToDeposit }(
-                address(this),
-                token,
-                netTokenDeposit,
-                0
-            );
+        return IStandardizedYield(SY).deposit{value: nativeToDeposit}(address(this), token, netTokenDeposit, 0);
     }
 
     function _redeemSy(uint256 netSyRedeem) internal returns (uint256 netTokenFromSy) {

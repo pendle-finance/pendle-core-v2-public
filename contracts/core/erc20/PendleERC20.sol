@@ -103,10 +103,7 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(
-        address to,
-        uint256 amount
-    ) external virtual override nonReentrant returns (bool) {
+    function transfer(address to, uint256 amount) external virtual override nonReentrant returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -115,10 +112,7 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(
-        address owner,
-        address spender
-    ) public view virtual override returns (uint256) {
+    function allowance(address owner, address spender) public view virtual override returns (uint256) {
         return _allowances[owner][spender];
     }
 

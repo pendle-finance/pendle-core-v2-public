@@ -18,17 +18,10 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper 
         string memory _symbol,
         ComposableStablePreview _composablePreviewHelper
     )
-        PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _composablePreviewHelper)
-    //solhint-disable-next-line
-    {
+        PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _composablePreviewHelper) //solhint-disable-next-line
+    {}
 
-    }
-
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(address tokenIn, uint256 amount) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE || tokenIn == STETH) {
             uint256 amountWstETH = _depositWstETH(tokenIn, amount);
             amountSharesOut = super._deposit(WSTETH, amountWstETH);
@@ -50,12 +43,7 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper 
         }
     }
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
         if (tokenIn == NATIVE || tokenIn == STETH) {
             uint256 amountWstETH = _previewDepositWstETH(tokenIn, amountTokenToDeposit);
             return super._previewDeposit(WSTETH, amountWstETH);
@@ -64,12 +52,7 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper 
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem) internal view override returns (uint256) {
         if (tokenOut == STETH) {
             uint256 amountWstETH = super._previewRedeem(WSTETH, amountSharesToRedeem);
             return _previewRedeemWstETH(amountWstETH);
@@ -140,11 +123,7 @@ contract PendleAuraWstethAnkreth is PendleAuraBalancerStableLPSYV2, StEthHelper 
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {
-        return (token == NATIVE ||
-            token == STETH ||
-            token == WSTETH ||
-            token == ANKRETH ||
-            token == LP);
+        return (token == NATIVE || token == STETH || token == WSTETH || token == ANKRETH || token == LP);
     }
 
     function isValidTokenOut(address token) public pure override returns (bool) {

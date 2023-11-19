@@ -2,13 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IPendlePreviewHelper {
-    function previewDeposit(
-        address tokenIn,
-        uint256 amountTokenIn
-    ) external view returns (uint256 amountSharesOut);
+    function previewDeposit(address tokenIn, uint256 amountTokenIn) external view returns (uint256 amountSharesOut);
 
-    function previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToBurn
-    ) external view returns (uint256 amountTokenOut);
+    function previewRedeem(address tokenOut, uint256 amountSharesToBurn) external view returns (uint256 amountTokenOut);
 }

@@ -5,25 +5,26 @@ import "./I1inchAggregationRouterV5.sol";
 import "../../../core/libraries/Errors.sol";
 
 abstract contract OneInchAggregationRouterHelper {
-    function _rescaleMinAmount(uint256 minAmount, uint256 oldAmount, uint256 newAmount)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _rescaleMinAmount(
+        uint256 minAmount,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (uint256) {
         return (minAmount * newAmount) / oldAmount;
     }
 
-    function _get1inchScaledInputData(bytes calldata rawCallData, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function _get1inchScaledInputData(
+        bytes calldata rawCallData,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
         bytes4 selector = bytes4(rawCallData[:4]);
         bytes memory args = rawCallData[4:];
 
         if (selector == I1inchAggregationRouterV5.uniswapV3SwapTo.selector) {
-            (address payable recipient, uint256 amount, uint256 minReturn, uint256[] memory pools) =
-                abi.decode(args, (address, uint256, uint256, uint256[]));
+            (address payable recipient, uint256 amount, uint256 minReturn, uint256[] memory pools) = abi.decode(
+                args,
+                (address, uint256, uint256, uint256[])
+            );
 
             amount = newAmount;
             return abi.encodeWithSelector(selector, recipient, amount, minReturn, pools);
@@ -42,8 +43,13 @@ abstract contract OneInchAggregationRouterHelper {
         }
 
         if (selector == I1inchAggregationRouterV5.unoswapTo.selector) {
-            (address payable recipient, address srcToken, uint256 amount, uint256 minReturn, uint256[] memory pools) =
-                abi.decode(args, (address, address, uint256, uint256, uint256[]));
+            (
+                address payable recipient,
+                address srcToken,
+                uint256 amount,
+                uint256 minReturn,
+                uint256[] memory pools
+            ) = abi.decode(args, (address, address, uint256, uint256, uint256[]));
 
             amount = newAmount;
             return abi.encodeWithSelector(selector, recipient, srcToken, amount, minReturn, pools);

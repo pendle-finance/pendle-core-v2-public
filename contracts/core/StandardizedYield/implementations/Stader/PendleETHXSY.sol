@@ -13,10 +13,7 @@ contract PendleETHXSY is SYBase {
     address public immutable stakeManager;
     address public immutable ethx;
 
-    constructor(
-        address _stakeManager,
-        address _ethx
-    ) SYBase("SY Stader Staking ETHx", "SY-ETHx", _ethx) {
+    constructor(address _stakeManager, address _ethx) SYBase("SY Stader Staking ETHx", "SY-ETHx", _ethx) {
         stakeManager = _stakeManager;
         ethx = _ethx;
     }
@@ -30,8 +27,7 @@ contract PendleETHXSY is SYBase {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
-            return
-                IStaderStakeManager(stakeManager).deposit{ value: amountDeposited }(address(this));
+            return IStaderStakeManager(stakeManager).deposit{value: amountDeposited}(address(this));
         } else {
             return amountDeposited;
         }
@@ -100,11 +96,7 @@ contract PendleETHXSY is SYBase {
         return token == ethx;
     }
 
-    function assetInfo()
-        external
-        pure
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, NATIVE, 18);
     }
 }

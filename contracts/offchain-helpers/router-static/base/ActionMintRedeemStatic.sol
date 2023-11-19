@@ -10,20 +10,12 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
     using PMath for uint256;
     using BulkSellerMathCore for BulkSellerState;
 
-    function mintPyFromSyStatic(address YT, uint256 netSyToMint)
-        public
-        view
-        returns (uint256 netPYOut)
-    {
+    function mintPyFromSyStatic(address YT, uint256 netSyToMint) public view returns (uint256 netPYOut) {
         if (IPYieldToken(YT).isExpired()) revert Errors.YCExpired();
         return netSyToMint.mulDown(pyIndexCurrentViewYt(YT));
     }
 
-    function redeemPyToSyStatic(address YT, uint256 netPYToRedeem)
-        public
-        view
-        returns (uint256 netSyOut)
-    {
+    function redeemPyToSyStatic(address YT, uint256 netPYToRedeem) public view returns (uint256 netSyOut) {
         return netPYToRedeem.divDown(pyIndexCurrentViewYt(YT));
     }
 
@@ -86,7 +78,7 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
         uint256 pivotAmount;
 
         if (tokenIn == address(0)) pivotAmount = 1e18;
-        else pivotAmount = 10**IStandardizedYield(SY).decimals();
+        else pivotAmount = 10 ** IStandardizedYield(SY).decimals();
 
         uint256 low = pivotAmount;
         {
@@ -126,15 +118,7 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
         address SY,
         uint256 netTokenIn,
         uint256 netSyIn
-    )
-        external
-        view
-        returns (
-            address bulk,
-            uint256 totalToken,
-            uint256 totalSy
-        )
-    {
+    ) external view returns (address bulk, uint256 totalToken, uint256 totalSy) {
         if (address(bulkSellerFactory) == address(0)) return (address(0), 0, 0);
 
         bulk = bulkSellerFactory.get(token, SY);

@@ -6,24 +6,13 @@ import "./IPSwapAggregator.sol";
 import "./kyberswap/KyberInputScalingHelper.sol";
 import "./oneinch/OneInchAggregationRouterHelper.sol";
 
-contract PendleSwap is
-    IPSwapAggregator,
-    TokenHelper,
-    KyberInputScalingHelper,
-    OneInchAggregationRouterHelper
-{
+contract PendleSwap is IPSwapAggregator, TokenHelper, KyberInputScalingHelper, OneInchAggregationRouterHelper {
     using Address for address;
 
-    function swap(
-        address tokenIn,
-        uint256 amountIn,
-        SwapData calldata data
-    ) external payable {
+    function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
         _safeApproveInf(tokenIn, data.extRouter);
         data.extRouter.functionCallWithValue(
-            data.needScale
-                ? _getScaledInputData(data.swapType, data.extCalldata, amountIn)
-                : data.extCalldata,
+            data.needScale ? _getScaledInputData(data.swapType, data.extCalldata, amountIn) : data.extCalldata,
             tokenIn == NATIVE ? amountIn : 0
         );
     }

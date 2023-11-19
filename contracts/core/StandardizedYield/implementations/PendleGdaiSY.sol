@@ -8,11 +8,7 @@ contract PendleGDaiSY is SYBase {
     address public immutable DAI;
     address public immutable gDAI;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _gDAI
-    ) SYBase(_name, _symbol, _gDAI) {
+    constructor(string memory _name, string memory _symbol, address _gDAI) SYBase(_name, _symbol, _gDAI) {
         gDAI = _gDAI;
         DAI = IERC4626(gDAI).asset();
         _safeApproveInf(DAI, gDAI);
@@ -102,11 +98,7 @@ contract PendleGDaiSY is SYBase {
         return token == gDAI;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, DAI, 18);
     }
 }

@@ -21,8 +21,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
     address internal immutable marketFactory;
 
     modifier onlyPendleMarket(address caller) {
-        if (!IPMarketFactory(marketFactory).isValidMarket(caller))
-            revert Errors.RouterCallbackNotPendleMarket(caller);
+        if (!IPMarketFactory(marketFactory).isValidMarket(caller)) revert Errors.RouterCallbackNotPendleMarket(caller);
         _;
     }
 
@@ -34,11 +33,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
     /**
      * @dev The callback is only callable by a Pendle Market created by the factory
      */
-    function swapCallback(
-        int256 ptToAccount,
-        int256 syToAccount,
-        bytes calldata data
-    ) external override {
+    function swapCallback(int256 ptToAccount, int256 syToAccount, bytes calldata data) external override {
         ActionType swapType = _getActionType(data);
         if (swapType == ActionType.SwapExactSyForYt) {
             _callbackSwapExactSyForYt(ptToAccount, syToAccount, data);
@@ -56,11 +51,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
     }
 
     /// @dev refer to _swapExactSyForYt
-    function _callbackSwapExactSyForYt(
-        int256 ptToAccount,
-        int256 /*syToAccount*/,
-        bytes calldata data
-    ) internal {
+    function _callbackSwapExactSyForYt(int256 ptToAccount, int256 /*syToAccount*/, bytes calldata data) internal {
         (address receiver, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactSyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
@@ -98,8 +89,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         uint256 syReceived = syToAccount.Uint();
         uint256 netSyToPull = totalSyNeed.subMax0(syReceived);
 
-        if (netSyToPull > maxSyToPull)
-            revert Errors.RouterExceededLimitSyIn(netSyToPull, maxSyToPull);
+        if (netSyToPull > maxSyToPull) revert Errors.RouterExceededLimitSyIn(netSyToPull, maxSyToPull);
 
         /// ------------------------------------------------------------
         /// mint & transfer
@@ -113,11 +103,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
     }
 
     /// @dev refer to _swapExactYtForSy or _swapYtForExactSy
-    function _callbackSwapYtForSy(
-        int256 ptToAccount,
-        int256 syToAccount,
-        bytes calldata data
-    ) internal {
+    function _callbackSwapYtForSy(int256 ptToAccount, int256 syToAccount, bytes calldata data) internal {
         (address receiver, uint256 minSyOut, IPYieldToken YT) = _decodeSwapYtForSy(data);
         PYIndex pyIndex = YT.newIndex();
 
@@ -127,40 +113,22 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         uint256[] memory amountPYToRedeems = new uint256[](2);
 
         (receivers[0], amountPYToRedeems[0]) = (msg.sender, pyIndex.syToAssetUp(syOwed));
-        (receivers[1], amountPYToRedeems[1]) = (
-            receiver,
-            ptToAccount.Uint() - amountPYToRedeems[0]
-        );
+        (receivers[1], amountPYToRedeems[1]) = (receiver, ptToAccount.Uint() - amountPYToRedeems[0]);
 
         uint256[] memory amountSyOuts = YT.redeemPYMulti(receivers, amountPYToRedeems);
-        if (amountSyOuts[1] < minSyOut)
-            revert Errors.RouterInsufficientSyOut(amountSyOuts[1], minSyOut);
+        if (amountSyOuts[1] < minSyOut) revert Errors.RouterInsufficientSyOut(amountSyOuts[1], minSyOut);
     }
 
-    function _callbackSwapExactPtForYt(
-        int256 ptToAccount,
-        int256 /*syToAccount*/,
-        bytes calldata data
-    ) internal {
-        (
-            address receiver,
-            uint256 exactPtIn,
-            uint256 minYtOut,
-            IPYieldToken YT
-        ) = _decodeSwapExactPtForYt(data);
+    function _callbackSwapExactPtForYt(int256 ptToAccount, int256 /*syToAccount*/, bytes calldata data) internal {
+        (address receiver, uint256 exactPtIn, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactPtForYt(data);
         uint256 netPtOwed = ptToAccount.abs();
 
         uint256 netPyOut = YT.mintPY(msg.sender, receiver);
         if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
-        if (exactPtIn + netPyOut < netPtOwed)
-            revert Errors.RouterInsufficientPtRepay(exactPtIn + netPyOut, netPtOwed);
+        if (exactPtIn + netPyOut < netPtOwed) revert Errors.RouterInsufficientPtRepay(exactPtIn + netPyOut, netPtOwed);
     }
 
-    function _callbackSwapExactYtForPt(
-        int256 ptToAccount,
-        int256 syToAccount,
-        bytes calldata data
-    ) internal {
+    function _callbackSwapExactYtForPt(int256 ptToAccount, int256 syToAccount, bytes calldata data) internal {
         (
             address receiver,
             uint256 exactYtIn,
@@ -174,8 +142,7 @@ abstract contract ActionBaseCallback is IPMarketSwapCallback, CallbackHelper, To
         _transferOut(address(PT), address(YT), exactYtIn);
         uint256 netSyToMarket = YT.redeemPY(msg.sender);
 
-        if (netSyToMarket < netSyOwed)
-            revert Errors.RouterInsufficientSyRepay(netSyToMarket, netSyOwed);
+        if (netSyToMarket < netSyOwed) revert Errors.RouterInsufficientSyRepay(netSyToMarket, netSyOwed);
 
         uint256 netPtOut = ptToAccount.Uint() - exactYtIn;
         if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);

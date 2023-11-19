@@ -48,9 +48,7 @@ contract PendleWstEthSY is SYBase {
             } else {
                 if (tokenIn == wETH) IWETH(wETH).withdraw(amountDeposited);
 
-                uint256 amountStEthSharesOut = IStETH(stETH).submit{ value: amountDeposited }(
-                    address(0)
-                );
+                uint256 amountStEthSharesOut = IStETH(stETH).submit{value: amountDeposited}(address(0));
                 amountStETH = IStETH(stETH).getPooledEthByShares(amountStEthSharesOut);
             }
             amountSharesOut = IWstETH(wstETH).wrap(amountStETH);
@@ -101,9 +99,7 @@ contract PendleWstEthSY is SYBase {
             if (tokenIn != stETH) {
                 uint256 totalShares = IStETH(stETH).getTotalShares();
                 uint256 totalPooledEth = IStETH(stETH).getTotalPooledEther();
-                uint256 amountStEthSharesOut = IStETH(stETH).getSharesByPooledEth(
-                    amountTokenToDeposit
-                );
+                uint256 amountStEthSharesOut = IStETH(stETH).getSharesByPooledEth(amountTokenToDeposit);
 
                 totalShares += amountStEthSharesOut;
                 totalPooledEth += amountTokenToDeposit;
@@ -146,11 +142,7 @@ contract PendleWstEthSY is SYBase {
         return token == stETH || token == wstETH;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, stETH, IERC20Metadata(stETH).decimals());
     }
 }

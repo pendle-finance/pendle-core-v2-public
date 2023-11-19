@@ -124,11 +124,7 @@ contract PendleGMV2TokenSY is SYBaseWithRewards, IPPriceFeed {
         return token == gm;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.LIQUIDITY, gm, IERC20Metadata(gm).decimals());
     }
 

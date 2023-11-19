@@ -123,19 +123,10 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
     ) internal view returns (uint256, uint256[] memory, uint256[] memory) {
         // skip _updateOracle
 
-        uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
-            balances,
-            protocolSwapFeePercentage,
-            imd
-        );
+        uint256[] memory dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(balances, protocolSwapFeePercentage, imd);
 
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
-        (uint256 bptAmountOut, uint256[] memory amountsIn) = _doJoin(
-            balances,
-            scalingFactors,
-            userData,
-            imd
-        );
+        (uint256 bptAmountOut, uint256[] memory amountsIn) = _doJoin(balances, scalingFactors, userData, imd);
 
         // skip _updateInvariantAfterJoin
 
@@ -156,19 +147,11 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         internal
         view
         virtual
-        returns (
-            uint256 bptAmountIn,
-            uint256[] memory amountsOut,
-            uint256[] memory dueProtocolFeeAmounts
-        )
+        returns (uint256 bptAmountIn, uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts)
     {
         // skip _updateOracle
 
-        dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(
-            balances,
-            protocolSwapFeePercentage,
-            imd
-        );
+        dueProtocolFeeAmounts = _getDueProtocolFeeAmounts(balances, protocolSwapFeePercentage, imd);
 
         _mutateAmounts(balances, dueProtocolFeeAmounts, FixedPoint.sub);
 
@@ -202,16 +185,14 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
             }
         }
 
-        (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(imd.LP)
-            .getLastInvariant();
-        dueProtocolFeeAmounts[chosenTokenIndex] = MetaStableMath
-            ._calcDueTokenProtocolSwapFeeAmount(
-                _lastInvariantAmp,
-                balances,
-                _lastInvariant,
-                chosenTokenIndex,
-                protocolSwapFeePercentage
-            );
+        (uint256 _lastInvariant, uint256 _lastInvariantAmp) = IMetaStablePool(imd.LP).getLastInvariant();
+        dueProtocolFeeAmounts[chosenTokenIndex] = MetaStableMath._calcDueTokenProtocolSwapFeeAmount(
+            _lastInvariantAmp,
+            balances,
+            _lastInvariant,
+            chosenTokenIndex,
+            protocolSwapFeePercentage
+        );
 
         return dueProtocolFeeAmounts;
     }
@@ -296,31 +277,21 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         return scalingFactors;
     }
 
-    function _priceRate(
-        uint256[] memory caches,
-        uint256 index
-    ) internal view virtual returns (uint256) {
+    function _priceRate(uint256[] memory caches, uint256 index) internal view virtual returns (uint256) {
         return caches[index] == 0 ? FixedPoint.ONE : caches[index];
     }
 
-    function _cachePriceRatesIfNecessary(
-        ImmutableData memory imd
-    ) internal view returns (uint256[] memory res) {
+    function _cachePriceRatesIfNecessary(ImmutableData memory imd) internal view returns (uint256[] memory res) {
         res = new uint256[](2);
         res[0] = _cachePriceRateIfNecessary(0, imd);
         res[1] = _cachePriceRateIfNecessary(1, imd);
     }
 
-    function _cachePriceRateIfNecessary(
-        uint256 index,
-        ImmutableData memory imd
-    ) internal view returns (uint256 res) {
+    function _cachePriceRateIfNecessary(uint256 index, ImmutableData memory imd) internal view returns (uint256 res) {
         if (!_hasRateProvider(imd, index)) return res;
 
         uint256 expires;
-        (res, , expires) = IMetaStablePool(imd.LP).getPriceRateCache(
-            IERC20(imd.poolTokens[index])
-        );
+        (res, , expires) = IMetaStablePool(imd.LP).getPriceRateCache(IERC20(imd.poolTokens[index]));
 
         if (block.timestamp > expires) {
             res = IRateProvider(imd.rateProviders[index]).getRate();
@@ -331,10 +302,7 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
                                Helpers functions
     //////////////////////////////////////////////////////////////*/
 
-    function _upscaleArray(
-        uint256[] memory amounts,
-        uint256[] memory scalingFactors
-    ) internal pure {
+    function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors) internal pure {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -343,10 +311,7 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         }
     }
 
-    function _downscaleDownArray(
-        uint256[] memory amounts,
-        uint256[] memory scalingFactors
-    ) internal pure {
+    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors) internal pure {
         require(amounts.length == scalingFactors.length, "Array length mismatch");
 
         uint256 length = amounts.length;
@@ -365,10 +330,7 @@ contract MetaStablePreview is StablePreviewBase, BoringOwnableUpgradeable, UUPSU
         }
     }
 
-    function _hasRateProvider(
-        ImmutableData memory imd,
-        uint256 index
-    ) internal pure returns (bool) {
+    function _hasRateProvider(ImmutableData memory imd, uint256 index) internal pure returns (bool) {
         return address(imd.rateProviders[index]) != address(0);
     }
 }

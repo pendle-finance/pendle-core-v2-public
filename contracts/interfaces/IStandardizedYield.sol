@@ -146,15 +146,15 @@ interface IStandardizedYield is IERC20Metadata {
 
     function isValidTokenOut(address token) external view returns (bool);
 
-    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        external
-        view
-        returns (uint256 amountSharesOut);
+    function previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) external view returns (uint256 amountSharesOut);
 
-    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        external
-        view
-        returns (uint256 amountTokenOut);
+    function previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) external view returns (uint256 amountTokenOut);
 
     /**
      * @notice This function contains information to interpret what the asset is
@@ -163,12 +163,5 @@ interface IStandardizedYield is IERC20Metadata {
      * @return assetAddress the address of the asset
      * @return assetDecimals the decimals of the asset
      */
-    function assetInfo()
-        external
-        view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        );
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals);
 }

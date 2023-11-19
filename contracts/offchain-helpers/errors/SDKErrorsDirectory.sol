@@ -40,10 +40,7 @@ library SDKErrorsDirectory {
     error MarketFactoryInvalidPt();
     error MarketFactoryMarketExists();
     error MarketFactoryLnFeeRateRootTooHigh(uint80 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
-    error MarketFactoryReserveFeePercentTooHigh(
-        uint8 reserveFeePercent,
-        uint8 maxReserveFeePercent
-    );
+    error MarketFactoryReserveFeePercentTooHigh(uint8 reserveFeePercent, uint8 maxReserveFeePercent);
     error MarketFactoryZeroTreasury();
     error MarketFactoryInitialAnchorTooLow(int256 initialAnchor, int256 minInitialAnchor);
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);

@@ -11,21 +11,10 @@ library MarketExchangeRateLib {
 
     function getMarketExchangeRate(address market) internal view returns (uint256) {
         MarketState memory state = IPMarket(market).readState(address(0));
-        MarketPreCompute memory comp = state.getMarketPreCompute(
-            _getPYIndexCurrent(market),
-            block.timestamp
-        );
+        MarketPreCompute memory comp = state.getMarketPreCompute(_getPYIndexCurrent(market), block.timestamp);
 
         return
-            MarketMathCore
-                ._getExchangeRate(
-                    state.totalPt,
-                    comp.totalAsset,
-                    comp.rateScalar,
-                    comp.rateAnchor,
-                    0
-                )
-                .Uint();
+            MarketMathCore._getExchangeRate(state.totalPt, comp.totalAsset, comp.rateScalar, comp.rateAnchor, 0).Uint();
     }
 
     function _getPYIndexCurrent(address market) private view returns (PYIndex) {

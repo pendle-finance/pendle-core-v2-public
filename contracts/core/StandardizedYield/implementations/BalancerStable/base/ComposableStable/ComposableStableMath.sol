@@ -11,11 +11,10 @@ library ComposableStableMath {
     uint256 internal constant _MAX_AMP = 5000;
     uint256 internal constant _AMP_PRECISION = 1e3;
 
-    function _calculateInvariant(uint256 amplificationParameter, uint256[] memory balances)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _calculateInvariant(
+        uint256 amplificationParameter,
+        uint256[] memory balances
+    ) internal pure returns (uint256) {
         unchecked {
             /**********************************************************************************************
         // invariant                                                                                 //
@@ -54,17 +53,14 @@ library ComposableStableMath {
                 invariant = divDown(
                     mul(
                         // (ampTimesTotal * sum) / AMP_PRECISION + D_P * numTokens
-                        (
-                            divDown(mul(ampTimesTotal, sum), _AMP_PRECISION).add(
-                                mul(D_P, numTokens)
-                            )
-                        ),
+                        (divDown(mul(ampTimesTotal, sum), _AMP_PRECISION).add(mul(D_P, numTokens))),
                         invariant
                     ),
                     // ((ampTimesTotal - _AMP_PRECISION) * invariant) / _AMP_PRECISION + (numTokens + 1) * D_P
                     (
-                        divDown(mul((ampTimesTotal - _AMP_PRECISION), invariant), _AMP_PRECISION)
-                            .add(mul((numTokens + 1), D_P))
+                        divDown(mul((ampTimesTotal - _AMP_PRECISION), invariant), _AMP_PRECISION).add(
+                            mul((numTokens + 1), D_P)
+                        )
                     )
                 );
 
@@ -106,9 +102,7 @@ library ComposableStableMath {
             for (uint256 i = 0; i < balances.length; i++) {
                 uint256 currentWeight = balances[i].divDown(sumBalances);
                 balanceRatiosWithFee[i] = balances[i].add(amountsIn[i]).divDown(balances[i]);
-                invariantRatioWithFees = invariantRatioWithFees.add(
-                    balanceRatiosWithFee[i].mulDown(currentWeight)
-                );
+                invariantRatioWithFees = invariantRatioWithFees.add(balanceRatiosWithFee[i].mulDown(currentWeight));
             }
 
             // Second loop calculates new amounts in, taking into account the fee on the percentage excess
@@ -118,9 +112,7 @@ library ComposableStableMath {
 
                 // Check if the balance ratio is greater than the ideal ratio to charge fees or not
                 if (balanceRatiosWithFee[i] > invariantRatioWithFees) {
-                    uint256 nonTaxableAmount = balances[i].mulDown(
-                        invariantRatioWithFees.sub(FixedPoint.ONE)
-                    );
+                    uint256 nonTaxableAmount = balances[i].mulDown(invariantRatioWithFees.sub(FixedPoint.ONE));
                     uint256 taxableAmount = amountsIn[i].sub(nonTaxableAmount);
                     // No need to use checked arithmetic for the swap fee, it is guaranteed to be lower than 50%
                     amountInWithoutFee = nonTaxableAmount.add(
@@ -157,9 +149,7 @@ library ComposableStableMath {
         unchecked {
             // Token out, so we round down overall.
 
-            uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(
-                currentInvariant
-            );
+            uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(currentInvariant);
 
             // Calculate amount out without fee
             uint256 newBalanceTokenIndex = _getTokenBalanceGivenInvariantAndAllOtherBalances(
@@ -215,10 +205,7 @@ library ComposableStableMath {
 
             uint256 inv2 = mul(invariant, invariant);
             // We remove the balance from c by multiplying it
-            uint256 c = mul(
-                mul(divUp(inv2, mul(ampTimesTotal, P_D)), _AMP_PRECISION),
-                balances[tokenIndex]
-            );
+            uint256 c = mul(mul(divUp(inv2, mul(ampTimesTotal, P_D)), _AMP_PRECISION), balances[tokenIndex]);
             uint256 b = sum.add(mul(divDown(invariant, ampTimesTotal), _AMP_PRECISION));
 
             // We iterate to find the balance
@@ -260,11 +247,7 @@ library ComposableStableMath {
         }
     }
 
-    function div(
-        uint256 a,
-        uint256 b,
-        bool roundUp
-    ) private pure returns (uint256) {
+    function div(uint256 a, uint256 b, bool roundUp) private pure returns (uint256) {
         return roundUp ? divUp(a, b) : divDown(a, b);
     }
 

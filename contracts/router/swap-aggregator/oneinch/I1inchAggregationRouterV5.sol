@@ -20,20 +20,14 @@ interface I1inchAggregationRouterV5 {
         uint256 amount,
         uint256 minReturn,
         uint256[] calldata pools
-    ) external payable returns(uint256 returnAmount);
+    ) external payable returns (uint256 returnAmount);
 
     function swap(
         address executor,
         SwapDescription calldata desc,
         bytes calldata permit,
         bytes calldata data
-    )
-        external
-        payable
-        returns (
-            uint256 returnAmount,
-            uint256 spentAmount
-        );
+    ) external payable returns (uint256 returnAmount, uint256 spentAmount);
 
     function unoswapTo(
         address payable recipient,
@@ -41,5 +35,5 @@ interface I1inchAggregationRouterV5 {
         uint256 amount,
         uint256 minReturn,
         uint256[] calldata pools
-    ) external payable returns(uint256 returnAmount);
+    ) external payable returns (uint256 returnAmount);
 }

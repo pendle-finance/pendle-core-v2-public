@@ -56,11 +56,7 @@ interface IERC4626LinearPool {
     function getPausedState()
         external
         view
-        returns (
-            bool paused,
-            uint256 pauseWindowEndTime,
-            uint256 bufferPeriodEndTime
-        );
+        returns (bool paused, uint256 pauseWindowEndTime, uint256 bufferPeriodEndTime);
 
     function getPoolId() external view returns (bytes32);
 
@@ -169,11 +165,7 @@ interface IERC4626LinearPool {
 
     function transfer(address recipient, uint256 amount) external returns (bool);
 
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 
     function unpause() external;
 

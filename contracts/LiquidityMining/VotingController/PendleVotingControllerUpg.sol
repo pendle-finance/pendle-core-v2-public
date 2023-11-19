@@ -32,11 +32,7 @@ Cons:
     - Does not guarantee the reward will be distributed on epoch start and end
 */
 
-contract PendleVotingControllerUpg is
-    PendleMsgSenderAppUpg,
-    VotingControllerStorageUpg,
-    UUPSUpgradeable
-{
+contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerStorageUpg, UUPSUpgradeable {
     using VeBalanceLib for VeBalance;
     using PMath for uint256;
     using PMath for int256;
@@ -243,11 +239,7 @@ contract PendleVotingControllerUpg is
 
         if (chainId == block.chainid) {
             address gaugeController = destinationContracts.get(chainId);
-            IPGaugeControllerMainchain(gaugeController).updateVotingResults(
-                wTime,
-                pools,
-                totalPendleAmounts
-            );
+            IPGaugeControllerMainchain(gaugeController).updateVotingResults(wTime, pools, totalPendleAmounts);
         } else {
             _sendMessage(chainId, abi.encode(wTime, pools, totalPendleAmounts));
         }
@@ -255,9 +247,7 @@ contract PendleVotingControllerUpg is
         emit BroadcastResults(chainId, wTime, totalPendlePerSec);
     }
 
-    function _getUserVePendlePosition(
-        address user
-    ) internal view returns (LockedPosition memory userPosition) {
+    function _getUserVePendlePosition(address user) internal view returns (LockedPosition memory userPosition) {
         if (user == owner) {
             (userPosition.amount, userPosition.expiry) = (
                 GOVERNANCE_PENDLE_VOTE,

@@ -7,11 +7,7 @@ import "./CamelotV1VolatileCommon.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../../libraries/BoringOwnableUpgradeable.sol";
 
-contract CamelotV1VolatilePreview is
-    CamelotV1VolatileCommon,
-    BoringOwnableUpgradeable,
-    UUPSUpgradeable
-{
+contract CamelotV1VolatilePreview is CamelotV1VolatileCommon, BoringOwnableUpgradeable, UUPSUpgradeable {
     address internal immutable factory;
 
     constructor(address _factory) initializer {
@@ -84,11 +80,9 @@ contract CamelotV1VolatilePreview is
         data.reserve1 -= amount1Removed;
 
         if (tokenOut == data.token0) {
-            return
-                amount0Removed + _getSwapAmountOut(data, amount1Removed, data.token1, data.fee1);
+            return amount0Removed + _getSwapAmountOut(data, amount1Removed, data.token1, data.fee1);
         } else {
-            return
-                amount1Removed + _getSwapAmountOut(data, amount0Removed, data.token0, data.fee0);
+            return amount1Removed + _getSwapAmountOut(data, amount0Removed, data.token0, data.fee0);
         }
     }
 
@@ -131,26 +125,14 @@ contract CamelotV1VolatilePreview is
         }
 
         uint256 supply = _getTotalSupplyAfterMintFee(data);
-        return
-            PMath.min(
-                (amount0ToAddLiq * supply) / data.reserve0,
-                (amount1ToAddLiq * supply) / data.reserve1
-            );
+        return PMath.min((amount0ToAddLiq * supply) / data.reserve0, (amount1ToAddLiq * supply) / data.reserve1);
     }
 
-    function _quote(
-        uint256 amountA,
-        uint256 reserveA,
-        uint256 reserveB
-    ) private pure returns (uint256 amountB) {
+    function _quote(uint256 amountA, uint256 reserveA, uint256 reserveB) private pure returns (uint256 amountB) {
         amountB = (amountA * reserveB) / reserveA;
     }
 
-    function _getTotalSupplyAfterMintFee(CamelotPairData memory data)
-        private
-        view
-        returns (uint256)
-    {
+    function _getTotalSupplyAfterMintFee(CamelotPairData memory data) private view returns (uint256) {
         (uint256 ownerFeeShare, address feeTo) = ICamelotFactory(factory).feeInfo();
         bool feeOn = feeTo != address(0);
         uint256 _kLast = ICamelotPair(data.pair).kLast();

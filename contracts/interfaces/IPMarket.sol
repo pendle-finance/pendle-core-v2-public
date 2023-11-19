@@ -9,12 +9,7 @@ import "./IPGauge.sol";
 import "../core/Market/MarketMathCore.sol";
 
 interface IPMarket is IERC20Metadata, IPGauge {
-    event Mint(
-        address indexed receiver,
-        uint256 netLpMinted,
-        uint256 netSyUsed,
-        uint256 netPtUsed
-    );
+    event Mint(address indexed receiver, uint256 netLpMinted, uint256 netSyUsed, uint256 netPtUsed);
 
     event Burn(
         address indexed receiverSy,
@@ -68,16 +63,11 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     function readState(address router) external view returns (MarketState memory market);
 
-    function observe(
-        uint32[] memory secondsAgos
-    ) external view returns (uint216[] memory lnImpliedRateCumulative);
+    function observe(uint32[] memory secondsAgos) external view returns (uint216[] memory lnImpliedRateCumulative);
 
     function increaseObservationsCardinalityNext(uint16 cardinalityNext) external;
 
-    function readTokens()
-        external
-        view
-        returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT);
+    function readTokens() external view returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT);
 
     function getRewardTokens() external view returns (address[] memory);
 
@@ -87,10 +77,7 @@ interface IPMarket is IERC20Metadata, IPGauge {
 
     function observations(
         uint256 index
-    )
-        external
-        view
-        returns (uint32 blockTimestamp, uint216 lnImpliedRateCumulative, bool initialized);
+    ) external view returns (uint32 blockTimestamp, uint216 lnImpliedRateCumulative, bool initialized);
 
     function _storage()
         external

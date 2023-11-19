@@ -13,11 +13,7 @@ contract PendleFluxLendingSY is SYBase {
     address public immutable fToken;
     address public immutable underlying;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _fToken
-    ) SYBase(_name, _symbol, _fToken) {
+    constructor(string memory _name, string memory _symbol, address _fToken) SYBase(_name, _symbol, _fToken) {
         // underlying
         fToken = _fToken;
         underlying = IFluxErc20(_fToken).underlying();
@@ -101,11 +97,7 @@ contract PendleFluxLendingSY is SYBase {
         return token == fToken || token == underlying;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, underlying, IERC20Metadata(underlying).decimals());
     }
 }

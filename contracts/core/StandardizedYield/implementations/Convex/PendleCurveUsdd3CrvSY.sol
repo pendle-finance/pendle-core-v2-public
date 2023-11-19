@@ -20,15 +20,7 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
     constructor(
         string memory _name,
         string memory _symbol
-    )
-        PendleConvexLPSY(
-            _name,
-            _symbol,
-            PID,
-            CurveUsdd3CrvPoolHelper.POOL,
-            CurveUsdd3CrvPoolHelper.POOL
-        )
-    {
+    ) PendleConvexLPSY(_name, _symbol, PID, CurveUsdd3CrvPoolHelper.POOL, CurveUsdd3CrvPoolHelper.POOL) {
         _safeApproveInf(USDD, crvPool);
         _safeApproveInf(LP_3CRV, crvPool);
         _safeApproveInf(DAI, POOL_3CRV);
@@ -65,11 +57,7 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
 
         uint256 preBalanceToken = _selfBalance(tokenToRemove);
 
-        ICrvPool(crvPool).remove_liquidity_one_coin(
-            amountLpToRedeem,
-            PMath.Int128(_getIndex(tokenToRemove)),
-            0
-        );
+        ICrvPool(crvPool).remove_liquidity_one_coin(amountLpToRedeem, PMath.Int128(_getIndex(tokenToRemove)), 0);
 
         uint256 amountTokenRemoved = _selfBalance(tokenToRemove) - preBalanceToken;
 
@@ -131,17 +119,11 @@ contract PendleCurveUsdd3CrvSY is PendleConvexLPSY {
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool res) {
-        res = (token == crvLp ||
-            token == USDD ||
-            token == LP_3CRV ||
-            Curve3CrvPoolHelper.is3CrvToken(token));
+        res = (token == crvLp || token == USDD || token == LP_3CRV || Curve3CrvPoolHelper.is3CrvToken(token));
     }
 
     function isValidTokenOut(address token) public view override returns (bool res) {
-        res = (token == crvLp ||
-            token == USDD ||
-            token == LP_3CRV ||
-            Curve3CrvPoolHelper.is3CrvToken(token));
+        res = (token == crvLp || token == USDD || token == LP_3CRV || Curve3CrvPoolHelper.is3CrvToken(token));
     }
 
     function _getRewardTokens() internal pure override returns (address[] memory rewardTokens) {

@@ -40,10 +40,7 @@ contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
      * @param market market to get rate from
      * @param duration twap duration
      */
-    function getPtToAssetRate(
-        address market,
-        uint32 duration
-    ) external view returns (uint256 ptToAssetRate) {
+    function getPtToAssetRate(address market, uint32 duration) external view returns (uint256 ptToAssetRate) {
         ptToAssetRate = IPMarket(market).getPtToAssetRate(duration);
     }
 
@@ -60,20 +57,10 @@ contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
     )
         external
         view
-        returns (
-            bool increaseCardinalityRequired,
-            uint16 cardinalityRequired,
-            bool oldestObservationSatisfied
-        )
+        returns (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied)
     {
-        (
-            ,
-            ,
-            ,
-            uint16 observationIndex,
-            uint16 observationCardinality,
-            uint16 cardinalityReserved
-        ) = IPMarket(market)._storage();
+        (, , , uint16 observationIndex, uint16 observationCardinality, uint16 cardinalityReserved) = IPMarket(market)
+            ._storage();
 
         // checkIncreaseCardinalityRequired
         cardinalityRequired = _calcCardinalityRequiredRequired(duration);

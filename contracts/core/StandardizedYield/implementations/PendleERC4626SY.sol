@@ -8,11 +8,7 @@ contract PendleERC4626SY is SYBase {
     using PMath for uint256;
     address public immutable asset;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _erc4626
-    ) SYBase(_name, _symbol, _erc4626) {
+    constructor(string memory _name, string memory _symbol, address _erc4626) SYBase(_name, _symbol, _erc4626) {
         asset = IERC4626(_erc4626).asset();
         _safeApproveInf(asset, _erc4626);
     }
@@ -37,11 +33,7 @@ contract PendleERC4626SY is SYBase {
             amountTokenOut = amountSharesToRedeem;
             _transferOut(yieldToken, receiver, amountTokenOut);
         } else {
-            amountTokenOut = IERC4626(yieldToken).redeem(
-                amountSharesToRedeem,
-                receiver,
-                address(this)
-            );
+            amountTokenOut = IERC4626(yieldToken).redeem(amountSharesToRedeem, receiver, address(this));
         }
     }
 
@@ -87,11 +79,7 @@ contract PendleERC4626SY is SYBase {
         return token == yieldToken || token == asset;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, asset, IERC20Metadata(asset).decimals());
     }
 }

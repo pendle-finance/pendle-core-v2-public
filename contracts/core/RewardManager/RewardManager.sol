@@ -13,7 +13,6 @@ abstract contract RewardManager is RewardManagerAbstract {
 
     mapping(address => RewardState) public rewardState;
 
-
     function _updateRewardIndex()
         internal
         virtual

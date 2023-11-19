@@ -14,12 +14,7 @@ interface IThenaSY {
     function pair() external view returns (address);
 }
 
-contract ThenaPreview is
-    IPendlePreviewHelper,
-    ThenaMath,
-    BoringOwnableUpgradeable,
-    UUPSUpgradeable
-{
+contract ThenaPreview is IPendlePreviewHelper, ThenaMath, BoringOwnableUpgradeable, UUPSUpgradeable {
     using PMath for uint256;
 
     address internal immutable factory;
@@ -35,10 +30,7 @@ contract ThenaPreview is
     // solhint-disable-next-line
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function previewDeposit(
-        address tokenIn,
-        uint256 amountTokenIn
-    ) external view returns (uint256 amountLpOut) {
+    function previewDeposit(address tokenIn, uint256 amountTokenIn) external view returns (uint256 amountLpOut) {
         address pair = IThenaSY(msg.sender).pair();
 
         ThenaData memory data = _getNormalizedPairData(pair, tokenIn);
@@ -79,22 +71,15 @@ contract ThenaPreview is
     }
 
     // @reference: Camelot
-    function _getSwapAmountOut(
-        ThenaData memory data,
-        uint256 amountIn
-    ) internal pure returns (uint256) {
+    function _getSwapAmountOut(ThenaData memory data, uint256 amountIn) internal pure returns (uint256) {
         if (!data.isStable) {
             amountIn = amountIn * (FEE_DENOMINATOR - data.fee);
             return (amountIn * data.reserve1) / (data.reserve0 * FEE_DENOMINATOR + amountIn);
         } else {
-            amountIn = (amountIn - (amountIn * data.fee) / FEE_DENOMINATOR).divDown(
-                data.decimals0
-            );
+            amountIn = (amountIn - (amountIn * data.fee) / FEE_DENOMINATOR).divDown(data.decimals0);
             uint256 reserveA = data.reserve0.divDown(data.decimals0);
             uint256 reserveB = data.reserve1.divDown(data.decimals1);
-            uint256 xy = reserveA.mulDown(reserveB).mulDown(
-                reserveA.squareDown() + reserveB.squareDown()
-            );
+            uint256 xy = reserveA.mulDown(reserveB).mulDown(reserveA.squareDown() + reserveB.squareDown());
             uint256 y = reserveB - _get_y(amountIn + reserveA, xy, reserveB);
             return y.mulDown(data.decimals1);
         }
@@ -117,25 +102,14 @@ contract ThenaPreview is
         }
 
         uint256 supply = IThenaPair(data.pair).totalSupply();
-        return
-            PMath.min(
-                (amount0ToAddLiq * supply) / data.reserve0,
-                (amount1ToAddLiq * supply) / data.reserve1
-            );
+        return PMath.min((amount0ToAddLiq * supply) / data.reserve0, (amount1ToAddLiq * supply) / data.reserve1);
     }
 
-    function _quote(
-        uint256 amountA,
-        uint256 reserveA,
-        uint256 reserveB
-    ) private pure returns (uint256 amountB) {
+    function _quote(uint256 amountA, uint256 reserveA, uint256 reserveB) private pure returns (uint256 amountB) {
         amountB = (amountA * reserveB) / reserveA;
     }
 
-    function _getNormalizedPairData(
-        address pair,
-        address pivotToken
-    ) internal view returns (ThenaData memory data) {
+    function _getNormalizedPairData(address pair, address pivotToken) internal view returns (ThenaData memory data) {
         data.pair = pair;
         data.isStable = IThenaPair(pair).isStable();
         data.fee = IThenaFactory(factory).getFee(data.isStable);
@@ -180,11 +154,7 @@ contract ThenaPreview is
     }
 
     function _f(uint256 x0, uint256 y) internal pure returns (uint256) {
-        return
-            (x0 * ((((y * y) / 1e18) * y) / 1e18)) /
-            1e18 +
-            (((((x0 * x0) / 1e18) * x0) / 1e18) * y) /
-            1e18;
+        return (x0 * ((((y * y) / 1e18) * y) / 1e18)) / 1e18 + (((((x0 * x0) / 1e18) * x0) / 1e18) * y) / 1e18;
     }
 
     function _d(uint256 x0, uint256 y) internal pure returns (uint256) {

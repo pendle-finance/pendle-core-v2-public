@@ -8,12 +8,7 @@ import "../libraries/TokenHelper.sol";
 import "../libraries/math/PMath.sol";
 import "../../interfaces/IPLinearDistributor.sol";
 
-contract PendleLinearDistributor is
-    UUPSUpgradeable,
-    AccessControlUpgradeable,
-    TokenHelper,
-    IPLinearDistributor
-{
+contract PendleLinearDistributor is UUPSUpgradeable, AccessControlUpgradeable, TokenHelper, IPLinearDistributor {
     using PMath for uint128;
     using PMath for uint192;
     using PMath for uint256;
@@ -50,10 +45,7 @@ contract PendleLinearDistributor is
 
     // ----------------- core-logic ----------------------
 
-    function queueVestAndClaim(
-        address token,
-        uint256 amountVestToQueue
-    ) external onlyWhitelisted returns (uint256) {
+    function queueVestAndClaim(address token, uint256 amountVestToQueue) external onlyWhitelisted returns (uint256) {
         require(amountVestToQueue > 0, "invalid amountVestToQueue");
 
         uint256 amountOut = _getClaimableRewardAndUpdate(token, msg.sender, amountVestToQueue);
@@ -101,9 +93,7 @@ contract PendleLinearDistributor is
             return;
         }
 
-        uint256 leftOver = data.rewardPerSec.mulDown(
-            (data.endTime - PMath.min(block.timestamp, data.endTime))
-        );
+        uint256 leftOver = data.rewardPerSec.mulDown((data.endTime - PMath.min(block.timestamp, data.endTime)));
         uint256 undistrbutedReward = amountVesting + leftOver;
 
         data.unvestedReward = 0;
@@ -129,10 +119,7 @@ contract PendleLinearDistributor is
         distributionDatas[token][addr] = data;
     }
 
-    function _updateRewardView(
-        address token,
-        address addr
-    ) internal view returns (DistributionData memory data) {
+    function _updateRewardView(address token, address addr) internal view returns (DistributionData memory data) {
         data = distributionDatas[token][addr];
         uint256 distributeFrom = PMath.min(data.lastDistributedTime, data.endTime);
         uint256 distributeTo = PMath.min(block.timestamp, data.endTime);

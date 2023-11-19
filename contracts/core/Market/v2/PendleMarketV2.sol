@@ -64,19 +64,15 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         address _externalRewardDistributor
     )
         PendleERC20Permit(NAME, SYMBOL, 18)
-        PendleGaugeV2(
-            IPPrincipalToken(_PT).SY(),
-            _vePendle,
-            _gaugeController,
-            _externalRewardDistributor
-        )
+        PendleGaugeV2(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController, _externalRewardDistributor)
     {
         PT = IPPrincipalToken(_PT);
         SY = IStandardizedYield(PT.SY());
         YT = IPYieldToken(PT.YT());
 
-        (_storage.observationCardinality, _storage.observationCardinalityNext) = observations
-            .initialize(uint32(block.timestamp));
+        (_storage.observationCardinality, _storage.observationCardinalityNext) = observations.initialize(
+            uint32(block.timestamp)
+        );
 
         if (_scalarRoot <= 0) revert Errors.MarketScalarRootBelowZero(_scalarRoot);
 
@@ -98,12 +94,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         address receiver,
         uint256 netSyDesired,
         uint256 netPtDesired
-    )
-        external
-        nonReentrant
-        notExpired
-        returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed)
-    {
+    ) external nonReentrant notExpired returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed) {
         MarketState memory market = readState(msg.sender);
         PYIndex index = YT.newIndex();
 
@@ -175,11 +166,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         MarketState memory market = readState(msg.sender);
 
         uint256 netSyToReserve;
-        (netSyOut, netSyFee, netSyToReserve) = market.swapExactPtForSy(
-            YT.newIndex(),
-            exactPtIn,
-            block.timestamp
-        );
+        (netSyOut, netSyFee, netSyToReserve) = market.swapExactPtForSy(YT.newIndex(), exactPtIn, block.timestamp);
 
         if (receiver != address(this)) IERC20(SY).safeTransfer(receiver, netSyOut);
         IERC20(SY).safeTransfer(market.treasury, netSyToReserve);
@@ -214,11 +201,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         MarketState memory market = readState(msg.sender);
 
         uint256 netSyToReserve;
-        (netSyIn, netSyFee, netSyToReserve) = market.swapSyForExactPt(
-            YT.newIndex(),
-            exactPtOut,
-            block.timestamp
-        );
+        (netSyIn, netSyFee, netSyToReserve) = market.swapSyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
 
         if (receiver != address(this)) IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SY).safeTransfer(market.treasury, netSyToReserve);
@@ -262,9 +245,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
                                 ORACLE
     //////////////////////////////////////////////////////////////*/
 
-    function observe(
-        uint32[] memory secondsAgos
-    ) external view returns (uint216[] memory lnImpliedRateCumulative) {
+    function observe(uint32[] memory secondsAgos) external view returns (uint216[] memory lnImpliedRateCumulative) {
         return
             observations.observe(
                 uint32(block.timestamp),
@@ -296,9 +277,9 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         market.totalSy = _storage.totalSy;
         market.totalLp = totalSupply().Int();
 
-        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
-            factory
-        ).getMarketConfig(router);
+        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(factory).getMarketConfig(
+            router
+        );
 
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
@@ -333,11 +314,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
                             TRIVIAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function readTokens()
-        external
-        view
-        returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT)
-    {
+    function readTokens() external view returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT) {
         _SY = SY;
         _PT = PT;
         _YT = YT;

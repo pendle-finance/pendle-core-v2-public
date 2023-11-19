@@ -31,12 +31,7 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
     uint256 public totalActiveSupply;
     mapping(address => uint256) public activeBalance;
 
-    constructor(
-        address _SY,
-        address _vePendle,
-        address _gaugeController,
-        address _externalRewardDistributor
-    ) {
+    constructor(address _SY, address _vePendle, address _gaugeController, address _externalRewardDistributor) {
         SY = _SY;
         vePENDLE = IPVeToken(_vePendle);
         gaugeController = _gaugeController;
@@ -80,19 +75,13 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
         activeBalance[user] = newActiveBalance;
     }
 
-    function _calcVeBoostedLpBalance(
-        address user,
-        uint256 lpBalance
-    ) internal virtual returns (uint256) {
-        (uint256 vePendleSupply, uint256 vePendleBalance) = vePENDLE.totalSupplyAndBalanceCurrent(
-            user
-        );
+    function _calcVeBoostedLpBalance(address user, uint256 lpBalance) internal virtual returns (uint256) {
+        (uint256 vePendleSupply, uint256 vePendleBalance) = vePENDLE.totalSupplyAndBalanceCurrent(user);
         // Inspired by Curve's Gauge
         uint256 veBoostedLpBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {
             veBoostedLpBalance +=
-                (((_totalStaked() * vePendleBalance) / vePendleSupply) *
-                    (100 - TOKENLESS_PRODUCTION)) /
+                (((_totalStaked() * vePendleBalance) / vePendleSupply) * (100 - TOKENLESS_PRODUCTION)) /
                 100;
         }
         return veBoostedLpBalance;
@@ -116,16 +105,11 @@ abstract contract PendleGaugeV2 is RewardManager, IPGauge {
         return activeBalance[user];
     }
 
-    function _getRewardTokens()
-        internal
-        view
-        virtual
-        override
-        returns (address[] memory rewardTokens)
-    {
+    function _getRewardTokens() internal view virtual override returns (address[] memory rewardTokens) {
         address[] memory SYRewards = IStandardizedYield(SY).getRewardTokens();
-        address[] memory externalRewards = IPExternalRewardDistributor(externalRewardDistributor)
-            .getRewardTokens(address(this));
+        address[] memory externalRewards = IPExternalRewardDistributor(externalRewardDistributor).getRewardTokens(
+            address(this)
+        );
 
         rewardTokens = SYRewards.merge(externalRewards);
         if (rewardTokens.contains(PENDLE)) return rewardTokens;

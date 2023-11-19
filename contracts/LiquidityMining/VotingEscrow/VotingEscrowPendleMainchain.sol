@@ -13,11 +13,7 @@ import "../../core/libraries/Errors.sol";
 import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
 
-contract VotingEscrowPendleMainchain is
-    VotingEscrowTokenBase,
-    IPVotingEscrowMainchain,
-    PendleMsgSenderAppUpg
-{
+contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMainchain, PendleMsgSenderAppUpg {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
     using VeBalanceLib for LockedPosition;
@@ -25,8 +21,7 @@ contract VotingEscrowPendleMainchain is
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     bytes private constant EMPTY_BYTES = abi.encode();
-    bytes private constant SAMPLE_SUPPLY_UPDATE_MESSAGE =
-        abi.encode(0, VeBalance(0, 0), EMPTY_BYTES);
+    bytes private constant SAMPLE_SUPPLY_UPDATE_MESSAGE = abi.encode(0, VeBalance(0, 0), EMPTY_BYTES);
     bytes private constant SAMPLE_POSITION_UPDATE_MESSAGE =
         abi.encode(0, VeBalance(0, 0), abi.encode(address(0), LockedPosition(0, 0)));
 
@@ -127,12 +122,7 @@ contract VotingEscrowPendleMainchain is
      * @notice update & return the current totalSupply, but does not broadcast info to other chains
      * @dev See `broadcastTotalSupply()` and `broadcastUserPosition()` for broadcasting
      */
-    function totalSupplyCurrent()
-        public
-        virtual
-        override(IPVeToken, VotingEscrowTokenBase)
-        returns (uint128)
-    {
+    function totalSupplyCurrent() public virtual override(IPVeToken, VotingEscrowTokenBase) returns (uint128) {
         (VeBalance memory supply, ) = _applySlopeChange();
         return supply.getCurrentValue();
     }
@@ -146,10 +136,7 @@ contract VotingEscrowPendleMainchain is
      * @notice updates and broadcast the position of `user` to different chains, also updates and
      * broadcasts totalSupply
      */
-    function broadcastUserPosition(
-        address user,
-        uint256[] calldata chainIds
-    ) public payable refundUnusedEth {
+    function broadcastUserPosition(address user, uint256[] calldata chainIds) public payable refundUnusedEth {
         if (user == address(0)) revert Errors.ZeroAddress();
         _broadcastPosition(user, chainIds);
     }
@@ -158,24 +145,17 @@ contract VotingEscrowPendleMainchain is
         return userHistory[user].length();
     }
 
-    function getUserHistoryAt(
-        address user,
-        uint256 index
-    ) external view returns (Checkpoint memory) {
+    function getUserHistoryAt(address user, uint256 index) external view returns (Checkpoint memory) {
         return userHistory[user].get(index);
     }
 
-    function getBroadcastSupplyFee(
-        uint256[] calldata chainIds
-    ) external view returns (uint256 fee) {
+    function getBroadcastSupplyFee(uint256[] calldata chainIds) external view returns (uint256 fee) {
         for (uint256 i = 0; i < chainIds.length; i++) {
             fee += _getSendMessageFee(chainIds[i], SAMPLE_SUPPLY_UPDATE_MESSAGE);
         }
     }
 
-    function getBroadcastPositionFee(
-        uint256[] calldata chainIds
-    ) external view returns (uint256 fee) {
+    function getBroadcastPositionFee(uint256[] calldata chainIds) external view returns (uint256 fee) {
         for (uint256 i = 0; i < chainIds.length; i++) {
             fee += _getSendMessageFee(chainIds[i], SAMPLE_POSITION_UPDATE_MESSAGE);
         }
@@ -249,13 +229,10 @@ contract VotingEscrowPendleMainchain is
 
         (VeBalance memory supply, ) = _applySlopeChange();
 
-        bytes memory userData = (
-            user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user])
-        );
+        bytes memory userData = (user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user]));
 
         for (uint256 i = 0; i < chainIds.length; ++i) {
-            if (!destinationContracts.contains(chainIds[i]))
-                revert Errors.ChainNotSupported(chainIds[i]);
+            if (!destinationContracts.contains(chainIds[i])) revert Errors.ChainNotSupported(chainIds[i]);
             _broadcast(chainIds[i], uint128(block.timestamp), supply, userData);
         }
 
@@ -265,12 +242,7 @@ contract VotingEscrowPendleMainchain is
         emit BroadcastTotalSupply(supply, chainIds);
     }
 
-    function _broadcast(
-        uint256 chainId,
-        uint128 msgTime,
-        VeBalance memory supply,
-        bytes memory userData
-    ) internal {
+    function _broadcast(uint256 chainId, uint128 msgTime, VeBalance memory supply, bytes memory userData) internal {
         _sendMessage(chainId, abi.encode(msgTime, supply, userData));
     }
 }

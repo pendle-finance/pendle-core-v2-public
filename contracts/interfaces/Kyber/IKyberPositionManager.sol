@@ -133,22 +133,11 @@ interface IKyberPositionManager {
 
     function mint(
         MintParams calldata params
-    )
-        external
-        payable
-        returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+    ) external payable returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
 
     function addLiquidity(
         IncreaseLiquidityParams calldata params
-    )
-        external
-        payable
-        returns (
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1,
-            uint256 additionalRTokenOwed
-        );
+    ) external payable returns (uint128 liquidity, uint256 amount0, uint256 amount1, uint256 additionalRTokenOwed);
 
     function removeLiquidity(
         RemoveLiquidityParams calldata params
@@ -166,9 +155,7 @@ interface IKyberPositionManager {
 
     function syncFeeGrowth(uint256 tokenId) external returns (uint256 additionalRTokenOwed);
 
-    function positions(
-        uint256 tokenId
-    ) external view returns (Position memory pos, PoolInfo memory info);
+    function positions(uint256 tokenId) external view returns (Position memory pos, PoolInfo memory info);
 
     function addressToPoolId(address pool) external view returns (uint80);
 
@@ -188,9 +175,5 @@ interface IKyberPositionManager {
      */
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 
-    function transferAllTokens(
-        address token,
-        uint256 minAmount,
-        address recipient
-    ) external payable;
+    function transferAllTokens(address token, uint256 minAmount, address recipient) external payable;
 }

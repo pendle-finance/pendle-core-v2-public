@@ -121,56 +121,28 @@ interface IPRouterHelper {
     function transferLiquidityDifferentSyNormal(
         RemoveLiquiditySingleTokenStruct calldata fromMarket,
         AddLiquiditySingleTokenStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netTokenZapIn,
-            uint256 netSyFeeOfRemove,
-            uint256 netSyFeeOfAdd
-        );
+    ) external returns (uint256 netLpOut, uint256 netTokenZapIn, uint256 netSyFeeOfRemove, uint256 netSyFeeOfAdd);
 
     function transferLiquidityDifferentSyKeepYt(
         RemoveLiquiditySingleTokenStruct calldata fromMarket,
         AddLiquiditySingleTokenKeepYtStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netYtOut,
-            uint256 netTokenZapIn,
-            uint256 netSyFeeOfRemove
-        );
+    ) external returns (uint256 netLpOut, uint256 netYtOut, uint256 netTokenZapIn, uint256 netSyFeeOfRemove);
 
     function transferLiquiditySameSyNormal(
         RemoveLiquiditySingleSyStruct calldata fromMarket,
         AddLiquiditySingleSyStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netSyZapIn,
-            uint256 netSyFeeOfRemove,
-            uint256 netSyFeeOfAdd
-        );
+    ) external returns (uint256 netLpOut, uint256 netSyZapIn, uint256 netSyFeeOfRemove, uint256 netSyFeeOfAdd);
 
     function transferLiquiditySameSyKeepYt(
         RemoveLiquiditySingleSyStruct calldata fromMarket,
         AddLiquiditySingleSyKeepYtStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netYtOut,
-            uint256 netSyZapIn,
-            uint256 netSyFeeOfRemove
-        );
+    ) external returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyZapIn, uint256 netSyFeeOfRemove);
 
-    function removeLiquiditySingleToken(RemoveLiquiditySingleTokenStruct calldata fromMarket)
-        external
-        returns (uint256 netTokenOut, uint256 netSyFee);
+    function removeLiquiditySingleToken(
+        RemoveLiquiditySingleTokenStruct calldata fromMarket
+    ) external returns (uint256 netTokenOut, uint256 netSyFee);
 
-    function removeLiquiditySingleSy(RemoveLiquiditySingleSyStruct calldata fromMarket)
-        external
-        returns (uint256 netSyOut, uint256 netSyFee);
+    function removeLiquiditySingleSy(
+        RemoveLiquiditySingleSyStruct calldata fromMarket
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
 }

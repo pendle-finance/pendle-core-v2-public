@@ -15,25 +15,14 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * So we can leave the configuration unset.
  */
 
-contract PendleMsgReceiveEndpointUpg is
-    ILayerZeroReceiver,
-    Initializable,
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable
-{
+contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSUpgradeable, BoringOwnableUpgradeable {
     using ExcessivelySafeCall for address;
 
     address public immutable lzEndpoint;
     address public immutable sendEndpointAddr;
     uint64 public immutable sendEndpointChainId;
 
-    event MessageFailed(
-        uint16 _srcChainId,
-        bytes _path,
-        uint64 _nonce,
-        bytes _payload,
-        bytes _reason
-    );
+    event MessageFailed(uint16 _srcChainId, bytes _path, uint64 _nonce, bytes _payload, bytes _reason);
 
     modifier onlyLzEndpoint() {
         if (msg.sender != address(lzEndpoint)) revert Errors.OnlyLayerZeroEndpoint();
@@ -55,11 +44,7 @@ contract PendleMsgReceiveEndpointUpg is
 
     // by default we will use LZ's default version (most updated version). Hence, it's not necessary
     // to call setLzReceiveVersion
-    constructor(
-        address _lzEndpoint,
-        address _sendEndpointAddr,
-        uint64 _sendEndpointChainId
-    ) initializer {
+    constructor(address _lzEndpoint, address _sendEndpointAddr, uint64 _sendEndpointChainId) initializer {
         lzEndpoint = _lzEndpoint;
         sendEndpointAddr = _sendEndpointAddr;
         sendEndpointChainId = _sendEndpointChainId;
@@ -88,10 +73,7 @@ contract PendleMsgReceiveEndpointUpg is
         }
     }
 
-    function govExecuteMessage(
-        address receiver,
-        bytes calldata message
-    ) external payable onlyOwner {
+    function govExecuteMessage(address receiver, bytes calldata message) external payable onlyOwner {
         IPMsgReceiverApp(receiver).executeMessage(message);
     }
 

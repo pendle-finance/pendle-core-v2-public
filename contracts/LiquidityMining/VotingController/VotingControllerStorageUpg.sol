@@ -93,14 +93,9 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     }
 
     /// @notice deprecated, only kept for compatibility reasons
-    function getUserPoolHistoryAt(
-        address user,
-        address pool,
-        uint256 index
-    ) external view returns (Checkpoint memory) {
+    function getUserPoolHistoryAt(address user, address pool, uint256 index) external view returns (Checkpoint memory) {
         return __dep_userPoolHistory[user][pool].get(index);
     }
-
 
     function getPoolData(
         address pool,
@@ -116,11 +111,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         )
     {
         PoolData storage data = poolData[pool];
-        (chainId, lastSlopeChangeAppliedAt, totalVote) = (
-            data.chainId,
-            data.lastSlopeChangeAppliedAt,
-            data.totalVote
-        );
+        (chainId, lastSlopeChangeAppliedAt, totalVote) = (data.chainId, data.lastSlopeChangeAppliedAt, data.totalVote);
 
         slopeChanges = new uint128[](wTimes.length);
         for (uint256 i = 0; i < wTimes.length; ++i) {
@@ -175,10 +166,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return activeChainPools[chainId].values();
     }
 
-    function getUserPoolVote(
-        address user,
-        address pool
-    ) external view returns (UserPoolData memory) {
+    function getUserPoolVote(address user, address pool) external view returns (UserPoolData memory) {
         return userData[user].voteForPools[pool];
     }
 

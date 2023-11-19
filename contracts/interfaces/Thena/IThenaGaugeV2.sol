@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-
 interface IThenaGaugeV2 {
     function emergency() external returns (bool);
 

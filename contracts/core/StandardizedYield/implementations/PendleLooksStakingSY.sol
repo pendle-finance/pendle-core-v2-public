@@ -30,10 +30,7 @@ contract PendleLooksStakingSY is SYBase {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(
-        address,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address, uint256 amountDeposited) internal virtual override returns (uint256 amountSharesOut) {
         uint256 previousShare = ILooksStaking(stakingContract).userInfo(address(this));
         ILooksStaking(stakingContract).deposit(amountDeposited);
         amountSharesOut = ILooksStaking(stakingContract).userInfo(address(this)) - previousShare;
@@ -79,15 +76,9 @@ contract PendleLooksStakingSY is SYBase {
         amountTokenOut = (amountSharesToRedeem * totalLooks) / totalShares;
     }
 
-    function _getLooksStakingParams()
-        private
-        view
-        returns (uint256 totalShares, uint256 totalLooks)
-    {
+    function _getLooksStakingParams() private view returns (uint256 totalShares, uint256 totalLooks) {
         totalShares = ILooksStaking(stakingContract).totalShares();
-        totalLooks = ILooksFeeSharing(feeSharingContract).calculateSharesValueInLOOKS(
-            stakingContract
-        );
+        totalLooks = ILooksFeeSharing(feeSharingContract).calculateSharesValueInLOOKS(stakingContract);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
@@ -108,11 +99,7 @@ contract PendleLooksStakingSY is SYBase {
         return token == looks;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, looks, IERC20Metadata(looks).decimals());
     }
 }

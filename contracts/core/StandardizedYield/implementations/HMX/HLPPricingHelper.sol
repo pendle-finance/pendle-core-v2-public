@@ -15,7 +15,6 @@ contract HLPPricingHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         hlp = _hlp;
     }
 
-
     function initialize() external initializer {
         __BoringOwnable_init();
     }
@@ -25,6 +24,6 @@ contract HLPPricingHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
     function getPrice() external view returns (uint256) {
         uint256 aum = IHMXCalculator(hmxCalculator).getAUME30(true);
         uint256 supply = IERC20(hlp).totalSupply();
-        return aum * 1e6 / supply;
+        return (aum * 1e6) / supply;
     }
 }

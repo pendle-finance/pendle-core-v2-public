@@ -23,45 +23,25 @@ library Curve3CrvPoolHelper {
 
     // previewDeposit at the end of the file
 
-    function preview3CrvRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view returns (uint256) {
-        return
-            ITriCrvPool(POOL).calc_withdraw_one_coin(
-                amountSharesToRedeem,
-                _get3CrvTokenIndex(tokenOut).Int128()
-            );
+    function preview3CrvRedeem(address tokenOut, uint256 amountSharesToRedeem) internal view returns (uint256) {
+        return ITriCrvPool(POOL).calc_withdraw_one_coin(amountSharesToRedeem, _get3CrvTokenIndex(tokenOut).Int128());
     }
 
-    function deposit3Crv(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal returns (uint256) {
+    function deposit3Crv(address tokenIn, uint256 amountTokenToDeposit) internal returns (uint256) {
         uint256 balBefore = IERC20(LP).balanceOf(address(this));
         ITriCrvPool(POOL).add_liquidity(_getTokenAmounts(tokenIn, amountTokenToDeposit), 0);
         uint256 balAfter = IERC20(LP).balanceOf(address(this));
         return balAfter - balBefore;
     }
 
-    function redeem3Crv(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal returns (uint256) {
+    function redeem3Crv(address tokenOut, uint256 amountSharesToRedeem) internal returns (uint256) {
         uint256 balBefore = IERC20(tokenOut).balanceOf(address(this));
-        ITriCrvPool(POOL).remove_liquidity_one_coin(
-            amountSharesToRedeem,
-            _get3CrvTokenIndex(tokenOut).Int128(),
-            0
-        );
+        ITriCrvPool(POOL).remove_liquidity_one_coin(amountSharesToRedeem, _get3CrvTokenIndex(tokenOut).Int128(), 0);
         uint256 balAfter = IERC20(tokenOut).balanceOf(address(this));
         return balAfter - balBefore;
     }
 
-    function _getTokenAmounts(
-        address token,
-        uint256 amount
-    ) internal pure returns (uint256[N_COINS] memory res) {
+    function _getTokenAmounts(address token, uint256 amount) internal pure returns (uint256[N_COINS] memory res) {
         res[_get3CrvTokenIndex(token)] = amount;
     }
 
@@ -128,10 +108,7 @@ library Curve3CrvPoolHelper {
         }
 
         netLpOut = (token_supply * (D2 - D0)) / D0;
-        new_virtual_price = _get_virtual_price_with_balances(
-            self_balances,
-            token_supply + netLpOut
-        );
+        new_virtual_price = _get_virtual_price_with_balances(self_balances, token_supply + netLpOut);
     }
 
     function _get_virtual_price_with_balances(
@@ -143,16 +120,11 @@ library Curve3CrvPoolHelper {
         return (D * PRECISION) / token_supply;
     }
 
-    function get_D_mem(
-        uint256[N_COINS] memory balances,
-        uint256 amp
-    ) internal pure returns (uint256) {
+    function get_D_mem(uint256[N_COINS] memory balances, uint256 amp) internal pure returns (uint256) {
         return get_D(_xp_mem(balances), amp);
     }
 
-    function _xp_mem(
-        uint256[N_COINS] memory balances
-    ) internal pure returns (uint256[N_COINS] memory) {
+    function _xp_mem(uint256[N_COINS] memory balances) internal pure returns (uint256[N_COINS] memory) {
         uint256[N_COINS] memory result;
         result[0] = (RATE_0 * balances[0]) / PRECISION;
         result[1] = (RATE_1 * balances[1]) / PRECISION;
@@ -197,9 +169,7 @@ library Curve3CrvPoolHelper {
         balances[2] = ITriCrvPool(POOL).balances(2);
     }
 
-    function arrayClone(
-        uint256[N_COINS] memory a
-    ) internal pure returns (uint256[N_COINS] memory res) {
+    function arrayClone(uint256[N_COINS] memory a) internal pure returns (uint256[N_COINS] memory res) {
         for (uint256 i = 0; i < N_COINS; ++i) {
             res[i] = a[i];
         }

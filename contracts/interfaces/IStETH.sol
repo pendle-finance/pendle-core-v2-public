@@ -8,10 +8,7 @@ interface IStETH {
 
     function submit(address referral) external payable returns (uint256 amount);
 
-    function burnShares(
-        address _account,
-        uint256 _sharesAmount
-    ) external returns (uint256 newTotalShares);
+    function burnShares(address _account, uint256 _sharesAmount) external returns (uint256 newTotalShares);
 
     function sharesOf(address account) external view returns (uint256);
 

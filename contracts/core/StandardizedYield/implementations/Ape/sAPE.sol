@@ -42,10 +42,7 @@ contract sAPE is SYBase {
         emit Redeem(msg.sender, msg.sender, apeCoin, amountShares, amountTokenOut);
     }
 
-    function _deposit(
-        address,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address, uint256 amountDeposited) internal virtual override returns (uint256 amountSharesOut) {
         // Respecting APE's deposit invariant
         if (amountDeposited < MIN_APE_DEPOSIT) {
             revert Errors.SYApeDepositAmountTooSmall(amountDeposited);
@@ -81,10 +78,7 @@ contract sAPE is SYBase {
 
         // There might be case when the contract is holding < 1 APE reward and user is withdrawing everything out of it
         if (amountTokenOut > _selfBalance(apeCoin)) {
-            IApeStaking(apeStaking).withdrawApeCoin(
-                amountTokenOut - _selfBalance(apeCoin),
-                address(this)
-            );
+            IApeStaking(apeStaking).withdrawApeCoin(amountTokenOut - _selfBalance(apeCoin), address(this));
         }
         _transferOut(apeCoin, receiver, amountTokenOut);
         _compound();
@@ -101,11 +95,7 @@ contract sAPE is SYBase {
 
     function getTotalAssetOwned() public view returns (uint256 totalAssetOwned) {
         (uint256 stakedAmount, ) = IApeStaking(apeStaking).addressPosition(address(this));
-        uint256 unclaimedAmount = IApeStaking(apeStaking).pendingRewards(
-            APE_COIN_POOL_ID,
-            address(this),
-            0
-        );
+        uint256 unclaimedAmount = IApeStaking(apeStaking).pendingRewards(APE_COIN_POOL_ID, address(this), 0);
         uint256 floatingAmount = _selfBalance(apeCoin);
         totalAssetOwned = stakedAmount + unclaimedAmount + floatingAmount;
     }
@@ -177,11 +167,7 @@ contract sAPE is SYBase {
         return token == apeCoin;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, apeCoin, IERC20Metadata(apeCoin).decimals());
     }
 }

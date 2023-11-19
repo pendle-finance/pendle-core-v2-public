@@ -36,18 +36,12 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
         (address[] memory tokens, uint256[] memory indexes) = _updateRewardIndex();
         if (tokens.length == 0) return;
 
-        if (user1 != address(0) && user1 != address(this))
-            _distributeRewardsPrivate(user1, tokens, indexes);
-        if (user2 != address(0) && user2 != address(this))
-            _distributeRewardsPrivate(user2, tokens, indexes);
+        if (user1 != address(0) && user1 != address(this)) _distributeRewardsPrivate(user1, tokens, indexes);
+        if (user2 != address(0) && user2 != address(this)) _distributeRewardsPrivate(user2, tokens, indexes);
     }
 
     // should only be callable from `_updateAndDistributeRewardsForTwo` to guarantee user != address(0) && user != address(this)
-    function _distributeRewardsPrivate(
-        address user,
-        address[] memory tokens,
-        uint256[] memory indexes
-    ) private {
+    function _distributeRewardsPrivate(address user, address[] memory tokens, uint256[] memory indexes) private {
         assert(user != address(0) && user != address(this));
 
         uint256 userShares = _rewardSharesUser(user);
@@ -67,17 +61,11 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
             uint256 rewardDelta = userShares.mulDown(deltaIndex);
             uint256 rewardAccrued = userReward[token][user].accrued + rewardDelta;
 
-            userReward[token][user] = UserReward({
-                index: index.Uint128(),
-                accrued: rewardAccrued.Uint128()
-            });
+            userReward[token][user] = UserReward({index: index.Uint128(), accrued: rewardAccrued.Uint128()});
         }
     }
 
-    function _updateRewardIndex()
-        internal
-        virtual
-        returns (address[] memory tokens, uint256[] memory indexes);
+    function _updateRewardIndex() internal virtual returns (address[] memory tokens, uint256[] memory indexes);
 
     function _redeemExternalReward() internal virtual;
 

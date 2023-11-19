@@ -4,11 +4,7 @@ pragma solidity ^0.8.0;
 import "./IExecutorHelper.sol";
 
 library ScalingDataLib {
-    function newUniSwap(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newUniSwap(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.UniSwap memory uniSwap = abi.decode(data, (IExecutorHelper.UniSwap));
         uniSwap.collectAmount = (uniSwap.collectAmount * newAmount) / oldAmount;
         return abi.encode(uniSwap);
@@ -19,10 +15,7 @@ library ScalingDataLib {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelper.StableSwap memory stableSwap = abi.decode(
-            data,
-            (IExecutorHelper.StableSwap)
-        );
+        IExecutorHelper.StableSwap memory stableSwap = abi.decode(data, (IExecutorHelper.StableSwap));
         stableSwap.dx = (stableSwap.dx * newAmount) / oldAmount;
         return abi.encode(stableSwap);
     }
@@ -37,11 +30,7 @@ library ScalingDataLib {
         return abi.encode(curveSwap);
     }
 
-    function newKyberDMM(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newKyberDMM(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.UniSwap memory kyberDMMSwap = abi.decode(data, (IExecutorHelper.UniSwap));
         kyberDMMSwap.collectAmount = (kyberDMMSwap.collectAmount * newAmount) / oldAmount;
         return abi.encode(kyberDMMSwap);
@@ -66,19 +55,12 @@ library ScalingDataLib {
         uint256 oldAmount,
         uint256 newAmount
     ) internal pure returns (bytes memory) {
-        IExecutorHelper.BalancerV2 memory balancerV2 = abi.decode(
-            data,
-            (IExecutorHelper.BalancerV2)
-        );
+        IExecutorHelper.BalancerV2 memory balancerV2 = abi.decode(data, (IExecutorHelper.BalancerV2));
         balancerV2.amount = (balancerV2.amount * newAmount) / oldAmount;
         return abi.encode(balancerV2);
     }
 
-    function newDODO(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newDODO(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.DODO memory dodo = abi.decode(data, (IExecutorHelper.DODO));
         dodo.amount = (dodo.amount * newAmount) / oldAmount;
         return abi.encode(dodo);
@@ -94,11 +76,7 @@ library ScalingDataLib {
         return abi.encode(velodrome);
     }
 
-    function newGMX(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newGMX(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.GMX memory gmx = abi.decode(data, (IExecutorHelper.GMX));
         gmx.amount = (gmx.amount * newAmount) / oldAmount;
         return abi.encode(gmx);
@@ -114,21 +92,13 @@ library ScalingDataLib {
         return abi.encode(synthetix);
     }
 
-    function newCamelot(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newCamelot(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.UniSwap memory camelot = abi.decode(data, (IExecutorHelper.UniSwap));
         camelot.collectAmount = (camelot.collectAmount * newAmount) / oldAmount;
         return abi.encode(camelot);
     }
 
-    function newPlatypus(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newPlatypus(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.Platypus memory platypus = abi.decode(data, (IExecutorHelper.Platypus));
         platypus.collectAmount = (platypus.collectAmount * newAmount) / oldAmount;
         return abi.encode(platypus);
@@ -144,21 +114,13 @@ library ScalingDataLib {
         return abi.encode(wstEthData);
     }
 
-    function newPSM(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newPSM(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.PSM memory psm = abi.decode(data, (IExecutorHelper.PSM));
         psm.amountIn = (psm.amountIn * newAmount) / oldAmount;
         return abi.encode(psm);
     }
 
-    function newFrax(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newFrax(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.UniSwap memory frax = abi.decode(data, (IExecutorHelper.UniSwap));
         frax.collectAmount = (frax.collectAmount * newAmount) / oldAmount;
         return abi.encode(frax);
@@ -174,11 +136,7 @@ library ScalingDataLib {
         return abi.encode(amount);
     }
 
-    function newMaverick(
-        bytes memory data,
-        uint256 oldAmount,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function newMaverick(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         IExecutorHelper.Maverick memory maverick = abi.decode(data, (IExecutorHelper.Maverick));
         maverick.swapAmount = (maverick.swapAmount * newAmount) / oldAmount;
         return abi.encode(maverick);

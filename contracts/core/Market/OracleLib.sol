@@ -32,11 +32,7 @@ library OracleLib {
         Observation[65535] storage self,
         uint32 time
     ) public returns (uint16 cardinality, uint16 cardinalityNext) {
-        self[0] = Observation({
-            blockTimestamp: time,
-            lnImpliedRateCumulative: 0,
-            initialized: true
-        });
+        self[0] = Observation({blockTimestamp: time, lnImpliedRateCumulative: 0, initialized: true});
         return (1, 1);
     }
 
@@ -64,11 +60,7 @@ library OracleLib {
         self[indexUpdated] = transform(last, blockTimestamp, lnImpliedRate);
     }
 
-    function grow(
-        Observation[65535] storage self,
-        uint16 current,
-        uint16 next
-    ) public returns (uint16) {
+    function grow(Observation[65535] storage self, uint16 current, uint16 next) public returns (uint16) {
         if (current == 0) revert Errors.OracleUninitialized();
         // no-op if the passed next value isn't greater than the current next value
         if (next <= current) return current;
@@ -141,8 +133,7 @@ library OracleLib {
         if (!beforeOrAt.initialized) beforeOrAt = self[0];
 
         // ensure that the target is chronologically at or after the oldest observation
-        if (target < beforeOrAt.blockTimestamp)
-            revert Errors.OracleTargetTooOld(target, beforeOrAt.blockTimestamp);
+        if (target < beforeOrAt.blockTimestamp) revert Errors.OracleTargetTooOld(target, beforeOrAt.blockTimestamp);
 
         // if we've reached this point, we have to binary search
         return binarySearch(self, target, index, cardinality);
@@ -184,10 +175,8 @@ library OracleLib {
             // we're in the middle
             return (beforeOrAt.lnImpliedRateCumulative +
                 uint216(
-                    (uint256(
-                        atOrAfter.lnImpliedRateCumulative - beforeOrAt.lnImpliedRateCumulative
-                    ) * (target - beforeOrAt.blockTimestamp)) /
-                        (atOrAfter.blockTimestamp - beforeOrAt.blockTimestamp)
+                    (uint256(atOrAfter.lnImpliedRateCumulative - beforeOrAt.lnImpliedRateCumulative) *
+                        (target - beforeOrAt.blockTimestamp)) / (atOrAfter.blockTimestamp - beforeOrAt.blockTimestamp)
                 ));
         }
     }
@@ -204,14 +193,7 @@ library OracleLib {
 
         lnImpliedRateCumulative = new uint216[](secondsAgos.length);
         for (uint256 i = 0; i < lnImpliedRateCumulative.length; ++i) {
-            lnImpliedRateCumulative[i] = observeSingle(
-                self,
-                time,
-                secondsAgos[i],
-                lnImpliedRate,
-                index,
-                cardinality
-            );
+            lnImpliedRateCumulative[i] = observeSingle(self, time, secondsAgos[i], lnImpliedRate, index, cardinality);
         }
     }
 }

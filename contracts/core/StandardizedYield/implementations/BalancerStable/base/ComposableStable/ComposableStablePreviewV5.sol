@@ -145,17 +145,10 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
             uint256 preJoinExitInvariant
         ) = _beforeJoinExit(registeredBalances, imd, caches);
 
-        function(
-            uint256[] memory,
-            uint256,
-            uint256,
-            uint256,
-            uint256[] memory,
-            bytes memory,
-            ImmutableData memory
-        ) internal view returns (uint256, uint256[] memory) _doJoinOrExit = (
-                isJoin ? _doJoin : _doExit
-            );
+        function(uint256[] memory, uint256, uint256, uint256, uint256[] memory, bytes memory, ImmutableData memory)
+            internal
+            view
+            returns (uint256, uint256[] memory) _doJoinOrExit = (isJoin ? _doJoin : _doExit);
 
         (bptAmount, amountsDelta) = _doJoinOrExit(
             balances,
@@ -180,9 +173,7 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
     ) internal pure returns (uint256[] memory registeredTokenAmounts) {
         registeredTokenAmounts = new uint256[](amounts.length + 1);
         for (uint256 i = 0; i < registeredTokenAmounts.length; i++) {
-            registeredTokenAmounts[i] = i == imd.bptIndex
-                ? bptAmount
-                : amounts[i < imd.bptIndex ? i : i - 1];
+            registeredTokenAmounts[i] = i == imd.bptIndex ? bptAmount : amounts[i < imd.bptIndex ? i : i - 1];
         }
     }
 
@@ -237,20 +228,12 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         uint256 currentAmp,
         uint256 preJoinExitSupply,
         uint256 preJoinExitInvariant,
-        uint256[] memory, /*scalingFactors*/
+        uint256[] memory /*scalingFactors*/,
         bytes memory userData,
         ImmutableData memory imd
     ) internal view returns (uint256, uint256[] memory) {
         // this is always true given Pendle SY context
-        return
-            _exitExactBPTInForTokenOut(
-                preJoinExitSupply,
-                preJoinExitInvariant,
-                currentAmp,
-                balances,
-                userData,
-                imd
-            );
+        return _exitExactBPTInForTokenOut(preJoinExitSupply, preJoinExitInvariant, currentAmp, balances, userData, imd);
     }
 
     function _exitExactBPTInForTokenOut(
@@ -281,30 +264,14 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         uint256[] memory registeredBalances,
         ImmutableData memory imd,
         TokenRateCache[] memory caches
-    )
-        internal
-        view
-        returns (
-            uint256,
-            uint256[] memory,
-            uint256,
-            uint256
-        )
-    {
-        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IComposableStable(imd.LP)
-            .getLastJoinExitData();
+    ) internal view returns (uint256, uint256[] memory, uint256, uint256) {
+        (uint256 lastJoinExitAmp, uint256 lastPostJoinExitInvariant) = IComposableStable(imd.LP).getLastJoinExitData();
 
         (
             uint256 preJoinExitSupply,
             uint256[] memory balances,
             uint256 oldAmpPreJoinExitInvariant
-        ) = _payProtocolFeesBeforeJoinExit(
-                registeredBalances,
-                lastJoinExitAmp,
-                lastPostJoinExitInvariant,
-                imd,
-                caches
-            );
+        ) = _payProtocolFeesBeforeJoinExit(registeredBalances, lastJoinExitAmp, lastPostJoinExitInvariant, imd, caches);
 
         (uint256 currentAmp, , ) = IComposableStable(imd.LP).getAmplificationParameter();
         uint256 preJoinExitInvariant = currentAmp == lastJoinExitAmp
@@ -320,30 +287,13 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         uint256 lastPostJoinExitInvariant,
         ImmutableData memory imd,
         TokenRateCache[] memory caches
-    )
-        internal
-        view
-        returns (
-            uint256,
-            uint256[] memory,
-            uint256
-        )
-    {
-        (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(
-            imd,
-            registeredBalances
-        );
+    ) internal view returns (uint256, uint256[] memory, uint256) {
+        (uint256 virtualSupply, uint256[] memory balances) = _dropBptItemFromBalances(imd, registeredBalances);
 
         (
             uint256 expectedProtocolOwnershipPercentage,
             uint256 currentInvariantWithLastJoinExitAmp
-        ) = _getProtocolPoolOwnershipPercentage(
-                balances,
-                lastJoinExitAmp,
-                lastPostJoinExitInvariant,
-                imd,
-                caches
-            );
+        ) = _getProtocolPoolOwnershipPercentage(balances, lastJoinExitAmp, lastPostJoinExitInvariant, imd, caches);
 
         uint256 protocolFeeAmount = _calculateAdjustedProtocolFeeAmount(
             virtualSupply,
@@ -366,33 +316,22 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
             uint256 swapFeeGrowthInvariant,
             uint256 totalNonExemptGrowthInvariant,
             uint256 totalGrowthInvariant
-        ) = _getGrowthInvariants(
-                balances,
-                lastJoinExitAmp,
-                lastPostJoinExitInvariant,
-                imd,
-                caches
-            );
+        ) = _getGrowthInvariants(balances, lastJoinExitAmp, lastPostJoinExitInvariant, imd, caches);
 
         if (totalGrowthInvariant <= lastPostJoinExitInvariant) {
             return (0, totalGrowthInvariant);
         }
 
         uint256 swapFeeGrowthInvariantDelta = swapFeeGrowthInvariant - lastPostJoinExitInvariant;
-        uint256 nonExemptYieldGrowthInvariantDelta = totalNonExemptGrowthInvariant -
-            swapFeeGrowthInvariant;
+        uint256 nonExemptYieldGrowthInvariantDelta = totalNonExemptGrowthInvariant - swapFeeGrowthInvariant;
 
-        uint256 protocolSwapFeePercentage = swapFeeGrowthInvariantDelta
-            .divDown(totalGrowthInvariant)
-            .mulDown(
-                IComposableStable(imd.LP).getProtocolFeePercentageCache(0) // ProtocolFeeType.SWAP // can't get better
-            );
+        uint256 protocolSwapFeePercentage = swapFeeGrowthInvariantDelta.divDown(totalGrowthInvariant).mulDown(
+            IComposableStable(imd.LP).getProtocolFeePercentageCache(0) // ProtocolFeeType.SWAP // can't get better
+        );
 
-        uint256 protocolYieldPercentage = nonExemptYieldGrowthInvariantDelta
-            .divDown(totalGrowthInvariant)
-            .mulDown(
-                IComposableStable(imd.LP).getProtocolFeePercentageCache(2) // ProtocolFeeType.YIELD // can't get better
-            );
+        uint256 protocolYieldPercentage = nonExemptYieldGrowthInvariantDelta.divDown(totalGrowthInvariant).mulDown(
+            IComposableStable(imd.LP).getProtocolFeePercentageCache(2) // ProtocolFeeType.YIELD // can't get better
+        );
 
         // These percentages can then be simply added to compute the total protocol Pool ownership percentage.
         // This is naturally bounded above by FixedPoint.ONE so this addition cannot overflow.
@@ -408,11 +347,7 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
     )
         internal
         pure
-        returns (
-            uint256 swapFeeGrowthInvariant,
-            uint256 totalNonExemptGrowthInvariant,
-            uint256 totalGrowthInvariant
-        )
+        returns (uint256 swapFeeGrowthInvariant, uint256 totalNonExemptGrowthInvariant, uint256 totalGrowthInvariant)
     {
         // Total growth invariant is always calculated with the current (scaled / unadjusted) balances.
         totalGrowthInvariant = lastJoinExitAmp._calculateInvariant(balances);
@@ -467,19 +402,14 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         return adjustedBalances;
     }
 
-    function _adjustedBalance(uint256 balance, TokenRateCache memory cache)
-        private
-        pure
-        returns (uint256)
-    {
+    function _adjustedBalance(uint256 balance, TokenRateCache memory cache) private pure returns (uint256) {
         return (balance * cache.oldRate) / cache.currentRate;
     }
 
-    function _calculateAdjustedProtocolFeeAmount(uint256 supply, uint256 basePercentage)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _calculateAdjustedProtocolFeeAmount(
+        uint256 supply,
+        uint256 basePercentage
+    ) internal pure returns (uint256) {
         return supply.mulDown(basePercentage).divDown(basePercentage.complement());
     }
 
@@ -487,17 +417,10 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         ImmutableData memory imd,
         uint256[] memory registeredBalances
     ) internal view returns (uint256, uint256[] memory) {
-        return (
-            _getVirtualSupply(imd, registeredBalances[imd.bptIndex]),
-            _dropBptItem(imd, registeredBalances)
-        );
+        return (_getVirtualSupply(imd, registeredBalances[imd.bptIndex]), _dropBptItem(imd, registeredBalances));
     }
 
-    function _dropBptItem(ImmutableData memory imd, uint256[] memory amounts)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function _dropBptItem(ImmutableData memory imd, uint256[] memory amounts) internal pure returns (uint256[] memory) {
         uint256[] memory amountsWithoutBpt = new uint256[](amounts.length - 1);
         for (uint256 i = 0; i < amountsWithoutBpt.length; i++) {
             amountsWithoutBpt[i] = amounts[i < imd.bptIndex ? i : i + 1];
@@ -506,27 +429,19 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         return amountsWithoutBpt;
     }
 
-    function _getVirtualSupply(ImmutableData memory imd, uint256 bptBalance)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getVirtualSupply(ImmutableData memory imd, uint256 bptBalance) internal view returns (uint256) {
         return (IERC20(imd.LP).totalSupply()).sub(bptBalance); // can't get better
     }
 
-    function _beforeSwapJoinExit(ImmutableData memory imd)
-        internal
-        view
-        returns (TokenRateCache[] memory tokenRateCaches)
-    {
+    function _beforeSwapJoinExit(
+        ImmutableData memory imd
+    ) internal view returns (TokenRateCache[] memory tokenRateCaches) {
         return _cacheTokenRatesIfNecessary(imd);
     }
 
-    function _cacheTokenRatesIfNecessary(ImmutableData memory imd)
-        internal
-        view
-        returns (TokenRateCache[] memory tokenRateCaches)
-    {
+    function _cacheTokenRatesIfNecessary(
+        ImmutableData memory imd
+    ) internal view returns (TokenRateCache[] memory tokenRateCaches) {
         tokenRateCaches = new TokenRateCache[](imd.totalTokens);
 
         for (uint256 i = 0; i < imd.totalTokens; ++i) {
@@ -537,11 +452,10 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
     /**
      * @dev Caches the rate for a token if necessary. It ignores the call if there is no provider set.
      */
-    function _cacheTokenRateIfNecessary(uint256 index, ImmutableData memory imd)
-        internal
-        view
-        returns (TokenRateCache memory res)
-    {
+    function _cacheTokenRateIfNecessary(
+        uint256 index,
+        ImmutableData memory imd
+    ) internal view returns (TokenRateCache memory res) {
         if (index == imd.bptIndex || !_hasRateProvider(imd, index)) return res;
 
         uint256 expires;
@@ -554,12 +468,10 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         }
     }
 
-    function _scalingFactors(ImmutableData memory imd, TokenRateCache[] memory caches)
-        internal
-        view
-        virtual
-        returns (uint256[] memory)
-    {
+    function _scalingFactors(
+        ImmutableData memory imd,
+        TokenRateCache[] memory caches
+    ) internal view virtual returns (uint256[] memory) {
         // There is no need to check the arrays length since both are based on `_getTotalTokens`
         uint256[] memory scalingFactors = new uint256[](imd.totalTokens);
 
@@ -570,12 +482,7 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
         return scalingFactors;
     }
 
-    function _getTokenRate(TokenRateCache[] memory caches, uint256 index)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
+    function _getTokenRate(TokenRateCache[] memory caches, uint256 index) internal view virtual returns (uint256) {
         return caches[index].currentRate == 0 ? FixedPoint.ONE : caches[index].currentRate;
     }
 
@@ -583,39 +490,25 @@ contract ComposableStablePreviewV5 is ComposableStablePreview {
                                Helpers functions
     //////////////////////////////////////////////////////////////*/
 
-    function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors)
-        internal
-        pure
-    {
+    function _upscaleArray(uint256[] memory amounts, uint256[] memory scalingFactors) internal pure {
         uint256 length = amounts.length;
         for (uint256 i = 0; i < length; ++i) {
             amounts[i] = FixedPoint.mulDown(amounts[i], scalingFactors[i]);
         }
     }
 
-    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors)
-        internal
-        pure
-    {
+    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors) internal pure {
         uint256 length = amounts.length;
         for (uint256 i = 0; i < length; ++i) {
             amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
         }
     }
 
-    function _hasRateProvider(ImmutableData memory imd, uint256 index)
-        internal
-        pure
-        returns (bool)
-    {
+    function _hasRateProvider(ImmutableData memory imd, uint256 index) internal pure returns (bool) {
         return address(imd.rateProviders[index]) != address(0);
     }
 
-    function _isTokenExemptFromYieldProtocolFee(ImmutableData memory imd, uint256 index)
-        internal
-        pure
-        returns (bool)
-    {
+    function _isTokenExemptFromYieldProtocolFee(ImmutableData memory imd, uint256 index) internal pure returns (bool) {
         return imd.isExemptFromYieldProtocolFee[index];
     }
 }

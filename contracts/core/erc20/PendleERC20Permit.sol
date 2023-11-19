@@ -20,9 +20,7 @@ contract PendleERC20Permit is PendleERC20, IERC20Permit, EIP712 {
 
     // solhint-disable-next-line var-name-mixedcase
     bytes32 private constant _PERMIT_TYPEHASH =
-        keccak256(
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-        );
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     constructor(
         string memory name_,
@@ -44,9 +42,7 @@ contract PendleERC20Permit is PendleERC20, IERC20Permit, EIP712 {
     ) public virtual override {
         require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
 
-        bytes32 structHash = keccak256(
-            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline)
-        );
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
 
         bytes32 hash = _hashTypedDataV4(structHash);
 

@@ -19,8 +19,7 @@ contract PendleQiTokenHelper {
 
         uint256 accrualBlockTimestampPrior = qiToken.accrualBlockTimestamp();
 
-        if (accrualBlockTimestampPrior == currentBlockTimestamp)
-            return qiToken.exchangeRateStored();
+        if (accrualBlockTimestampPrior == currentBlockTimestamp) return qiToken.exchangeRateStored();
 
         /* Read the previous values out of storage */
         uint256 cashPrior = qiToken.getCash();
@@ -28,11 +27,7 @@ contract PendleQiTokenHelper {
         uint256 reservesPrior = qiToken.totalReserves();
 
         /* Calculate the current borrow interest rate */
-        uint256 borrowRateMantissa = qiToken.interestRateModel().getBorrowRate(
-            cashPrior,
-            borrowsPrior,
-            reservesPrior
-        );
+        uint256 borrowRateMantissa = qiToken.interestRateModel().getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
 
         if (borrowRateMantissa > borrowRateMaxMantissa)
             revert Errors.SYQiTokenBorrowRateTooHigh(borrowRateMantissa, borrowRateMaxMantissa);
@@ -45,12 +40,9 @@ contract PendleQiTokenHelper {
 
         uint256 totalBorrowsNew = interestAccumulated + borrowsPrior;
 
-        uint256 totalReservesNew = (qiToken.reserveFactorMantissa() * interestAccumulated) /
-            1e18 +
-            reservesPrior;
+        uint256 totalReservesNew = (qiToken.reserveFactorMantissa() * interestAccumulated) / 1e18 + reservesPrior;
 
-        return
-            _calcExchangeRate(qiToken.totalSupply(), cashPrior, totalBorrowsNew, totalReservesNew);
+        return _calcExchangeRate(qiToken.totalSupply(), cashPrior, totalBorrowsNew, totalReservesNew);
     }
 
     function _calcExchangeRate(

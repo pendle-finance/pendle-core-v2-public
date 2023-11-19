@@ -234,9 +234,7 @@ library LinearMath {
         uint256 previousInvariant = _calcInvariant(nominalMain, wrappedBalance);
 
         uint256 newBptBalance = bptSupply.add(bptOut);
-        uint256 newWrappedBalance = divUp(mul(newBptBalance, previousInvariant), bptSupply).sub(
-            nominalMain
-        );
+        uint256 newWrappedBalance = divUp(mul(newBptBalance, previousInvariant), bptSupply).sub(nominalMain);
 
         return newWrappedBalance.sub(wrappedBalance);
     }
@@ -254,18 +252,12 @@ library LinearMath {
         uint256 previousInvariant = _calcInvariant(nominalMain, wrappedBalance);
 
         uint256 newBptBalance = bptSupply.sub(bptIn);
-        uint256 newWrappedBalance = divUp(mul(newBptBalance, previousInvariant), bptSupply).sub(
-            nominalMain
-        );
+        uint256 newWrappedBalance = divUp(mul(newBptBalance, previousInvariant), bptSupply).sub(nominalMain);
 
         return wrappedBalance.sub(newWrappedBalance);
     }
 
-    function _calcInvariant(uint256 nominalMainBalance, uint256 wrappedBalance)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _calcInvariant(uint256 nominalMainBalance, uint256 wrappedBalance) internal pure returns (uint256) {
         return nominalMainBalance.add(wrappedBalance);
     }
 
@@ -291,18 +283,11 @@ library LinearMath {
             // Since real = nominal + fees, rounding down fees is equivalent to rounding down real.
 
             if (nominal < params.lowerTarget) {
-                return
-                    (nominal.add(params.fee.mulDown(params.lowerTarget))).divDown(
-                        FixedPoint.ONE.add(params.fee)
-                    );
+                return (nominal.add(params.fee.mulDown(params.lowerTarget))).divDown(FixedPoint.ONE.add(params.fee));
             } else if (nominal <= params.upperTarget) {
                 return nominal;
             } else {
-                return (
-                    nominal.sub(params.fee.mulDown(params.upperTarget)).divDown(
-                        FixedPoint.ONE.sub(params.fee)
-                    )
-                );
+                return (nominal.sub(params.fee.mulDown(params.upperTarget)).divDown(FixedPoint.ONE.sub(params.fee)));
             }
         }
     }
@@ -352,11 +337,7 @@ library LinearMath {
         }
     }
 
-    function div(
-        uint256 a,
-        uint256 b,
-        bool roundUp
-    ) internal pure returns (uint256) {
+    function div(uint256 a, uint256 b, bool roundUp) internal pure returns (uint256) {
         return roundUp ? divUp(a, b) : divDown(a, b);
     }
 

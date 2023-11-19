@@ -23,12 +23,7 @@ Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
-contract PendleYieldToken is
-    IPYieldToken,
-    PendleERC20Permit,
-    RewardManagerAbstract,
-    InterestManagerYT
-{
+contract PendleYieldToken is IPYieldToken, PendleERC20Permit, RewardManagerAbstract, InterestManagerYT {
     using PMath for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for uint256[];
@@ -98,11 +93,7 @@ contract PendleYieldToken is
         address[] memory receiverYTs = new address[](1);
         uint256[] memory amountSyToMints = new uint256[](1);
 
-        (receiverPTs[0], receiverYTs[0], amountSyToMints[0]) = (
-            receiverPT,
-            receiverYT,
-            _getFloatingSyAmount()
-        );
+        (receiverPTs[0], receiverYTs[0], amountSyToMints[0]) = (receiverPT, receiverYT, _getFloatingSyAmount());
 
         uint256[] memory amountPYOuts = _mintPY(receiverPTs, receiverYTs, amountSyToMints);
         amountPYOut = amountPYOuts[0];
@@ -117,8 +108,7 @@ contract PendleYieldToken is
         uint256 length = receiverPTs.length;
 
         if (length == 0) revert Errors.ArrayEmpty();
-        if (receiverYTs.length != length || amountSyToMints.length != length)
-            revert Errors.ArrayLengthMismatch();
+        if (receiverYTs.length != length || amountSyToMints.length != length) revert Errors.ArrayLengthMismatch();
 
         uint256 totalSyToMint = amountSyToMints.sum();
         if (totalSyToMint > _getFloatingSyAmount())
@@ -132,9 +122,7 @@ contract PendleYieldToken is
      * same time
      * @dev PT/YT must be transferred to this contract prior to calling
      */
-    function redeemPY(
-        address receiver
-    ) external nonReentrant updateData returns (uint256 amountSyOut) {
+    function redeemPY(address receiver) external nonReentrant updateData returns (uint256 amountSyOut) {
         address[] memory receivers = new address[](1);
         uint256[] memory amounts = new uint256[](1);
         (receivers[0], amounts[0]) = (receiver, _getAmountPYToRedeem());
@@ -307,13 +295,7 @@ contract PendleYieldToken is
             _mint(receiverYTs[i], amountPYOuts[i]);
             IPPrincipalToken(PT).mintByYT(receiverPTs[i], amountPYOuts[i]);
 
-            emit Mint(
-                msg.sender,
-                receiverPTs[i],
-                receiverYTs[i],
-                amountSyToMints[i],
-                amountPYOuts[i]
-            );
+            emit Mint(msg.sender, receiverPTs[i], receiverYTs[i], amountSyToMints[i], amountPYOuts[i]);
         }
     }
 
@@ -335,10 +317,7 @@ contract PendleYieldToken is
 
         for (uint256 i = 0; i < receivers.length; i++) {
             uint256 syInterestPostExpiry;
-            (amountSyOuts[i], syInterestPostExpiry) = _calcSyRedeemableFromPY(
-                amountPYToRedeems[i],
-                index
-            );
+            (amountSyOuts[i], syInterestPostExpiry) = _calcSyRedeemableFromPY(amountPYToRedeems[i], index);
             _transferOut(SY, receivers[i], amountSyOuts[i]);
             totalSyInterestPostExpiry += syInterestPostExpiry;
 
@@ -349,10 +328,7 @@ contract PendleYieldToken is
         }
     }
 
-    function _calcPYToMint(
-        uint256 amountSy,
-        uint256 indexCurrent
-    ) internal pure returns (uint256 amountPY) {
+    function _calcPYToMint(uint256 amountSy, uint256 indexCurrent) internal pure returns (uint256 amountPY) {
         // doesn't matter before or after expiry, since mintPY is only allowed before expiry
         return SYUtils.syToAsset(indexCurrent, amountSy);
     }
@@ -407,12 +383,9 @@ contract PendleYieldToken is
     }
 
     function _pyIndexCurrent() internal returns (uint256 currentIndex) {
-        if (doCacheIndexSameBlock && pyIndexLastUpdatedBlock == block.number)
-            return _pyIndexStored;
+        if (doCacheIndexSameBlock && pyIndexLastUpdatedBlock == block.number) return _pyIndexStored;
 
-        uint128 index128 = PMath
-            .max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored)
-            .Uint128();
+        uint128 index128 = PMath.max(IStandardizedYield(SY).exchangeRate(), _pyIndexStored).Uint128();
 
         currentIndex = index128;
         _pyIndexStored = index128;
@@ -491,16 +464,11 @@ contract PendleYieldToken is
         return SYUtils.assetToSy(index, balanceOf(user)) + userInterest[user].accrued;
     }
 
-    function _updateRewardIndex()
-        internal
-        override
-        returns (address[] memory tokens, uint256[] memory indexes)
-    {
+    function _updateRewardIndex() internal override returns (address[] memory tokens, uint256[] memory indexes) {
         tokens = getRewardTokens();
         if (isExpired()) {
             indexes = new uint256[](tokens.length);
-            for (uint256 i = 0; i < tokens.length; i++)
-                indexes[i] = postExpiry.firstRewardIndex[tokens[i]];
+            for (uint256 i = 0; i < tokens.length; i++) indexes[i] = postExpiry.firstRewardIndex[tokens[i]];
         } else {
             indexes = IStandardizedYield(SY).rewardIndexesCurrent();
         }

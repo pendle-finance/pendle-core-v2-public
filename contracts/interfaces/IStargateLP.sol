@@ -23,8 +23,6 @@
 pragma solidity ^0.8.0;
 
 interface IStargateLP {
-
-
     struct SwapObj {
         uint256 amount;
         uint256 eqFee;
@@ -58,5 +56,4 @@ interface IStargateLP {
     function convertRate() external view returns (uint256);
 
     function deltaCredit() external view returns (uint256);
-
 }

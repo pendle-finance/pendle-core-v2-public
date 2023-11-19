@@ -21,7 +21,7 @@ abstract contract TokenHelper {
     function _transferOut(address token, address to, uint256 amount) internal {
         if (amount == 0) return;
         if (token == NATIVE) {
-            (bool success, ) = to.call{ value: amount }("");
+            (bool success, ) = to.call{value: amount}("");
             require(success, "eth send failed");
         } else {
             IERC20(token).safeTransfer(to, amount);
@@ -50,9 +50,7 @@ abstract contract TokenHelper {
     /// @notice Approves the stipulated contract to spend the given allowance in the given token
     /// @dev PLS PAY ATTENTION to tokens that requires the approval to be set to 0 before changing it
     function _safeApprove(address token, address to, uint256 value) internal {
-        (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(IERC20.approve.selector, to, value)
-        );
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.approve.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "Safe Approve");
     }
 
@@ -65,7 +63,7 @@ abstract contract TokenHelper {
     }
 
     function _wrap_unwrap_ETH(address tokenIn, address tokenOut, uint256 netTokenIn) internal {
-        if (tokenIn == NATIVE) IWETH(tokenOut).deposit{ value: netTokenIn }();
+        if (tokenIn == NATIVE) IWETH(tokenOut).deposit{value: netTokenIn}();
         else IWETH(tokenIn).withdraw(netTokenIn);
     }
 }

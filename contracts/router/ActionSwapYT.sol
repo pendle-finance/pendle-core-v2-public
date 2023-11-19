@@ -24,10 +24,7 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
         uint256 providerId
     ) ActionBaseCallback(_getMarketFactory(provider, providerId)) {}
 
-    function _getMarketFactory(
-        IAddressProvider provider,
-        uint256 providerId
-    ) internal view returns (address) {
+    function _getMarketFactory(IAddressProvider provider, uint256 providerId) internal view returns (address) {
         return provider.get(providerId);
     }
 
@@ -54,14 +51,7 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
 
         _transferFrom(IERC20(SY), msg.sender, address(YT), exactSyIn);
 
-        (netYtOut, netSyFee) = _swapExactSyForYt(
-            receiver,
-            market,
-            YT,
-            exactSyIn,
-            minYtOut,
-            guessYtOut
-        );
+        (netYtOut, netSyFee) = _swapExactSyForYt(receiver, market, YT, exactSyIn, minYtOut, guessYtOut);
 
         emit SwapYtAndSy(msg.sender, market, receiver, netYtOut.Int(), exactSyIn.neg());
     }
@@ -144,12 +134,7 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
         MarketState memory state = IPMarket(market).readState(address(this));
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netYtIn, , ) = state.approxSwapYtForExactSy(
-            YT.newIndex(),
-            exactSyOut,
-            block.timestamp,
-            guessYtIn
-        );
+        (netYtIn, , ) = state.approxSwapYtForExactSy(YT.newIndex(), exactSyOut, block.timestamp, guessYtIn);
 
         if (netYtIn > maxYtIn) revert Errors.RouterExceededLimitYtIn(netYtIn, maxYtIn);
 
@@ -180,23 +165,9 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
 
         uint256 netSyUsedToBuyYT = _mintSyFromToken(address(YT), address(SY), 1, input);
 
-        (netYtOut, netSyFee) = _swapExactSyForYt(
-            receiver,
-            market,
-            YT,
-            netSyUsedToBuyYT,
-            minYtOut,
-            guessYtOut
-        );
+        (netYtOut, netSyFee) = _swapExactSyForYt(receiver, market, YT, netSyUsedToBuyYT, minYtOut, guessYtOut);
 
-        emit SwapYtAndToken(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            netYtOut.Int(),
-            input.netTokenIn.neg()
-        );
+        emit SwapYtAndToken(msg.sender, market, input.tokenIn, receiver, netYtOut.Int(), input.netTokenIn.neg());
     }
 
     /**
@@ -216,25 +187,11 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
 
         uint256 netSyOut;
 
-        (netSyOut, netSyFee) = _swapExactYtForSy(
-            _syOrBulk(address(SY), output),
-            market,
-            SY,
-            YT,
-            netYtIn,
-            1
-        );
+        (netSyOut, netSyFee) = _swapExactYtForSy(_syOrBulk(address(SY), output), market, SY, YT, netYtIn, 1);
 
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyOut, output, false);
 
-        emit SwapYtAndToken(
-            msg.sender,
-            market,
-            output.tokenOut,
-            receiver,
-            netYtIn.neg(),
-            netTokenOut.Int()
-        );
+        emit SwapYtAndToken(msg.sender, market, output.tokenOut, receiver, netYtIn.neg(), netTokenOut.Int());
     }
 
     /**
@@ -333,12 +290,7 @@ contract ActionSwapYT is ActionBaseCallback, IPActionSwapYT, ActionBaseMintRedee
     ) internal returns (uint256 netYtOut, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState(address(this));
 
-        (netYtOut, ) = state.approxSwapExactSyForYt(
-            YT.newIndex(),
-            exactSyIn,
-            block.timestamp,
-            guessYtOut
-        );
+        (netYtOut, ) = state.approxSwapExactSyForYt(YT.newIndex(), exactSyIn, block.timestamp, guessYtOut);
 
         // early-check
         if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);

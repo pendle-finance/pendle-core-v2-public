@@ -25,11 +25,7 @@ contract CamelotV1VolatileCommon {
     uint256 internal constant FOUR = 4 * FEE_DENOMINATOR;
 
     // reference: https://blog.alphaventuredao.io/onesideduniswap/
-    function _getZapInSwapAmount(
-        uint256 amountIn,
-        uint256 reserve,
-        uint256 fee
-    ) internal pure returns (uint256) {
+    function _getZapInSwapAmount(uint256 amountIn, uint256 reserve, uint256 fee) internal pure returns (uint256) {
         return
             (PMath.sqrt(PMath.square((TWO - fee) * reserve) + FOUR * (ONE - fee) * amountIn * reserve) -
                 (TWO - fee) *

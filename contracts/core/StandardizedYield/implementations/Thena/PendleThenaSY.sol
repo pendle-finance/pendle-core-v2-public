@@ -39,12 +39,10 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
     /**
      * @dev See {SYBase-_deposit}
      */
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountLpDeposited)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountLpDeposited) {
         _withdrawAllFromGauge();
         if (tokenIn == pair) {
             amountLpDeposited = amountDeposited;
@@ -86,7 +84,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
     function _getRewardTokens() internal view virtual override returns (address[] memory res) {
         res = new address[](1 + externalRewardTokens.length);
         res[0] = THENA;
-        for(uint256 i = 1; i < res.length; ++i) {
+        for (uint256 i = 1; i < res.length; ++i) {
             res[i] = externalRewardTokens[i - 1];
         }
     }
@@ -99,12 +97,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
                     PREVIEW-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
         if (tokenIn == pair) {
             return amountTokenToDeposit;
         } else {
@@ -112,12 +105,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256)
-    {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem) internal view override returns (uint256) {
         if (tokenOut == pair) {
             return amountSharesToRedeem;
         } else {
@@ -151,15 +139,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
         return token == token0 || token == token1 || token == pair;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.LIQUIDITY, pair, IERC20Metadata(pair).decimals());
     }
 

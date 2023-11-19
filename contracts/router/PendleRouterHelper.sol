@@ -18,11 +18,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
         _safeApproveInf(WETH, address(ROUTER));
     }
 
-    function _getWETHAddress(IAddressProvider provider, uint256 providerId)
-        internal
-        view
-        returns (address)
-    {
+    function _getWETHAddress(IAddressProvider provider, uint256 providerId) internal view returns (address) {
         return provider.get(providerId);
     }
 
@@ -45,13 +41,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
         _transferIn(NATIVE, msg.sender, input.netTokenIn);
 
         _wrap_unwrap_ETH(NATIVE, WETH, input.netTokenIn);
-        (netLpOut, netYtOut) = ROUTER.addLiquiditySingleTokenKeepYt(
-            receiver,
-            market,
-            minLpOut,
-            minYtOut,
-            input
-        );
+        (netLpOut, netYtOut) = ROUTER.addLiquiditySingleTokenKeepYt(receiver, market, minLpOut, minYtOut, input);
 
         emit AddLiquiditySingleTokenKeepYt(
             msg.sender,
@@ -67,55 +57,23 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
     function transferLiquidityDifferentSyNormal(
         RemoveLiquiditySingleTokenStruct calldata fromMarket,
         AddLiquiditySingleTokenStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netTokenZapIn,
-            uint256 netSyFeeOfRemove,
-            uint256 netSyFeeOfAdd
-        )
-    {
+    ) external returns (uint256 netLpOut, uint256 netTokenZapIn, uint256 netSyFeeOfRemove, uint256 netSyFeeOfAdd) {
         (netTokenZapIn, netSyFeeOfRemove) = removeLiquiditySingleToken(fromMarket);
-        (netLpOut, netSyFeeOfAdd) = _addLiquiditySingleToken(
-            toMarket,
-            fromMarket.output.tokenOut,
-            netTokenZapIn
-        );
+        (netLpOut, netSyFeeOfAdd) = _addLiquiditySingleToken(toMarket, fromMarket.output.tokenOut, netTokenZapIn);
     }
 
     function transferLiquidityDifferentSyKeepYt(
         RemoveLiquiditySingleTokenStruct calldata fromMarket,
         AddLiquiditySingleTokenKeepYtStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netYtOut,
-            uint256 netTokenZapIn,
-            uint256 netSyFeeOfRemove
-        )
-    {
+    ) external returns (uint256 netLpOut, uint256 netYtOut, uint256 netTokenZapIn, uint256 netSyFeeOfRemove) {
         (netTokenZapIn, netSyFeeOfRemove) = removeLiquiditySingleToken(fromMarket);
-        (netLpOut, netYtOut) = _addLiquiditySingleTokenKeepYt(
-            toMarket,
-            fromMarket.output.tokenOut,
-            netTokenZapIn
-        );
+        (netLpOut, netYtOut) = _addLiquiditySingleTokenKeepYt(toMarket, fromMarket.output.tokenOut, netTokenZapIn);
     }
 
     function transferLiquiditySameSyNormal(
         RemoveLiquiditySingleSyStruct calldata fromMarket,
         AddLiquiditySingleSyStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netSyZapIn,
-            uint256 netSyFeeOfRemove,
-            uint256 netSyFeeOfAdd
-        )
-    {
+    ) external returns (uint256 netLpOut, uint256 netSyZapIn, uint256 netSyFeeOfRemove, uint256 netSyFeeOfAdd) {
         (netSyZapIn, netSyFeeOfRemove) = removeLiquiditySingleSy(fromMarket);
         (netLpOut, netSyFeeOfAdd) = _addLiquiditySingleSy(toMarket, netSyZapIn);
     }
@@ -123,29 +81,15 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
     function transferLiquiditySameSyKeepYt(
         RemoveLiquiditySingleSyStruct calldata fromMarket,
         AddLiquiditySingleSyKeepYtStruct calldata toMarket
-    )
-        external
-        returns (
-            uint256 netLpOut,
-            uint256 netYtOut,
-            uint256 netSyZapIn,
-            uint256 netSyFeeOfRemove
-        )
-    {
+    ) external returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyZapIn, uint256 netSyFeeOfRemove) {
         (netSyZapIn, netSyFeeOfRemove) = removeLiquiditySingleSy(fromMarket);
         (netLpOut, netYtOut) = _addLiquiditySingleSyKeepYt(toMarket, netSyZapIn);
     }
 
-    function removeLiquiditySingleToken(RemoveLiquiditySingleTokenStruct calldata fromMarket)
-        public
-        returns (uint256 netTokenOut, uint256 netSyFee)
-    {
-        _transferFrom(
-            IERC20(fromMarket.market),
-            msg.sender,
-            address(this),
-            fromMarket.netLpToRemove
-        );
+    function removeLiquiditySingleToken(
+        RemoveLiquiditySingleTokenStruct calldata fromMarket
+    ) public returns (uint256 netTokenOut, uint256 netSyFee) {
+        _transferFrom(IERC20(fromMarket.market), msg.sender, address(this), fromMarket.netLpToRemove);
 
         _safeApproveInf(fromMarket.market, address(ROUTER));
 
@@ -170,16 +114,10 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
         );
     }
 
-    function removeLiquiditySingleSy(RemoveLiquiditySingleSyStruct calldata fromMarket)
-        public
-        returns (uint256 netSyOut, uint256 netSyFee)
-    {
-        _transferFrom(
-            IERC20(fromMarket.market),
-            msg.sender,
-            address(this),
-            fromMarket.netLpToRemove
-        );
+    function removeLiquiditySingleSy(
+        RemoveLiquiditySingleSyStruct calldata fromMarket
+    ) public returns (uint256 netSyOut, uint256 netSyFee) {
+        _transferFrom(IERC20(fromMarket.market), msg.sender, address(this), fromMarket.netLpToRemove);
 
         _safeApproveInf(fromMarket.market, address(ROUTER));
 
@@ -194,13 +132,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             IPMarket(fromMarket.market).redeemRewards(msg.sender);
         }
 
-        emit RemoveLiquiditySingleSy(
-            msg.sender,
-            fromMarket.market,
-            msg.sender,
-            fromMarket.netLpToRemove,
-            netSyOut
-        );
+        emit RemoveLiquiditySingleSy(msg.sender, fromMarket.market, msg.sender, fromMarket.netLpToRemove, netSyOut);
     }
 
     function _addLiquiditySingleToken(
@@ -215,26 +147,15 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
 
         _safeApproveInf(tokenToZapIn, address(ROUTER));
 
-        (netLpOut, netSyFee) = ROUTER.addLiquiditySingleToken{ value: netNativeToAttach }(
+        (netLpOut, netSyFee) = ROUTER.addLiquiditySingleToken{value: netNativeToAttach}(
             msg.sender,
             toMarket.market,
             toMarket.minLpOut,
-            _scaleApproxParams(
-                toMarket.guessPtReceivedFromSy,
-                toMarket.guessNetTokenIn,
-                actualNetTokenIn
-            ),
+            _scaleApproxParams(toMarket.guessPtReceivedFromSy, toMarket.guessNetTokenIn, actualNetTokenIn),
             _newTokenInputStruct(tokenToZapIn, actualNetTokenIn, toMarket.bulk)
         );
 
-        emit AddLiquiditySingleToken(
-            msg.sender,
-            toMarket.market,
-            tokenToZapIn,
-            msg.sender,
-            actualNetTokenIn,
-            netLpOut
-        );
+        emit AddLiquiditySingleToken(msg.sender, toMarket.market, tokenToZapIn, msg.sender, actualNetTokenIn, netLpOut);
     }
 
     function _addLiquiditySingleSy(
@@ -250,20 +171,10 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             toMarket.market,
             actualNetSyIn,
             toMarket.minLpOut,
-            _scaleApproxParams(
-                toMarket.guessPtReceivedFromSy,
-                toMarket.guessNetSyIn,
-                actualNetSyIn
-            )
+            _scaleApproxParams(toMarket.guessPtReceivedFromSy, toMarket.guessNetSyIn, actualNetSyIn)
         );
 
-        emit AddLiquiditySingleSy(
-            msg.sender,
-            toMarket.market,
-            msg.sender,
-            actualNetSyIn,
-            netLpOut
-        );
+        emit AddLiquiditySingleSy(msg.sender, toMarket.market, msg.sender, actualNetSyIn, netLpOut);
     }
 
     function _addLiquiditySingleTokenKeepYt(
@@ -313,14 +224,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             toMarket.minYtOut
         );
 
-        emit AddLiquiditySingleSyKeepYt(
-            msg.sender,
-            toMarket.market,
-            msg.sender,
-            actualNetSyIn,
-            netLpOut,
-            netYtOut
-        );
+        emit AddLiquiditySingleSyKeepYt(msg.sender, toMarket.market, msg.sender, actualNetSyIn, netLpOut, netYtOut);
     }
 
     // ============ struct helpers ============

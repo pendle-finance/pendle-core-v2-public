@@ -621,11 +621,7 @@ library StringLib {
      * @param token An output parameter to which the first token is written.
      * @return `token`.
      */
-    function split(
-        slice memory self,
-        slice memory needle,
-        slice memory token
-    ) internal pure returns (slice memory) {
+    function split(slice memory self, slice memory needle, slice memory token) internal pure returns (slice memory) {
         uint256 ptr = findPtr(self._len, self._ptr, needle._len, needle._ptr);
         token._ptr = self._ptr;
         token._len = ptr - self._ptr;
@@ -648,10 +644,7 @@ library StringLib {
      * @param needle The text to search for in `self`.
      * @return The part of `self` up to the first occurrence of `delim`.
      */
-    function split(
-        slice memory self,
-        slice memory needle
-    ) internal pure returns (slice memory token) {
+    function split(slice memory self, slice memory needle) internal pure returns (slice memory token) {
         split(self, needle, token);
     }
 
@@ -665,11 +658,7 @@ library StringLib {
      * @param token An output parameter to which the first token is written.
      * @return `token`.
      */
-    function rsplit(
-        slice memory self,
-        slice memory needle,
-        slice memory token
-    ) internal pure returns (slice memory) {
+    function rsplit(slice memory self, slice memory needle, slice memory token) internal pure returns (slice memory) {
         uint256 ptr = rfindPtr(self._len, self._ptr, needle._len, needle._ptr);
         token._ptr = ptr;
         token._len = self._len - (ptr - self._ptr);
@@ -691,10 +680,7 @@ library StringLib {
      * @param needle The text to search for in `self`.
      * @return The part of `self` after the last occurrence of `delim`.
      */
-    function rsplit(
-        slice memory self,
-        slice memory needle
-    ) internal pure returns (slice memory token) {
+    function rsplit(slice memory self, slice memory needle) internal pure returns (slice memory token) {
         rsplit(self, needle, token);
     }
 
@@ -708,9 +694,7 @@ library StringLib {
         uint256 ptr = findPtr(self._len, self._ptr, needle._len, needle._ptr) + needle._len;
         while (ptr <= self._ptr + self._len) {
             cnt++;
-            ptr =
-                findPtr(self._len - (ptr - self._ptr), ptr, needle._len, needle._ptr) +
-                needle._len;
+            ptr = findPtr(self._len - (ptr - self._ptr), ptr, needle._len, needle._ptr) + needle._len;
         }
     }
 

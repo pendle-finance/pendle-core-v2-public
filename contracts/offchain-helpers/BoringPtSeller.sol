@@ -12,13 +12,8 @@ abstract contract BoringPtSeller {
     /// @param netPtIn amount of Pt to sell
     /// @param tokenOut should be included in SY.getTokensOut()
     /// @return netTokenOut amount of token out
-    function _sellPtForToken(
-        address market,
-        uint256 netPtIn,
-        address tokenOut
-    ) internal returns (uint256 netTokenOut) {
-        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market)
-            .readTokens();
+    function _sellPtForToken(address market, uint256 netPtIn, address tokenOut) internal returns (uint256 netTokenOut) {
+        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
         uint256 netSyOut;
         if (PT.isExpired()) {

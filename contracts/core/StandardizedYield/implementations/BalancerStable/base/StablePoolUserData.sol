@@ -18,9 +18,7 @@ library StablePoolUserData {
         (, amountsIn, minBPTAmountOut) = abi.decode(self, (JoinKind, uint256[], uint256));
     }
 
-    function exactBptInForTokenOut(
-        bytes memory self
-    ) internal pure returns (uint256 bptAmountIn, uint256 tokenIndex) {
+    function exactBptInForTokenOut(bytes memory self) internal pure returns (uint256 bptAmountIn, uint256 tokenIndex) {
         (, bptAmountIn, tokenIndex) = abi.decode(self, (ExitKind, uint256, uint256));
     }
 }

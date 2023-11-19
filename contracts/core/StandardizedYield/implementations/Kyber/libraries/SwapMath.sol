@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import { MathConstants as C } from "./MathConstants.sol";
-import { FullMath } from "./FullMath.sol";
-import { QuadMath } from "./QuadMath.sol";
-import { SafeCast } from "./SafeCast.sol";
-
+import {MathConstants as C} from "./MathConstants.sol";
+import {FullMath} from "./FullMath.sol";
+import {QuadMath} from "./QuadMath.sol";
+import {SafeCast} from "./SafeCast.sol";
 
 /**
  *      ---------      [DIRECT COPIED FROM KYBERSWAP]      ---------
  */
-
 
 /// @title Contains helper functions for swaps
 library SwapMath {
@@ -39,28 +37,14 @@ library SwapMath {
         int256 specifiedAmount,
         bool isExactInput,
         bool isToken0
-    )
-        internal
-        pure
-        returns (int256 usedAmount, int256 returnedAmount, uint256 deltaL, uint160 nextSqrtP)
-    {
+    ) internal pure returns (int256 usedAmount, int256 returnedAmount, uint256 deltaL, uint160 nextSqrtP) {
         // in the event currentSqrtP == targetSqrtP because of tick movements, return
         // eg. swapped up tick where specified price limit is on an initialised tick
         // then swapping down tick will cause next tick to be the same as the current tick
         if (currentSqrtP == targetSqrtP) return (0, 0, 0, currentSqrtP);
-        usedAmount = calcReachAmount(
-            liquidity,
-            currentSqrtP,
-            targetSqrtP,
-            feeInFeeUnits,
-            isExactInput,
-            isToken0
-        );
+        usedAmount = calcReachAmount(liquidity, currentSqrtP, targetSqrtP, feeInFeeUnits, isExactInput, isToken0);
 
-        if (
-            (isExactInput && usedAmount > specifiedAmount) ||
-            (!isExactInput && usedAmount <= specifiedAmount)
-        ) {
+        if ((isExactInput && usedAmount > specifiedAmount) || (!isExactInput && usedAmount <= specifiedAmount)) {
             usedAmount = specifiedAmount;
         } else {
             nextSqrtP = targetSqrtP;
@@ -76,32 +60,11 @@ library SwapMath {
                 isExactInput,
                 isToken0
             );
-            nextSqrtP = calcFinalPrice(
-                absDelta,
-                liquidity,
-                deltaL,
-                currentSqrtP,
-                isExactInput,
-                isToken0
-            ).toUint160();
+            nextSqrtP = calcFinalPrice(absDelta, liquidity, deltaL, currentSqrtP, isExactInput, isToken0).toUint160();
         } else {
-            deltaL = calcIncrementalLiquidity(
-                absDelta,
-                liquidity,
-                currentSqrtP,
-                nextSqrtP,
-                isExactInput,
-                isToken0
-            );
+            deltaL = calcIncrementalLiquidity(absDelta, liquidity, currentSqrtP, nextSqrtP, isExactInput, isToken0);
         }
-        returnedAmount = calcReturnedAmount(
-            liquidity,
-            currentSqrtP,
-            nextSqrtP,
-            deltaL,
-            isExactInput,
-            isToken0
-        );
+        returnedAmount = calcReturnedAmount(liquidity, currentSqrtP, nextSqrtP, deltaL, isExactInput, isToken0);
     }
 
     /// @dev calculates the amount needed to reach targetSqrtP from currentSqrtP
@@ -116,9 +79,7 @@ library SwapMath {
     ) internal pure returns (int256 reachAmount) {
         uint256 absPriceDiff;
         unchecked {
-            absPriceDiff = (currentSqrtP >= targetSqrtP)
-                ? (currentSqrtP - targetSqrtP)
-                : (targetSqrtP - currentSqrtP);
+            absPriceDiff = (currentSqrtP >= targetSqrtP) ? (currentSqrtP - targetSqrtP) : (targetSqrtP - currentSqrtP);
         }
         if (isExactInput) {
             // we round down so that we avoid taking giving away too much for the specified input
@@ -128,27 +89,15 @@ library SwapMath {
                 // denominator = currentSqrtP * (2 * targetSqrtP - currentSqrtP * feeInFeeUnits / FEE_UNITS)
                 // overflow should not happen because the absPriceDiff is capped to ~5%
                 uint256 denominator = C.TWO_FEE_UNITS * targetSqrtP - feeInFeeUnits * currentSqrtP;
-                uint256 numerator = FullMath.mulDivFloor(
-                    liquidity,
-                    C.TWO_FEE_UNITS * absPriceDiff,
-                    denominator
-                );
-                reachAmount = FullMath
-                    .mulDivFloor(numerator, C.TWO_POW_96, currentSqrtP)
-                    .toInt256();
+                uint256 numerator = FullMath.mulDivFloor(liquidity, C.TWO_FEE_UNITS * absPriceDiff, denominator);
+                reachAmount = FullMath.mulDivFloor(numerator, C.TWO_POW_96, currentSqrtP).toInt256();
             } else {
                 // numerator = 2 * liquidity * absPriceDiff * currentSqrtP
                 // denominator = 2 * currentSqrtP - targetSqrtP * feeInFeeUnits / FEE_UNITS
                 // overflow should not happen because the absPriceDiff is capped to ~5%
                 uint256 denominator = C.TWO_FEE_UNITS * currentSqrtP - feeInFeeUnits * targetSqrtP;
-                uint256 numerator = FullMath.mulDivFloor(
-                    liquidity,
-                    C.TWO_FEE_UNITS * absPriceDiff,
-                    denominator
-                );
-                reachAmount = FullMath
-                    .mulDivFloor(numerator, currentSqrtP, C.TWO_POW_96)
-                    .toInt256();
+                uint256 numerator = FullMath.mulDivFloor(liquidity, C.TWO_FEE_UNITS * absPriceDiff, denominator);
+                reachAmount = FullMath.mulDivFloor(numerator, currentSqrtP, C.TWO_POW_96).toInt256();
             }
         } else {
             // we will perform negation as the last step
@@ -160,8 +109,7 @@ library SwapMath {
                 uint256 denominator = C.TWO_FEE_UNITS * currentSqrtP - feeInFeeUnits * targetSqrtP;
                 uint256 numerator = denominator - feeInFeeUnits * currentSqrtP;
                 numerator = FullMath.mulDivFloor(liquidity << C.RES_96, numerator, denominator);
-                reachAmount = (FullMath.mulDivFloor(numerator, absPriceDiff, currentSqrtP) /
-                    targetSqrtP).revToInt256();
+                reachAmount = (FullMath.mulDivFloor(numerator, absPriceDiff, currentSqrtP) / targetSqrtP).revToInt256();
             } else {
                 // numerator: liquidity * absPriceDiff * (TWO_FEE_UNITS * targetSqrtP - feeInFeeUnits * (targetSqrtP + currentSqrtP))
                 // denominator: (TWO_FEE_UNITS * targetSqrtP - feeInFeeUnits * currentSqrtP)
@@ -169,9 +117,7 @@ library SwapMath {
                 uint256 denominator = C.TWO_FEE_UNITS * targetSqrtP - feeInFeeUnits * currentSqrtP;
                 uint256 numerator = denominator - feeInFeeUnits * targetSqrtP;
                 numerator = FullMath.mulDivFloor(liquidity, numerator, denominator);
-                reachAmount = FullMath
-                    .mulDivFloor(numerator, absPriceDiff, C.TWO_POW_96)
-                    .revToInt256();
+                reachAmount = FullMath.mulDivFloor(numerator, absPriceDiff, C.TWO_POW_96).revToInt256();
             }
         }
     }
@@ -190,20 +136,12 @@ library SwapMath {
         if (isExactInput) {
             if (isToken0) {
                 // deltaL = feeInFeeUnits * absDelta * currentSqrtP / 2
-                deltaL = FullMath.mulDivFloor(
-                    currentSqrtP,
-                    absDelta * feeInFeeUnits,
-                    C.TWO_FEE_UNITS << C.RES_96
-                );
+                deltaL = FullMath.mulDivFloor(currentSqrtP, absDelta * feeInFeeUnits, C.TWO_FEE_UNITS << C.RES_96);
             } else {
                 // deltaL = feeInFeeUnits * absDelta * / (currentSqrtP * 2)
                 // Because nextSqrtP = (liquidity + absDelta / currentSqrtP) * currentSqrtP / (liquidity + deltaL)
                 // so we round up deltaL, to round down nextSqrtP
-                deltaL = FullMath.mulDivFloor(
-                    C.TWO_POW_96,
-                    absDelta * feeInFeeUnits,
-                    C.TWO_FEE_UNITS * currentSqrtP
-                );
+                deltaL = FullMath.mulDivFloor(C.TWO_POW_96, absDelta * feeInFeeUnits, C.TWO_FEE_UNITS * currentSqrtP);
             }
         } else {
             // obtain the smaller root of the quadratic equation
@@ -309,17 +247,13 @@ library SwapMath {
                 // returnedAmount = deltaL * nextSqrtP - liquidity * (currentSqrtP - nextSqrtP)
                 returnedAmount =
                     FullMath.mulDivCeiling(deltaL, nextSqrtP, C.TWO_POW_96).toInt256() +
-                    FullMath
-                        .mulDivFloor(liquidity, currentSqrtP - nextSqrtP, C.TWO_POW_96)
-                        .revToInt256();
+                    FullMath.mulDivFloor(liquidity, currentSqrtP - nextSqrtP, C.TWO_POW_96).revToInt256();
             } else {
                 // maximise actual input (>0) so we get desired output amount
                 // returnedAmount = deltaL * nextSqrtP + liquidity * (nextSqrtP - currentSqrtP)
                 returnedAmount =
                     FullMath.mulDivCeiling(deltaL, nextSqrtP, C.TWO_POW_96).toInt256() +
-                    FullMath
-                        .mulDivCeiling(liquidity, nextSqrtP - currentSqrtP, C.TWO_POW_96)
-                        .toInt256();
+                    FullMath.mulDivCeiling(liquidity, nextSqrtP - currentSqrtP, C.TWO_POW_96).toInt256();
             }
         } else {
             // returnedAmount = (liquidity + deltaL)/nextSqrtP - (liquidity)/currentSqrtP

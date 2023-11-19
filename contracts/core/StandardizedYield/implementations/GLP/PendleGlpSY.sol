@@ -63,17 +63,9 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
             // GLP is already staked in stakedGlp's transferFrom, called in _transferIn()
             amountSharesOut = amountDeposited;
         } else if (tokenIn == NATIVE) {
-            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlpETH{ value: msg.value }(
-                0,
-                0
-            );
+            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlpETH{value: msg.value}(0, 0);
         } else {
-            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlp(
-                tokenIn,
-                amountDeposited,
-                0,
-                0
-            );
+            amountSharesOut = IRewardRouterV2(glpRouter).mintAndStakeGlp(tokenIn, amountDeposited, 0, 0);
         }
     }
 
@@ -149,9 +141,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
             uint256 glpSupply = IERC20(glp).totalSupply();
             uint256 usdgAmount = super._buyUSDG(tokenIn, amountTokenToDeposit);
 
-            uint256 mintAmount = aumInUsdg == 0
-                ? usdgAmount
-                : (usdgAmount * glpSupply) / aumInUsdg;
+            uint256 mintAmount = aumInUsdg == 0 ? usdgAmount : (usdgAmount * glpSupply) / aumInUsdg;
             amountSharesOut = mintAmount;
         }
     }
@@ -204,11 +194,7 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
         return token == stakedGlp || token == NATIVE || vault.whitelistedTokens(token);
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.LIQUIDITY, glp, IERC20Metadata(glp).decimals());
     }
 }

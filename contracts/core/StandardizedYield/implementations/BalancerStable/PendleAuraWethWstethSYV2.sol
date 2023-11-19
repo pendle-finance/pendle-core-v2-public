@@ -16,14 +16,9 @@ contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper
         MetaStablePreview _previewHelper
     ) PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, _previewHelper) StEthHelper() {}
 
-    function _deposit(address tokenIn, uint256 amount)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(address tokenIn, uint256 amount) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
-            IWETH(WETH).deposit{ value: amount }();
+            IWETH(WETH).deposit{value: amount}();
             amountSharesOut = super._deposit(WETH, amount);
         } else if (tokenIn == STETH) {
             uint256 amountWstETH = _depositWstETH(STETH, amount);
@@ -50,13 +45,10 @@ contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper
         }
     }
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else if (tokenIn == STETH) {
@@ -67,13 +59,10 @@ contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else if (tokenOut == STETH) {
@@ -84,13 +73,7 @@ contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper
         }
     }
 
-    function _getPoolTokenAddresses()
-        internal
-        view
-        virtual
-        override
-        returns (address[] memory res)
-    {
+    function _getPoolTokenAddresses() internal view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = WSTETH;
         res[1] = WETH;
@@ -137,18 +120,10 @@ contract PendleAuraWethWstethSYV2 is PendleAuraBalancerStableLPSYV2, StEthHelper
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return (token == LP ||
-            token == WSTETH ||
-            token == WETH ||
-            token == STETH ||
-            token == NATIVE);
+        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return (token == LP ||
-            token == WSTETH ||
-            token == WETH ||
-            token == STETH ||
-            token == NATIVE);
+        return (token == LP || token == WSTETH || token == WETH || token == STETH || token == NATIVE);
     }
 }

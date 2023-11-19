@@ -69,12 +69,7 @@ interface ISilo {
     /// @param depositor wallet address that deposited asset
     /// @param amount amount of asset that was deposited
     /// @param collateralOnly type of deposit, true if collateralOnly deposit was used
-    event Deposit(
-        address indexed asset,
-        address indexed depositor,
-        uint256 amount,
-        bool collateralOnly
-    );
+    event Deposit(address indexed asset, address indexed depositor, uint256 amount, bool collateralOnly);
 
     /// @notice Emitted when withdraw is made
     /// @param asset asset address that was withdrawn
@@ -108,12 +103,7 @@ interface ISilo {
     /// @param shareAmountRepaid amount of collateral-share token that was repaid. This is collateral token representing
     /// ownership of underlying deposit.
     /// @param seizedCollateral amount of underlying token that was seized by liquidator
-    event Liquidate(
-        address indexed asset,
-        address indexed user,
-        uint256 shareAmountRepaid,
-        uint256 seizedCollateral
-    );
+    event Liquidate(address indexed asset, address indexed user, uint256 shareAmountRepaid, uint256 seizedCollateral);
 
     /// @notice Emitted when the status for an asset is updated
     /// @param asset asset address that was updated
@@ -159,10 +149,7 @@ interface ISilo {
     /// with corresponding state
     /// @return assets array of initialized assets of Silo
     /// @return assetsStorage array of assets state corresponding to `assets` array
-    function getAssetsWithState()
-        external
-        view
-        returns (address[] memory assets, AssetStorage[] memory assetsStorage);
+    function getAssetsWithState() external view returns (address[] memory assets, AssetStorage[] memory assetsStorage);
 
     /// @notice Check if depositing an asset for given account is possible
     /// @dev Depositing an asset that has been already borrowed (and vice versa) is disallowed
@@ -243,10 +230,7 @@ interface ISilo {
     /// @param _amount The amount of the token to borrow
     /// @return debtAmount borrowed amount
     /// @return debtShare user debt share based on borrowed amount
-    function borrow(
-        address _asset,
-        uint256 _amount
-    ) external returns (uint256 debtAmount, uint256 debtShare);
+    function borrow(address _asset, uint256 _amount) external returns (uint256 debtAmount, uint256 debtShare);
 
     /// @notice Router function to borrow `_amount` of `_asset` tokens from the Silo for the `_receiver`
     /// @param _asset The address of the token to borrow
@@ -268,10 +252,7 @@ interface ISilo {
     /// @param _amount amount of asset to repay, includes interests
     /// @return repaidAmount amount repaid
     /// @return burnedShare burned debt share
-    function repay(
-        address _asset,
-        uint256 _amount
-    ) external returns (uint256 repaidAmount, uint256 burnedShare);
+    function repay(address _asset, uint256 _amount) external returns (uint256 repaidAmount, uint256 burnedShare);
 
     /// @notice Allows to repay in behalf of borrower to execute liquidation
     /// @param _asset The address of the token to repay

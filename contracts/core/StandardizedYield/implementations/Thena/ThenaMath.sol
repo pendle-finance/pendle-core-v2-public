@@ -41,25 +41,18 @@ abstract contract ThenaMath {
         address tokenIn,
         uint256 amountIn
     ) internal view returns (uint256) {
-        return
-            data.isStable
-                ? _getStableZapAmount(data, tokenIn, amountIn)
-                : _getVolatileZapAmount(data, amountIn);
+        return data.isStable ? _getStableZapAmount(data, tokenIn, amountIn) : _getVolatileZapAmount(data, amountIn);
     }
 
-    function _getVolatileZapAmount(
-        ThenaData memory data,
-        uint256 amountIn
-    ) private pure returns (uint256) {
-
-        uint256 numer0 = (TWO - FEE_DENOMINATOR) * data.reserve0 / FEE_DENOMINATOR;
+    function _getVolatileZapAmount(ThenaData memory data, uint256 amountIn) private pure returns (uint256) {
+        uint256 numer0 = ((TWO - FEE_DENOMINATOR) * data.reserve0) / FEE_DENOMINATOR;
         uint256 numer1 = PMath.square(numer0);
         uint256 numer2 = 4 * PMath.square(ONE - data.fee) * amountIn * data.reserve0;
 
         uint256 numer = PMath.sqrt(numer1 + numer2) - numer0;
         uint256 denom = 2 * PMath.square(ONE - data.fee);
 
-        return numer * FEE_DENOMINATOR / denom;
+        return (numer * FEE_DENOMINATOR) / denom;
     }
 
     function _getStableZapAmount(
@@ -71,23 +64,13 @@ abstract contract ThenaMath {
 
         while (!PMath.isAApproxB(params.guessMin, params.guessMax, binarySearchEps)) {
             params.amountSwapIn = (params.guessMax + params.guessMin) / 2;
-            params.amount1ToAddLiq = IThenaPair(data.pair).getAmountOut(
-                params.amountSwapIn,
-                tokenIn
-            );
+            params.amount1ToAddLiq = IThenaPair(data.pair).getAmountOut(params.amountSwapIn, tokenIn);
 
-            params.newReserve0 = _getReserveAfterSwap(
-                params.amountSwapIn,
-                data.reserve0,
-                data.fee
-            );
+            params.newReserve0 = _getReserveAfterSwap(params.amountSwapIn, data.reserve0, data.fee);
             params.newReserve1 = data.reserve1 - params.amount1ToAddLiq;
             params.amount0ToAddLiq = amountIn - params.amountSwapIn;
 
-            if (
-                params.amount0ToAddLiq * params.newReserve1 <
-                params.amount1ToAddLiq * params.newReserve0
-            ) {
+            if (params.amount0ToAddLiq * params.newReserve1 < params.amount1ToAddLiq * params.newReserve0) {
                 params.guessMax = params.amountSwapIn - 1; // need swap less
             } else {
                 params.guessMin = params.amountSwapIn + 1; // swap more
@@ -112,11 +95,7 @@ abstract contract ThenaMath {
         params.guessMax = (params.guessMin * FEE_DENOMINATOR) / (FEE_DENOMINATOR - data.fee);
     }
 
-    function _getReserveAfterSwap(
-        uint256 amountIn,
-        uint256 reserve,
-        uint256 fee
-    ) internal pure returns (uint256) {
+    function _getReserveAfterSwap(uint256 amountIn, uint256 reserve, uint256 fee) internal pure returns (uint256) {
         return reserve + amountIn - (amountIn * fee) / FEE_DENOMINATOR;
     }
 

@@ -23,10 +23,7 @@ abstract contract PendleERC20PermitUpg is PendleERC20Upg, IERC20Permit, EIP712Up
 
     // solhint-disable-next-line var-name-mixedcase
     bytes32 private constant _PERMIT_TYPEHASH =
-        keccak256(
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-        );
-
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     function __ERC20PermitUpg_init(string memory name_, string memory symbol_) internal onlyInitializing {
         __ERC20Upg_init(name_, symbol_);
@@ -47,9 +44,7 @@ abstract contract PendleERC20PermitUpg is PendleERC20Upg, IERC20Permit, EIP712Up
     ) public virtual override {
         require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
 
-        bytes32 structHash = keccak256(
-            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline)
-        );
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline));
 
         bytes32 hash = _hashTypedDataV4(structHash);
 

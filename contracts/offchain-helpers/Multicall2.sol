@@ -16,9 +16,7 @@ contract Multicall2 {
         bytes returnData;
     }
 
-    function aggregate(
-        Call[] memory calls
-    ) public returns (uint256 blockNumber, bytes[] memory returnData) {
+    function aggregate(Call[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData) {
         blockNumber = block.number;
         returnData = new bytes[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
@@ -66,10 +64,7 @@ contract Multicall2 {
         blockHash = blockhash(block.number - 1);
     }
 
-    function tryAggregate(
-        bool requireSuccess,
-        Call[] memory calls
-    ) public returns (Result[] memory returnData) {
+    function tryAggregate(bool requireSuccess, Call[] memory calls) public returns (Result[] memory returnData) {
         returnData = new Result[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
             (bool success, bytes memory ret) = calls[i].target.call(calls[i].callData);

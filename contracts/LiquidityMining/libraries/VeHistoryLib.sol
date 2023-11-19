@@ -36,9 +36,7 @@ library Checkpoints {
         if (pos > 0 && self._checkpoints[pos - 1].timestamp == WeekMath.getCurrentWeekStart()) {
             self._checkpoints[pos - 1].value = value;
         } else {
-            self._checkpoints.push(
-                Checkpoint({ timestamp: WeekMath.getCurrentWeekStart(), value: value })
-            );
+            self._checkpoints.push(Checkpoint({timestamp: WeekMath.getCurrentWeekStart(), value: value}));
         }
     }
 }

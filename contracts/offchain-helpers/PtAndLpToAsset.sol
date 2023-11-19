@@ -13,10 +13,7 @@ contract PtAndLpToAsset {
     function getLpToAssetRate(IPMarket market) public view returns (uint256 lpToAssetRate) {
         MarketState memory state = market.readState(address(0));
         uint256 pyIndexCurrent = _getPYIndexCurrent(market);
-        MarketPreCompute memory comp = state.getMarketPreCompute(
-            PYIndex.wrap(pyIndexCurrent),
-            block.timestamp
-        );
+        MarketPreCompute memory comp = state.getMarketPreCompute(PYIndex.wrap(pyIndexCurrent), block.timestamp);
 
         int256 totalHypotheticalAsset = comp.totalAsset +
             state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
@@ -39,10 +36,7 @@ contract PtAndLpToAsset {
             return (SY.exchangeRate().divDown(pyIndexCurrent));
         }
         uint256 timeToExpiry = state.expiry - block.timestamp;
-        int256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(
-            state.lastLnImpliedRate,
-            timeToExpiry
-        );
+        int256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(state.lastLnImpliedRate, timeToExpiry);
 
         ptToAssetRate = uint256(PMath.IONE.divDown(assetToPtRate));
     }

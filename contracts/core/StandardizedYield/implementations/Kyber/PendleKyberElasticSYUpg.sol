@@ -13,16 +13,15 @@ contract PendleKyberElasticSYUpg is SYBaseWithRewardsUpg, KyberNftManagerBaseUpg
 
     address[] internal allRewardTokens;
 
-    constructor(KyberNftManagerImmutableParams memory params)
-        KyberNftManagerBaseUpg(params)
-        SYBaseUpg(params.pool)
-        initializer
-    {}
+    constructor(
+        KyberNftManagerImmutableParams memory params
+    ) KyberNftManagerBaseUpg(params) SYBaseUpg(params.pool) initializer {}
 
-    function initialize(string memory _name, string memory _symbol, address[] memory _initialRewardTokens)
-        external
-        initializer
-    {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address[] memory _initialRewardTokens
+    ) external initializer {
         allRewardTokens = _initialRewardTokens;
         __SYBaseUpg_init(_name, _symbol);
         __KyberNftManagerBaseUpg_init();
@@ -44,21 +43,18 @@ contract PendleKyberElasticSYUpg is SYBaseWithRewardsUpg, KyberNftManagerBaseUpg
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(address tokenIn, uint256 amountDeposited)
-        internal
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 amountSharesOut) {
         return _zapIn(tokenIn, amountDeposited);
     }
 
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256 amountTokenOut) {
         amountTokenOut = _zapOut(tokenOut, amountSharesToRedeem);
         _transferOut(tokenOut, receiver, amountTokenOut);
     }
@@ -95,26 +91,32 @@ contract PendleKyberElasticSYUpg is SYBaseWithRewardsUpg, KyberNftManagerBaseUpg
                         MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        override
-        returns (uint256 amountSharesOut)
-    {
-        return IKyberMathHelper(kyberMathHelper).previewDeposit(
-            pool, tickLower, tickUpper, tokenIn == token0, amountTokenToDeposit
-        );
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 amountSharesOut) {
+        return
+            IKyberMathHelper(kyberMathHelper).previewDeposit(
+                pool,
+                tickLower,
+                tickUpper,
+                tokenIn == token0,
+                amountTokenToDeposit
+            );
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        override
-        returns (uint256 amountTokenOut)
-    {
-        return IKyberMathHelper(kyberMathHelper).previewRedeem(
-            pool, tickLower, tickUpper, tokenOut == token0, amountSharesToRedeem
-        );
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view override returns (uint256 amountTokenOut) {
+        return
+            IKyberMathHelper(kyberMathHelper).previewRedeem(
+                pool,
+                tickLower,
+                tickUpper,
+                tokenOut == token0,
+                amountSharesToRedeem
+            );
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {

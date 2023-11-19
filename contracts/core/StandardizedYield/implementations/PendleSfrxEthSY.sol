@@ -38,7 +38,7 @@ contract PendleSfrxEthSY is SYBase {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
-            return IFrxEthMinter(minter).submitAndDeposit{ value: amountDeposited }(address(this));
+            return IFrxEthMinter(minter).submitAndDeposit{value: amountDeposited}(address(this));
         } else if (tokenIn == frxETH) {
             return IERC4626(sfrxETH).deposit(amountDeposited, address(this));
         } else {
@@ -122,11 +122,7 @@ contract PendleSfrxEthSY is SYBase {
         return token == frxETH || token == sfrxETH;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, frxETH, 18);
     }
 }

@@ -28,8 +28,7 @@ library FluxTokenLib {
         params.currentBlockNumber = block.number;
         params.accrualBlockNumberPrior = IFluxErc20(fToken).accrualBlockNumber();
 
-        if (params.accrualBlockNumberPrior == params.currentBlockNumber)
-            return IFluxErc20(fToken).exchangeRateStored();
+        if (params.accrualBlockNumberPrior == params.currentBlockNumber) return IFluxErc20(fToken).exchangeRateStored();
 
         /* Read the previous values out of storage */
         params.cashPrior = IFluxErc20(fToken).getCash();
@@ -37,8 +36,11 @@ library FluxTokenLib {
         params.reservesPrior = IFluxErc20(fToken).totalReserves();
 
         /* Calculate the current borrow interest rate */
-        params.borrowRateMantissa = IFluxInterestRateModel(IFluxErc20(fToken).interestRateModel())
-            .getBorrowRate(params.cashPrior, params.borrowsPrior, params.reservesPrior);
+        params.borrowRateMantissa = IFluxInterestRateModel(IFluxErc20(fToken).interestRateModel()).getBorrowRate(
+            params.cashPrior,
+            params.borrowsPrior,
+            params.reservesPrior
+        );
 
         assert(params.borrowRateMantissa <= borrowRateMaxMantissa);
 

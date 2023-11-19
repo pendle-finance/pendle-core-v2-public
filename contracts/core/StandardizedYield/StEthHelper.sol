@@ -16,26 +16,20 @@ abstract contract StEthHelper is TokenHelper {
     }
 
     /// @dev tokenIn must be either ETH, WETH or STETH
-    function _depositWstETH(
-        address tokenIn,
-        uint256 amountDep
-    ) internal virtual returns (uint256 amountOut) {
+    function _depositWstETH(address tokenIn, uint256 amountDep) internal virtual returns (uint256 amountOut) {
         uint256 amountStETH;
         if (tokenIn == STETH) {
             amountStETH = amountDep;
         } else {
             if (tokenIn == WETH) IWETH(WETH).withdraw(amountDep);
 
-            uint256 amountStEthSharesOut = IStETH(STETH).submit{ value: amountDep }(address(0));
+            uint256 amountStEthSharesOut = IStETH(STETH).submit{value: amountDep}(address(0));
             amountStETH = IStETH(STETH).getPooledEthByShares(amountStEthSharesOut);
         }
         amountOut = IWstETH(WSTETH).wrap(amountStETH);
     }
 
-    function _redeemWstETH(
-        address receiver,
-        uint256 amountRedeem
-    ) internal virtual returns (uint256 amountTokenOut) {
+    function _redeemWstETH(address receiver, uint256 amountRedeem) internal virtual returns (uint256 amountTokenOut) {
         amountTokenOut = IWstETH(WSTETH).unwrap(amountRedeem);
         if (receiver != address(this)) _transferOut(STETH, receiver, amountTokenOut);
     }

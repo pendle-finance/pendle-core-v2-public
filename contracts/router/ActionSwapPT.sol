@@ -56,12 +56,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         MarketState memory state = IPMarket(market).readState(address(this));
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
 
-        (netPtIn, , ) = state.approxSwapPtForExactSy(
-            YT.newIndex(),
-            exactSyOut,
-            block.timestamp,
-            guessPtIn
-        );
+        (netPtIn, , ) = state.approxSwapPtForExactSy(YT.newIndex(), exactSyOut, block.timestamp, guessPtIn);
 
         if (netPtIn > maxPtIn) revert Errors.RouterExceededLimitPtIn(netPtIn, maxPtIn);
 
@@ -122,14 +117,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
 
         _transferFrom(IERC20(SY), msg.sender, market, exactSyIn);
 
-        (netPtOut, netSyFee) = _swapExactSyForPt(
-            receiver,
-            market,
-            YT,
-            exactSyIn,
-            minPtOut,
-            guessPtOut
-        );
+        (netPtOut, netSyFee) = _swapExactSyForPt(receiver, market, YT, exactSyIn, minPtOut, guessPtOut);
 
         emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
     }
@@ -153,23 +141,9 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         uint256 netSyUseToBuyPt = _mintSyFromToken(address(market), address(SY), 1, input);
 
         // SY is already in the market, hence doPull = false
-        (netPtOut, netSyFee) = _swapExactSyForPt(
-            receiver,
-            market,
-            YT,
-            netSyUseToBuyPt,
-            minPtOut,
-            guessPtOut
-        );
+        (netPtOut, netSyFee) = _swapExactSyForPt(receiver, market, YT, netSyUseToBuyPt, minPtOut, guessPtOut);
 
-        emit SwapPtAndToken(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            netPtOut.Int(),
-            input.netTokenIn.neg()
-        );
+        emit SwapPtAndToken(msg.sender, market, input.tokenIn, receiver, netPtOut.Int(), input.netTokenIn.neg());
     }
 
     /**
@@ -200,14 +174,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
         // since all SY is already at the SY contract, doPull = false
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyReceived, output, false);
 
-        emit SwapPtAndToken(
-            msg.sender,
-            market,
-            output.tokenOut,
-            receiver,
-            exactPtIn.neg(),
-            netTokenOut.Int()
-        );
+        emit SwapPtAndToken(msg.sender, market, output.tokenOut, receiver, exactPtIn.neg(), netTokenOut.Int());
     }
 
     function _swapExactSyForPt(
@@ -220,12 +187,7 @@ contract ActionSwapPT is IPActionSwapPT, ActionBaseMintRedeem {
     ) internal returns (uint256 netPtOut, uint256 netSyFee) {
         MarketState memory state = IPMarket(market).readState(address(this));
 
-        (netPtOut, ) = state.approxSwapExactSyForPt(
-            YT.newIndex(),
-            exactSyIn,
-            block.timestamp,
-            guessPtOut
-        );
+        (netPtOut, ) = state.approxSwapExactSyForPt(YT.newIndex(), exactSyIn, block.timestamp, guessPtOut);
 
         if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
 

@@ -22,11 +22,7 @@ contract ActionStorageStatic is StorageLayout, IPActionStorageStatic, IPMiniDiam
         return address(bulkSellerFactory);
     }
 
-    function getOwnerAndPendingOwner()
-        external
-        view
-        returns (address _owner, address _pendingOwner)
-    {
+    function getOwnerAndPendingOwner() external view returns (address _owner, address _pendingOwner) {
         _owner = owner;
         _pendingOwner = pendingOwner;
     }

@@ -6,10 +6,7 @@ import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
 
-contract PendleGaugeControllerSidechainUpg is
-    PendleGaugeControllerBaseUpg,
-    PendleMsgReceiverAppUpg
-{
+contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, PendleMsgReceiverAppUpg {
     constructor(
         address _pendle,
         address _marketFactory,

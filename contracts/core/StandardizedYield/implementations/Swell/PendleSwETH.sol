@@ -8,11 +8,7 @@ contract SwETHSY is SYBase {
 
     address public immutable swETH;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _swETH
-    ) SYBase(_name, _symbol, _swETH) {
+    constructor(string memory _name, string memory _symbol, address _swETH) SYBase(_name, _symbol, _swETH) {
         swETH = _swETH;
     }
 
@@ -26,7 +22,7 @@ contract SwETHSY is SYBase {
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
             uint256 preBalance = _selfBalance(swETH);
-            ISwETH(swETH).deposit{ value: amountDeposited }();
+            ISwETH(swETH).deposit{value: amountDeposited}();
             return _selfBalance(swETH) - preBalance;
         } else {
             // sweth
@@ -92,11 +88,7 @@ contract SwETHSY is SYBase {
         return token == swETH;
     }
 
-    function assetInfo()
-        external
-        pure
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, NATIVE, 18);
     }
 }

@@ -36,10 +36,8 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
 
     function _distributeInterestForTwo(address user1, address user2) internal {
         uint256 index = _getInterestIndex();
-        if (user1 != address(0) && user1 != address(this))
-            _distributeInterestPrivate(user1, index);
-        if (user2 != address(0) && user2 != address(this))
-            _distributeInterestPrivate(user2, index);
+        if (user1 != address(0) && user1 != address(this)) _distributeInterestPrivate(user1, index);
+        if (user2 != address(0) && user2 != address(this)) _distributeInterestPrivate(user2, index);
     }
 
     function _doTransferOutInterest(
@@ -74,9 +72,7 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
 
         uint256 principal = _YTbalance(user);
 
-        uint256 interestFromYT = (principal * (currentIndex - prevIndex)).divDown(
-            prevIndex * currentIndex
-        );
+        uint256 interestFromYT = (principal * (currentIndex - prevIndex)).divDown(prevIndex * currentIndex);
 
         userInterest[user].accrued += interestFromYT.Uint128();
         userInterest[user].index = currentIndex.Uint128();

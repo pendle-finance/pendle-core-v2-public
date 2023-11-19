@@ -20,7 +20,9 @@ contract AuraWethVethSYUpg is PendleAuraBalancerStableLPSYV3Upg {
         PendleAuraBalancerStableLPSYV3Upg(LP, AURA_PID, ComposableStablePreview(COMPOSABLE_PREVIEW))
         initializer
     //solhint-disable-next-line
-    {}
+    {
+
+    }
 
     function initialize(string memory _name, string memory _symbol) external initializer {
         __PendleAuraBalancerStableLPSYV3Upg_init(_name, _symbol);
@@ -35,12 +37,11 @@ contract AuraWethVethSYUpg is PendleAuraBalancerStableLPSYV3Upg {
         }
     }
 
-    function _redeem(address receiver, address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        virtual
-        override
-        returns (uint256)
-    {
+    function _redeem(
+        address receiver,
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal virtual override returns (uint256) {
         if (tokenOut == NATIVE) {
             uint256 amountTokenOut = super._redeem(address(this), WETH, amountSharesToRedeem);
             IWETH(WETH).withdraw(amountTokenOut);
@@ -51,13 +52,10 @@ contract AuraWethVethSYUpg is PendleAuraBalancerStableLPSYV3Upg {
         }
     }
 
-    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountSharesOut)
-    {
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
             amountSharesOut = super._previewDeposit(WETH, amountTokenToDeposit);
         } else {
@@ -65,13 +63,10 @@ contract AuraWethVethSYUpg is PendleAuraBalancerStableLPSYV3Upg {
         }
     }
 
-    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
-        internal
-        view
-        virtual
-        override
-        returns (uint256 amountTokenOut)
-    {
+    function _previewRedeem(
+        address tokenOut,
+        uint256 amountSharesToRedeem
+    ) internal view virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == NATIVE) {
             amountTokenOut = super._previewRedeem(WETH, amountSharesToRedeem);
         } else {

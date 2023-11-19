@@ -130,7 +130,7 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
     }
 
     function _mergeNft(uint256 tokenId, uint128 liquidity) private returns (uint256 sharesMinted) {
-        (uint256 amount0, uint256 amount1,) = IKyberPositionManager(positionManager).removeLiquidity(
+        (uint256 amount0, uint256 amount1, ) = IKyberPositionManager(positionManager).removeLiquidity(
             IKyberPositionManager.RemoveLiquidityParams({
                 tokenId: tokenId,
                 liquidity: liquidity,
@@ -156,14 +156,19 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
 
     function _zapIn(address tokenIn, uint256 amountTokenIn) internal returns (uint256 amountSharesOut) {
         uint256 amountToSwap = IKyberMathHelper(kyberMathHelper).getSingleSidedSwapAmount(
-            pool, amountTokenIn, tokenIn == token0, tickLower, tickUpper
+            pool,
+            amountTokenIn,
+            tokenIn == token0,
+            tickLower,
+            tickUpper
         );
 
         address tokenOut = tokenIn == token0 ? token1 : token0;
         uint256 amountOut = _swap(tokenIn, tokenOut, amountToSwap);
 
-        (uint256 amount0, uint256 amount1) =
-            tokenIn == token0 ? (amountTokenIn - amountToSwap, amountOut) : (amountOut, amountTokenIn - amountToSwap);
+        (uint256 amount0, uint256 amount1) = tokenIn == token0
+            ? (amountTokenIn - amountToSwap, amountOut)
+            : (amountOut, amountTokenIn - amountToSwap);
 
         return _addLiquidity(amount0, amount1);
     }
@@ -234,7 +239,7 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
         uint256 tokenId = positionTokenId;
         assert(tokenId != DEFAULT_POSITION_TOKEN_ID);
 
-        (liquidity,,,) = IKyberPositionManager(positionManager).addLiquidity(
+        (liquidity, , , ) = IKyberPositionManager(positionManager).addLiquidity(
             IKyberPositionManager.IncreaseLiquidityParams({
                 tokenId: tokenId,
                 amount0Desired: amount0,
@@ -259,12 +264,18 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
             uint256 prevBalance0 = _selfBalance(token0);
             uint256 prevBalance1 = _selfBalance(token1);
             IKyberLiquidityMining(liquidityMining).removeLiquidity(
-                tokenId, liquidity, 0, 0, type(uint256).max, false, false
+                tokenId,
+                liquidity,
+                0,
+                0,
+                type(uint256).max,
+                false,
+                false
             );
             amount0 = _selfBalance(token0) - prevBalance0;
             amount1 = _selfBalance(token1) - prevBalance1;
         } else {
-            (amount0, amount1,) = IKyberPositionManager(positionManager).removeLiquidity(
+            (amount0, amount1, ) = IKyberPositionManager(positionManager).removeLiquidity(
                 IKyberPositionManager.RemoveLiquidityParams({
                     tokenId: tokenId,
                     liquidity: liquidity,
@@ -278,7 +289,7 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
     }
 
     function _mintKyberNft(uint256 amount0, uint256 amount1, address recipient) private returns (uint256 tokenId) {
-        (tokenId,,,) = IKyberPositionManager(positionManager).mint(
+        (tokenId, , , ) = IKyberPositionManager(positionManager).mint(
             IKyberPositionManager.MintParams({
                 token0: token0,
                 token1: token1,
@@ -298,18 +309,19 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
 
     function _swap(address tokenIn, address tokenOut, uint256 amountIn) private returns (uint256) {
         if (amountIn == 0) return 0;
-        return IKyberElasticRouter(router).swapExactInputSingle(
-            IKyberElasticRouter.ExactInputSingleParams({
-                tokenIn: tokenIn,
-                tokenOut: tokenOut,
-                fee: fee,
-                recipient: address(this),
-                deadline: type(uint256).max,
-                amountIn: amountIn,
-                minAmountOut: 0,
-                limitSqrtP: 0 // Kyber router shall assign the appropriate inf price limit if set to 0
-            })
-        );
+        return
+            IKyberElasticRouter(router).swapExactInputSingle(
+                IKyberElasticRouter.ExactInputSingleParams({
+                    tokenIn: tokenIn,
+                    tokenOut: tokenOut,
+                    fee: fee,
+                    recipient: address(this),
+                    deadline: type(uint256).max,
+                    amountIn: amountIn,
+                    minAmountOut: 0,
+                    limitSqrtP: 0 // Kyber router shall assign the appropriate inf price limit if set to 0
+                })
+            );
     }
 
     function _burnRToken(uint256 tokenId, address receiver) private {
@@ -325,7 +337,7 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
     }
 
     function _getRTokenOwed(uint256 tokenId) private view returns (uint256) {
-        (IKyberPositionManager.Position memory position,) = IKyberPositionManager(positionManager).positions(tokenId);
+        (IKyberPositionManager.Position memory position, ) = IKyberPositionManager(positionManager).positions(tokenId);
         return position.rTokenOwed;
     }
 
@@ -341,12 +353,14 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
         uint256 _farmId,
         uint256 _rangeId
     ) private view {
-        (address farmPool, IKyberLiquidityMining.RangeInfo[] memory farmRanges,,,,,) =
-            IKyberLiquidityMining(_liquidityMining).getFarm(_farmId);
+        (address farmPool, IKyberLiquidityMining.RangeInfo[] memory farmRanges, , , , , ) = IKyberLiquidityMining(
+            _liquidityMining
+        ).getFarm(_farmId);
 
         require(
-            _pool == farmPool && _tickLower == farmRanges[_rangeId].tickLower
-                && _tickUpper == farmRanges[_rangeId].tickUpper,
+            _pool == farmPool &&
+                _tickLower == farmRanges[_rangeId].tickLower &&
+                _tickUpper == farmRanges[_rangeId].tickUpper,
             "invalid pool info"
         );
     }
@@ -356,8 +370,15 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
             return KyberLiquidityMiningStatus.EMERGENCY;
         }
 
-        (, IKyberLiquidityMining.RangeInfo[] memory ranges, IKyberLiquidityMining.PhaseInfo memory phase,,,,) =
-            IKyberLiquidityMining(liquidityMining).getFarm(farmId); // expensive call urg... but no other way
+        (
+            ,
+            IKyberLiquidityMining.RangeInfo[] memory ranges,
+            IKyberLiquidityMining.PhaseInfo memory phase,
+            ,
+            ,
+            ,
+
+        ) = IKyberLiquidityMining(liquidityMining).getFarm(farmId); // expensive call urg... but no other way
 
         if (rangeId >= ranges.length || ranges[rangeId].isRemoved) {
             return KyberLiquidityMiningStatus.INACTIVE;
@@ -378,8 +399,10 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
     }
 
     function _validateTokenIdAndGetLiquidity(uint256 tokenId) private view returns (uint128 liquidity) {
-        (IKyberPositionManager.Position memory position, IKyberPositionManager.PoolInfo memory poolInfo) =
-            IKyberPositionManager(positionManager).positions(tokenId);
+        (
+            IKyberPositionManager.Position memory position,
+            IKyberPositionManager.PoolInfo memory poolInfo
+        ) = IKyberPositionManager(positionManager).positions(tokenId);
 
         if (IKyberElasticFactory(factory).getPool(poolInfo.token0, poolInfo.token1, poolInfo.fee) != pool) {
             revert InvalidNft(tokenId);
@@ -398,10 +421,14 @@ abstract contract KyberNftManagerBaseUpg is Initializable, TokenHelper, IERC721R
 
     function _collectPositionManagerFloatingTokens(address receiver) private {
         IKyberPositionManager(positionManager).transferAllTokens(
-            token0, IERC20(token0).balanceOf(positionManager), receiver
+            token0,
+            IERC20(token0).balanceOf(positionManager),
+            receiver
         );
         IKyberPositionManager(positionManager).transferAllTokens(
-            token1, IERC20(token1).balanceOf(positionManager), receiver
+            token1,
+            IERC20(token1).balanceOf(positionManager),
+            receiver
         );
     }
 

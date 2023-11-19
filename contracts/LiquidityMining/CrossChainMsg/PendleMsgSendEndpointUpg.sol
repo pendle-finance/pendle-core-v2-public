@@ -14,12 +14,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * So we can leave the configuration unset.
  */
 
-contract PendleMsgSendEndpointUpg is
-    IPMsgSendEndpoint,
-    Initializable,
-    UUPSUpgradeable,
-    BoringOwnableUpgradeable
-{
+contract PendleMsgSendEndpointUpg is IPMsgSendEndpoint, Initializable, UUPSUpgradeable, BoringOwnableUpgradeable {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     address payable public immutable refundAddress;
@@ -64,7 +59,7 @@ contract PendleMsgSendEndpointUpg is
         uint256 estimatedGasAmount
     ) external payable onlyWhitelisted {
         bytes memory path = abi.encodePacked(receiveEndpoints.get(dstChainId), address(this));
-        lzEndpoint.send{ value: msg.value }(
+        lzEndpoint.send{value: msg.value}(
             LayerZeroHelper._getLayerZeroChainIds(dstChainId),
             path,
             abi.encode(dstAddress, payload),
@@ -74,10 +69,7 @@ contract PendleMsgSendEndpointUpg is
         );
     }
 
-    function addReceiveEndpoints(
-        address endpointAddr,
-        uint256 endpointChainId
-    ) external payable onlyOwner {
+    function addReceiveEndpoints(address endpointAddr, uint256 endpointChainId) external payable onlyOwner {
         receiveEndpoints.set(endpointChainId, endpointAddr);
     }
 
@@ -89,11 +81,7 @@ contract PendleMsgSendEndpointUpg is
         ILayerZeroEndpoint(lzEndpoint).setSendVersion(_newVersion);
     }
 
-    function getAllReceiveEndpoints()
-        external
-        view
-        returns (uint256[] memory chainIds, address[] memory addrs)
-    {
+    function getAllReceiveEndpoints() external view returns (uint256[] memory chainIds, address[] memory addrs) {
         uint256 length = receiveEndpoints.length();
         chainIds = new uint256[](length);
         addrs = new address[](length);
@@ -105,9 +93,7 @@ contract PendleMsgSendEndpointUpg is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function _getAdapterParams(
-        uint256 estimatedGasAmount
-    ) internal pure returns (bytes memory adapterParams) {
+    function _getAdapterParams(uint256 estimatedGasAmount) internal pure returns (bytes memory adapterParams) {
         // this is more like "type" rather than version
         // It is the type of adapter params you want to pass to relayer
         adapterParams = abi.encodePacked(uint16(1), estimatedGasAmount);

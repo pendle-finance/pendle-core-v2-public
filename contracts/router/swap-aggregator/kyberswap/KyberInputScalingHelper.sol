@@ -41,11 +41,10 @@ abstract contract KyberInputScalingHelper {
         bytes positiveSlippageData;
     }
 
-    function _getKyberScaledInputData(bytes calldata inputData, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function _getKyberScaledInputData(
+        bytes calldata inputData,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
         bytes4 selector = bytes4(inputData[:4]);
         bytes calldata dataToDecode = inputData[4:];
 
@@ -68,10 +67,7 @@ abstract contract KyberInputScalingHelper {
                 IMetaAggregationRouterV2.SwapDescriptionV2 memory desc,
                 bytes memory targetData,
                 bytes memory clientData
-            ) = abi.decode(
-                    dataToDecode,
-                    (address, IMetaAggregationRouterV2.SwapDescriptionV2, bytes, bytes)
-                );
+            ) = abi.decode(dataToDecode, (address, IMetaAggregationRouterV2.SwapDescriptionV2, bytes, bytes));
 
             (desc, targetData) = _getScaledInputDataV2(desc, targetData, newAmount, true);
             return abi.encodeWithSelector(selector, callTarget, desc, targetData, clientData);

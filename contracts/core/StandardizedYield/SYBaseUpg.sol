@@ -24,9 +24,7 @@ abstract contract SYBaseUpg is
 
     uint256[100] private __gap;
 
-    constructor(address _yieldToken)
-        PendleERC20Upg(IERC20Metadata(_yieldToken).decimals())
-    {
+    constructor(address _yieldToken) PendleERC20Upg(IERC20Metadata(_yieldToken).decimals()) {
         yieldToken = _yieldToken;
     }
 
@@ -57,8 +55,7 @@ abstract contract SYBaseUpg is
         _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
 
         amountSharesOut = _deposit(tokenIn, amountTokenToDeposit);
-        if (amountSharesOut < minSharesOut)
-            revert Errors.SYInsufficientSharesOut(amountSharesOut, minSharesOut);
+        if (amountSharesOut < minSharesOut) revert Errors.SYInsufficientSharesOut(amountSharesOut, minSharesOut);
 
         _mint(receiver, amountSharesOut);
         emit Deposit(msg.sender, receiver, tokenIn, amountTokenToDeposit, amountSharesOut);
@@ -84,8 +81,7 @@ abstract contract SYBaseUpg is
         }
 
         amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
-        if (amountTokenOut < minTokenOut)
-            revert Errors.SYInsufficientTokenOut(amountTokenOut, minTokenOut);
+        if (amountTokenOut < minTokenOut) revert Errors.SYInsufficientTokenOut(amountTokenOut, minTokenOut);
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
 
@@ -95,10 +91,7 @@ abstract contract SYBaseUpg is
      * @param amountDeposited amount of base tokens deposited
      * @return amountSharesOut amount of shares minted
      */
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual returns (uint256 amountSharesOut);
+    function _deposit(address tokenIn, uint256 amountDeposited) internal virtual returns (uint256 amountSharesOut);
 
     /**
      * @notice redeems base tokens based on amount of shares to be burned
@@ -128,31 +121,21 @@ abstract contract SYBaseUpg is
     /**
      * @dev See {IStandardizedYield-claimRewards}
      */
-    function claimRewards(
-        address /*user*/
-    ) external virtual override returns (uint256[] memory rewardAmounts) {
+    function claimRewards(address /*user*/) external virtual override returns (uint256[] memory rewardAmounts) {
         rewardAmounts = new uint256[](0);
     }
 
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
-    function getRewardTokens()
-        external
-        view
-        virtual
-        override
-        returns (address[] memory rewardTokens)
-    {
+    function getRewardTokens() external view virtual override returns (address[] memory rewardTokens) {
         rewardTokens = new address[](0);
     }
 
     /**
      * @dev See {IStandardizedYield-accruedRewards}
      */
-    function accruedRewards(
-        address /*user*/
-    ) external view virtual override returns (uint256[] memory rewardAmounts) {
+    function accruedRewards(address /*user*/) external view virtual override returns (uint256[] memory rewardAmounts) {
         rewardAmounts = new uint256[](0);
     }
 
@@ -160,13 +143,7 @@ abstract contract SYBaseUpg is
         indexes = new uint256[](0);
     }
 
-    function rewardIndexesStored()
-        external
-        view
-        virtual
-        override
-        returns (uint256[] memory indexes)
-    {
+    function rewardIndexesStored() external view virtual override returns (uint256[] memory indexes) {
         indexes = new uint256[](0);
     }
 
@@ -198,11 +175,7 @@ abstract contract SYBaseUpg is
         _unpause();
     }
 
-    function _beforeTokenTransfer(
-        address,
-        address,
-        uint256
-    ) internal virtual override whenNotPaused {}
+    function _beforeTokenTransfer(address, address, uint256) internal virtual override whenNotPaused {}
 
     function _previewDeposit(
         address tokenIn,

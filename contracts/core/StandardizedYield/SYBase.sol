@@ -10,13 +10,7 @@ import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-abstract contract SYBase is
-    IStandardizedYield,
-    PendleERC20Permit,
-    TokenHelper,
-    BoringOwnableUpgradeable,
-    Pausable
-{
+abstract contract SYBase is IStandardizedYield, PendleERC20Permit, TokenHelper, BoringOwnableUpgradeable, Pausable {
     using PMath for uint256;
 
     address public immutable yieldToken;
@@ -52,8 +46,7 @@ abstract contract SYBase is
         _transferIn(tokenIn, msg.sender, amountTokenToDeposit);
 
         amountSharesOut = _deposit(tokenIn, amountTokenToDeposit);
-        if (amountSharesOut < minSharesOut)
-            revert Errors.SYInsufficientSharesOut(amountSharesOut, minSharesOut);
+        if (amountSharesOut < minSharesOut) revert Errors.SYInsufficientSharesOut(amountSharesOut, minSharesOut);
 
         _mint(receiver, amountSharesOut);
         emit Deposit(msg.sender, receiver, tokenIn, amountTokenToDeposit, amountSharesOut);
@@ -79,8 +72,7 @@ abstract contract SYBase is
         }
 
         amountTokenOut = _redeem(receiver, tokenOut, amountSharesToRedeem);
-        if (amountTokenOut < minTokenOut)
-            revert Errors.SYInsufficientTokenOut(amountTokenOut, minTokenOut);
+        if (amountTokenOut < minTokenOut) revert Errors.SYInsufficientTokenOut(amountTokenOut, minTokenOut);
         emit Redeem(msg.sender, receiver, tokenOut, amountSharesToRedeem, amountTokenOut);
     }
 
@@ -90,10 +82,7 @@ abstract contract SYBase is
      * @param amountDeposited amount of base tokens deposited
      * @return amountSharesOut amount of shares minted
      */
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual returns (uint256 amountSharesOut);
+    function _deposit(address tokenIn, uint256 amountDeposited) internal virtual returns (uint256 amountSharesOut);
 
     /**
      * @notice redeems base tokens based on amount of shares to be burned
@@ -123,31 +112,21 @@ abstract contract SYBase is
     /**
      * @dev See {IStandardizedYield-claimRewards}
      */
-    function claimRewards(
-        address /*user*/
-    ) external virtual override returns (uint256[] memory rewardAmounts) {
+    function claimRewards(address /*user*/) external virtual override returns (uint256[] memory rewardAmounts) {
         rewardAmounts = new uint256[](0);
     }
 
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
-    function getRewardTokens()
-        external
-        view
-        virtual
-        override
-        returns (address[] memory rewardTokens)
-    {
+    function getRewardTokens() external view virtual override returns (address[] memory rewardTokens) {
         rewardTokens = new address[](0);
     }
 
     /**
      * @dev See {IStandardizedYield-accruedRewards}
      */
-    function accruedRewards(
-        address /*user*/
-    ) external view virtual override returns (uint256[] memory rewardAmounts) {
+    function accruedRewards(address /*user*/) external view virtual override returns (uint256[] memory rewardAmounts) {
         rewardAmounts = new uint256[](0);
     }
 
@@ -155,13 +134,7 @@ abstract contract SYBase is
         indexes = new uint256[](0);
     }
 
-    function rewardIndexesStored()
-        external
-        view
-        virtual
-        override
-        returns (uint256[] memory indexes)
-    {
+    function rewardIndexesStored() external view virtual override returns (uint256[] memory indexes) {
         indexes = new uint256[](0);
     }
 
@@ -193,11 +166,7 @@ abstract contract SYBase is
         _unpause();
     }
 
-    function _beforeTokenTransfer(
-        address,
-        address,
-        uint256
-    ) internal virtual override whenNotPaused {}
+    function _beforeTokenTransfer(address, address, uint256) internal virtual override whenNotPaused {}
 
     function _previewDeposit(
         address tokenIn,

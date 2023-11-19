@@ -25,10 +25,7 @@ library ArrayLib {
         return type(uint256).max;
     }
 
-    function append(
-        address[] memory inp,
-        address element
-    ) internal pure returns (address[] memory out) {
+    function append(address[] memory inp, address element) internal pure returns (address[] memory out) {
         uint256 length = inp.length;
         out = new address[](length + 1);
         for (uint256 i = 0; i < length; ) {
@@ -46,10 +43,7 @@ library ArrayLib {
      * @param b array of addresses b
      * @return out Concatenation of a and b containing unidentical elements
      */
-    function merge(
-        address[] memory a,
-        address[] memory b
-    ) internal pure returns (address[] memory out) {
+    function merge(address[] memory a, address[] memory b) internal pure returns (address[] memory out) {
         unchecked {
             uint256 countUnidenticalB = 0;
             bool[] memory isUnidentical = new bool[](b.length);

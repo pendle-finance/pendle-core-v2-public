@@ -42,8 +42,7 @@ library BulkSellerMathCore {
         assert(postFeeRate != 0);
 
         netSyOut = netTokenIn.mulDown(postFeeRate);
-        if (netSyOut > state.totalSy)
-            revert Errors.BulkInsufficientSyForTrade(state.totalSy, netSyOut);
+        if (netSyOut > state.totalSy) revert Errors.BulkInsufficientSyForTrade(state.totalSy, netSyOut);
     }
 
     function calcSwapExactSyForToken(
@@ -54,8 +53,7 @@ library BulkSellerMathCore {
         assert(postFeeRate != 0);
 
         netTokenOut = netSyIn.mulDown(postFeeRate);
-        if (netTokenOut > state.totalToken)
-            revert Errors.BulkInsufficientTokenForTrade(state.totalToken, netTokenOut);
+        if (netTokenOut > state.totalToken) revert Errors.BulkInsufficientTokenForTrade(state.totalToken, netTokenOut);
     }
 
     function getTokenProp(BulkSellerState memory state) internal pure returns (uint256) {
@@ -71,15 +69,10 @@ library BulkSellerMathCore {
         uint256 currentTokenProp = getTokenProp(state);
 
         if (currentTokenProp > targetTokenProp) {
-            netTokenToDeposit = state
-                .totalToken
-                .mulDown(currentTokenProp - targetTokenProp)
-                .divDown(currentTokenProp);
+            netTokenToDeposit = state.totalToken.mulDown(currentTokenProp - targetTokenProp).divDown(currentTokenProp);
         } else {
             uint256 currentSyProp = PMath.ONE - currentTokenProp;
-            netSyToRedeem = state.totalSy.mulDown(targetTokenProp - currentTokenProp).divDown(
-                currentSyProp
-            );
+            netSyToRedeem = state.totalSy.mulDown(targetTokenProp - currentTokenProp).divDown(currentSyProp);
         }
     }
 
@@ -119,17 +112,11 @@ library BulkSellerMathCore {
         uint256 rateTokenToSy,
         uint256 maxDiff
     ) internal pure {
-        if (
-            state.rateTokenToSy != 0 &&
-            !PMath.isAApproxB(rateTokenToSy, state.rateTokenToSy, maxDiff)
-        ) {
+        if (state.rateTokenToSy != 0 && !PMath.isAApproxB(rateTokenToSy, state.rateTokenToSy, maxDiff)) {
             revert Errors.BulkBadRateTokenToSy(rateTokenToSy, state.rateTokenToSy, maxDiff);
         }
 
-        if (
-            state.rateSyToToken != 0 &&
-            !PMath.isAApproxB(rateSyToToken, state.rateSyToToken, maxDiff)
-        ) {
+        if (state.rateSyToToken != 0 && !PMath.isAApproxB(rateSyToToken, state.rateSyToToken, maxDiff)) {
             revert Errors.BulkBadRateSyToToken(rateSyToToken, state.rateSyToToken, maxDiff);
         }
 

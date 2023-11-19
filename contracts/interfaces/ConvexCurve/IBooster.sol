@@ -6,9 +6,7 @@ interface IBooster {
 
     function poolLength() external view returns (uint256);
 
-    function poolInfo(
-        uint256
-    ) external view returns (address lpToken, address, address, address, address, bool);
+    function poolInfo(uint256) external view returns (address lpToken, address, address, address, address, bool);
 
     function deposit(uint256 _pid, uint256 _amount, bool _stake) external returns (bool);
 

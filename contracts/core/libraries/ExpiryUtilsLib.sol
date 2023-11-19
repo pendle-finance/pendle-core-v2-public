@@ -28,9 +28,7 @@ library ExpiryUtils {
         uint256 _expiry,
         string memory _delimiter
     ) internal pure returns (string memory result) {
-        result = string(
-            abi.encodePacked(_bt, _delimiter, _yt, _delimiter, toRFC2822String(_expiry))
-        );
+        result = string(abi.encodePacked(_bt, _delimiter, _yt, _delimiter, toRFC2822String(_expiry)));
     }
 
     function toRFC2822String(uint256 _timestamp) internal pure returns (string memory s) {
@@ -42,15 +40,7 @@ library ExpiryUtils {
     }
 
     function getDaysInMonth(uint8 _month, uint16 _year) private pure returns (uint8) {
-        if (
-            _month == 1 ||
-            _month == 3 ||
-            _month == 5 ||
-            _month == 7 ||
-            _month == 8 ||
-            _month == 10 ||
-            _month == 12
-        ) {
+        if (_month == 1 || _month == 3 || _month == 5 || _month == 7 || _month == 8 || _month == 10 || _month == 12) {
             return 31;
         } else if (_month == 4 || _month == 6 || _month == 9 || _month == 11) {
             return 30;
@@ -94,20 +84,7 @@ library ExpiryUtils {
     }
 
     function monthName(Date memory d) private pure returns (string memory) {
-        string[12] memory months = [
-            "JAN",
-            "FEB",
-            "MAR",
-            "APR",
-            "MAY",
-            "JUN",
-            "JUL",
-            "AUG",
-            "SEP",
-            "OCT",
-            "NOV",
-            "DEC"
-        ];
+        string[12] memory months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         return months[d.month - 1];
     }
 

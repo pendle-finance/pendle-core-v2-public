@@ -150,7 +150,6 @@ library PMath {
         return uint64(x);
     }
 
-
     function Uint112(uint256 x) internal pure returns (uint112) {
         require(x <= type(uint112).max);
         return uint112(x);
@@ -171,27 +170,15 @@ library PMath {
         return uint192(x);
     }
 
-    function isAApproxB(
-        uint256 a,
-        uint256 b,
-        uint256 eps
-    ) internal pure returns (bool) {
+    function isAApproxB(uint256 a, uint256 b, uint256 eps) internal pure returns (bool) {
         return mulDown(b, ONE - eps) <= a && a <= mulDown(b, ONE + eps);
     }
 
-    function isAGreaterApproxB(
-        uint256 a,
-        uint256 b,
-        uint256 eps
-    ) internal pure returns (bool) {
+    function isAGreaterApproxB(uint256 a, uint256 b, uint256 eps) internal pure returns (bool) {
         return a >= b && a <= mulDown(b, ONE + eps);
     }
 
-    function isASmallerApproxB(
-        uint256 a,
-        uint256 b,
-        uint256 eps
-    ) internal pure returns (bool) {
+    function isASmallerApproxB(uint256 a, uint256 b, uint256 eps) internal pure returns (bool) {
         return a <= b && a >= mulDown(b, ONE - eps);
     }
 }

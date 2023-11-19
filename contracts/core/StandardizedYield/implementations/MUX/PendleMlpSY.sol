@@ -108,9 +108,7 @@ contract PendleMlpSY is SYBaseWithRewards {
                 hasVeMuxPosition = true;
             }
         } else if (_hasVeMuxPosition) {
-            IMUXRewardRouter(rewardRouter).increaseStakeUnlockTime(
-                block.timestamp + VEMUX_MAXTIME
-            );
+            IMUXRewardRouter(rewardRouter).increaseStakeUnlockTime(block.timestamp + VEMUX_MAXTIME);
         }
     }
 
@@ -148,11 +146,7 @@ contract PendleMlpSY is SYBaseWithRewards {
         return token == mlp || token == sMlp;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.LIQUIDITY, mlp, IERC20Metadata(mlp).decimals());
     }
 
@@ -180,9 +174,7 @@ contract PendleMlpSY is SYBaseWithRewards {
         IMUXRewardRouter(rewardRouter).depositToVeVester(amountToVest);
     }
 
-    function claimVestedRewards(
-        address receiver
-    ) external onlyOwner returns (uint256 amountClaimed) {
+    function claimVestedRewards(address receiver) external onlyOwner returns (uint256 amountClaimed) {
         IMUXRewardRouter(rewardRouter).claimVestedTokenFromVe(address(this));
 
         address mcb = IMUXRewardRouter(rewardRouter).mcb();

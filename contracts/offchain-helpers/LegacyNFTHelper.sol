@@ -26,23 +26,14 @@ interface StarNFTV1 {
         uint256[] ids,
         uint256[] values
     );
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 value
-    );
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
     event URI(string value, uint256 indexed id);
 
     function addMinter(address minter) external;
 
     function balanceOf(address account, uint256 id) external view returns (uint256);
 
-    function balanceOfBatch(address[] memory accounts, uint256[] memory ids)
-        external
-        view
-        returns (uint256[] memory);
+    function balanceOfBatch(address[] memory accounts, uint256[] memory ids) external view returns (uint256[] memory);
 
     function baseURI() external view returns (string memory);
 
@@ -56,11 +47,7 @@ interface StarNFTV1 {
 
     function mint(address account, uint256 powah) external returns (uint256);
 
-    function mintBatch(
-        address account,
-        uint256 amount,
-        uint256[] memory powahArr
-    ) external returns (uint256[] memory);
+    function mintBatch(address account, uint256 amount, uint256[] memory powahArr) external returns (uint256[] memory);
 
     function minters(address) external view returns (bool);
 
@@ -78,13 +65,7 @@ interface StarNFTV1 {
         bytes memory data
     ) external;
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) external;
 
     function setApprovalForAll(address operator, bool approved) external;
 

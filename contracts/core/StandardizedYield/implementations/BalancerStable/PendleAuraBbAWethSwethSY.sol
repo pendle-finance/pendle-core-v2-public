@@ -11,8 +11,7 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
     address internal constant SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
 
     address internal constant _BB_A_WETH = 0x60D604890feaa0b5460B28A424407c24fe89374a;
-    bytes32 internal constant _BB_A_WETH_POOL_ID =
-        0x60d604890feaa0b5460b28a424407c24fe89374a0000000000000000000004fc;
+    bytes32 internal constant _BB_A_WETH_POOL_ID = 0x60d604890feaa0b5460b28a424407c24fe89374a0000000000000000000004fc;
     address internal constant _WA_WETH = 0x59463BB67dDD04fe58ED291ba36C26d99A39fbc6;
 
     bool internal constant NO_TOKENS_EXEMPT = true;
@@ -31,10 +30,7 @@ contract PendleAuraBbAWethSwethSY is PendleAuraBalancerStableLPSYV2, BbAWethHelp
 
     }
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE || tokenIn == WETH || tokenIn == WA_WETH) {
             uint256 amountBbAWeth = _depositBbAWeth(tokenIn, amount);
             amountSharesOut = super._deposit(BB_A_WETH, amountBbAWeth);

@@ -57,21 +57,27 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         uint128 liq1;
     }
 
-    function previewDeposit(address kyberPool, int24 tickLower, int24 tickUpper, bool isToken0, uint256 amountIn)
-        external
-        view
-        returns (uint256)
-    {
+    function previewDeposit(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        bool isToken0,
+        uint256 amountIn
+    ) external view returns (uint256) {
         uint256 amountToSwap = getSingleSidedSwapAmount(kyberPool, amountIn, isToken0, tickLower, tickUpper);
-        (uint256 amountOut,, uint160 newSqrtP) =
-            _simulateSwapExactIn(kyberPool, amountToSwap, _getExtCache(kyberPool, isToken0));
-        return LiquidityMath.getLiquidityFromQties(
-            newSqrtP,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            amountIn - amountToSwap,
-            amountOut
+        (uint256 amountOut, , uint160 newSqrtP) = _simulateSwapExactIn(
+            kyberPool,
+            amountToSwap,
+            _getExtCache(kyberPool, isToken0)
         );
+        return
+            LiquidityMath.getLiquidityFromQties(
+                newSqrtP,
+                TickMath.getSqrtRatioAtTick(tickLower),
+                TickMath.getSqrtRatioAtTick(tickUpper),
+                amountIn - amountToSwap,
+                amountOut
+            );
     }
 
     /**
@@ -79,15 +85,20 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
      * as it uses the old state of the pool to calculate the final swap
      * instead of the state of the pool after removing liquidity
      */
-    function previewRedeem(address kyberPool, int24 tickLower, int24 tickUpper, bool isToken0, uint256 amountShares)
-        external
-        view
-        returns (uint256)
-    {
+    function previewRedeem(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        bool isToken0,
+        uint256 amountShares
+    ) external view returns (uint256) {
         (uint256 amount0, uint256 amount1) = _simulateBurn(kyberPool, tickLower, tickUpper, amountShares);
 
-        (uint256 amountOut,,) =
-            _simulateSwapExactIn(kyberPool, isToken0 ? amount1 : amount0, _getExtCache(kyberPool, isToken0));
+        (uint256 amountOut, , ) = _simulateSwapExactIn(
+            kyberPool,
+            isToken0 ? amount1 : amount0,
+            _getExtCache(kyberPool, isToken0)
+        );
 
         return (isToken0 ? amount0 : amount1) + amountOut;
     }
@@ -118,7 +129,11 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
                 params.guess = (params.low + params.high) / 2;
             }
 
-            (params.amountOut, params.newTick, params.currentSqrtP) = _simulateSwapExactIn(kyberPool, params.guess, ext);
+            (params.amountOut, params.newTick, params.currentSqrtP) = _simulateSwapExactIn(
+                kyberPool,
+                params.guess,
+                ext
+            );
 
             if (isToken0) {
                 if (params.newTick < tickLower) {
@@ -127,10 +142,15 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
                     params.low = params.guess;
                 } else {
                     uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
-                        params.currentSqrtP, params.upperSqrtP, startAmount - params.guess
+                        params.currentSqrtP,
+                        params.upperSqrtP,
+                        startAmount - params.guess
                     );
-                    uint128 liq1 =
-                        LiquidityMath.getLiquidityFromQty1(params.lowerSqrtP, params.currentSqrtP, params.amountOut);
+                    uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
+                        params.lowerSqrtP,
+                        params.currentSqrtP,
+                        params.amountOut
+                    );
                     if (liq0 < liq1) {
                         params.high = params.guess;
                     } else {
@@ -143,10 +163,15 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
                 } else if (params.newTick >= tickUpper) {
                     params.high = params.guess;
                 } else {
-                    uint128 liq0 =
-                        LiquidityMath.getLiquidityFromQty0(params.currentSqrtP, params.upperSqrtP, params.amountOut);
+                    uint128 liq0 = LiquidityMath.getLiquidityFromQty0(
+                        params.currentSqrtP,
+                        params.upperSqrtP,
+                        params.amountOut
+                    );
                     uint128 liq1 = LiquidityMath.getLiquidityFromQty1(
-                        params.lowerSqrtP, params.currentSqrtP, startAmount - params.guess
+                        params.lowerSqrtP,
+                        params.currentSqrtP,
+                        startAmount - params.guess
                     );
                     if (liq1 < liq0) {
                         params.high = params.guess;
@@ -204,11 +229,11 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         bool isToken0;
     }
 
-    function _simulateSwapExactIn(address kyberPool, uint256 swapQty, ExternalCache memory ext)
-        internal
-        view
-        returns (uint256 amountOut, int24 newTick, uint160 newSqrtP)
-    {
+    function _simulateSwapExactIn(
+        address kyberPool,
+        uint256 swapQty,
+        ExternalCache memory ext
+    ) internal view returns (uint256 amountOut, int24 newTick, uint160 newSqrtP) {
         SwapData memory swapData = SwapData({
             specifiedAmount: swapQty.Int(),
             returnedAmount: 0,
@@ -290,7 +315,10 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
 
             // update rTotalSupply, feeGrowthGlobal and reinvestL
             uint256 rMintQty = ReinvestmentMath.calcrMintQty(
-                swapData.reinvestL, cache.reinvestLLast, swapData.baseL, cache.rTotalSupply
+                swapData.reinvestL,
+                cache.reinvestLLast,
+                swapData.baseL,
+                cache.rTotalSupply
             );
 
             if (rMintQty != 0) {
@@ -323,34 +351,39 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         newSqrtP = swapData.sqrtP;
     }
 
-    function _simulateBurn(address kyberPool, int24 tickLower, int24 tickUpper, uint256 liquidity)
-        internal
-        view
-        returns (uint256 amount0, uint256 amount1)
-    {
-        (uint160 sqrtP, int24 currentTick,,) = IKyberElasticPool(kyberPool).getPoolState();
+    function _simulateBurn(
+        address kyberPool,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 liquidity
+    ) internal view returns (uint256 amount0, uint256 amount1) {
+        (uint160 sqrtP, int24 currentTick, , ) = IKyberElasticPool(kyberPool).getPoolState();
 
         if (currentTick < tickLower) {
-            amount0 = QtyDeltaMath.calcRequiredQty0(
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                liquidity.Uint128(),
-                false
-            ).abs();
+            amount0 = QtyDeltaMath
+                .calcRequiredQty0(
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
         } else if (currentTick >= tickUpper) {
-            amount1 = QtyDeltaMath.calcRequiredQty1(
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                liquidity.Uint128(),
-                false
-            ).abs();
+            amount1 = QtyDeltaMath
+                .calcRequiredQty1(
+                    TickMath.getSqrtRatioAtTick(tickLower),
+                    TickMath.getSqrtRatioAtTick(tickUpper),
+                    liquidity.Uint128(),
+                    false
+                )
+                .abs();
         } else {
-            amount0 = QtyDeltaMath.calcRequiredQty0(
-                sqrtP, TickMath.getSqrtRatioAtTick(tickUpper), liquidity.Uint128(), false
-            ).abs();
-            amount1 = QtyDeltaMath.calcRequiredQty1(
-                TickMath.getSqrtRatioAtTick(tickLower), sqrtP, liquidity.Uint128(), false
-            ).abs();
+            amount0 = QtyDeltaMath
+                .calcRequiredQty0(sqrtP, TickMath.getSqrtRatioAtTick(tickUpper), liquidity.Uint128(), false)
+                .abs();
+            amount1 = QtyDeltaMath
+                .calcRequiredQty1(TickMath.getSqrtRatioAtTick(tickLower), sqrtP, liquidity.Uint128(), false)
+                .abs();
         }
     }
 
@@ -362,22 +395,24 @@ contract KyberMathHelper is BoringOwnableUpgradeable, UUPSUpgradeable {
         uint128,
         bool willUpTick
     ) internal view returns (uint128 newLiquidity, int24 newNextTick) {
-        (, int128 liquidityNet,,) = IKyberElasticPool(kyberPool).ticks(nextTick);
+        (, int128 liquidityNet, , ) = IKyberElasticPool(kyberPool).ticks(nextTick);
         if (willUpTick) {
             (, newNextTick) = IKyberElasticPool(kyberPool).initializedTicks(nextTick);
         } else {
-            (newNextTick,) = IKyberElasticPool(kyberPool).initializedTicks(nextTick);
+            (newNextTick, ) = IKyberElasticPool(kyberPool).initializedTicks(nextTick);
             liquidityNet = -liquidityNet;
         }
         newLiquidity = LiqDeltaMath.applyLiquidityDelta(
-            currentLiquidity, liquidityNet >= 0 ? uint128(liquidityNet) : liquidityNet.revToUint128(), liquidityNet >= 0
+            currentLiquidity,
+            liquidityNet >= 0 ? uint128(liquidityNet) : liquidityNet.revToUint128(),
+            liquidityNet >= 0
         );
     }
 
     function _getExtCache(address kyberPool, bool isToken0) internal view returns (ExternalCache memory ext) {
         bool willUpTick = !isToken0;
         (ext.baseL, ext.reinvestL, ext.reinvestLLast) = IKyberElasticPool(kyberPool).getLiquidityState();
-        (ext.sqrtP, ext.currentTick, ext.nextTick,) = IKyberElasticPool(kyberPool).getPoolState();
+        (ext.sqrtP, ext.currentTick, ext.nextTick, ) = IKyberElasticPool(kyberPool).getPoolState();
         if (willUpTick) {
             (, ext.nextTick) = IKyberElasticPool(kyberPool).initializedTicks(ext.nextTick);
         }

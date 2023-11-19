@@ -13,10 +13,7 @@ interface IPActionStorageStatic {
 
     function getBulkSellerFactory() external view returns (address);
 
-    function getOwnerAndPendingOwner()
-        external
-        view
-        returns (address _owner, address _pendingOwner);
+    function getOwnerAndPendingOwner() external view returns (address _owner, address _pendingOwner);
 
     function transferOwnership(address newOwner, bool direct, bool renounce) external;
 

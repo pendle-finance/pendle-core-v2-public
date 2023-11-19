@@ -18,6 +18,4 @@ interface IPRouterStatic is
     IPActionVePendleStatic,
     IPMiniDiamond,
     IPActionStorageStatic
-{
-
-}
+{}

@@ -62,7 +62,7 @@ abstract contract PendleERC20Upg is Context, Initializable, IERC20, IERC20Metada
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(uint8 decimals_)  {
+    constructor(uint8 decimals_) {
         decimals = decimals_;
     }
 
@@ -118,10 +118,7 @@ abstract contract PendleERC20Upg is Context, Initializable, IERC20, IERC20Metada
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(
-        address to,
-        uint256 amount
-    ) external virtual override nonReentrant returns (bool) {
+    function transfer(address to, uint256 amount) external virtual override nonReentrant returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
@@ -130,10 +127,7 @@ abstract contract PendleERC20Upg is Context, Initializable, IERC20, IERC20Metada
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(
-        address owner,
-        address spender
-    ) public view virtual override returns (uint256) {
+    function allowance(address owner, address spender) public view virtual override returns (uint256) {
         return _allowances[owner][spender];
     }
 

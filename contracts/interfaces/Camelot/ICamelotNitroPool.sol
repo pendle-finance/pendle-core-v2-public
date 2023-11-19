@@ -18,7 +18,6 @@ interface ICamelotNitroPool is IERC721 {
 
     function nftPool() external view returns (address);
 
-
     function harvest() external;
 
     function rewardsToken1() external view returns (RewardsToken calldata);

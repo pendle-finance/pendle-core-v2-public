@@ -2,8 +2,5 @@
 pragma solidity ^0.8.0;
 
 interface IRewardManager {
-    function userReward(
-        address token,
-        address user
-    ) external view returns (uint128 index, uint128 accrued);
+    function userReward(address token, address user) external view returns (uint128 index, uint128 accrued);
 }

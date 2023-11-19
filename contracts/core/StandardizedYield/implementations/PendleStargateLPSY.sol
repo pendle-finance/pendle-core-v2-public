@@ -49,11 +49,7 @@ contract PendleStargateLPSY is SYBaseWithRewards {
         _validateStargateStakingId(stargateStaking, sid, lp);
     }
 
-    function _validateStargateStakingId(
-        address staking,
-        uint256 id,
-        address lpToken
-    ) internal view {
+    function _validateStargateStakingId(address staking, uint256 id, address lpToken) internal view {
         (address _lpToken, , , ) = IStargateStaking(staking).poolInfo(id);
         // Custom error not needed here since this only happens on deployment
         require(_lpToken == lpToken, "invalid sid & lpToken");
@@ -102,11 +98,7 @@ contract PendleStargateLPSY is SYBaseWithRewards {
 
             uint256 preBalanceLp = _selfBalance(lp);
 
-            uint256 amountSD = IStargateRouter(stargateRouter).instantRedeemLocal(
-                pid,
-                amountSharesToRedeem,
-                receiver
-            );
+            uint256 amountSD = IStargateRouter(stargateRouter).instantRedeemLocal(pid, amountSharesToRedeem, receiver);
             uint256 lpUsed = preBalanceLp - _selfBalance(lp);
             if (lpUsed < amountSharesToRedeem) {
                 revert Errors.SYStargateRedeemCapExceeded(amountSharesToRedeem, lpUsed);
@@ -125,8 +117,7 @@ contract PendleStargateLPSY is SYBaseWithRewards {
      * @dev It is the exchange rate of lp to underlying
      */
     function exchangeRate() public view virtual override returns (uint256) {
-        return
-            IStargateLP(lp).totalLiquidity().divDown(IStargateLP(lp).totalSupply()) * convertRate;
+        return IStargateLP(lp).totalLiquidity().divDown(IStargateLP(lp).totalSupply()) * convertRate;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -212,11 +203,7 @@ contract PendleStargateLPSY is SYBaseWithRewards {
         return token == underlying || token == lp;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, underlying, IERC20Metadata(underlying).decimals());
     }
 }

@@ -13,12 +13,7 @@ interface IPYieldTokenV2 is IERC20Metadata, IRewardManager, IPInterestManagerYTV
         uint256 amountPYOut
     );
 
-    event Burn(
-        address indexed caller,
-        address indexed receiver,
-        uint256 amountPYToRedeem,
-        uint256 amountSyOut
-    );
+    event Burn(address indexed caller, address indexed receiver, uint256 amountPYToRedeem, uint256 amountSyOut);
 
     event RedeemRewards(address indexed user, uint256[] amountRewardsOut);
 

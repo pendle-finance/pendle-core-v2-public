@@ -66,10 +66,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         bytes memory data
     ) private view returns (uint256 amountBptOrTokensOut) {
         IERC20[] memory tokens = _translateToIERC20(change.assets);
-        (uint256[] memory balances, uint256 lastChangeBlock) = _validateTokensAndGetBalances(
-            poolId,
-            tokens
-        );
+        (uint256[] memory balances, uint256 lastChangeBlock) = _validateTokensAndGetBalances(poolId, tokens);
 
         amountBptOrTokensOut = _callPoolBalanceChange(
             kind,
@@ -126,8 +123,7 @@ abstract contract StablePreviewBase is IBalancerStablePreview {
         bytes32 poolId,
         IERC20[] memory //expectedTokens
     ) private view returns (uint256[] memory, uint256) {
-        (, uint256[] memory balances, uint256 lastChangeBlock) = IVault(BALANCER_VAULT)
-            .getPoolTokens(poolId);
+        (, uint256[] memory balances, uint256 lastChangeBlock) = IVault(BALANCER_VAULT).getPoolTokens(poolId);
         return (balances, lastChangeBlock);
     }
 

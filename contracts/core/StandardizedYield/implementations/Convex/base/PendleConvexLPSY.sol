@@ -35,9 +35,7 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
         _safeApproveInf(crvLp, BOOSTER);
     }
 
-    function _getPoolInfo(
-        uint256 _cvxPid
-    ) internal view returns (address _crvLp, address _cvxRewardManager) {
+    function _getPoolInfo(uint256 _cvxPid) internal view returns (address _crvLp, address _cvxRewardManager) {
         if (_cvxPid > IBooster(BOOSTER).poolLength()) revert Errors.SYCurveInvalidPid();
 
         (_crvLp, , , _cvxRewardManager, , ) = IBooster(BOOSTER).poolInfo(_cvxPid);
@@ -51,10 +49,7 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
      * If any of the base pool tokens are deposited, it will first add liquidity to the curve pool and mint LP,
      * which will then be deposited into convex
      */
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == crvLp) {
             amountSharesOut = amount;
         } else {
@@ -148,15 +143,9 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
 
     function isValidTokenOut(address token) public view virtual override returns (bool);
 
-    function _depositToCurve(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal virtual returns (uint256);
+    function _depositToCurve(address tokenIn, uint256 amountTokenToDeposit) internal virtual returns (uint256);
 
-    function _redeemFromCurve(
-        address tokenOut,
-        uint256 amountLpToRedeem
-    ) internal virtual returns (uint256);
+    function _redeemFromCurve(address tokenOut, uint256 amountLpToRedeem) internal virtual returns (uint256);
 
     function _previewDepositToCurve(
         address token,
@@ -168,11 +157,7 @@ abstract contract PendleConvexLPSY is SYBaseWithRewards {
         uint256 amountLpToRedeem
     ) internal view virtual returns (uint256 amountTokenOut);
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.LIQUIDITY, crvLp, IERC20Metadata(crvLp).decimals());
     }
 }

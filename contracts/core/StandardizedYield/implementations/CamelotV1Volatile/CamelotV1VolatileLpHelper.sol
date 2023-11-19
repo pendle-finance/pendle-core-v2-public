@@ -24,11 +24,7 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
     address public immutable pair;
     address public immutable router;
 
-
-    constructor(
-        address _pair,
-        address _router
-    ) {
+    constructor(address _pair, address _router) {
         assert(ICamelotPair(_pair).stableSwap() == false);
         pair = _pair;
         router = _router;
@@ -58,12 +54,11 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
         }
     }
 
-    function _swapZapIn(address tokenIn, uint256 amountIn)
-        private
-        returns (uint256 amount0ToAddLiq, uint256 amount1ToAddLiq)
-    {
-        (uint256 reserve0, uint256 reserve1, uint256 fee0, uint256 fee1) = ICamelotPair(pair)
-            .getReserves();
+    function _swapZapIn(
+        address tokenIn,
+        uint256 amountIn
+    ) private returns (uint256 amount0ToAddLiq, uint256 amount1ToAddLiq) {
+        (uint256 reserve0, uint256 reserve1, uint256 fee0, uint256 fee1) = ICamelotPair(pair).getReserves();
 
         if (tokenIn == token0) {
             uint256 amount0ToSwap = _getZapInSwapAmount(amountIn, reserve0, fee0);
@@ -82,10 +77,7 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
      * ==================================================================
      */
 
-    function _addLiquidity(uint256 amount0ToAddLiq, uint256 amount1ToAddLiq)
-        private
-        returns (uint256 amountLpOut)
-    {
+    function _addLiquidity(uint256 amount0ToAddLiq, uint256 amount1ToAddLiq) private returns (uint256 amountLpOut) {
         (, , amountLpOut) = ICamelotRouter(router).addLiquidity(
             token0,
             token1,
@@ -98,10 +90,7 @@ abstract contract CamelotV1VolatileLpHelper is TokenHelper, CamelotV1VolatileCom
         );
     }
 
-    function _removeLiquidity(uint256 amountLpToRemove)
-        private
-        returns (uint256 amountTokenA, uint256 amountTokenB)
-    {
+    function _removeLiquidity(uint256 amountLpToRemove) private returns (uint256 amountTokenA, uint256 amountTokenB) {
         return
             ICamelotRouter(router).removeLiquidity(
                 token0,

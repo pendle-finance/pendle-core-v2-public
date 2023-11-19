@@ -71,11 +71,7 @@ interface ICamelotRouter {
         bytes32 s
     ) external returns (uint amountToken, uint amountETH);
 
-    function quote(
-        uint amountA,
-        uint reserveA,
-        uint reserveB
-    ) external pure returns (uint amountB);
+    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
 
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,

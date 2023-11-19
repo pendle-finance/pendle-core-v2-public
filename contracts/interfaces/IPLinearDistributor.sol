@@ -15,10 +15,7 @@ interface IPLinearDistributor {
         uint32 endTime;
     }
 
-    function queueVestAndClaim(
-        address token,
-        uint256 amountToVest
-    ) external returns (uint256 amountOut);
+    function queueVestAndClaim(address token, uint256 amountToVest) external returns (uint256 amountOut);
 
     function claim(address token) external returns (uint256 amountOut);
 }

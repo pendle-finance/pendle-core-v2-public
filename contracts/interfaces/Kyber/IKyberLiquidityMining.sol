@@ -41,23 +41,11 @@ interface IKyberLiquidityMining {
     event ActivateRange(uint256 indexed fId, uint256 rangeId);
     event ExpandEndTimeAndRewards(uint256 indexed fId, uint256 duration, uint256[] rewardAmounts);
 
-    event Deposit(
-        uint256 indexed fId,
-        uint256 rangeId,
-        uint256[] nftIds,
-        address indexed depositer,
-        address receiver
-    );
+    event Deposit(uint256 indexed fId, uint256 rangeId, uint256[] nftIds, address indexed depositer, address receiver);
     event UpdateLiquidity(uint256 indexed fId, uint256 nftId, uint256 liquidity);
     event Withdraw(uint256[] nftIds, address receiver);
     event WithdrawEmergency(uint256 nftId, address receiver);
-    event ClaimReward(
-        uint256 fId,
-        uint256[] nftIds,
-        address token,
-        uint256 amount,
-        address receiver
-    );
+    event ClaimReward(uint256 fId, uint256[] nftIds, address token, uint256 amount, address receiver);
 
     struct RangeInput {
         int24 tickLower;
@@ -120,12 +108,7 @@ interface IKyberLiquidityMining {
     /// @param fId farm's id
     /// @param rangeId rangeId to add, should use quoter to get best APR rangeId
     /// @param nftIds nfts to deposit
-    function deposit(
-        uint256 fId,
-        uint256 rangeId,
-        uint256[] memory nftIds,
-        address receiver
-    ) external;
+    function deposit(uint256 fId, uint256 rangeId, uint256[] memory nftIds, address receiver) external;
 
     /// @dev claim reward earned for nfts
     /// @param fId farm's id
@@ -190,7 +173,6 @@ interface IKyberLiquidityMining {
     function withdrawEmergency(uint256[] calldata nftIds) external;
 
     function emergencyEnabled() external view returns (bool);
-
 
     // ======== view ============
 

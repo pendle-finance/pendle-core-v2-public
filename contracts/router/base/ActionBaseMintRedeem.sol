@@ -56,9 +56,11 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
             if (inp.tokenIn == NATIVE) _transferIn(NATIVE, msg.sender, inp.netTokenIn);
             else _transferFrom(IERC20(inp.tokenIn), msg.sender, inp.pendleSwap, inp.netTokenIn);
 
-            IPSwapAggregator(inp.pendleSwap).swap{
-                value: inp.tokenIn == NATIVE ? inp.netTokenIn : 0
-            }(inp.tokenIn, inp.netTokenIn, inp.swapData);
+            IPSwapAggregator(inp.pendleSwap).swap{value: inp.tokenIn == NATIVE ? inp.netTokenIn : 0}(
+                inp.tokenIn,
+                inp.netTokenIn,
+                inp.swapData
+            );
             netTokenMintSy = _selfBalance(inp.tokenMintSy);
         }
 
@@ -78,13 +80,9 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         uint256 netNative = inp.tokenMintSy == NATIVE ? netTokenMintSy : 0;
 
         if (inp.bulk != address(0)) {
-            netSyOut = IPBulkSeller(inp.bulk).swapExactTokenForSy{ value: netNative }(
-                receiver,
-                netTokenMintSy,
-                minSyOut
-            );
+            netSyOut = IPBulkSeller(inp.bulk).swapExactTokenForSy{value: netNative}(receiver, netTokenMintSy, minSyOut);
         } else {
-            netSyOut = IStandardizedYield(SY).deposit{ value: netNative }(
+            netSyOut = IStandardizedYield(SY).deposit{value: netNative}(
                 receiver,
                 inp.tokenMintSy,
                 netTokenMintSy,
@@ -113,11 +111,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         } else {
             uint256 netTokenRedeemed = __redeemSy(out.pendleSwap, SY, netSyIn, out, doPull);
 
-            IPSwapAggregator(out.pendleSwap).swap(
-                out.tokenRedeemSy,
-                netTokenRedeemed,
-                out.swapData
-            );
+            IPSwapAggregator(out.pendleSwap).swap(out.tokenRedeemSy, netTokenRedeemed, out.swapData);
 
             netTokenOut = _selfBalance(out.tokenOut);
 
@@ -143,20 +137,9 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         }
 
         if (out.bulk != address(0)) {
-            netTokenRedeemed = IPBulkSeller(out.bulk).swapExactSyForToken(
-                receiver,
-                netSyIn,
-                0,
-                true
-            );
+            netTokenRedeemed = IPBulkSeller(out.bulk).swapExactSyForToken(receiver, netSyIn, 0, true);
         } else {
-            netTokenRedeemed = IStandardizedYield(SY).redeem(
-                receiver,
-                netSyIn,
-                out.tokenRedeemSy,
-                0,
-                true
-            );
+            netTokenRedeemed = IStandardizedYield(SY).redeem(receiver, netSyIn, out.tokenRedeemSy, 0, true);
         }
     }
 
@@ -193,11 +176,7 @@ abstract contract ActionBaseMintRedeem is TokenHelper {
         if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
     }
 
-    function _syOrBulk(address SY, TokenOutput calldata output)
-        internal
-        pure
-        returns (address addr)
-    {
+    function _syOrBulk(address SY, TokenOutput calldata output) internal pure returns (address addr) {
         return output.bulk != address(0) ? output.bulk : SY;
     }
 }

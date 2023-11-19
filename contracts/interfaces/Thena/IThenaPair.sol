@@ -16,15 +16,13 @@ interface IThenaPair {
     function getReserves() external view returns (uint _reserve0, uint _reserve1, uint _blockTimestampLast);
     function getAmountOut(uint, address) external view returns (uint);
 
-    function name() external view returns(string memory);
-    function symbol() external view returns(string memory);
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
     function totalSupply() external view returns (uint);
     function decimals() external view returns (uint8);
 
     function claimable0(address _user) external view returns (uint);
     function claimable1(address _user) external view returns (uint);
 
-    function isStable() external view returns(bool);
-
-
+    function isStable() external view returns (bool);
 }

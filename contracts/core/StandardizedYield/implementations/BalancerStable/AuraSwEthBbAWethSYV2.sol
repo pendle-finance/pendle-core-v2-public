@@ -15,8 +15,7 @@ contract AuraSwEthBbAWethSYV2 is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
 
     address internal constant _BB_A_WETH = 0xbB6881874825E60e1160416D6C426eae65f2459E;
     address internal constant _WA_WETH = 0x03928473f25bb2da6Bc880b07eCBaDC636822264;
-    bytes32 internal constant _BB_A_WETH_POOL_ID =
-        0xbb6881874825e60e1160416d6c426eae65f2459e000000000000000000000592;
+    bytes32 internal constant _BB_A_WETH_POOL_ID = 0xbb6881874825e60e1160416d6c426eae65f2459e000000000000000000000592;
 
     bool internal constant NO_TOKENS_EXEMPT = true;
     bool internal constant ALL_TOKENS_EXEMPT = false;
@@ -26,22 +25,13 @@ contract AuraSwEthBbAWethSYV2 is PendleAuraBalancerStableLPSYV2, BbAWethHelper {
         string memory _symbol
     )
         BbAWethHelper(LinearPreview(LINEAR_PREVIEW), _BB_A_WETH, _BB_A_WETH_POOL_ID, _WA_WETH)
-        PendleAuraBalancerStableLPSYV2(
-            _name,
-            _symbol,
-            LP,
-            AURA_PID,
-            ComposableStablePreview(COMPOSABLE_PREVIEW)
-        )
+        PendleAuraBalancerStableLPSYV2(_name, _symbol, LP, AURA_PID, ComposableStablePreview(COMPOSABLE_PREVIEW))
     //solhint-disable-next-line
     {
 
     }
 
-    function _deposit(
-        address tokenIn,
-        uint256 amount
-    ) internal override returns (uint256 amountSharesOut) {
+    function _deposit(address tokenIn, uint256 amount) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE || tokenIn == WETH || tokenIn == WA_WETH) {
             uint256 amountBbAWeth = _depositBbAWeth(tokenIn, amount);
             amountSharesOut = super._deposit(BB_A_WETH, amountBbAWeth);

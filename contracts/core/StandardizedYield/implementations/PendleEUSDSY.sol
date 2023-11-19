@@ -7,11 +7,7 @@ import "../../../interfaces/Lybra/IEUSD.sol";
 contract PendleEUSDSY is SYBase {
     address public immutable eUSD;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _eUSD
-    ) SYBase(_name, _symbol, _eUSD) {
+    constructor(string memory _name, string memory _symbol, address _eUSD) SYBase(_name, _symbol, _eUSD) {
         eUSD = _eUSD;
     }
 
@@ -78,11 +74,7 @@ contract PendleEUSDSY is SYBase {
         return token == eUSD;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         assetType = AssetType.TOKEN;
         assetAddress = eUSD;
         assetDecimals = 18;

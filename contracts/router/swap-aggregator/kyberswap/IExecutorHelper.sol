@@ -129,103 +129,46 @@ interface IExecutorHelper {
         uint256 sqrtPriceLimitD18;
     }
 
-    function executeUniswap(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeUniswap(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeStableSwap(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeStableSwap(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeCurve(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeCurve(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeKSClassic(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeKSClassic(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeUniV3KSElastic(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeUniV3KSElastic(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeRfq(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeRfq(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeBalV2(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeBalV2(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeDODO(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeDODO(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeVelodrome(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeVelodrome(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeGMX(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeGMX(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executePlatypus(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executePlatypus(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeWrappedstETH(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeWrappedstETH(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeStEth(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeStEth(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeSynthetix(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeSynthetix(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeHashflow(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeHashflow(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executePSM(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executePSM(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeFrax(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeFrax(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeCamelot(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeCamelot(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
-    function executeKyberLimitOrder(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeKyberLimitOrder(
+        bytes memory data,
+        uint256 flagsAndPrevAmountOut
+    ) external payable returns (uint256);
 
-    function executeMaverick(bytes memory data, uint256 flagsAndPrevAmountOut)
-        external
-        payable
-        returns (uint256);
+    function executeMaverick(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 }

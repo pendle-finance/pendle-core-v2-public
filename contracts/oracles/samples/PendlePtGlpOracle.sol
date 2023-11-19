@@ -21,19 +21,15 @@ contract PendlePtGlpOracle {
     address public immutable glpManager;
     error OracleNotReady(bool increaseCardinalityRequired, bool oldestObservationSatisfied);
 
-    constructor(
-        address _ptOracle,
-        uint32 _twapDuration,
-        address _market,
-        address _glpManager
-    ) {
+    constructor(address _ptOracle, uint32 _twapDuration, address _market, address _glpManager) {
         twapDuration = _twapDuration;
         market = _market;
         glpManager = _glpManager;
 
-        (bool increaseCardinalityRequired, , bool oldestObservationSatisfied) = IPPtOracle(
-            _ptOracle
-        ).getOracleState(market, twapDuration);
+        (bool increaseCardinalityRequired, , bool oldestObservationSatisfied) = IPPtOracle(_ptOracle).getOracleState(
+            market,
+            twapDuration
+        );
 
         if (increaseCardinalityRequired || !oldestObservationSatisfied) {
             revert OracleNotReady(increaseCardinalityRequired, oldestObservationSatisfied);

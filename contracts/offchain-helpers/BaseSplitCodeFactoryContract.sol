@@ -30,18 +30,8 @@ contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeable {
             uint256 creationCodeSizeB
         )
     {
-        (
-            creationCodeContractA,
-            creationCodeSizeA,
-            creationCodeContractB,
-            creationCodeSizeB
-        ) = BaseSplitCodeFactory.setCreationCode(creationCode);
-        emit Deployed(
-            name,
-            creationCodeContractA,
-            creationCodeSizeA,
-            creationCodeContractB,
-            creationCodeSizeB
-        );
+        (creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB) = BaseSplitCodeFactory
+            .setCreationCode(creationCode);
+        emit Deployed(name, creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB);
     }
 }

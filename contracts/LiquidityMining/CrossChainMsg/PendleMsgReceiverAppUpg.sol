@@ -13,8 +13,7 @@ abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp {
     uint256[100] private __gap;
 
     modifier onlyFromPendleMsgReceiveEndpoint() {
-        if (msg.sender != pendleMsgReceiveEndpoint)
-            revert Errors.MsgNotFromReceiveEndpoint(msg.sender);
+        if (msg.sender != pendleMsgReceiveEndpoint) revert Errors.MsgNotFromReceiveEndpoint(msg.sender);
         _;
     }
 
@@ -22,9 +21,7 @@ abstract contract PendleMsgReceiverAppUpg is IPMsgReceiverApp {
         pendleMsgReceiveEndpoint = _pendleMsgReceiveEndpoint;
     }
 
-    function executeMessage(
-        bytes calldata message
-    ) external virtual onlyFromPendleMsgReceiveEndpoint {
+    function executeMessage(bytes calldata message) external virtual onlyFromPendleMsgReceiveEndpoint {
         _executeMessage(message);
     }
 

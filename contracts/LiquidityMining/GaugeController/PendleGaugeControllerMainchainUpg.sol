@@ -4,10 +4,7 @@ pragma solidity 0.8.17;
 import "./PendleGaugeControllerBaseUpg.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 
-contract PendleGaugeControllerMainchainUpg is
-    PendleGaugeControllerBaseUpg,
-    IPGaugeControllerMainchain
-{
+contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGaugeControllerMainchain {
     address public immutable votingController;
 
     modifier onlyVotingController() {

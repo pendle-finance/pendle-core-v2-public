@@ -94,9 +94,7 @@ library MetaStableMath {
             for (uint256 i = 0; i < balances.length; i++) {
                 uint256 currentWeight = balances[i].divDown(sumBalances);
                 balanceRatiosWithFee[i] = balances[i].add(amountsIn[i]).divDown(balances[i]);
-                invariantRatioWithFees = invariantRatioWithFees.add(
-                    balanceRatiosWithFee[i].mulDown(currentWeight)
-                );
+                invariantRatioWithFees = invariantRatioWithFees.add(balanceRatiosWithFee[i].mulDown(currentWeight));
             }
 
             // Second loop calculates new amounts in, taking into account the fee on the percentage excess
@@ -106,9 +104,7 @@ library MetaStableMath {
 
                 // Check if the balance ratio is greater than the ideal ratio to charge fees or not
                 if (balanceRatiosWithFee[i] > invariantRatioWithFees) {
-                    uint256 nonTaxableAmount = balances[i].mulDown(
-                        invariantRatioWithFees.sub(FixedPoint.ONE)
-                    );
+                    uint256 nonTaxableAmount = balances[i].mulDown(invariantRatioWithFees.sub(FixedPoint.ONE));
                     uint256 taxableAmount = amountsIn[i].sub(nonTaxableAmount);
                     // No need to use checked arithmetic for the swap fee, it is guaranteed to be lower than 50%
                     amountInWithoutFee = nonTaxableAmount.add(
@@ -148,9 +144,7 @@ library MetaStableMath {
 
             // Get the current and new invariants. Since we need a bigger new invariant, we round the current one up.
             uint256 currentInvariant = _calculateInvariant(amp, balances, true);
-            uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(
-                currentInvariant
-            );
+            uint256 newInvariant = bptTotalSupply.sub(bptAmountIn).divUp(bptTotalSupply).mulUp(currentInvariant);
 
             // Calculate amount out without fee
             uint256 newBalanceTokenIndex = _getTokenBalanceGivenInvariantAndAllOtherBalances(
@@ -248,10 +242,7 @@ library MetaStableMath {
 
             uint256 inv2 = mul(invariant, invariant);
             // We remove the balance from c by multiplying it
-            uint256 c = mul(
-                mul(divUp(inv2, mul(ampTimesTotal, P_D)), _AMP_PRECISION),
-                balances[tokenIndex]
-            );
+            uint256 c = mul(mul(divUp(inv2, mul(ampTimesTotal, P_D)), _AMP_PRECISION), balances[tokenIndex]);
             uint256 b = sum.add(mul(divDown(invariant, ampTimesTotal), _AMP_PRECISION));
 
             // We iterate to find the balance

@@ -7,10 +7,7 @@ interface ISiloIncentiveController {
      * @param amount Amount of rewards to claim
      * @return Rewards claimed
      */
-    function claimRewardsToSelf(
-        address[] calldata assets,
-        uint256 amount
-    ) external returns (uint256);
+    function claimRewardsToSelf(address[] calldata assets, uint256 amount) external returns (uint256);
 
     /**
      * @dev for backward compatibility with previous implementation of the Incentives controller

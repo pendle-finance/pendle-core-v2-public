@@ -16,10 +16,7 @@ library SYUtils {
         return (assetAmount * ONE) / exchangeRate;
     }
 
-    function assetToSyUp(
-        uint256 exchangeRate,
-        uint256 assetAmount
-    ) internal pure returns (uint256) {
+    function assetToSyUp(uint256 exchangeRate, uint256 assetAmount) internal pure returns (uint256) {
         return (assetAmount * ONE + exchangeRate - 1) / exchangeRate;
     }
 }

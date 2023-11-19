@@ -22,11 +22,7 @@ interface ICamelotPair {
 
     function transfer(address to, uint256 value) external returns (bool);
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
@@ -59,7 +55,7 @@ interface ICamelotPair {
     function precisionMultiplier0() external pure returns (uint256);
 
     function precisionMultiplier1() external pure returns (uint256);
-    
+
     function MINIMUM_LIQUIDITY() external pure returns (uint256);
 
     function factory() external view returns (address);
@@ -71,12 +67,7 @@ interface ICamelotPair {
     function getReserves()
         external
         view
-        returns (
-            uint112 reserve0,
-            uint112 reserve1,
-            uint16 token0feePercent,
-            uint16 token1FeePercent
-        );
+        returns (uint112 reserve0, uint112 reserve1, uint16 token0feePercent, uint16 token1FeePercent);
 
     function getAmountOut(uint256 amountIn, address tokenIn) external view returns (uint256);
 
@@ -88,20 +79,9 @@ interface ICamelotPair {
 
     function burn(address to) external returns (uint256 amount0, uint256 amount1);
 
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
-    ) external;
+    function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data) external;
 
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data,
-        address referrer
-    ) external;
+    function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data, address referrer) external;
 
     function skim(address to) external;
 

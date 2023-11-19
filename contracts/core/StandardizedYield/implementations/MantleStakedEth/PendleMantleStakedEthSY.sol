@@ -28,14 +28,7 @@ contract PendleMantleStakedEthSY is SYBase {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(address, uint256 amountDeposited)
-        internal
-        pure
-        override
-        returns (
-            uint256 /*amountSharesOut*/
-        )
-    {
+    function _deposit(address, uint256 amountDeposited) internal pure override returns (uint256 /*amountSharesOut*/) {
         return amountDeposited;
     }
 
@@ -43,13 +36,7 @@ contract PendleMantleStakedEthSY is SYBase {
         address receiver,
         address tokenOut,
         uint256 amountSharesToRedeem
-    )
-        internal
-        override
-        returns (
-            uint256 /*amountTokenOut*/
-        )
-    {
+    ) internal override returns (uint256 /*amountTokenOut*/) {
         _transferOut(tokenOut, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
@@ -66,25 +53,17 @@ contract PendleMantleStakedEthSY is SYBase {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(address, uint256 amountTokenToDeposit)
-        internal
-        pure
-        override
-        returns (
-            uint256 /*amountSharesOut*/
-        )
-    {
+    function _previewDeposit(
+        address,
+        uint256 amountTokenToDeposit
+    ) internal pure override returns (uint256 /*amountSharesOut*/) {
         return amountTokenToDeposit;
     }
 
-    function _previewRedeem(address, uint256 amountSharesToRedeem)
-        internal
-        pure
-        override
-        returns (
-            uint256 /*amountTokenOut*/
-        )
-    {
+    function _previewRedeem(
+        address,
+        uint256 amountSharesToRedeem
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
@@ -106,15 +85,7 @@ contract PendleMantleStakedEthSY is SYBase {
         return token == yieldToken;
     }
 
-    function assetInfo()
-        external
-        view
-        returns (
-            AssetType assetType,
-            address assetAddress,
-            uint8 assetDecimals
-        )
-    {
+    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, underlyingAssetOnEthAddr, underlyingAssetOnEthDecimals);
     }
 }

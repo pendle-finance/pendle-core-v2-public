@@ -27,7 +27,7 @@ abstract contract BbAPoolHelper is TokenHelper {
         uint256 amountIn
     ) internal returns (uint256 amountOut) {
         return
-            IVault(BALANCER_VAULT).swap{ value: (tokenIn == NATIVE ? amountIn : 0) }(
+            IVault(BALANCER_VAULT).swap{value: (tokenIn == NATIVE ? amountIn : 0)}(
                 IVault.SingleSwap({
                     poolId: poolId,
                     kind: IVault.SwapKind.GIVEN_IN,
@@ -68,10 +68,7 @@ abstract contract BbAWethHelper is BbAPoolHelper {
         _safeApproveInfVault(WA_WETH);
     }
 
-    function _depositBbAWeth(
-        address tokenIn,
-        uint256 amountDep
-    ) internal virtual returns (uint256 amountOut) {
+    function _depositBbAWeth(address tokenIn, uint256 amountDep) internal virtual returns (uint256 amountOut) {
         amountOut = joinExitPool(address(this), BB_A_WETH_POOL_ID, tokenIn, BB_A_WETH, amountDep);
     }
 
@@ -80,13 +77,7 @@ abstract contract BbAWethHelper is BbAPoolHelper {
         address tokenOut,
         uint256 amountRedeem
     ) internal virtual returns (uint256 amountTokenOut) {
-        amountTokenOut = joinExitPool(
-            receiver,
-            BB_A_WETH_POOL_ID,
-            BB_A_WETH,
-            tokenOut,
-            amountRedeem
-        );
+        amountTokenOut = joinExitPool(receiver, BB_A_WETH_POOL_ID, BB_A_WETH, tokenOut, amountRedeem);
     }
 
     function _previewDepositBbAWeth(
@@ -102,10 +93,7 @@ abstract contract BbAWethHelper is BbAPoolHelper {
             );
     }
 
-    function _previewRedeemBbAWeth(
-        address tokenOut,
-        uint256 amountRedeem
-    ) internal view returns (uint256 amountOut) {
+    function _previewRedeemBbAWeth(address tokenOut, uint256 amountRedeem) internal view returns (uint256 amountOut) {
         return
             linearPreviewHelper.joinExitPoolPreview(
                 BB_A_WETH_POOL_ID,
