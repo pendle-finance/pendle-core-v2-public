@@ -1132,11 +1132,11 @@ __metadata:
     "@openzeppelin/contracts-upgradeable": 4.7.3
     "@typechain/ethers-v5": ^9.0.0
     "@typechain/hardhat": ^4.0.0
-    hardhat: ^2.18.3
+    hardhat: ^2.19.1
     hardhat-contract-sizer: ^2.10.0
-    prettier: ^3.0.3
-    prettier-plugin-solidity: ^1.1.3
-    solc: ^0.8.22
+    prettier: ^3.1.0
+    prettier-plugin-solidity: ^1.2.0
+    solc: ^0.8.23-fixed
     solhint: ^4.0.0
     ts-node: ^10.9.1
     typechain: ^8.3.2
@@ -1294,6 +1294,15 @@ __metadata:
   dependencies:
     antlr4ts: ^0.5.0-alpha.4
   checksum: 6ccbdab334331a58fde2a739cff76d5a99d836186b7899e8e027266f2af2a4bddc77c9c2abd01307cea6c470345d48edc470049e9672143b73f4aff3c8976183
+  languageName: node
+  linkType: hard
+
+"@solidity-parser/parser@npm:^0.16.2":
+  version: 0.16.2
+  resolution: "@solidity-parser/parser@npm:0.16.2"
+  dependencies:
+    antlr4ts: ^0.5.0-alpha.4
+  checksum: 109f7bec5de943c63e444fdde179d9bba6a592c18c836f585753798f428424cfcca72c715e7a345e4b79b83d6548543c9e56cb4b263e9b1e8352af2efcfd224a
   languageName: node
   linkType: hard
 
@@ -2940,9 +2949,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.18.3":
-  version: 2.18.3
-  resolution: "hardhat@npm:2.18.3"
+"hardhat@npm:^2.19.1":
+  version: 2.19.1
+  resolution: "hardhat@npm:2.19.1"
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -3002,7 +3011,7 @@ __metadata:
       optional: true
   bin:
     hardhat: internal/cli/bootstrap.js
-  checksum: 7dc2bacee287238b026dec07f9f80f3f2f7d33c7572117635297609c960fa84feff36905fc81c95ddc6d1b51ea9345d03243a1bba9de76b1be97419df84cc1bf
+  checksum: 0c12069e8eae47419d595e38d22716049136cf74390f9e89121ae73fdc716ffcb6cd3283e3ca8676ce00e3ff90804dfa95473830d96340ec01860dfa6237d8d3
   languageName: node
   linkType: hard
 
@@ -3868,6 +3877,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"n@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "n@npm:9.2.0"
+  bin:
+    n: bin/n
+  checksum: 273bfea765304851d87474b8001af6291445d02e0786575e488f128764d94aa2c5a7e1fc8902b9dca0687189bb2169b42dd481ed4af27be7cb90c102aeb86026
+  conditions: "!os=win32"
+  languageName: node
+  linkType: hard
+
 "nanoid@npm:3.3.3":
   version: 3.3.3
   resolution: "nanoid@npm:3.3.3"
@@ -4163,16 +4182,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-solidity@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "prettier-plugin-solidity@npm:1.1.3"
+"prettier-plugin-solidity@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "prettier-plugin-solidity@npm:1.2.0"
   dependencies:
-    "@solidity-parser/parser": ^0.16.0
-    semver: ^7.3.8
+    "@solidity-parser/parser": ^0.16.2
+    semver: ^7.5.4
     solidity-comments-extractor: ^0.0.7
   peerDependencies:
-    prettier: ">=2.3.0 || >=3.0.0-alpha.0"
-  checksum: d5aadfa411a4d983a2bd204048726fd91fbcaffbfa26d818ef0d6001fb65f82d0eae082e935e96c79e65e09ed979b186311ddb8c38be2f0ce5dd5f5265df77fe
+    prettier: ">=2.3.0"
+  checksum: 96dc9751a7393dfbfb1fcc08d662fd8e69df9ddf51ad70172e6915e86a61491f93f3051ea716deb50ae6023f50b64aa064ffef81224405fba92566124250edb2
   languageName: node
   linkType: hard
 
@@ -4194,12 +4213,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "prettier@npm:3.0.3"
+"prettier@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "prettier@npm:3.1.0"
   bin:
     prettier: bin/prettier.cjs
-  checksum: e10b9af02b281f6c617362ebd2571b1d7fc9fb8a3bd17e371754428cda992e5e8d8b7a046e8f7d3e2da1dcd21aa001e2e3c797402ebb6111b5cd19609dd228e0
+  checksum: 44b556bd56f74d7410974fbb2418bb4e53a894d3e7b42f6f87779f69f27a6c272fa7fc27cec0118cd11730ef3246478052e002cbd87e9a253f9cd04a56aa7d9b
   languageName: node
   linkType: hard
 
@@ -4527,7 +4546,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.7, semver@npm:^7.5.2":
+"semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
   dependencies:
@@ -4535,17 +4554,6 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 12d8ad952fa353b0995bf180cdac205a4068b759a140e5d3c608317098b3575ac2f1e09182206bf2eb26120e1c0ed8fb92c48c592f6099680de56bb071423ca3
-  languageName: node
-  linkType: hard
-
-"semver@npm:^7.3.8":
-  version: 7.3.8
-  resolution: "semver@npm:7.3.8"
-  dependencies:
-    lru-cache: ^6.0.0
-  bin:
-    semver: bin/semver.js
-  checksum: ba9c7cbbf2b7884696523450a61fee1a09930d888b7a8d7579025ad93d459b2d1949ee5bbfeb188b2be5f4ac163544c5e98491ad6152df34154feebc2cc337c1
   languageName: node
   linkType: hard
 
@@ -4656,20 +4664,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solc@npm:^0.8.22":
-  version: 0.8.22
-  resolution: "solc@npm:0.8.22"
+"solc@npm:^0.8.23-fixed":
+  version: 0.8.23
+  resolution: "solc@npm:0.8.23"
   dependencies:
     command-exists: ^1.2.8
     commander: ^8.1.0
     follow-redirects: ^1.12.1
     js-sha3: 0.8.0
     memorystream: ^0.3.1
+    n: ^9.2.0
     semver: ^5.5.0
     tmp: 0.0.33
   bin:
     solcjs: solc.js
-  checksum: 5713d8599c58b912327e9423e3afe90008b2053b79f232666ba212d52050f9d00e1fe0611a1f8f86c03bdaf74b2548c17be71a84a4c5f761899ab5f4bad00360
+  checksum: aded3d9b7db2a465c471cfd90522ce87a2a7d110c4820a66dcf80857ac2a7421d6168793b5ae17826ba8d005219af1f36f2ad6ab5574e7cabd9f72bbba3150d2
   languageName: node
   linkType: hard
 
@@ -5062,11 +5071,11 @@ __metadata:
 
 "typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
   version: 5.2.2
-  resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"
+  resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 0f4da2f15e6f1245e49db15801dbee52f2bbfb267e1c39225afdab5afee1a72839cd86000e65ee9d7e4dfaff12239d28beaf5ee431357fcced15fb08583d72ca
+  checksum: 07106822b4305de3f22835cbba949a2b35451cad50888759b6818421290ff95d522b38ef7919e70fb381c5fe9c1c643d7dea22c8b31652a717ddbd57b7f4d554
   languageName: node
   linkType: hard
 
