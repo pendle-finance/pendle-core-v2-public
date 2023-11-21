@@ -2,31 +2,23 @@
 pragma solidity 0.8.17;
 
 interface IPMarketFactory {
-    struct FeeConfig {
-        uint80 lnFeeRateRoot;
-        uint8 reserveFeePercent;
-        bool active;
-    }
-
-    event NewMarketConfig(
-        address indexed treasury,
-        uint80 defaultLnFeeRateRoot,
-        uint8 reserveFeePercent
-    );
-    event SetOverriddenFee(address indexed router, uint80 lnFeeRateRoot, uint8 reserveFeePercent);
-    event UnsetOverriddenFee(address indexed router);
+    event SetOverriddenFee(address indexed router, address indexed market, uint80 lnFeeRateRoot);
 
     event CreateNewMarket(
         address indexed market,
         address indexed PT,
         int256 scalarRoot,
-        int256 initialAnchor
+        int256 initialAnchor,
+        uint256 lnFeeRateRoot
     );
+
+    event NewTreasuryAndFeeReserve(address indexed treasury, uint8 reserveFeePercent);
 
     function isValidMarket(address market) external view returns (bool);
 
     // If this is changed, change the readState function in market as well
     function getMarketConfig(
+        address market,
         address router
-    ) external view returns (address treasury, uint80 lnFeeRateRoot, uint8 reserveFeePercent);
+    ) external view returns (address treasury, uint80 overriddenFee, uint8 reserveFeePercent);
 }

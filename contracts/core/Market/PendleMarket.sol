@@ -43,8 +43,10 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
     address public immutable factory;
     uint256 public immutable expiry;
-    int256 public immutable scalarRoot;
-    int256 public immutable initialAnchor;
+
+    int256 internal immutable scalarRoot;
+    int256 internal immutable initialAnchor;
+    uint80 internal immutable lnFeeRateRoot;
 
     MarketStorage public _storage;
 
@@ -59,6 +61,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         address _PT,
         int256 _scalarRoot,
         int256 _initialAnchor,
+        uint80 _lnFeeRateRoot,
         address _vePendle,
         address _gaugeController
     )
@@ -76,6 +79,7 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
 
         scalarRoot = _scalarRoot;
         initialAnchor = _initialAnchor;
+        lnFeeRateRoot = _lnFeeRateRoot;
         expiry = IPPrincipalToken(_PT).expiry();
         factory = msg.sender;
     }
@@ -290,10 +294,12 @@ contract PendleMarket is PendleERC20Permit, PendleGauge, IPMarket {
         market.totalSy = _storage.totalSy;
         market.totalLp = totalSupply().Int();
 
-        (market.treasury, market.lnFeeRateRoot, market.reserveFeePercent) = IPMarketFactory(
-            factory
-        ).getMarketConfig(router);
+        uint80 overriddenFee;
 
+        (market.treasury, overriddenFee, market.reserveFeePercent) = IPMarketFactory(factory)
+            .getMarketConfig(address(this), router);
+
+        market.lnFeeRateRoot = overriddenFee == 0 ? lnFeeRateRoot : overriddenFee;
         market.scalarRoot = scalarRoot;
         market.expiry = expiry;
 

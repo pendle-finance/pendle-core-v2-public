@@ -55,6 +55,7 @@ library Errors {
     );
     error MarketFactoryZeroTreasury();
     error MarketFactoryInitialAnchorTooLow(int256 initialAnchor, int256 minInitialAnchor);
+    error MFNotPendleMarket(address addr);
 
     // ROUTER
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);
