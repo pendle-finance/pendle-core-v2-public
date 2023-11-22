@@ -1,4 +1,4 @@
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import "../interfaces/IAddressProvider.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";

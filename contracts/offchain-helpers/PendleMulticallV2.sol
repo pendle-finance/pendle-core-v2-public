@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 contract PendleMulticallV2 {
     error CallThenRevertError(bool success, bytes res);
