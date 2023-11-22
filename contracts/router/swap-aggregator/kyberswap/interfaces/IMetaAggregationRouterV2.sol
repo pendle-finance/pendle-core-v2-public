@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >=0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IAggregationExecutor} from "./IAggregationExecutor.sol";
@@ -26,6 +26,14 @@ interface IMetaAggregationRouterV2 {
         bytes targetData;
         SwapDescriptionV2 desc;
         bytes clientData;
+    }
+
+    struct SimpleSwapData {
+        address[] firstPools;
+        uint256[] firstSwapAmounts;
+        bytes[] swapDatas;
+        uint256 deadline;
+        bytes positiveSlippageData;
     }
 
     function swap(SwapExecutionParams calldata execution) external payable returns (uint256, uint256);

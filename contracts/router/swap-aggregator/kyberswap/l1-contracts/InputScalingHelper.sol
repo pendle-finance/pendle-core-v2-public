@@ -1,11 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IMetaAggregationRouterV2.sol";
-import "./IExecutorHelper.sol";
-import "./ScalingDataLib.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IExecutorHelper} from "../interfaces/IExecutorHelper.sol";
+import {IMetaAggregationRouterV2} from "../interfaces/IMetaAggregationRouterV2.sol";
+import {ScalingDataLib} from "./ScalingDataLib.sol";
 
-abstract contract KyberInputScalingHelper {
+/* ----------------------------------------
+.__   __.   ______   .___________. _______
+|  \ |  |  /  __  \  |           ||   ____|
+|   \|  | |  |  |  | `---|  |----`|  |__
+|  . `  | |  |  |  |     |  |     |   __|
+|  |\   | |  `--'  |     |  |     |  |____
+|__| \__|  \______/      |__|     |_______|
+
+
+Please use InputScalingHelperL2 contract for scaling data on Arbitrum, Optimism, Base
+
+---------------------------------------- */
+
+library InputScalingHelper {
     uint256 private constant _PARTIAL_FILL = 0x01;
     uint256 private constant _REQUIRES_EXTRA_ETH = 0x02;
     uint256 private constant _SHOULD_CLAIM = 0x04;
@@ -41,10 +55,7 @@ abstract contract KyberInputScalingHelper {
         bytes positiveSlippageData;
     }
 
-    function _getKyberScaledInputData(
-        bytes calldata inputData,
-        uint256 newAmount
-    ) internal pure returns (bytes memory) {
+    function _getScaledInputData(bytes calldata inputData, uint256 newAmount) internal pure returns (bytes memory) {
         bytes4 selector = bytes4(inputData[:4]);
         bytes calldata dataToDecode = inputData[4:];
 
@@ -71,7 +82,9 @@ abstract contract KyberInputScalingHelper {
 
             (desc, targetData) = _getScaledInputDataV2(desc, targetData, newAmount, true);
             return abi.encodeWithSelector(selector, callTarget, desc, targetData, clientData);
-        } else revert("InputScalingHelper: Invalid selector");
+        } else {
+            revert("InputScalingHelper: Invalid selector");
+        }
     }
 
     function _getScaledInputDataV2(
@@ -188,11 +201,11 @@ abstract contract KyberInputScalingHelper {
             } else if (functionSelector == IExecutorHelper.executeSynthetix.selector) {
                 swap.data = ScalingDataLib.newSynthetix(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeHashflow.selector) {
-                revert("InputScalingHelper: Can not scale RFQ swap");
+                revert("InputScalingHelper: Can not scale Hasflow swap");
             } else if (functionSelector == IExecutorHelper.executeCamelot.selector) {
                 swap.data = ScalingDataLib.newCamelot(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeKyberLimitOrder.selector) {
-                revert("InputScalingHelper: Can not scale RFQ swap");
+                revert("InputScalingHelper: Can not scale KyberLO swap");
             } else if (functionSelector == IExecutorHelper.executePSM.selector) {
                 swap.data = ScalingDataLib.newPSM(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeFrax.selector) {
@@ -201,7 +214,43 @@ abstract contract KyberInputScalingHelper {
                 swap.data = ScalingDataLib.newPlatypus(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeMaverick.selector) {
                 swap.data = ScalingDataLib.newMaverick(swap.data, oldAmount, newAmount);
-            } else revert("AggregationExecutor: Dex type not supported");
+            } else if (functionSelector == IExecutorHelper.executeSyncSwap.selector) {
+                swap.data = ScalingDataLib.newSyncSwap(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeAlgebraV1.selector) {
+                swap.data = ScalingDataLib.newAlgebraV1(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeBalancerBatch.selector) {
+                swap.data = ScalingDataLib.newBalancerBatch(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeWombat.selector) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev struct Mantis is used for both Wombat and Mantis because of same fields
+            } else if (functionSelector == IExecutorHelper.executeMantis.selector) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeIziSwap.selector) {
+                swap.data = ScalingDataLib.newIziSwap(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeWooFiV2.selector) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because WooFiV2 and Mantis have same fields
+            } else if (functionSelector == IExecutorHelper.executeTraderJoeV2.selector) {
+                swap.data = ScalingDataLib.newTraderJoeV2(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executePancakeStableSwap.selector) {
+                swap.data = ScalingDataLib.newCurveSwap(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeLevelFiV2.selector) {
+                swap.data = ScalingDataLib.newLevelFiV2(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeGMXGLP.selector) {
+                swap.data = ScalingDataLib.newGMXGLP(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeVooi.selector) {
+                swap.data = ScalingDataLib.newVooi(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeVelocoreV2.selector) {
+                swap.data = ScalingDataLib.newVelocoreV2(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeMaticMigrate.selector) {
+                swap.data = ScalingDataLib.newMaticMigrate(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeSmardex.selector) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Smardex and Mantis have same fields
+            } else if (functionSelector == IExecutorHelper.executeSolidlyV2.selector) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Solidly V2 and Mantis have same fields
+            } else if (functionSelector == IExecutorHelper.executeKokonut.selector) {
+                swap.data = ScalingDataLib.newKokonut(swap.data, oldAmount, newAmount);
+            } else {
+                revert("AggregationExecutor: Dex type not supported");
+            }
             unchecked {
                 ++i;
             }
@@ -216,11 +265,17 @@ abstract contract KyberInputScalingHelper {
     ) internal pure returns (bytes memory newData) {
         if (data.length > 32) {
             PositiveSlippageFeeData memory psData = abi.decode(data, (PositiveSlippageFeeData));
-            psData.expectedReturnAmount = (psData.expectedReturnAmount * newAmount) / oldAmount;
+            uint256 left = uint256(psData.expectedReturnAmount >> 128);
+            uint256 right = (uint256(uint128(psData.expectedReturnAmount)) * newAmount) / oldAmount;
+            require(right <= type(uint128).max, "Exceeded type range");
+            psData.expectedReturnAmount = right | (left << 128);
             data = abi.encode(psData);
         } else if (data.length == 32) {
             uint256 expectedReturnAmount = abi.decode(data, (uint256));
-            expectedReturnAmount = (expectedReturnAmount * newAmount) / oldAmount;
+            uint256 left = uint256(expectedReturnAmount >> 128);
+            uint256 right = (uint256(uint128(expectedReturnAmount)) * newAmount) / oldAmount;
+            require(right <= type(uint128).max, "Exceeded type range");
+            expectedReturnAmount = right | (left << 128);
             data = abi.encode(expectedReturnAmount);
         }
         return data;
