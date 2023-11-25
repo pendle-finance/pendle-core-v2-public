@@ -55,7 +55,7 @@ abstract contract SYBaseWithRewards is SYBase, RewardManager {
         }
     }
 
-    function rewardIndexesCurrent() external override nonReentrant returns (uint256[] memory indexes) {
+    function rewardIndexesCurrent() external override nonReentrant whenNotPaused returns (uint256[] memory indexes) {
         (, indexes) = _updateRewardIndex();
     }
 
