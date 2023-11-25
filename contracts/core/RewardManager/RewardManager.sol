@@ -37,17 +37,18 @@ abstract contract RewardManager is RewardManagerAbstract {
 
                 // the entire token balance of the contract must be the rewards of the contract
 
-                uint256 lastBalance = rewardState[token].lastBalance;
+                RewardState memory _state = rewardState[token];
+                (uint256 lastBalance, uint256 index) = (_state.lastBalance, _state.index);
 
                 uint256 accrued = _selfBalance(tokens[i]) - lastBalance;
-                uint256 index = rewardState[token].index;
 
                 if (index == 0) index = INITIAL_REWARD_INDEX;
                 if (totalShares != 0) index += accrued.divDown(totalShares);
 
-                rewardState[token] =
-                    RewardState({index: index.Uint128(), lastBalance: (lastBalance + accrued).Uint128()});
-
+                rewardState[token] = RewardState({
+                    index: index.Uint128(),
+                    lastBalance: (lastBalance + accrued).Uint128()
+                });
                 indexes[i] = index;
             }
         } else {
@@ -59,12 +60,10 @@ abstract contract RewardManager is RewardManagerAbstract {
 
     /// @dev this function doesn't need redeemExternal since redeemExternal is bundled in updateRewardIndex
     /// @dev this function also has to update rewardState.lastBalance
-    function _doTransferOutRewards(address user, address receiver)
-        internal
-        virtual
-        override
-        returns (uint256[] memory rewardAmounts)
-    {
+    function _doTransferOutRewards(
+        address user,
+        address receiver
+    ) internal virtual override returns (uint256[] memory rewardAmounts) {
         address[] memory tokens = _getRewardTokens();
         rewardAmounts = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
