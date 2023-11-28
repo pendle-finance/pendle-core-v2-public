@@ -56,6 +56,8 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
 
         _transferOut(SY, treasury, feeAmount);
         _transferOut(SY, user, interestAmount);
+
+        emit CollectInterestFee(feeAmount);
     }
 
     // should only be callable from `_distributeInterestForTwo` & make sure user != address(0) && user != address(this)

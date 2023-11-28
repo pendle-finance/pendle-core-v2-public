@@ -344,7 +344,7 @@ contract PendleYieldTokenV2 is IPYieldTokenV2, PendleERC20Permit, RewardManager,
         pyIndexLastUpdatedBlock = uint128(block.number);
     }
 
-    function _collectInterest() internal override returns (uint256 accuredAmount, uint256 currentIndex) {
+    function _collectInterest() internal override returns (uint256 accruedAmount, uint256 currentIndex) {
         uint256 prevIndex = _lastCollectedInterestIndex;
         currentIndex = _pyIndexCurrent();
 
@@ -357,7 +357,7 @@ contract PendleYieldTokenV2 is IPYieldTokenV2, PendleERC20Permit, RewardManager,
 
             uint256 totalInterest = _calcInterest(totalSupply(), prevIndex, currentIndex);
             uint256 feeAmount = totalInterest.mulDown(interestFeeRate);
-            accuredAmount = totalInterest - feeAmount;
+            accruedAmount = totalInterest - feeAmount;
 
             _transferOut(SY, treasury, feeAmount);
             _updateSyReserve();

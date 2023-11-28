@@ -39,6 +39,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
 
     address public immutable pendle;
     IPMarketFactory public immutable marketFactory;
+    IPMarketFactory public immutable marketFactory2;
 
     mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) public epochRewardReceived;
@@ -46,13 +47,20 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     uint256[100] private __gap;
 
     modifier onlyPendleMarket() {
-        if (!marketFactory.isValidMarket(msg.sender)) revert Errors.GCNotPendleMarket(msg.sender);
-        _;
+        if (
+            marketFactory.isValidMarket(msg.sender) ||
+            (marketFactory2 != IPMarketFactory(address(0)) && marketFactory2.isValidMarket(msg.sender))
+        ) {
+            _;
+        } else {
+            revert Errors.GCNotPendleMarket(msg.sender);
+        }
     }
 
-    constructor(address _pendle, address _marketFactory) {
+    constructor(address _pendle, address _marketFactory, address _marketFactory2) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
+        marketFactory2 = IPMarketFactory(_marketFactory2);
     }
 
     /**
@@ -91,7 +99,9 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         epochRewardReceived[wTime] = true;
 
         for (uint256 i = 0; i < markets.length; ++i) {
-            if (!IPMarket(markets[i]).isExpired()) _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
+            if (!IPMarket(markets[i]).isExpired()) {
+                _addRewardsToMarket(markets[i], pendleAmounts[i].Uint128());
+            }
         }
 
         emit ReceiveVotingResults(wTime, markets, pendleAmounts);

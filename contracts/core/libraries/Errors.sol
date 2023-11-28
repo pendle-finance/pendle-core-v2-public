@@ -49,9 +49,11 @@ library Errors {
     error MarketFactoryMarketExists();
 
     error MarketFactoryLnFeeRateRootTooHigh(uint80 lnFeeRateRoot, uint256 maxLnFeeRateRoot);
+    error MarketFactoryOverriddenFeeTooHigh(uint80 overriddenFee, uint256 marketLnFeeRateRoot);
     error MarketFactoryReserveFeePercentTooHigh(uint8 reserveFeePercent, uint8 maxReserveFeePercent);
     error MarketFactoryZeroTreasury();
     error MarketFactoryInitialAnchorTooLow(int256 initialAnchor, int256 minInitialAnchor);
+    error MFNotPendleMarket(address addr);
 
     // ROUTER
     error RouterInsufficientLpOut(uint256 actualLpOut, uint256 requiredLpOut);

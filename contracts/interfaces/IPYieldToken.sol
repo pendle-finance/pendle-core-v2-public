@@ -21,7 +21,7 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
 
     event RedeemInterest(address indexed user, uint256 interestOut);
 
-    event WithdrawFeeToTreasury(uint256[] amountRewardsOut, uint256 syOut);
+    event CollectRewardFee(address indexed rewardToken, uint256 amountRewardFee);
 
     function mintPY(address receiverPT, address receiverYT) external returns (uint256 amountPYOut);
 

@@ -10,12 +10,14 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Pend
     constructor(
         address _pendle,
         address _marketFactory,
+        address _marketFactory2,
         address _PendleMsgReceiveEndpointUpg
     )
-        PendleGaugeControllerBaseUpg(_pendle, _marketFactory)
+        PendleGaugeControllerBaseUpg(_pendle, _marketFactory, _marketFactory2)
         PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
-        initializer
-    {}
+    {
+        _disableInitializers();
+    }
 
     function initialize() external initializer {
         __BoringOwnable_init();

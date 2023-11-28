@@ -36,18 +36,26 @@ abstract contract RewardManager is RewardManagerAbstract {
                 address token = tokens[i];
 
                 // the entire token balance of the contract must be the rewards of the contract
-                uint256 accrued = _selfBalance(tokens[i]) - rewardState[token].lastBalance;
-                uint256 index = rewardState[token].index;
+
+                RewardState memory _state = rewardState[token];
+                (uint256 lastBalance, uint256 index) = (_state.lastBalance, _state.index);
+
+                uint256 accrued = _selfBalance(tokens[i]) - lastBalance;
 
                 if (index == 0) index = INITIAL_REWARD_INDEX;
                 if (totalShares != 0) index += accrued.divDown(totalShares);
 
-                rewardState[token].index = index.Uint128();
-                rewardState[token].lastBalance += accrued.Uint128();
+                rewardState[token] = RewardState({
+                    index: index.Uint128(),
+                    lastBalance: (lastBalance + accrued).Uint128()
+                });
+                indexes[i] = index;
+            }
+        } else {
+            for (uint256 i = 0; i < tokens.length; i++) {
+                indexes[i] = rewardState[tokens[i]].index;
             }
         }
-
-        for (uint256 i = 0; i < tokens.length; i++) indexes[i] = rewardState[tokens[i]].index;
     }
 
     /// @dev this function doesn't need redeemExternal since redeemExternal is bundled in updateRewardIndex

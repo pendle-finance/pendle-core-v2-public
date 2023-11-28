@@ -206,6 +206,7 @@ contract PendleYieldToken is IPYieldToken, PendleERC20Permit, RewardManagerAbstr
 
         for (uint256 i = 0; i < tokens.length; i++) {
             rewardsOut[i] = _selfBalance(tokens[i]) - postExpiry.userRewardOwed[tokens[i]];
+            emit CollectRewardFee(tokens[i], rewardsOut[i]);
         }
 
         _transferOut(tokens, treasury, rewardsOut);
@@ -213,6 +214,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20Permit, RewardManagerAbstr
         interestOut = postExpiry.totalSyInterestForTreasury;
         postExpiry.totalSyInterestForTreasury = 0;
         _transferOut(SY, treasury, interestOut);
+
+        emit CollectInterestFee(interestOut);
     }
 
     /// @notice updates and returns the reward indexes
@@ -450,6 +453,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20Permit, RewardManagerAbstr
 
             _transferOut(tokens[i], treasury, feeAmount);
             _transferOut(tokens[i], receiver, rewardAmounts[i]);
+
+            emit CollectRewardFee(tokens[i], feeAmount);
         }
     }
 

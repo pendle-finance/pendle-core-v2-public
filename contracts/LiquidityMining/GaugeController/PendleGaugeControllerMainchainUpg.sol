@@ -12,23 +12,21 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGa
         _;
     }
 
-    constructor(
-        address _votingController,
-        address _pendle,
-        address _marketFactory
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory) initializer {
+    constructor(address _votingController, address _pendle, address _marketFactory, address _marketFactory2)
+        PendleGaugeControllerBaseUpg(_pendle, _marketFactory, _marketFactory2)
+    {
         votingController = _votingController;
+        _disableInitializers();
     }
 
     function initialize() external initializer {
         __BoringOwnable_init();
     }
 
-    function updateVotingResults(
-        uint128 wTime,
-        address[] memory markets,
-        uint256[] memory pendleSpeeds
-    ) external onlyVotingController {
+    function updateVotingResults(uint128 wTime, address[] memory markets, uint256[] memory pendleSpeeds)
+        external
+        onlyVotingController
+    {
         _receiveVotingResults(wTime, markets, pendleSpeeds);
     }
 }

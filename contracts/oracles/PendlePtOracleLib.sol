@@ -16,7 +16,11 @@ library PendlePtOracleLib {
      */
     function getPtToAssetRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
-        return (getPtToAssetRateRaw(market, duration) * syIndex) / pyIndex;
+        if (syIndex >= pyIndex) {
+            return getPtToAssetRateRaw(market, duration);
+        } else {
+            return (getPtToAssetRateRaw(market, duration) * syIndex) / pyIndex;
+        }
     }
 
     function getPtToAssetRateRaw(IPMarket market, uint32 duration) internal view returns (uint256) {
