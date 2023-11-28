@@ -8,6 +8,10 @@ interface IAggregationExecutor {
     // callbytes per swap sequence
     function swapSingleSequence(bytes calldata data) external;
 
-    function finalTransactionProcessing(address tokenIn, address tokenOut, address to, bytes calldata destTokenFeeData)
-        external;
+    function finalTransactionProcessing(
+        address tokenIn,
+        address tokenOut,
+        address to,
+        bytes calldata destTokenFeeData
+    ) external;
 }

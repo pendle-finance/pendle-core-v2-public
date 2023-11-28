@@ -70,11 +70,16 @@ library InputScalingHelperL2 {
         bytes calldata dataToDecode = inputData[4:];
 
         if (selector == IMetaAggregationRouterV2.swap.selector) {
-            IMetaAggregationRouterV2.SwapExecutionParams memory params =
-                abi.decode(dataToDecode, (IMetaAggregationRouterV2.SwapExecutionParams));
+            IMetaAggregationRouterV2.SwapExecutionParams memory params = abi.decode(
+                dataToDecode,
+                (IMetaAggregationRouterV2.SwapExecutionParams)
+            );
 
             (params.desc, params.targetData) = _getScaledInputDataV2(
-                params.desc, params.targetData, newAmount, _flagsChecked(params.desc.flags, _SIMPLE_SWAP)
+                params.desc,
+                params.targetData,
+                newAmount,
+                _flagsChecked(params.desc.flags, _SIMPLE_SWAP)
             );
             return abi.encodeWithSelector(selector, params);
         } else if (selector == IMetaAggregationRouterV2.swapSimpleMode.selector) {
@@ -129,7 +134,7 @@ library InputScalingHelperL2 {
         desc.amount = (desc.amount * newAmount) / oldAmount;
 
         uint256 nReceivers = desc.srcReceivers.length;
-        for (uint256 i = 0; i < nReceivers;) {
+        for (uint256 i = 0; i < nReceivers; ) {
             desc.srcAmounts[i] = (desc.srcAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -139,17 +144,19 @@ library InputScalingHelperL2 {
     }
 
     /// @dev Scale the executorData in case swapSimpleMode
-    function _scaledSimpleSwapData(bytes memory data, uint256 oldAmount, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        IMetaAggregationRouterV2.SimpleSwapData memory simpleSwapData =
-            abi.decode(data, (IMetaAggregationRouterV2.SimpleSwapData));
+    function _scaledSimpleSwapData(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IMetaAggregationRouterV2.SimpleSwapData memory simpleSwapData = abi.decode(
+            data,
+            (IMetaAggregationRouterV2.SimpleSwapData)
+        );
         uint256 nPools = simpleSwapData.firstPools.length;
         address tokenIn;
 
-        for (uint256 i = 0; i < nPools;) {
+        for (uint256 i = 0; i < nPools; ) {
             simpleSwapData.firstSwapAmounts[i] = (simpleSwapData.firstSwapAmounts[i] * newAmount) / oldAmount;
 
             IExecutorHelperL2.Swap[] memory dexData;
@@ -168,26 +175,34 @@ library InputScalingHelperL2 {
             }
         }
 
-        simpleSwapData.positiveSlippageData =
-            _scaledPositiveSlippageFeeData(simpleSwapData.positiveSlippageData, oldAmount, newAmount);
+        simpleSwapData.positiveSlippageData = _scaledPositiveSlippageFeeData(
+            simpleSwapData.positiveSlippageData,
+            oldAmount,
+            newAmount
+        );
 
         return abi.encode(simpleSwapData);
     }
 
     /// @dev Scale the executorData in case normal swap
-    function _scaledExecutorCallBytesData(bytes memory data, uint256 oldAmount, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        IExecutorHelperL2.SwapExecutorDescription memory executorDesc =
-            abi.decode(data.readSwapExecutorDescription(), (IExecutorHelperL2.SwapExecutorDescription));
+    function _scaledExecutorCallBytesData(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelperL2.SwapExecutorDescription memory executorDesc = abi.decode(
+            data.readSwapExecutorDescription(),
+            (IExecutorHelperL2.SwapExecutorDescription)
+        );
 
-        executorDesc.positiveSlippageData =
-            _scaledPositiveSlippageFeeData(executorDesc.positiveSlippageData, oldAmount, newAmount);
+        executorDesc.positiveSlippageData = _scaledPositiveSlippageFeeData(
+            executorDesc.positiveSlippageData,
+            oldAmount,
+            newAmount
+        );
 
         uint256 nSequences = executorDesc.swapSequences.length;
-        for (uint256 i = 0; i < nSequences;) {
+        for (uint256 i = 0; i < nSequences; ) {
             // only need to scale the first dex in each sequence
             IExecutorHelperL2.Swap memory swap = executorDesc.swapSequences[i][0];
             executorDesc.swapSequences[i][0] = _scaleDexData(swap, oldAmount, newAmount);
@@ -198,11 +213,11 @@ library InputScalingHelperL2 {
         return CalldataWriter.writeSwapExecutorDescription(executorDesc);
     }
 
-    function _scaledPositiveSlippageFeeData(bytes memory data, uint256 oldAmount, uint256 newAmount)
-        internal
-        pure
-        returns (bytes memory newData)
-    {
+    function _scaledPositiveSlippageFeeData(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory newData) {
         if (data.length > 32) {
             PositiveSlippageFeeData memory psData = abi.decode(data, (PositiveSlippageFeeData));
             uint256 left = uint256(psData.expectedReturnAmount >> 128);
@@ -221,11 +236,11 @@ library InputScalingHelperL2 {
         return data;
     }
 
-    function _scaleDexData(IExecutorHelperL2.Swap memory swap, uint256 oldAmount, uint256 newAmount)
-        internal
-        pure
-        returns (IExecutorHelperL2.Swap memory)
-    {
+    function _scaleDexData(
+        IExecutorHelperL2.Swap memory swap,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (IExecutorHelperL2.Swap memory) {
         uint8 functionSelectorIndex = uint8(uint32(swap.functionSelector));
 
         if (DexIndex(functionSelectorIndex) == DexIndex.UNI) {

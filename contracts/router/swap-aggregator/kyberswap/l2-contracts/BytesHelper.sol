@@ -17,11 +17,12 @@ library BytesHelper {
         return write16Bytes(original, index, bytes16(value));
     }
 
-    function write16Bytes(bytes memory original, uint256 index, uint256 value, string memory errorMsg)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function write16Bytes(
+        bytes memory original,
+        uint256 index,
+        uint256 value,
+        string memory errorMsg
+    ) internal pure returns (bytes memory) {
         require(value <= type(uint128).max, string(abi.encodePacked(errorMsg, "/Exceed compressed type range")));
         return write16Bytes(original, index, uint128(value));
     }

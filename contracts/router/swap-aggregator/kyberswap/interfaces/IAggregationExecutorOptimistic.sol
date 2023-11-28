@@ -50,8 +50,12 @@ interface IAggregationExecutorOptimistic {
         bytes memory positiveSlippageData
     ) external payable;
 
-    function finalTransactionProcessing(address tokenIn, address tokenOut, address to, bytes calldata destTokenFeeData)
-        external;
+    function finalTransactionProcessing(
+        address tokenIn,
+        address tokenOut,
+        address to,
+        bytes calldata destTokenFeeData
+    ) external;
 
     function updateExecutor(bytes4 functionSelector, address executor) external;
 

@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IMetaAggregationRouterV2 } from "../interfaces/IMetaAggregationRouterV2.sol";
-import { IAggregationExecutorOptimistic as IExecutorHelperL2 } from "../interfaces/IAggregationExecutorOptimistic.sol";
-import { IExecutorHelper as IExecutorHelperL1 } from "../interfaces/IExecutorHelper.sol";
+import {IMetaAggregationRouterV2} from "../interfaces/IMetaAggregationRouterV2.sol";
+import {IAggregationExecutorOptimistic as IExecutorHelperL2} from "../interfaces/IAggregationExecutorOptimistic.sol";
+import {IExecutorHelper as IExecutorHelperL1} from "../interfaces/IExecutorHelper.sol";
 
 library CalldataWriter {
     function writeSimpleSwapData(
         IMetaAggregationRouterV2.SimpleSwapData memory simpleSwapData
     ) internal pure returns (bytes memory shortData) {
         shortData = bytes.concat(shortData, _writeAddressArray(simpleSwapData.firstPools));
-        shortData = bytes.concat(
-            shortData,
-            _writeUint256ArrayAsUint128Array(simpleSwapData.firstSwapAmounts)
-        );
+        shortData = bytes.concat(shortData, _writeUint256ArrayAsUint128Array(simpleSwapData.firstSwapAmounts));
         shortData = bytes.concat(shortData, _writeBytesArray(simpleSwapData.swapDatas));
         shortData = bytes.concat(shortData, bytes16(uint128(simpleSwapData.deadline)));
         shortData = bytes.concat(shortData, _writeBytes(simpleSwapData.positiveSlippageData));
@@ -78,9 +75,7 @@ library CalldataWriter {
         return data;
     }
 
-    function _writeUint256ArrayAsUint128Array(
-        uint256[] memory us
-    ) internal pure returns (bytes memory data) {
+    function _writeUint256ArrayAsUint128Array(uint256[] memory us) internal pure returns (bytes memory data) {
         uint8 length = uint8(us.length);
         data = bytes.concat(data, bytes1(length));
         for (uint8 i = 0; i < length; ++i) {
@@ -96,9 +91,7 @@ library CalldataWriter {
         return data;
     }
 
-    function _writeBytesArray(
-        bytes[] memory bytesArray
-    ) internal pure returns (bytes memory data) {
+    function _writeBytesArray(bytes[] memory bytesArray) internal pure returns (bytes memory data) {
         uint8 x = uint8(bytesArray.length);
         data = bytes.concat(data, bytes1(x));
         for (uint8 i; i < x; ++i) {
@@ -109,9 +102,7 @@ library CalldataWriter {
         return data;
     }
 
-    function _writeBytes32Array(
-        bytes32[] memory bytesArray
-    ) internal pure returns (bytes memory data) {
+    function _writeBytes32Array(bytes32[] memory bytesArray) internal pure returns (bytes memory data) {
         uint8 x = uint8(bytesArray.length);
         data = bytes.concat(data, bytes1(x));
         for (uint8 i; i < x; ++i) {
@@ -120,9 +111,7 @@ library CalldataWriter {
         return data;
     }
 
-    function _writeSwap(
-        IExecutorHelperL2.Swap memory swap
-    ) internal pure returns (bytes memory shortData) {
+    function _writeSwap(IExecutorHelperL2.Swap memory swap) internal pure returns (bytes memory shortData) {
         shortData = bytes.concat(shortData, _writeBytes(swap.data));
         shortData = bytes.concat(shortData, bytes1(uint8(uint32(swap.functionSelector))));
     }

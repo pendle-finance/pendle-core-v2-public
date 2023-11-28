@@ -26,11 +26,10 @@ library Common {
         return (recipient, startByte);
     }
 
-    function _readBytes32Array(bytes memory data, uint256 startByte)
-        internal
-        pure
-        returns (bytes32[] memory bytesArray, uint256)
-    {
+    function _readBytes32Array(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (bytes32[] memory bytesArray, uint256) {
         bytes memory ret;
         (ret, startByte) = data._calldataVal(startByte, 1);
         uint256 length = uint256(uint8(bytes1(ret)));
