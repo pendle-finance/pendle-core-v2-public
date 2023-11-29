@@ -12,7 +12,7 @@
         "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
         "safeWaitTime": 15000,
-        "sySwapper": ""
+        "sySwapper": "0x8D77771fA2518474cc83a613ef3d6140A84dbe56"
     },
     "baseCodeSplitter": "0x9a5aF6A35bb56443C577d57c303CDA39F56Dd173",
     "PENDLE": "0xBC7B1Ff1c6989f006a1185318eD4E7b5796e66E1",
@@ -23,8 +23,10 @@
     "pendleSwap": "0x85D0C209FC632e6908D78BE08646dE3e39A58453",
     "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335",
     "routerHelper2": "0x25e5e9E134ddAf1D378fcB0Ec8dbd3F148cb55FD",
-    "ptOracle": "0x4106FC9811a792130502Bb3A5b693894cca7bD8e",
+    "ptOracle": "0x0b692f06CA82e3075dC537224450885Fd138e655",
     "externalRewardDistributor": "0x1fBaCedf510dAA79dfD9B41227A7ba192d5D548D",
+    "yieldContractFactoryV3": "0xfa6B22FC4c3Ad88B68c16b3061a16b1714F6Bd57",
+    "marketFactoryV3": "0x4A2B38b9cBd83c86F261a4d64c243795D4d44aBC",
     "liquiditySeedingHelper": "0xFc7A495389cD3454f5cC0Ecaa55D30E343A1Fc16",
     "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
