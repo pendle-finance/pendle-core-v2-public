@@ -12,6 +12,10 @@ library AaveAdapterLib {
     function calcSharesFromAssetDown(uint256 amountAssets, uint256 index) internal pure returns (uint256) {
         return (amountAssets * WadRayMath.RAY) / index;
     }
+
+    function calcSharesFromAssetUp(uint256 amountAssets, uint256 index) internal pure returns (uint256) {
+        return WadRayMath.rayDiv(amountAssets, index);
+    }
 }
 
 // More functions denote:

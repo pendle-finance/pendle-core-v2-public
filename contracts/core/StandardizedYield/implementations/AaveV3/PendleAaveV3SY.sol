@@ -34,12 +34,11 @@ contract PendleAaveV3SY is SYBase {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == underlying) {
-            uint256 previousShare = _getCurrentOwnedShare();
             IAaveV3Pool(aavePool).supply(underlying, amountDeposited, address(this), 0);
-            amountSharesOut = _getCurrentOwnedShare() - previousShare;
-        } else {
-            amountSharesOut = AaveAdapterLib.calcSharesFromAssetDown(amountDeposited, _getNormalizedIncome());
-        }
+        } 
+
+        // Shares to receiver in transfer() and mint() uses rayDiv(amount, index) (round up)
+        amountSharesOut = AaveAdapterLib.calcSharesFromAssetUp(amountDeposited, _getNormalizedIncome());
     }
 
     function _redeem(
@@ -69,7 +68,7 @@ contract PendleAaveV3SY is SYBase {
         address,
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 /*amountSharesOut*/) {
-        return AaveAdapterLib.calcSharesFromAssetDown(amountTokenToDeposit, _getNormalizedIncome());
+        return AaveAdapterLib.calcSharesFromAssetUp(amountTokenToDeposit, _getNormalizedIncome());
     }
 
     function _previewRedeem(
