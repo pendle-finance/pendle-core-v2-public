@@ -4,6 +4,7 @@
         "chainId": 1,
         "treasury": "0x8270400d528c34e1596EF367eeDEc99080A1b592",
         "governance": "0x8119EC16F0573B7dAc7C0CB94EB504FB32456ee1",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
         "pendle": "0x808507121b80c02388fad14726482e061b8da827",
         "lzEndpoint": "0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675",
         "wrappedNative": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
