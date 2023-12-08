@@ -10,8 +10,6 @@ import "../../../../interfaces/AaveV3/IAaveV3Pool.sol";
 contract PendleAaveV3SY is SYBase {
     using PMath for uint256;
 
-    error InvaidAmountSharesToRedeem();
-
     address public immutable aToken;
     address public immutable aavePool;
     address public immutable underlying;
@@ -36,8 +34,6 @@ contract PendleAaveV3SY is SYBase {
         if (tokenIn == underlying) {
             IAaveV3Pool(aavePool).supply(underlying, amountDeposited, address(this), 0);
         } 
-
-        // Shares to receiver in transfer() and mint() uses rayDiv(amount, index) (round up)
         amountSharesOut = AaveAdapterLib.calcSharesFromAssetUp(amountDeposited, _getNormalizedIncome());
     }
 
@@ -46,11 +42,7 @@ contract PendleAaveV3SY is SYBase {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal override returns (uint256 amountTokenOut) {
-        if (amountSharesToRedeem <= 1) {
-            revert InvaidAmountSharesToRedeem();
-        }
-
-        amountTokenOut = AaveAdapterLib.calcSharesToAssetDown(amountSharesToRedeem - 1, _getNormalizedIncome());
+        amountTokenOut = AaveAdapterLib.calcSharesToAssetDown(amountSharesToRedeem, _getNormalizedIncome());
         if (tokenOut == underlying) {
             IAaveV3Pool(aavePool).withdraw(underlying, amountTokenOut, receiver);
         } else {
@@ -59,8 +51,6 @@ contract PendleAaveV3SY is SYBase {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        // share * normalized income / 1e27 = underlying, so we can simply truncate 9 decimals
-        // aave doesnt seem to use rayToWad
         return _getNormalizedIncome() / 1e9;
     }
 
@@ -75,14 +65,7 @@ contract PendleAaveV3SY is SYBase {
         address,
         uint256 amountSharesToRedeem
     ) internal view override returns (uint256 /*amountTokenOut*/) {
-        if (amountSharesToRedeem <= 1) {
-            revert InvaidAmountSharesToRedeem();
-        }
-        return AaveAdapterLib.calcSharesToAssetDown(amountSharesToRedeem - 1, _getNormalizedIncome());
-    }
-
-    function _getCurrentOwnedShare() internal view returns (uint256) {
-        return IAaveV3AToken(aToken).scaledBalanceOf(address(this));
+        return AaveAdapterLib.calcSharesToAssetDown(amountSharesToRedeem, _getNormalizedIncome());
     }
 
     function _getNormalizedIncome() internal view returns (uint256) {
