@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "../router/base/MarketApproxLib.sol";
-import "../router/base/ActionBaseMintRedeem.sol";
+import "../interfaces/IPAllActionTypeV3.sol";
 
 interface IPRouterHelper {
     /**
      * @param output This output struct should be filled the same way as the normal removeLiquiditySingleToken
-     operation (This means all BulkSeller, PendleSwap still works the same way). Note that the
-     output.tokenOut will also be used as the input token for the addLiquidity
+     *  operation (This means PendleSwap still works the same way). Note that the
+     *  output.tokenOut will also be used as the input token for the addLiquidity
      */
     struct RemoveLiquiditySingleTokenStruct {
         address market;
@@ -19,10 +19,10 @@ interface IPRouterHelper {
 
     /**
      * @param guessNetTokenIn the predicted amount of tokenIn that will be used to add liquidity. This
-     should be the same amount that was used to generate guessPtReceivedFromSy (if any).
+     *  should be the same amount that was used to generate guessPtReceivedFromSy (if any).
      * @param guessPtReceivedFromSy the same guess struct in the normal addLiquiditySingleToken operation.
-     Again, note that this struct, if not empty (i.e. if guessOffchain == 0), should be generated
-     using `guessNetTokenIn` amount of tokenIn
+     *  Again, note that this struct, if not empty (i.e. if guessOffchain == 0), should be generated
+     *  using `guessNetTokenIn` amount of tokenIn
      * @dev tokenIn is the output.tokenOut of the removeLiquiditySingleTokenStruct
      */
     struct AddLiquiditySingleTokenStruct {
@@ -30,7 +30,6 @@ interface IPRouterHelper {
         uint256 minLpOut;
         uint256 guessNetTokenIn;
         ApproxParams guessPtReceivedFromSy;
-        address bulk;
     }
 
     /**
@@ -40,7 +39,6 @@ interface IPRouterHelper {
         address market;
         uint256 minLpOut;
         uint256 minYtOut;
-        address bulk;
     }
 
     struct RemoveLiquiditySingleSyStruct {

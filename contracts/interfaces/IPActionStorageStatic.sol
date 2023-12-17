@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "./IPAllAction.sol";
+import "../router/base/MarketApproxLib.sol";
 
 interface IPActionStorageStatic {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);

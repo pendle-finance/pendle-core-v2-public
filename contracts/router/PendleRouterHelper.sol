@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPAllAction.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPRouterHelper.sol";
-import "./base/ActionBaseMintRedeem.sol";
 import "./base/MarketApproxLib.sol";
 import "../interfaces/IAddressProvider.sol";
+import "../core/libraries/TokenHelper.sol";
 
 contract PendleRouterHelper is TokenHelper, IPRouterHelper {
-    IPAllAction public immutable ROUTER;
+    RouterV2InterfaceForRouterHelper public immutable ROUTER;
     address public immutable WETH;
 
     constructor(address _ROUTER, IAddressProvider provider) {
-        ROUTER = IPAllAction(_ROUTER);
+        ROUTER = RouterV2InterfaceForRouterHelper(_ROUTER);
         WETH = _getWETHAddress(provider, 1);
         _safeApproveInf(WETH, address(ROUTER));
     }
@@ -26,8 +25,8 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
 
     /**
      * @dev all the parameters for this function should be generated in the same way as they are
-     generated for the main Router, except that input.tokenIn & swapData should be generated
-     for tokenIn == WETH instead of ETH
+     *  generated for the main Router, except that input.tokenIn & swapData should be generated
+     *  for tokenIn == WETH instead of ETH
      */
     function addLiquiditySingleTokenKeepYtWithEth(
         address receiver,
@@ -152,7 +151,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             toMarket.market,
             toMarket.minLpOut,
             _scaleApproxParams(toMarket.guessPtReceivedFromSy, toMarket.guessNetTokenIn, actualNetTokenIn),
-            _newTokenInputStruct(tokenToZapIn, actualNetTokenIn, toMarket.bulk)
+            _newTokenInputStruct(tokenToZapIn, actualNetTokenIn)
         );
 
         emit AddLiquiditySingleToken(msg.sender, toMarket.market, tokenToZapIn, msg.sender, actualNetTokenIn, netLpOut);
@@ -194,7 +193,7 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
             toMarket.market,
             toMarket.minLpOut,
             toMarket.minYtOut,
-            _newTokenInputStruct(tokenToZapIn, actualNetTokenIn, toMarket.bulk)
+            _newTokenInputStruct(tokenToZapIn, actualNetTokenIn)
         );
 
         emit AddLiquiditySingleTokenKeepYt(
@@ -229,14 +228,9 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
 
     // ============ struct helpers ============
 
-    function _newTokenInputStruct(
-        address tokenIn,
-        uint256 netTokenIn,
-        address bulk
-    ) internal pure returns (TokenInput memory res) {
+    function _newTokenInputStruct(address tokenIn, uint256 netTokenIn) internal pure returns (TokenInput memory res) {
         res.tokenIn = res.tokenMintSy = tokenIn;
         res.netTokenIn = netTokenIn;
-        res.bulk = bulk;
         return res;
     }
 
@@ -260,4 +254,52 @@ contract PendleRouterHelper is TokenHelper, IPRouterHelper {
                 eps: params.eps
             });
     }
+}
+
+interface RouterV2InterfaceForRouterHelper {
+    function addLiquiditySingleSy(
+        address receiver,
+        address market,
+        uint256 netSyIn,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtReceivedFromSy
+    ) external returns (uint256 netLpOut, uint256 netSyFee);
+
+    function addLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtReceivedFromSy,
+        TokenInput calldata input
+    ) external payable returns (uint256 netLpOut, uint256 netSyFee);
+
+    function addLiquiditySingleSyKeepYt(
+        address receiver,
+        address market,
+        uint256 netSyIn,
+        uint256 minLpOut,
+        uint256 minYtOut
+    ) external returns (uint256 netLpOut, uint256 netYtOut);
+
+    function addLiquiditySingleTokenKeepYt(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external returns (uint256 netLpOut, uint256 netYtOut);
+
+    function removeLiquiditySingleSy(
+        address receiver,
+        address market,
+        uint256 netLpToRemove,
+        uint256 minSyOut
+    ) external returns (uint256 netSyOut, uint256 netSyFee);
+
+    function removeLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 netLpToRemove,
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut, uint256 netSyFee);
 }

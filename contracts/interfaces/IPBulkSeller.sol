@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../core/BulkSeller/BulkSellerMathCore.sol";
+struct BulkSellerState {
+    uint256 rateTokenToSy;
+    uint256 rateSyToToken;
+    uint256 totalToken;
+    uint256 totalSy;
+    uint256 feeRate;
+}
 
 interface IPBulkSeller {
     event SwapExactTokenForSy(address receiver, uint256 netTokenIn, uint256 netSyOut);

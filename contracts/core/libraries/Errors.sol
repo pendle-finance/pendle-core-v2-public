@@ -62,9 +62,6 @@ library Errors {
     error RouterInsufficientYtOut(uint256 actualYtOut, uint256 requiredYtOut);
     error RouterInsufficientPYOut(uint256 actualPYOut, uint256 requiredPYOut);
     error RouterInsufficientTokenOut(uint256 actualTokenOut, uint256 requiredTokenOut);
-    error RouterExceededLimitSyIn(uint256 actualSyIn, uint256 limitSyIn);
-    error RouterExceededLimitPtIn(uint256 actualPtIn, uint256 limitPtIn);
-    error RouterExceededLimitYtIn(uint256 actualYtIn, uint256 limitYtIn);
     error RouterInsufficientSyRepay(uint256 actualSyRepay, uint256 requiredSyRepay);
     error RouterInsufficientPtRepay(uint256 actualPtRepay, uint256 requiredPtRepay);
     error RouterNotAllSyUsed(uint256 netSyDesired, uint256 netSyUsed);
@@ -75,6 +72,8 @@ library Errors {
     error RouterInvalidFacet(address facet);
 
     error RouterKyberSwapDataZero();
+
+    error SimulationResults(bool success, bytes res);
 
     // YIELD CONTRACT
     error YCExpired();
