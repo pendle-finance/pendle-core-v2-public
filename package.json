@@ -25,15 +25,15 @@
   "devDependencies": {
     "@typechain/ethers-v5": "^9.0.0",
     "@typechain/hardhat": "^4.0.0",
-    "hardhat": "^2.19.1",
+    "hardhat": "^2.19.2",
     "hardhat-contract-sizer": "^2.10.0",
-    "prettier": "^3.1.0",
+    "prettier": "^3.1.1",
     "prettier-plugin-solidity": "^1.2.0",
     "solc": "^0.8.23-fixed",
     "solhint": "^4.0.0",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.3"
   },
   "scripts": {
     "compile": "yarn hardhat compile",

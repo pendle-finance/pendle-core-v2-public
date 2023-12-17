@@ -1139,15 +1139,15 @@ __metadata:
     "@openzeppelin/contracts-upgradeable": 4.9.3
     "@typechain/ethers-v5": ^9.0.0
     "@typechain/hardhat": ^4.0.0
-    hardhat: ^2.19.1
+    hardhat: ^2.19.2
     hardhat-contract-sizer: ^2.10.0
-    prettier: ^3.1.0
+    prettier: ^3.1.1
     prettier-plugin-solidity: ^1.2.0
     solc: ^0.8.23-fixed
     solhint: ^4.0.0
-    ts-node: ^10.9.1
+    ts-node: ^10.9.2
     typechain: ^8.3.2
-    typescript: ^5.3.2
+    typescript: ^5.3.3
   languageName: unknown
   linkType: soft
 
@@ -2956,9 +2956,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat@npm:^2.19.1":
-  version: 2.19.1
-  resolution: "hardhat@npm:2.19.1"
+"hardhat@npm:^2.19.2":
+  version: 2.19.2
+  resolution: "hardhat@npm:2.19.2"
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -3018,7 +3018,7 @@ __metadata:
       optional: true
   bin:
     hardhat: internal/cli/bootstrap.js
-  checksum: 0c12069e8eae47419d595e38d22716049136cf74390f9e89121ae73fdc716ffcb6cd3283e3ca8676ce00e3ff90804dfa95473830d96340ec01860dfa6237d8d3
+  checksum: 0b5499890e46750ca8c51bbe1205599b1424a2e5293b40c9f7cb56320d56b9935fbd4e276de370e07664ae81fa57dc7ab227bf2b2363f5732ef9f06df1a9a6d9
   languageName: node
   linkType: hard
 
@@ -4220,12 +4220,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "prettier@npm:3.1.0"
+"prettier@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "prettier@npm:3.1.1"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 44b556bd56f74d7410974fbb2418bb4e53a894d3e7b42f6f87779f69f27a6c272fa7fc27cec0118cd11730ef3246478052e002cbd87e9a253f9cd04a56aa7d9b
+  checksum: e386855e3a1af86a748e16953f168be555ce66d6233f4ba54eb6449b88eb0c6b2ca79441b11eae6d28a7f9a5c96440ce50864b9d5f6356d331d39d6bb66c648e
   languageName: node
   linkType: hard
 
@@ -4957,9 +4957,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.1":
-  version: 10.9.1
-  resolution: "ts-node@npm:10.9.1"
+"ts-node@npm:^10.9.2":
+  version: 10.9.2
+  resolution: "ts-node@npm:10.9.2"
   dependencies:
     "@cspotcode/source-map-support": ^0.8.0
     "@tsconfig/node10": ^1.0.7
@@ -4991,7 +4991,7 @@ __metadata:
     ts-node-script: dist/bin-script.js
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
-  checksum: 090adff1302ab20bd3486e6b4799e90f97726ed39e02b39e566f8ab674fd5bd5f727f43615debbfc580d33c6d9d1c6b1b3ce7d8e3cca3e20530a145ffa232c35
+  checksum: fde256c9073969e234526e2cfead42591b9a2aec5222bac154b0de2fa9e4ceb30efcd717ee8bc785a56f3a119bdd5aa27b333d9dbec94ed254bd26f8944c67ac
   languageName: node
   linkType: hard
 
@@ -5066,23 +5066,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.3.2":
-  version: 5.3.2
-  resolution: "typescript@npm:5.3.2"
+"typescript@npm:^5.3.3":
+  version: 5.3.3
+  resolution: "typescript@npm:5.3.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: d92534dda639eb825db013203404c1fabca8ac630564283c9e7dc9e64fd9c9346c2de95ecebdf3e6e8c1c32941bca1cfe0da37877611feb9daf8feeaea58d230
+  checksum: 2007ccb6e51bbbf6fde0a78099efe04dc1c3dfbdff04ca3b6a8bc717991862b39fd6126c0c3ebf2d2d98ac5e960bcaa873826bb2bb241f14277034148f41f6a2
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.3.2#~builtin<compat/typescript>":
-  version: 5.3.2
-  resolution: "typescript@patch:typescript@npm%3A5.3.2#~builtin<compat/typescript>::version=5.3.2&hash=ad5954"
+"typescript@patch:typescript@^5.3.3#~builtin<compat/typescript>":
+  version: 5.3.3
+  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=ad5954"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c034461079fbfde3cb584ddee52afccb15b6e32a0ce186d0b2719968786f7ca73e1b07f71fac4163088790b16811c6ccf79680de190664ef66ff0ba9c1fe4a23
+  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
   languageName: node
   linkType: hard
 

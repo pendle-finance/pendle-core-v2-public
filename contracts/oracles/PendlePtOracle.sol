@@ -77,8 +77,9 @@ contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
     }
 
     function _calcCardinalityRequiredRequired(uint32 duration) internal view returns (uint16) {
-        uint32 cardinalityRequired =
-            (duration * BLOCK_CYCLE_DENOMINATOR + blockCycleNumerator - 1) / blockCycleNumerator + 1;
+        uint32 cardinalityRequired = (duration * BLOCK_CYCLE_DENOMINATOR + blockCycleNumerator - 1) /
+            blockCycleNumerator +
+            1;
         if (cardinalityRequired > type(uint16).max) {
             revert TwapDurationTooLarge(duration, cardinalityRequired);
         }

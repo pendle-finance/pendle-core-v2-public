@@ -33,7 +33,7 @@ contract PendleAaveV3SY is SYBase {
     ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == underlying) {
             IAaveV3Pool(aavePool).supply(underlying, amountDeposited, address(this), 0);
-        } 
+        }
         amountSharesOut = AaveAdapterLib.calcSharesFromAssetUp(amountDeposited, _getNormalizedIncome());
     }
 
