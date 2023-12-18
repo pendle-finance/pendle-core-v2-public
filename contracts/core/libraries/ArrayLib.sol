@@ -113,6 +113,13 @@ library ArrayLib {
         res[1] = b;
     }
 
+    function create(address a, address b, address c) internal pure returns (address[] memory res) {
+        res = new address[](3);
+        res[0] = a;
+        res[1] = b;
+        res[2] = c;
+    }
+
     function create(uint256 a) internal pure returns (uint256[] memory res) {
         res = new uint256[](1);
         res[0] = a;
