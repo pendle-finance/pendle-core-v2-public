@@ -10,13 +10,18 @@ import "../../../libraries/math/PMath.sol";
 
 contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
     using PMath for uint256;
+    using ArrayLib for address[];
+
+    event SetNewIncentiveController(address indexed newController);
 
     address public immutable asset;
     address public immutable collateralToken;
     address public immutable silo;
-    address public immutable incentiveController;
     address public immutable siloLens;
-    address public immutable rewardToken;
+
+    address public incentiveController;
+    address[] public additionalRewardTokens;
+    address public immutable defaultRewardToken;
 
     constructor(
         string memory _name,
@@ -24,16 +29,16 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
         address _asset,
         address _collateralToken,
         address _silo,
-        address _incentiveController,
-        address _siloLens
+        address _siloLens,
+        address _incentiveController
     ) SYBaseWithRewards(_name, _symbol, _collateralToken) {
         asset = _asset;
         collateralToken = _collateralToken;
         silo = _silo;
-        incentiveController = _incentiveController;
         siloLens = _siloLens;
 
-        rewardToken = ISiloIncentiveController(incentiveController).REWARD_TOKEN();
+        incentiveController = _incentiveController;
+        defaultRewardToken = ISiloIncentiveController(incentiveController).REWARD_TOKEN();
 
         _safeApproveInf(asset, silo);
     }
@@ -84,11 +89,24 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
                                REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
+    function setIncentiveController(address newController) external onlyOwner {
+        // Claim all pending rewards from old contract
+        _redeemExternalReward();
+
+        address newRewardToken = ISiloIncentiveController(newController).REWARD_TOKEN();
+        if (newRewardToken != defaultRewardToken && !additionalRewardTokens.contains(newRewardToken)) {
+            additionalRewardTokens.push(newRewardToken);
+        }
+        incentiveController = newController;
+
+        emit SetNewIncentiveController(newController);
+    }
+
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory) {
-        return ArrayLib.create(rewardToken);
+        return additionalRewardTokens.append(defaultRewardToken);
     }
 
     function _redeemExternalReward() internal override {
