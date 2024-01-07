@@ -43,6 +43,7 @@ const config: HardhatUserConfig = {
             'contracts/router/ActionSwapYTV3.sol': viaIR('0.8.23', 1000000),
             'contracts/router/ActionCallbackV3.sol': viaIR('0.8.23', 1000000),
             'contracts/router/PendleRouterV3.sol': viaIR('0.8.23', 1000000),
+            'contracts/limit/PendleLimitRouter.sol': viaIR('0.8.23', 1000000),
         },
     },
     contractSizer: {

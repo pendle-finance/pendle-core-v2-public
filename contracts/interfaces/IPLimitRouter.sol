@@ -76,7 +76,7 @@ interface IPLimitRouter is IPLimitOrderType {
 
     event OrderCanceled(address indexed maker, bytes32 indexed orderHash);
 
-    event OrderFilled(
+    event OrderFilledV2(
         bytes32 indexed orderHash,
         OrderType indexed orderType,
         address indexed YT,
@@ -84,7 +84,9 @@ interface IPLimitRouter is IPLimitOrderType {
         uint256 netInputFromMaker,
         uint256 netOutputToMaker,
         uint256 feeAmount,
-        uint256 notionalVolume
+        uint256 notionalVolume,
+        address maker,
+        address taker
     );
 
     // @dev actualMaking, actualTaking are in the SY form

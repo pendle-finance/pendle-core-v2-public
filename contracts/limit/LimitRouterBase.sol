@@ -223,7 +223,7 @@ abstract contract LimitRouterBase is
 
         for (uint256 i = 0; i < len; i++) {
             Order memory order = params[i].order;
-            emit OrderFilled(
+            emit OrderFilledV2(
                 hashes[i],
                 order.orderType,
                 order.YT,
@@ -231,7 +231,9 @@ abstract contract LimitRouterBase is
                 fromMakers[i],
                 toMakers[i],
                 netFees[i],
-                notionalVolumes[i]
+                notionalVolumes[i],
+                params[i].order.maker,
+                msg.sender
             );
         }
     }
