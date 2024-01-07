@@ -117,4 +117,18 @@ interface IPLimitRouter is IPLimitOrderType {
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
     function simulate(address target, bytes calldata data) external payable;
+
+    /* --- Deprecated events --- */
+
+    // deprecate on 7/1/2024, prior to official launch
+    event OrderFilled(
+        bytes32 indexed orderHash,
+        OrderType indexed orderType,
+        address indexed YT,
+        address token,
+        uint256 netInputFromMaker,
+        uint256 netOutputToMaker,
+        uint256 feeAmount,
+        uint256 notionalVolume
+    );
 }
