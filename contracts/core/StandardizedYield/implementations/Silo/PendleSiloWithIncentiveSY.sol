@@ -106,7 +106,7 @@ contract PendleSiloWithIncentiveSY is SYBaseWithRewards {
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory) {
-        return additionalRewardTokens.append(defaultRewardToken);
+        return additionalRewardTokens.appendHead(defaultRewardToken);
     }
 
     function _redeemExternalReward() internal override {
