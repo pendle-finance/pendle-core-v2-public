@@ -1,0 +1,11 @@
+{
+    "name": "SY Silo crvUSD",
+    "SY": "0x60D1AfD87c5Ab1a13E27638f1e75277fEbF4908C",
+    "YT": "0xAf86Da90A5C1e1a41Be3b944b16944081087b7Aa",
+    "PT": "0x386Bf9105eF88e79fb8CA53dCC9a4E6f04BE0102",
+    "market": "0xBBd395D4820da5C89A3bCA4FA28Af97254a0FCBe",
+    "expiry": 1719446400,
+    "scalarRoot": "24961452057000000000",
+    "initAnchor": "1068298884000000000",
+    "lnFeeRateRoot": "499875041000000"
+}
