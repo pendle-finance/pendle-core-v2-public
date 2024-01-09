@@ -11,11 +11,13 @@ contract PendleWEEthSY is SYBase {
     address public immutable weETH;
     address public immutable liquidityPool;
     address public immutable eETH;
+    address public immutable referee;
 
-    constructor(address _weETH) SYBase("SY ether.fi weETH", "SY-weETH", _weETH) {
+    constructor(address _weETH, address _referee) SYBase("SY ether.fi weETH", "SY-weETH", _weETH) {
         weETH = _weETH;
         liquidityPool = IEtherFiWEEth(_weETH).liquidityPool();
         eETH = IEtherFiWEEth(_weETH).eETH();
+        referee = _referee;
 
         _safeApproveInf(eETH, weETH);
     }
@@ -26,7 +28,7 @@ contract PendleWEEthSY is SYBase {
 
     function _deposit(address tokenIn, uint256 amountDeposited) internal override returns (uint256 amountSharesOut) {
         if (tokenIn == NATIVE) {
-            IEtherFiLiquidityPool(liquidityPool).deposit{value: amountDeposited}();
+            IEtherFiLiquidityPool(liquidityPool).deposit{value: amountDeposited}(referee);
         }
         if (tokenIn != weETH) {
             amountSharesOut = IEtherFiWEEth(weETH).wrap(_selfBalance(eETH));
