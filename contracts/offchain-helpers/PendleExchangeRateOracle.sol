@@ -52,7 +52,7 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
     }
 
     function _validateNewRate(uint256 oldRate, uint256 newRate) internal view {
-        if (oldRate >= newRate) {
+        if (oldRate > newRate) {
             revert RateRejected(oldRate, newRate, RateRejectReason.RATE_TOO_SMALL);
         }
 
@@ -62,7 +62,9 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
     }
 
     function _validateMetadata(ExchangeRateData memory oldData, ExchangeRateData memory newData) internal pure {
-        if (oldData.updateBlock >= newData.updateBlock || oldData.updateTimestamp >= newData.updateTimestamp) {
+        if (
+            oldData.updateBlock >= newData.updateBlock || oldData.updateTimestamp + 12 hours >= newData.updateTimestamp
+        ) {
             revert InvalidMetadata(newData);
         }
     }
