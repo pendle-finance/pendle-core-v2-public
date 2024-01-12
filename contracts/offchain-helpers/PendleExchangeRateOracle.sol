@@ -17,14 +17,17 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
 
     struct ExchangeRateData {
         uint128 rate;
-        uint96 updateBlock;
-        uint32 updateTimestamp;
+        uint64 dataBlock; // the pin block which the data is sampled at
+        uint32 dataTimestamp; // block(dataBlock).timestamp
+        uint32 updatedAt;
     }
 
     error RateRejected(uint256 oldRate, uint256 newRate, RateRejectReason reason);
     error InvalidMetadata(ExchangeRateData data);
 
     event RateUpdated(ExchangeRateData data);
+
+    uint256 public constant MIN_UPDATE_TIME_GAP = 12 hours;
 
     string public name;
     ExchangeRateData public data;
@@ -41,7 +44,17 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
         return data.rate;
     }
 
-    function setExchangeRate(ExchangeRateData memory newData) external onlyOwner {
+    function setExchangeRate(uint128 rate, uint64 dataBlock, uint32 dataTimestamp) external onlyOwner {
+        ExchangeRateData memory newData = ExchangeRateData({
+            rate: rate,
+            dataBlock: dataBlock,
+            dataTimestamp: dataTimestamp,
+            updatedAt: uint32(block.timestamp)
+        });
+        _setExchangeRate(newData);
+    }
+
+    function _setExchangeRate(ExchangeRateData memory newData) internal {
         ExchangeRateData memory oldData = data;
 
         _validateNewRate(oldData.rate, newData.rate);
@@ -63,7 +76,9 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
 
     function _validateMetadata(ExchangeRateData memory oldData, ExchangeRateData memory newData) internal pure {
         if (
-            oldData.updateBlock >= newData.updateBlock || oldData.updateTimestamp + 12 hours >= newData.updateTimestamp
+            oldData.dataBlock >= newData.dataBlock ||
+            oldData.dataTimestamp >= newData.dataTimestamp ||
+            oldData.updatedAt + MIN_UPDATE_TIME_GAP >= newData.updatedAt
         ) {
             revert InvalidMetadata(newData);
         }
