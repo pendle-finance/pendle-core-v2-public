@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 interface IKelpDepositPool {
     function lrtConfig() external view returns (address);
 
-    function getSupportedAssetList() external view returns (address[] memory);
-
     function depositAsset(
         address asset,
         uint256 depositAmount,

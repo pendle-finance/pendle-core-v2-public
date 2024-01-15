@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "../../SYBase.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
 import "../../../../interfaces/KelpDAO/IKelpDepositPool.sol";
+import "../../../../interfaces/KelpDAO/IKelpLRTConfig.sol";
 
 contract PendleRsETHSY is SYBase {
     using ArrayLib for address[];
@@ -37,7 +38,7 @@ contract PendleRsETHSY is SYBase {
     }
 
     function safeApproveSupportedTokens() public {
-        address[] memory assets = IKelpDepositPool(lrtConfig).getSupportedAssetList();
+        address[] memory assets = IKelpLRTConfig(lrtConfig).getSupportedAssetList();
         for (uint256 i = 0; i < assets.length; ) {
             _safeApproveInf(assets[i], depositPool);
             unchecked {
@@ -107,7 +108,7 @@ contract PendleRsETHSY is SYBase {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
-        return IKelpDepositPool(lrtConfig).getSupportedAssetList().appendHead(rsETH);
+        return IKelpLRTConfig(lrtConfig).getSupportedAssetList().appendHead(rsETH);
     }
 
     function getTokensOut() public view virtual override returns (address[] memory) {
@@ -123,7 +124,7 @@ contract PendleRsETHSY is SYBase {
     }
 
     function _isSupportedToken(address token) internal view returns (bool) {
-        return IKelpDepositPool(lrtConfig).getSupportedAssetList().contains(token);
+        return IKelpLRTConfig(lrtConfig).isSupportedAsset(token);
     }
 
     function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
