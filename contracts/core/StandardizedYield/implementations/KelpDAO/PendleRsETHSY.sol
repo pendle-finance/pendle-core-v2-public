@@ -5,6 +5,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
 import "../../../../interfaces/KelpDAO/IKelpDepositPool.sol";
 import "../../../../interfaces/KelpDAO/IKelpLRTConfig.sol";
+import "../../../../interfaces/IStETH.sol";
 
 contract PendleRsETHSY is SYBase {
     using ArrayLib for address[];
@@ -58,6 +59,9 @@ contract PendleRsETHSY is SYBase {
         if (tokenIn == rsETH) {
             amountSharesOut = amountDeposited;
         } else {
+            if (tokenIn == NATIVE) {
+                (tokenIn, amountDeposited) = (stETH, _depositStETH(amountDeposited));
+            }
             uint256 preBalance = _selfBalance(rsETH);
             IKelpDepositPool(depositPool).depositAsset(tokenIn, amountDeposited, 0, "pendle"); // TODO: hardcode referral to save gas
             amountSharesOut = _selfBalance(rsETH) - preBalance;
@@ -71,6 +75,11 @@ contract PendleRsETHSY is SYBase {
     ) internal virtual override returns (uint256) {
         _transferOut(rsETH, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
+    }
+
+    function _depositStETH(uint256 amountETH) internal returns (uint256 amountStETH) {
+        uint256 amountStEthSharesOut = IStETH(stETH).submit{value: amountETH}(address(0));
+        amountStETH = IStETH(stETH).getPooledEthByShares(amountStEthSharesOut);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -97,6 +106,9 @@ contract PendleRsETHSY is SYBase {
         if (tokenIn == rsETH) {
             return amountTokenToDeposit;
         }
+        if (tokenIn == NATIVE) {
+            tokenIn = stETH;
+        }
         return IKelpDepositPool(depositPool).getRsETHAmountToMint(tokenIn, amountTokenToDeposit);
     }
 
@@ -108,7 +120,7 @@ contract PendleRsETHSY is SYBase {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
-        return IKelpLRTConfig(lrtConfig).getSupportedAssetList().appendHead(rsETH);
+        return ArrayLib.create(rsETH, NATIVE).merge(IKelpLRTConfig(lrtConfig).getSupportedAssetList());
     }
 
     function getTokensOut() public view virtual override returns (address[] memory) {
@@ -116,7 +128,7 @@ contract PendleRsETHSY is SYBase {
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == rsETH || token == ETHx || token == stETH || _isSupportedToken(token);
+        return token == rsETH || token == NATIVE || token == ETHx || token == stETH || _isSupportedToken(token);
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {

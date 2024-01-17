@@ -3,6 +3,6 @@ pragma solidity ^0.8.0;
 
 interface IKelpLRTConfig {
     function getSupportedAssetList() external view returns (address[] memory);
-    
+
     function isSupportedAsset(address token) external view returns (bool);
 }
