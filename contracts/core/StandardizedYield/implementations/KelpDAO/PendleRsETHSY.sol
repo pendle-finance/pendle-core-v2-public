@@ -12,7 +12,7 @@ contract PendleRsETHSY is SYBase {
 
     address public immutable rsETH;
     address public immutable depositPool;
-    address public immutable lrtConfig;
+    address public lrtConfig;
 
     address public exchangeRateOracle;
 
@@ -30,12 +30,16 @@ contract PendleRsETHSY is SYBase {
     ) SYBase("SY Kelp rsETH", "SY-rsETH", _rsETH) {
         rsETH = _rsETH;
         depositPool = _depositPool;
-        lrtConfig = IKelpDepositPool(depositPool).lrtConfig();
         exchangeRateOracle = _exchangeRateOracle;
         ETHx = _ETHx;
         stETH = _stETH;
 
+        updateLrtConfigAddress();
         safeApproveSupportedTokens();
+    }
+
+    function updateLrtConfigAddress() public {
+        lrtConfig = IKelpDepositPool(depositPool).lrtConfig();
     }
 
     function safeApproveSupportedTokens() public {
