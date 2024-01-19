@@ -67,7 +67,12 @@ contract PendleRsETHSY is SYBase {
                 (tokenIn, amountDeposited) = (stETH, _depositStETH(amountDeposited));
             }
             uint256 preBalance = _selfBalance(rsETH);
-            IKelpDepositPool(depositPool).depositAsset(tokenIn, amountDeposited, 0, "pendle"); // TODO: hardcode referral to save gas
+            IKelpDepositPool(depositPool).depositAsset(
+                tokenIn,
+                amountDeposited,
+                0,
+                "c05f6902ec7c7434ceb666010c16a63a2e3995aad11f1280855b26402194346b"
+            ); // TODO: hardcode referral to save gas
             amountSharesOut = _selfBalance(rsETH) - preBalance;
         }
     }
