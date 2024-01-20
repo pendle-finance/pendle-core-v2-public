@@ -5,13 +5,14 @@ import "../../SYBase.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
 import "../../../../interfaces/KelpDAO/IKelpDepositPool.sol";
 import "../../../../interfaces/KelpDAO/IKelpLRTConfig.sol";
-import "../../../../interfaces/IStETH.sol";
+import "../../../../interfaces/Stader/IStaderStakeManager.sol";
 
 contract PendleRsETHSY is SYBase {
     using ArrayLib for address[];
 
     address public immutable rsETH;
     address public immutable depositPool;
+    address public immutable staderStakeManager;
     address public lrtConfig;
 
     address public exchangeRateOracle;
@@ -24,12 +25,14 @@ contract PendleRsETHSY is SYBase {
     constructor(
         address _rsETH,
         address _depositPool,
+        address _staderStakeManager,
         address _exchangeRateOracle,
         address _ETHx,
         address _stETH
     ) SYBase("SY Kelp rsETH", "SY-rsETH", _rsETH) {
         rsETH = _rsETH;
         depositPool = _depositPool;
+        staderStakeManager = _staderStakeManager;
         exchangeRateOracle = _exchangeRateOracle;
         ETHx = _ETHx;
         stETH = _stETH;
@@ -64,7 +67,10 @@ contract PendleRsETHSY is SYBase {
             amountSharesOut = amountDeposited;
         } else {
             if (tokenIn == NATIVE) {
-                (tokenIn, amountDeposited) = (stETH, _depositStETH(amountDeposited));
+                (tokenIn, amountDeposited) = (
+                    ETHx,
+                    IStaderStakeManager(staderStakeManager).deposit{value: amountDeposited}(address(this))
+                );
             }
             uint256 preBalance = _selfBalance(rsETH);
             IKelpDepositPool(depositPool).depositAsset(
@@ -84,11 +90,6 @@ contract PendleRsETHSY is SYBase {
     ) internal virtual override returns (uint256) {
         _transferOut(rsETH, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
-    }
-
-    function _depositStETH(uint256 amountETH) internal returns (uint256 amountStETH) {
-        uint256 amountStEthSharesOut = IStETH(stETH).submit{value: amountETH}(address(0));
-        amountStETH = IStETH(stETH).getPooledEthByShares(amountStEthSharesOut);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -116,7 +117,10 @@ contract PendleRsETHSY is SYBase {
             return amountTokenToDeposit;
         }
         if (tokenIn == NATIVE) {
-            tokenIn = stETH;
+            (tokenIn, amountTokenToDeposit) = (
+                ETHx,
+                IStaderStakeManager(staderStakeManager).previewDeposit(amountTokenToDeposit)
+            );
         }
         return IKelpDepositPool(depositPool).getRsETHAmountToMint(tokenIn, amountTokenToDeposit);
     }
