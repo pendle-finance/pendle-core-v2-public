@@ -212,9 +212,12 @@ interface IExecutorHelper {
 
     struct VelocoreV2 {
         address vault;
+        uint256 amount;
         address tokenIn;
         address tokenOut;
-        uint256 amount;
+        address stablePool; // if not empty then use stable pool
+        address wrapToken;
+        bool isConvertFirst;
     }
 
     struct MaticMigrate {
@@ -230,6 +233,46 @@ interface IExecutorHelper {
         uint256 tokenIndexFrom;
         address fromToken;
         address toToken;
+    }
+
+    struct BalancerV1 {
+        address pool;
+        address tokenIn;
+        address tokenOut;
+        uint256 amount;
+    }
+
+    struct SwaapV2 {
+        address router;
+        uint256 amount;
+        bytes data;
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+    }
+
+    struct ArbswapStable {
+        address pool;
+        uint256 dx;
+        uint256 tokenIndexFrom;
+        address tokenIn;
+        address tokenOut;
+    }
+
+    struct BancorV2 {
+        address pool;
+        address[] swapPath;
+        uint256 amount;
+        address recipient;
+    }
+
+    struct Ambient {
+        address pool;
+        uint128 qty;
+        address base;
+        address quote;
+        uint256 poolIdx;
+        uint8 settleFlags;
     }
 
     function executeUniswap(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
@@ -311,4 +354,18 @@ interface IExecutorHelper {
     function executeSolidlyV2(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
     function executeKokonut(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeBalancerV1(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeSwaapV2(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeNomiswapStable(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeArbswapStable(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeBancorV2(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeBancorV3(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeAmbient(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 }

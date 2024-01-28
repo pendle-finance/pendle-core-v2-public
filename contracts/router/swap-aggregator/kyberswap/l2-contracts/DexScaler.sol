@@ -361,9 +361,8 @@ library DexScaler {
 
         (, startByte) = data._readPool(startByte); // pool
 
-        (, startByte) = data._readAddress(startByte); // tokenOut
-
         (uint256 amount, ) = data._readUint128AsUint256(startByte); // amount
+
         return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (amount * newAmount) / oldAmount, "scaleVelocoreV2");
     }
 
@@ -378,5 +377,63 @@ library DexScaler {
 
         (uint256 amount, ) = data._readUint128AsUint256(startByte); // amount
         return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (amount * newAmount) / oldAmount, "scaleKokonut");
+    }
+
+    function scaleBalancerV1(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 startByte;
+
+        (, startByte) = data._readPool(startByte); // pool
+
+        (uint256 amount, ) = data._readUint128AsUint256(startByte); // amount
+
+        return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (amount * newAmount) / oldAmount, "scaleBalancerV1");
+    }
+
+    function scaleArbswapStable(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 startByte;
+
+        (, startByte) = data._readPool(startByte); // pool
+
+        (uint256 dx, ) = data._readUint128AsUint256(startByte); // dx
+
+        return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (dx * newAmount) / oldAmount, "scaleArbswapStable");
+    }
+
+    function scaleBancorV2(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 startByte;
+
+        (, startByte) = data._readPool(startByte); // pool
+
+        (, startByte) = data._readAddressArray(startByte); // swapPath
+
+        (uint256 amount, ) = data._readUint128AsUint256(startByte); // amount
+
+        return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (amount * newAmount) / oldAmount, "scaleBancorV2");
+    }
+
+    function scaleAmbient(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 startByte;
+
+        (, startByte) = data._readPool(startByte); // pool
+
+        (uint128 qty, ) = data._readUint128(startByte); // amount
+
+        return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (qty * newAmount) / oldAmount, "scaleAmbient");
     }
 }

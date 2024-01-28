@@ -241,4 +241,36 @@ library ScalingDataLib {
         kokonut.dx = (kokonut.dx * newAmount) / oldAmount;
         return abi.encode(kokonut);
     }
+
+    function newBalancerV1(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.BalancerV1 memory balancerV1 = abi.decode(data, (IExecutorHelper.BalancerV1));
+        balancerV1.amount = (balancerV1.amount * newAmount) / oldAmount;
+        return abi.encode(balancerV1);
+    }
+
+    function newArbswapStable(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.ArbswapStable memory arbswapStable = abi.decode(data, (IExecutorHelper.ArbswapStable));
+        arbswapStable.dx = (arbswapStable.dx * newAmount) / oldAmount;
+        return abi.encode(arbswapStable);
+    }
+
+    function newBancorV2(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        IExecutorHelper.BancorV2 memory bancorV2 = abi.decode(data, (IExecutorHelper.BancorV2));
+        bancorV2.amount = (bancorV2.amount * newAmount) / oldAmount;
+        return abi.encode(bancorV2);
+    }
+
+    function newAmbient(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        IExecutorHelper.Ambient memory ambient = abi.decode(data, (IExecutorHelper.Ambient));
+        ambient.qty = uint128((uint256(ambient.qty) * newAmount) / oldAmount);
+        return abi.encode(ambient);
+    }
 }

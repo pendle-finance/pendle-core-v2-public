@@ -55,6 +55,12 @@ library CalldataReader {
         return (uint32(bytes4(ret)), startByte);
     }
 
+    function _readUint128(bytes memory data, uint256 startByte) internal pure returns (uint128, uint256) {
+        bytes memory ret;
+        (ret, startByte) = _calldataVal(data, startByte, 16);
+        return (uint128(bytes16(ret)), startByte);
+    }
+
     function _readUint160(bytes memory data, uint256 startByte) internal pure returns (uint160, uint256) {
         bytes memory ret;
         (ret, startByte) = _calldataVal(data, startByte, 20);

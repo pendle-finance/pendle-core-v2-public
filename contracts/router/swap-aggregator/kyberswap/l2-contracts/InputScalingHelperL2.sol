@@ -9,7 +9,7 @@ import {ScalingDataL2Lib} from "./ScalingDataL2Lib.sol";
 import {ExecutorReader} from "./ExecutorReader.sol";
 import {CalldataWriter} from "./CalldataWriter.sol";
 
-library InputScalingHelperL2 {
+contract InputScalingHelperL2 {
     using ExecutorReader for bytes;
     using ScalingDataL2Lib for bytes;
 
@@ -62,7 +62,14 @@ library InputScalingHelperL2 {
         VelocoreV2,
         Smardex,
         SolidlyV2,
-        Kokonut
+        Kokonut,
+        BalancerV1,
+        SwaapV2,
+        NomiswapStable,
+        ArbswapStable,
+        BancorV2,
+        BancorV3,
+        Ambient
     }
 
     function _getScaledInputData(bytes calldata inputData, uint256 newAmount) internal pure returns (bytes memory) {
@@ -317,6 +324,20 @@ library InputScalingHelperL2 {
             swap.data = swap.data.newMantis(oldAmount, newAmount); // @dev use identical calldata structure as Mantis
         } else if (DexIndex(functionSelectorIndex) == DexIndex.Kokonut) {
             swap.data = swap.data.newKokonut(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.BalancerV1) {
+            swap.data = swap.data.newBalancerV1(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.SwaapV2) {
+            revert("InputScalingHelper: Can not scale SwaapV2 swap");
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.NomiswapStable) {
+            swap.data = swap.data.newMantis(oldAmount, newAmount); // @dev use identical calldata structure as Mantis
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.ArbswapStable) {
+            swap.data = swap.data.newArbswapStable(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.BancorV2) {
+            swap.data = swap.data.newBancorV2(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.BancorV3) {
+            swap.data = swap.data.newMantis(oldAmount, newAmount); // @dev use identical calldata structure as Mantis
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.Ambient) {
+            swap.data = swap.data.newAmbient(oldAmount, newAmount);
         } else {
             revert("InputScaleHelper: Dex type not supported");
         }

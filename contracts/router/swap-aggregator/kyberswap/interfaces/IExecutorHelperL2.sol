@@ -232,9 +232,12 @@ interface IExecutorHelperL2 {
 
     struct VelocoreV2 {
         address vault;
+        uint256 amount;
         address tokenIn;
         address tokenOut;
-        uint256 amount;
+        address stablePool; // if not empty then use stable pool
+        address wrapToken;
+        bool isConvertFirst;
     }
 
     struct MaticMigrate {
@@ -250,6 +253,46 @@ interface IExecutorHelperL2 {
         uint256 tokenIndexFrom;
         address fromToken;
         address toToken;
+    }
+
+    struct BalancerV1 {
+        address pool;
+        uint256 amount;
+        address tokenIn;
+        address tokenOut;
+    }
+
+    struct SwaapV2 {
+        address router;
+        uint256 amount;
+        bytes data;
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+    }
+
+    struct ArbswapStable {
+        address pool;
+        uint256 dx;
+        uint256 tokenIndexFrom;
+        address tokenIn;
+        address tokenOut;
+    }
+
+    struct BancorV2 {
+        address pool;
+        address[] swapPath;
+        uint256 amount;
+        address recipient;
+    }
+
+    struct Ambient {
+        address pool;
+        uint128 qty;
+        address base;
+        address quote;
+        uint256 poolIdx;
+        uint8 settleFlags;
     }
 
     function executeUniswap(
@@ -550,6 +593,69 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeKokonut(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeBalancerV1(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeSwaapV2(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeNomiswapStable(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeArbswapStable(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeBancorV2(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeBancorV3(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeAmbient(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,

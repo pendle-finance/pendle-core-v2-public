@@ -170,4 +170,28 @@ library ScalingDataL2Lib {
     function newKokonut(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         return data.scaleKokonut(oldAmount, newAmount);
     }
+
+    function newBalancerV1(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleBalancerV1(oldAmount, newAmount);
+    }
+
+    function newArbswapStable(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleArbswapStable(oldAmount, newAmount);
+    }
+
+    function newBancorV2(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleBancorV2(oldAmount, newAmount);
+    }
+
+    function newAmbient(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleAmbient(oldAmount, newAmount);
+    }
 }
