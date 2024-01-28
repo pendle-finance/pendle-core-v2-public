@@ -67,9 +67,9 @@ interface IPActionAddRemoveLiqV3 {
         address indexed token,
         address receiver,
         uint256 netTokenIn,
-        uint256 netSyMintPy,
         uint256 netLpOut,
         uint256 netYtOut,
+        uint256 netSyMintPy,
         uint256 netSyInterm
     );
 
@@ -202,6 +202,7 @@ interface IPActionAddRemoveLiqV3 {
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee);
+
     function removeLiquiditySingleToken(
         address receiver,
         address market,
