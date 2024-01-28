@@ -9,7 +9,7 @@ import {ScalingDataL2Lib} from "./ScalingDataL2Lib.sol";
 import {ExecutorReader} from "./ExecutorReader.sol";
 import {CalldataWriter} from "./CalldataWriter.sol";
 
-contract InputScalingHelperL2 {
+library InputScalingHelperL2 {
     using ExecutorReader for bytes;
     using ScalingDataL2Lib for bytes;
 
