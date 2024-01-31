@@ -6,16 +6,16 @@ import "../../../../interfaces/Swell/IRswETH.sol";
 contract PendleRswETHSY is SYBase {
     using PMath for uint256;
 
-    address public immutable swETH;
+    address public immutable rswETH;
     address public immutable referral;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _swETH,
+        address _rswETH,
         address _referral
-    ) SYBase(_name, _symbol, _swETH) {
-        swETH = _swETH;
+    ) SYBase(_name, _symbol, _rswETH) {
+        rswETH = _rswETH;
         referral = _referral;
     }
 
@@ -28,9 +28,9 @@ contract PendleRswETHSY is SYBase {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
-            uint256 preBalance = _selfBalance(swETH);
-            IRswETH(swETH).depositWithReferral{value: amountDeposited}(referral);
-            return _selfBalance(swETH) - preBalance;
+            uint256 preBalance = _selfBalance(rswETH);
+            IRswETH(rswETH).depositWithReferral{value: amountDeposited}(referral);
+            return _selfBalance(rswETH) - preBalance;
         } else {
             // sweth
             return amountDeposited;
@@ -42,7 +42,7 @@ contract PendleRswETHSY is SYBase {
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
-        _transferOut(swETH, receiver, amountSharesToRedeem);
+        _transferOut(rswETH, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
 
@@ -51,7 +51,7 @@ contract PendleRswETHSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return IRswETH(swETH).getRate();
+        return IRswETH(rswETH).getRate();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ contract PendleRswETHSY is SYBase {
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
-            return amountTokenToDeposit.divDown(IRswETH(swETH).getRate());
+            return amountTokenToDeposit.divDown(IRswETH(rswETH).getRate());
         } else {
             return amountTokenToDeposit;
         }
@@ -78,21 +78,21 @@ contract PendleRswETHSY is SYBase {
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](2);
-        res[0] = swETH;
+        res[0] = rswETH;
         res[1] = NATIVE;
     }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](1);
-        res[0] = swETH;
+        res[0] = rswETH;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == NATIVE || token == swETH;
+        return token == NATIVE || token == rswETH;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == swETH;
+        return token == rswETH;
     }
 
     function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
