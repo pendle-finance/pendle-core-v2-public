@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 interface ISwETH {
     function deposit() external payable;
 
-    function getRate() external view returns (uint256);
+    function depositWithReferral(address referral) external payable;
 
-    function ethToSwETHRate() external view returns (uint256);
+    function getRate() external view returns (uint256);
 }

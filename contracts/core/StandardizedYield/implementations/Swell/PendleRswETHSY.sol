@@ -1,15 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 import "../../SYBase.sol";
-import "../../../../interfaces/Swell/ISwETH.sol";
+import "../../../../interfaces/Swell/IRswETH.sol";
 
-contract SwETHSY is SYBase {
+contract PendleRswETHSY is SYBase {
     using PMath for uint256;
 
     address public immutable swETH;
+    address public immutable referral;
 
-    constructor(string memory _name, string memory _symbol, address _swETH) SYBase(_name, _symbol, _swETH) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _swETH,
+        address _referral
+    ) SYBase(_name, _symbol, _swETH) {
         swETH = _swETH;
+        referral = _referral;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -22,7 +29,7 @@ contract SwETHSY is SYBase {
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
             uint256 preBalance = _selfBalance(swETH);
-            ISwETH(swETH).deposit{value: amountDeposited}();
+            IRswETH(swETH).depositWithReferral{value: amountDeposited}(referral);
             return _selfBalance(swETH) - preBalance;
         } else {
             // sweth
@@ -44,7 +51,7 @@ contract SwETHSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return ISwETH(swETH).getRate();
+        return IRswETH(swETH).getRate();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -56,7 +63,7 @@ contract SwETHSY is SYBase {
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == NATIVE) {
-            return amountTokenToDeposit.divDown(ISwETH(swETH).getRate());
+            return amountTokenToDeposit.divDown(IRswETH(swETH).getRate());
         } else {
             return amountTokenToDeposit;
         }
