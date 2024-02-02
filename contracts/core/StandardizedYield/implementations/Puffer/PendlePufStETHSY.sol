@@ -2,20 +2,24 @@
 pragma solidity ^0.8.17;
 
 import "../../SYBaseUpg.sol";
+import "../../../libraries/StETHNativeLib.sol";
 import "../../../../interfaces/IERC4626.sol";
-import "../../StEthHelper.sol";
 
-contract PendlePufStETHSY is SYBaseUpg, StEthHelper {
+contract PendlePufStETHSY is SYBaseUpg {
     using PMath for uint256;
     address public immutable asset;
 
     constructor(address _erc4626) SYBaseUpg(_erc4626) {
         asset = IERC4626(_erc4626).asset();
-        _safeApproveInf(asset, _erc4626);
     }
 
     function initialize() external initializer {
         __SYBaseUpg_init("SY Puffer ETH", "SY pufETH");
+        approveAssetForDeposit();
+    }
+
+    function approveAssetForDeposit() public {
+        _safeApproveInf(asset, yieldToken);
     }
 
     function _deposit(
@@ -26,7 +30,7 @@ contract PendlePufStETHSY is SYBaseUpg, StEthHelper {
             return amountDeposited;
         } else {
             if (tokenIn == NATIVE) {
-                amountDeposited = _depositStETH(amountDeposited);
+                amountDeposited = StETHNativeLib._depositStETH(amountDeposited);
             }
             return IERC4626(yieldToken).deposit(amountDeposited, address(this));
         }
