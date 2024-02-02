@@ -14,6 +14,10 @@ contract PendlePufStETHSY is SYBaseUpg, StEthHelper {
         _safeApproveInf(asset, _erc4626);
     }
 
+    function initialize() external initializer {
+        __SYBaseUpg_init("SY Puffer ETH", "SY pufETH");
+    }
+
     function _deposit(
         address tokenIn,
         uint256 amountDeposited
