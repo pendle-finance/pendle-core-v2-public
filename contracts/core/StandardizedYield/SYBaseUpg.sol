@@ -6,6 +6,7 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../erc20/PendleERC20PermitUpg.sol";
 
 import "../libraries/math/PMath.sol";
+import "../libraries/ArrayLib.sol";
 import "../libraries/TokenHelper.sol";
 import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";

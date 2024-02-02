@@ -58,4 +58,10 @@ abstract contract StEthHelper is TokenHelper {
     function _previewRedeemWstETH(uint256 amountRedeem) internal view returns (uint256 amountOut) {
         amountOut = IStETH(STETH).getPooledEthByShares(amountRedeem);
     }
+
+    function _depositStETH(uint256 amountNative) internal returns (uint256 amountStETHOut) {
+        uint256 preBal = _selfBalance(STETH);
+        IStETH(STETH).submit{value: amountNative}(address(0));
+        return _selfBalance(STETH) - preBal;
+    }
 }
