@@ -2,10 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "../../SYBaseUpg.sol";
-import "../../../libraries/StETHNativeLib.sol";
+import "../../StETHNativeLib.sol";
 import "../../../../interfaces/IERC4626.sol";
 
-// Still keeping StEthHelper dependency for consistency
+// Still keeping StETHNativeLib dependency for consistency
 contract PendlePufWETHSY is SYBaseUpg {
     using PMath for uint256;
     address public immutable asset;
@@ -60,7 +60,7 @@ contract PendlePufWETHSY is SYBaseUpg {
     function _previewRedeem(
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
@@ -80,7 +80,7 @@ contract PendlePufWETHSY is SYBaseUpg {
         return token == yieldToken;
     }
 
-    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
+    function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         return (AssetType.TOKEN, NATIVE, 18);
     }
 }

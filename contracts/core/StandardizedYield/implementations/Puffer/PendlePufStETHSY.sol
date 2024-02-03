@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "../../SYBaseUpg.sol";
-import "../../../libraries/StETHNativeLib.sol";
+import "../../StETHNativeLib.sol";
 import "../../../../interfaces/IERC4626.sol";
 
 contract PendlePufStETHSY is SYBaseUpg {
@@ -56,13 +56,14 @@ contract PendlePufStETHSY is SYBaseUpg {
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == yieldToken) return amountTokenToDeposit;
+        // tokenIn is either NATIVE or stETH, we treat 1 NATIVE == 1 stETH
         else return IERC4626(yieldToken).previewDeposit(amountTokenToDeposit);
     }
 
     function _previewRedeem(
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
@@ -82,7 +83,7 @@ contract PendlePufStETHSY is SYBaseUpg {
         return token == yieldToken;
     }
 
-    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
+    function assetInfo() external pure returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
         // Puffer team clarified that their 4626 will be changed to WETH when they are fully launched
         return (AssetType.TOKEN, NATIVE, 18);
     }

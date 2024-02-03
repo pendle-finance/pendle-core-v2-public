@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../SYBaseUpg.sol";
 import "../../../interfaces/IERC4626.sol";
 
-contract PendleERC4626SY is SYBaseUpg {
+contract PendleERC4626SYUpg is SYBaseUpg {
     using PMath for uint256;
     address public immutable asset;
 

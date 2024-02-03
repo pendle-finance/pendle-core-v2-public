@@ -6,16 +6,6 @@ import "../../interfaces/IWETH.sol";
 import "../../interfaces/IStETH.sol";
 import "../libraries/TokenHelper.sol";
 
-library StETHNativeLib {
-    address internal constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-    
-    function _depositStETH(uint256 amountNative) internal returns (uint256 amountStETHOut) {
-        uint256 preBal = IERC20(STETH).balanceOf(address(this));
-        IStETH(STETH).submit{value: amountNative}(address(0));
-        return IERC20(STETH).balanceOf(address(this)) - preBal;
-    }
-}
-
 abstract contract StEthHelper is TokenHelper {
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address internal constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
