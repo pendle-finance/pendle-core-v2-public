@@ -12,7 +12,6 @@ interface IPActionMarketCoreStatic {
         address market,
         address tokenIn,
         uint256 netTokenDesired,
-        address bulk,
         uint256 netPtDesired
     )
         external
@@ -57,15 +56,13 @@ interface IPActionMarketCoreStatic {
     function addLiquiditySingleTokenKeepYtStatic(
         address market,
         address tokenIn,
-        uint256 netTokenIn,
-        address bulk
+        uint256 netTokenIn
     ) external view returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyMinted, uint256 netSyToPY);
 
     function addLiquiditySingleTokenStatic(
         address market,
         address tokenIn,
-        uint256 netTokenIn,
-        address bulk
+        uint256 netTokenIn
     )
         external
         view
@@ -87,8 +84,7 @@ interface IPActionMarketCoreStatic {
     function removeLiquidityDualTokenAndPtStatic(
         address market,
         uint256 netLpToRemove,
-        address tokenOut,
-        address bulk
+        address tokenOut
     ) external view returns (uint256 netTokenOut, uint256 netPtOut, uint256 netSyToRedeem);
 
     function removeLiquiditySinglePtStatic(
@@ -126,8 +122,7 @@ interface IPActionMarketCoreStatic {
     function removeLiquiditySingleTokenStatic(
         address market,
         uint256 netLpToRemove,
-        address tokenOut,
-        address bulk
+        address tokenOut
     )
         external
         view
@@ -150,8 +145,7 @@ interface IPActionMarketCoreStatic {
     function swapExactPtForTokenStatic(
         address market,
         uint256 exactPtIn,
-        address tokenOut,
-        address bulk
+        address tokenOut
     )
         external
         view
@@ -190,8 +184,7 @@ interface IPActionMarketCoreStatic {
     function swapExactTokenForPtStatic(
         address market,
         address tokenIn,
-        uint256 amountTokenIn,
-        address bulk
+        uint256 amountTokenIn
     )
         external
         view
@@ -206,8 +199,7 @@ interface IPActionMarketCoreStatic {
     function swapExactTokenForYtStatic(
         address market,
         address tokenIn,
-        uint256 amountTokenIn,
-        address bulk
+        uint256 amountTokenIn
     )
         external
         view
@@ -252,8 +244,7 @@ interface IPActionMarketCoreStatic {
     function swapExactYtForTokenStatic(
         address market,
         uint256 exactYtIn,
-        address tokenOut,
-        address bulk
+        address tokenOut
     )
         external
         view
