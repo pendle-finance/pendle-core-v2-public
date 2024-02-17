@@ -5,7 +5,7 @@ import "../core/libraries/math/PMath.sol";
 import "../interfaces/IPExchangeRateOracle.sol";
 import {AggregatorV3Interface as IChainlinkAggregator} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
-contract PendleRedStoneRateOracle is IPExchangeRateOracle {
+contract PendleRedStoneRateOracleAdapter is IPExchangeRateOracle {
     using PMath for int256;
 
     address public immutable oracle;
