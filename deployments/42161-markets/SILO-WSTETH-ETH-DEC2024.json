@@ -1,0 +1,11 @@
+{
+    "name": "SY sETH-wstEthSilo",
+    "SY": "0xc49d8fdA920a46B21E1821780238f9E7A0de68df",
+    "YT": "0xAE602e0560Fd3aDE52d4E94D1cDbe63E61019693",
+    "PT": "0xD5AabeDA88c31858E5f60905185f8697bE185e55",
+    "market": "0xACcd9A7cb5518326BeD715f90bD32CDf2fEc2D14",
+    "expiry": 1735171200,
+    "scalarRoot": "55387378943000000000",
+    "initAnchor": "1051126109000000000",
+    "lnFeeRateRoot": "499875041000000"
+}
