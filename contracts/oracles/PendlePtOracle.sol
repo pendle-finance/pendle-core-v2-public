@@ -5,6 +5,9 @@ import "./PendlePtOracleLib.sol";
 import "../interfaces/IPPtOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 
+// This is a pre-deployed version of PendlePtOracleLib with additional utility functions.
+// Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
+// but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
 contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
     using PendlePtOracleLib for IPMarket;
 

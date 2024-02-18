@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../PendlePtOracleLib.sol";
+import "../PendleLpOracleLib.sol";
 import "../../interfaces/IPPtOracle.sol";
 import "../../interfaces/GMX/IGlpManager.sol";
 import "../../core/libraries/math/PMath.sol";
 
 /**
- * @notice The returned price from this contract is multiply with the USD price of GLP read from
+ * @notice The LP/GLP price gotten from the market using the LpOracleLib is multiplied with the USD price of GLP read from
  * GLPManager contract
- *
- * @dev This contract uses the PendlePtOracleLibrary to get the price instead of calling PendlePtOracle contract
- * to save 1 external call gas consumption
  */
-contract PendlePtGlpOracle {
-    using PendlePtOracleLib for IPMarket;
+contract BoringLpGlpOracle {
+    using PendleLpOracleLib for IPMarket;
 
     uint32 public immutable twapDuration;
     address public immutable market;
@@ -36,11 +33,10 @@ contract PendlePtGlpOracle {
         }
     }
 
-    function getPtPrice() external view virtual returns (uint256) {
-        // using library directly to save 1 external call (gas optimization)
-        uint256 ptRate = IPMarket(market).getPtToAssetRate(twapDuration);
+    function getLpPrice() external view virtual returns (uint256) {
+        uint256 lpRate = IPMarket(market).getLpToAssetRate(twapDuration);
         uint256 assetPrice = IGlpManager(glpManager).getPrice(true);
-        return (assetPrice * ptRate) / (10 ** 30);
+        return (assetPrice * lpRate) / (10 ** 30);
     }
 
     function decimals() external pure virtual returns (uint8) {
