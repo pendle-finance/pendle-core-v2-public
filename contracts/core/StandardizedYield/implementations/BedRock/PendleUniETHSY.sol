@@ -50,8 +50,9 @@ contract PendleUniETHSY is SYBase {
 
     function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
         if (tokenIn == NATIVE) {
-            uint256 rate = IBedrockStaking(bedrockStaking).exchangeRatio();
-            return amountTokenToDeposit.divDown(rate);
+            uint256 reserve = IBedrockStaking(bedrockStaking).currentReserve();
+            uint256 supply = IERC20(uniETH).totalSupply();
+            return (amountTokenToDeposit * supply) / reserve;
         }
         return amountTokenToDeposit;
     }
