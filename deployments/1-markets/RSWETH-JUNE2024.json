@@ -1,0 +1,11 @@
+{
+    "name": "SY rswETH",
+    "SY": "0x7786729eEe8b9d30fE7d91fDFf23A0f1D0C615D9",
+    "YT": "0x4AfdB1B0f9A56922e398D29239453e6A06148eD0",
+    "PT": "0x5cb12D56F5346a016DBBA8CA90635d82e6D1bcEa",
+    "market": "0x1729981345aa5CaCdc19eA9eeffea90cF1c6e28b",
+    "expiry": 1719446400,
+    "scalarRoot": "10561891189000000000",
+    "initAnchor": "1080503767000000000",
+    "lnFeeRateRoot": "999500333000000"
+}
