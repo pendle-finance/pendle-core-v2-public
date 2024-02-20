@@ -22,7 +22,7 @@
  */
 pragma solidity ^0.8.0;
 
-interface IPVirtualGovernance {
+interface IPGovernanceProxy {
     struct Call {
         address target;
         uint256 value;

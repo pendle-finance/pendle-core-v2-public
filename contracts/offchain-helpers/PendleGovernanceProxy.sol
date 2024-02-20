@@ -2,14 +2,14 @@
 pragma solidity ^0.8.23;
 
 import "../interfaces/IPPausingInterface.sol";
-import "../interfaces/IPVirtualGovernance.sol";
+import "../interfaces/IPGovernanceProxy.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-contract PendleVirtualGovernance is AccessControlUpgradeable, UUPSUpgradeable, IPVirtualGovernance {
+contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPGovernanceProxy {
     bytes32 public constant GUARDIAN = keccak256("GUARDIAN");
 
-    modifier onlyPauseGuardian() {
+    modifier onlyGuardian() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(GUARDIAN, msg.sender), "not authorized");
         _;
     }
@@ -27,7 +27,7 @@ contract PendleVirtualGovernance is AccessControlUpgradeable, UUPSUpgradeable, I
                                 PAUSING
     //////////////////////////////////////////////////////////////*/
 
-    function pause(address[] calldata addrs) external onlyPauseGuardian {
+    function pause(address[] calldata addrs) external onlyGuardian {
         for (uint256 i = 0; i < addrs.length; ++i) {
             IPPausingInterface(addrs[i]).pause();
         }
@@ -37,7 +37,7 @@ contract PendleVirtualGovernance is AccessControlUpgradeable, UUPSUpgradeable, I
                             ADMIN CALL
     //////////////////////////////////////////////////////////////*/
 
-    function aggregate(IPVirtualGovernance.Call[] calldata calls) external payable onlyAdmin {
+    function aggregate(IPGovernanceProxy.Call[] calldata calls) external payable onlyAdmin {
         uint256 length = calls.length;
         Call calldata call;
         for (uint256 i = 0; i < length; ) {
