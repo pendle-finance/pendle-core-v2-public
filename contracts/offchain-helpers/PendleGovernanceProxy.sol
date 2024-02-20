@@ -28,8 +28,12 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     //////////////////////////////////////////////////////////////*/
 
     function pause(address[] calldata addrs) external onlyGuardian {
-        for (uint256 i = 0; i < addrs.length; ++i) {
+        uint256 length = addrs.length;
+        for (uint256 i = 0; i < length;) {
             IPPausingInterface(addrs[i]).pause();
+            unchecked {
+                ++i;
+            }
         }
     }
 
