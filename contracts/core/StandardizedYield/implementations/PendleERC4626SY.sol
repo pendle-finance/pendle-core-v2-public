@@ -59,23 +59,23 @@ contract PendleERC4626SY is SYBase {
         else return IERC4626(yieldToken).previewRedeem(amountSharesToRedeem);
     }
 
-    function getTokensIn() public view override returns (address[] memory res) {
+    function getTokensIn() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = asset;
         res[1] = yieldToken;
     }
 
-    function getTokensOut() public view override returns (address[] memory res) {
+    function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](2);
         res[0] = asset;
         res[1] = yieldToken;
     }
 
-    function isValidTokenIn(address token) public view override returns (bool) {
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
         return token == yieldToken || token == asset;
     }
 
-    function isValidTokenOut(address token) public view override returns (bool) {
+    function isValidTokenOut(address token) public view virtual override returns (bool) {
         return token == yieldToken || token == asset;
     }
 
