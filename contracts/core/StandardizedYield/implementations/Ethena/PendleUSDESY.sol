@@ -24,10 +24,17 @@ contract PendleUSDESY is PendleERC20SY {
     }
 
     // @dev: whenNotPaused not needed as it has already been added to beforeTransfer
-    function _afterTokenTransfer(address, address, uint256) internal virtual override {
+    function _afterTokenTransfer(address from, address, uint256) internal virtual override {
+        // only check for minting case 
+        // saving gas on user->user transfers
+        // skip supply cap checking on burn to allow lowering supply cap
+        if (from != address(0)) {
+            return;
+        }
+
         uint256 _supply = totalSupply();
         uint256 _supplyCap = supplyCap;
-        if (_supply >= _supplyCap) {
+        if (_supply > _supplyCap) {
             revert SupplyCapExceeded(_supply, _supplyCap);
         }
     }
