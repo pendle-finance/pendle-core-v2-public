@@ -14,6 +14,27 @@ contract PendleUSDESY is PendleERC20SY {
         _updateSupplyCap(_initialSupplyCap);
     }
 
+    function _previewDeposit(
+        address /*tokenIn*/,
+        uint256 amountTokenToDeposit
+    ) internal view override returns (uint256 /*amountSharesOut*/) {
+        uint256 _newSupply = totalSupply() + amountTokenToDeposit;
+        uint256 _supplyCap = supplyCap;
+
+        if (_newSupply > supplyCap) {
+            revert SupplyCapExceeded(_newSupply, _supplyCap);
+        }
+
+        return amountTokenToDeposit;
+    }
+
+    function _previewRedeem(
+        address /*tokenOut*/,
+        uint256 amountSharesToRedeem
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
+        return amountSharesToRedeem;
+    }
+
     function updateSupplyCap(uint256 newSupplyCap) public onlyOwner {
         _updateSupplyCap(newSupplyCap);
     }
@@ -25,7 +46,7 @@ contract PendleUSDESY is PendleERC20SY {
 
     // @dev: whenNotPaused not needed as it has already been added to beforeTransfer
     function _afterTokenTransfer(address from, address, uint256) internal virtual override {
-        // only check for minting case 
+        // only check for minting case
         // saving gas on user->user transfers
         // skip supply cap checking on burn to allow lowering supply cap
         if (from != address(0)) {

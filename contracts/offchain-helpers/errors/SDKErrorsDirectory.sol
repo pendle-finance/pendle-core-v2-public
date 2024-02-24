@@ -176,4 +176,5 @@ library SDKErrorsDirectory {
     error YCPostExpiryDataNotSet();
     error YieldContractInsufficientSy(uint256 actualSy, uint256 requiredSy);
     error ZeroAddress();
+    error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 }
