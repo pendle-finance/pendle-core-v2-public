@@ -21,7 +21,7 @@ contract PendleUSDESY is PendleERC20SY {
         uint256 _newSupply = totalSupply() + amountTokenToDeposit;
         uint256 _supplyCap = supplyCap;
 
-        if (_newSupply > supplyCap) {
+        if (_newSupply > _supplyCap) {
             revert SupplyCapExceeded(_newSupply, _supplyCap);
         }
 
