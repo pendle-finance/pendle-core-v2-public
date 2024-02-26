@@ -78,7 +78,7 @@ contract PendleRsETHSY is SYBase {
                 amountDeposited,
                 0,
                 "c05f6902ec7c7434ceb666010c16a63a2e3995aad11f1280855b26402194346b"
-            ); // TODO: hardcode referral to save gas
+            );
             amountSharesOut = _selfBalance(rsETH) - preBalance;
         }
     }
