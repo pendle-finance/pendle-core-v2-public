@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "../../SYBaseUpg.sol";
-import "../../StETHNativeLib.sol";
+import "../../StEthNativeLib.sol";
 import "../../../../interfaces/IERC4626.sol";
 
 contract PendlePufStETHSY is SYBaseUpg {
