@@ -24,7 +24,7 @@ contract PendleERC20SY is SYBase {
         return amountSharesToRedeem;
     }
 
-    function exchangeRate() public view virtual override returns (uint256) {
+    function exchangeRate() public view virtual override returns (uint256 res) {
         return PMath.ONE;
     }
 
