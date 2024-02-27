@@ -10,7 +10,7 @@ contract PendleUSDESY is PendleERC20SY {
 
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
-    constructor(address _usde, uint256 _initialSupplyCap) PendleERC20SY("SY Ethena USDE", "SY-USDE", _usde) {
+    constructor(address _usde, uint256 _initialSupplyCap) PendleERC20SY("SY Ethena USDe", "SY-USDe", _usde) {
         _updateSupplyCap(_initialSupplyCap);
     }
 
@@ -28,14 +28,7 @@ contract PendleUSDESY is PendleERC20SY {
         return amountTokenToDeposit;
     }
 
-    function _previewRedeem(
-        address /*tokenOut*/,
-        uint256 amountSharesToRedeem
-    ) internal pure override returns (uint256 /*amountTokenOut*/) {
-        return amountSharesToRedeem;
-    }
-
-    function updateSupplyCap(uint256 newSupplyCap) public onlyOwner {
+    function updateSupplyCap(uint256 newSupplyCap) external onlyOwner {
         _updateSupplyCap(newSupplyCap);
     }
 
