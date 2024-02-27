@@ -31,14 +31,14 @@ contract PendleERC20SY is SYBase {
     function _previewDeposit(
         address /*tokenIn*/,
         uint256 amountTokenToDeposit
-    ) internal view override returns (uint256 /*amountSharesOut*/) {
+    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
         return amountTokenToDeposit;
     }
 
     function _previewRedeem(
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal view virtual override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
