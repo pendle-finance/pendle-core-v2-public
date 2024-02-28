@@ -22,21 +22,24 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
         address _zircuitStaking,
         address _ezETH,
         address _restakeManager,
-        address _exchangeRateOracle,
         uint256 _referralId
     ) SYBaseUpg(_ezETH) {
         zircuitStaking = _zircuitStaking;
         ezETH = _ezETH;
         restakeManager = _restakeManager;
-        exchangeRateOracle = _exchangeRateOracle;
         renzoOracle = IRenzoRestakeManager(restakeManager).renzoOracle();
         referralId = _referralId;
     }
 
-    function initialize() external initializer {
+    function initialize(address _exchangeRateOracle) external initializer {
         __SYBaseUpg_init("SY Zircuit Staking ezETH", "SY-zs-ezETH");
         _safeApproveInf(ezETH, zircuitStaking);
+        exchangeRateOracle = _exchangeRateOracle;
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    DEPOSIT/REDEEM USING BASE TOKENS
+    //////////////////////////////////////////////////////////////*/
 
     function _deposit(
         address tokenIn,
@@ -61,9 +64,22 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
         return amountSharesToRedeem;
     }
 
+    /*///////////////////////////////////////////////////////////////
+                               EXCHANGE-RATE
+    //////////////////////////////////////////////////////////////*/
+
     function exchangeRate() public view virtual override returns (uint256) {
         return IPExchangeRateOracle(exchangeRateOracle).getExchangeRate();
     }
+
+    function setExchangeRateOracle(address newOracle) external onlyOwner {
+        exchangeRateOracle = newOracle;
+        emit SetNewExchangeRateOracle(newOracle);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                MISC FUNCTIONS FOR METADATA
+    //////////////////////////////////////////////////////////////*/
 
     function _previewDeposit(
         address tokenIn,
