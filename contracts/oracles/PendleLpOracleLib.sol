@@ -25,6 +25,22 @@ library PendleLpOracleLib {
         }
     }
 
+    /**
+      * This function returns the approximated twap rate LP/asset on market, but take into account the current rate of SY
+     This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
+     * @param market market to get rate from
+     * @param duration twap duration
+     */
+    function getLpToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
+        (uint256 syIndex, uint256 pyIndex) = PendlePtOracleLib.getSYandPYIndexCurrent(market);
+        uint256 lpToAssetRateRaw = _getLpToAssetRateRaw(market, duration, pyIndex);
+        if (syIndex >= pyIndex) {
+            return lpToAssetRateRaw.divDown(syIndex);
+        } else {
+            return lpToAssetRateRaw.divDown(pyIndex);
+        }
+    }
+
     function _getLpToAssetRateRaw(
         IPMarket market,
         uint32 duration,

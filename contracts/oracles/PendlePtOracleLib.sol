@@ -25,6 +25,17 @@ library PendlePtOracleLib {
         }
     }
 
+    /// @notice Similar to getPtToAsset but returns the rate in SY instead
+    function getPtToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
+        (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
+        if (syIndex >= pyIndex) {
+            return getPtToAssetRateRaw(market, duration).divDown(syIndex);
+        } else {
+            return getPtToAssetRateRaw(market, duration).divDown(pyIndex);
+        }
+    }
+
+    /// @notice returns the raw rate without taking into account whether SY is solvent
     function getPtToAssetRateRaw(IPMarket market, uint32 duration) internal view returns (uint256) {
         uint256 expiry = market.expiry();
 
