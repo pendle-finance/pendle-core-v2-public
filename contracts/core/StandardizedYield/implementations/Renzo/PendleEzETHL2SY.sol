@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "../../SYBase.sol";
 import "../../../../interfaces/Renzo/IRenzoDepositL2.sol";
 import "../../../../interfaces/Connext/IConnext.sol";
+import "../../../../interfaces/IPExchangeRateOracle.sol";
 
 // Using wETH instead of ETH for deposit
 // --- 1. For Arbitrum/OP (ETH gas chain), using ETH as token in means wETH user would have to unwrap -> wrap on Renzo side.
@@ -23,12 +24,17 @@ contract PendleEzETHL2SY is SYBase {
     uint8 public immutable depositTokenId;
     uint8 public immutable collateralTokenId;
 
+    address public exchangeRateOracle;
+
+    event SetNewExchangeRateOracle(address oracle);
+
     constructor(
         address _ezETH,
         address _renzoDeposit,
         address _wETH,
         uint8 _depositTokenId,
-        uint8 _collateralTokenId
+        uint8 _collateralTokenId,
+        address _exchangeRateOracle
     ) SYBase("SY Renzo ezETH", "SY-ezETH", _ezETH) {
         ezETH = _ezETH;
         renzoDeposit = _renzoDeposit;
@@ -39,6 +45,8 @@ contract PendleEzETHL2SY is SYBase {
         collateralTokenId = _collateralTokenId;
         connext = IRenzoDepositL2(renzoDeposit).connext();
         swapKey = IRenzoDepositL2(renzoDeposit).swapKey();
+
+        exchangeRateOracle = _exchangeRateOracle;
 
         _safeApproveInf(wETH, renzoDeposit);
     }
@@ -66,10 +74,14 @@ contract PendleEzETHL2SY is SYBase {
     /*///////////////////////////////////////////////////////////////
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
-    function exchangeRate() public view override returns (uint256) {
-        return IRenzoDepositL2(renzoDeposit).lastPrice();
+    function exchangeRate() public view virtual override returns (uint256) {
+        return IPExchangeRateOracle(exchangeRateOracle).getExchangeRate();
     }
 
+    function setExchangeRateOracle(address newOracle) external onlyOwner {
+        exchangeRateOracle = newOracle;
+        emit SetNewExchangeRateOracle(newOracle);
+    }
     /*///////////////////////////////////////////////////////////////
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
