@@ -46,7 +46,7 @@ contract PendleERC4626SY is SYBase {
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit
-    ) internal view override returns (uint256 /*amountSharesOut*/) {
+    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn == yieldToken) return amountTokenToDeposit;
         else return IERC4626(yieldToken).previewDeposit(amountTokenToDeposit);
     }
