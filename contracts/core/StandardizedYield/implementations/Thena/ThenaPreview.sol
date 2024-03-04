@@ -7,14 +7,14 @@ import "./ThenaMath.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "../../../libraries/BoringOwnableUpgradeable.sol";
-import "../../../../interfaces/IPendlePreviewHelper.sol";
+import "../../../../interfaces/IPPreviewHelper.sol";
 import "../../../../interfaces/Thena/IThenaFactory.sol";
 
 interface IThenaSY {
     function pair() external view returns (address);
 }
 
-contract ThenaPreview is IPendlePreviewHelper, ThenaMath, BoringOwnableUpgradeable, UUPSUpgradeable {
+contract ThenaPreview is IPPreviewHelper, ThenaMath, BoringOwnableUpgradeable, UUPSUpgradeable {
     using PMath for uint256;
 
     address internal immutable factory;

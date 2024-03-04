@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 
 import "../../SYBaseWithRewards.sol";
 import "./ThenaLpHelper.sol";
-import "../../../../interfaces/IPendlePreviewHelper.sol";
+import "../../../../interfaces/IPPreviewHelper.sol";
 import "../../../../interfaces/Thena/IThenaGaugeV2.sol";
 import "../../../libraries/ArrayLib.sol";
 
@@ -18,7 +18,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
     address[] public externalRewardTokens;
     address public immutable gauge;
     address public immutable THENA;
-    IPendlePreviewHelper public immutable previewHelper;
+    IPPreviewHelper public immutable previewHelper;
 
     constructor(
         string memory _name,
@@ -28,7 +28,7 @@ contract PendleThenaSY is ThenaLpHelper, SYBaseWithRewards {
         address _router,
         address _gauge,
         address _THENA,
-        IPendlePreviewHelper _previewHelper
+        IPPreviewHelper _previewHelper
     ) SYBaseWithRewards(_name, _symbol, _pair) ThenaLpHelper(_pair, _factory, _router) {
         THENA = _THENA;
         gauge = _gauge;

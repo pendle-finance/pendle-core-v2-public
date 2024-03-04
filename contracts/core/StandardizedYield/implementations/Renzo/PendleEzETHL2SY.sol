@@ -5,6 +5,7 @@ import "../../SYBase.sol";
 import "../../../../interfaces/Renzo/IRenzoDepositL2.sol";
 import "../../../../interfaces/Connext/IConnext.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
+import "../../../../interfaces/IPPreviewHelper.sol";
 
 // Using wETH instead of ETH for deposit
 // --- 1. For Arbitrum/OP (ETH gas chain), using ETH as token in means wETH user would have to unwrap -> wrap on Renzo side.
@@ -18,11 +19,7 @@ contract PendleEzETHL2SY is SYBase {
     address public immutable renzoDeposit;
     address public immutable wETH;
 
-    address public immutable connext;
-    bytes32 public immutable swapKey;
-
-    uint8 public immutable depositTokenId;
-    uint8 public immutable collateralTokenId;
+    address public immutable previewHelper;
 
     address public exchangeRateOracle;
 
@@ -32,22 +29,14 @@ contract PendleEzETHL2SY is SYBase {
         address _ezETH,
         address _renzoDeposit,
         address _wETH,
-        uint8 _depositTokenId,
-        uint8 _collateralTokenId,
+        address _previewHelper,
         address _exchangeRateOracle
     ) SYBase("SY Renzo ezETH", "SY-ezETH", _ezETH) {
         ezETH = _ezETH;
         renzoDeposit = _renzoDeposit;
         wETH = _wETH;
-
-        // Connext preview
-        depositTokenId = _depositTokenId;
-        collateralTokenId = _collateralTokenId;
-        connext = IRenzoDepositL2(renzoDeposit).connext();
-        swapKey = IRenzoDepositL2(renzoDeposit).swapKey();
-
+        previewHelper = _previewHelper;
         exchangeRateOracle = _exchangeRateOracle;
-
         _safeApproveInf(wETH, renzoDeposit);
     }
 
@@ -82,26 +71,13 @@ contract PendleEzETHL2SY is SYBase {
         exchangeRateOracle = newOracle;
         emit SetNewExchangeRateOracle(newOracle);
     }
+
     /*///////////////////////////////////////////////////////////////
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
     function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
-        if (tokenIn == wETH) {
-            uint256 amountWETHBridged = IConnext(connext).calculateSwap(
-                swapKey,
-                depositTokenId,
-                collateralTokenId,
-                amountTokenToDeposit
-            );
-
-            uint256 feeBps = IRenzoDepositL2(renzoDeposit).bridgeRouterFeeBps();
-            amountWETHBridged -= amountWETHBridged * feeBps / 10_000;
-
-            uint256 lastPrice = IRenzoDepositL2(renzoDeposit).lastPrice();
-            return amountWETHBridged.divDown(lastPrice);
-        }
-        return amountTokenToDeposit;
+        return IPPreviewHelper(previewHelper).previewDeposit(tokenIn, amountTokenToDeposit);
     }
 
     function _previewRedeem(
