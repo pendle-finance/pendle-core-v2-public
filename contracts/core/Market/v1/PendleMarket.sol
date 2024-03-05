@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../interfaces/IPMarket.sol";
-import "../../interfaces/IPMarketFactory.sol";
-import "../../interfaces/IPMarketSwapCallback.sol";
+import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPMarketFactory.sol";
+import "../../../interfaces/IPMarketSwapCallback.sol";
 
-import "../erc20/PendleERC20Permit.sol";
-import "./PendleGauge.sol";
-import "./OracleLib.sol";
+import "../../erc20/PendleERC20Permit.sol";
+import "../PendleGauge.sol";
+import "../OracleLib.sol";
 
 /**
 Invariance to maintain:
