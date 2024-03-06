@@ -21,7 +21,7 @@
     "marketFactory": "0x2bEa6BfD8fbFF45aA2a893EB3B6d85D10EFcC70E",
     "router": "0x00000000005BBB0EF59571E58418F9a4357b68A0",
     "routerStatic": "0x2700ADB035F82a11899ce1D3f1BF8451c296eABb",
-    "pendleSwap": "0x8536b3519eaE59741B340bccE6c522c545606C59",
+    "pendleSwap": "0xc7565d2282198b4b50ec29dee7b942e2b9bbc203",
     "routerHelper": "0x09D65812dCD0f276e052583d41885cA5C7Dd0086",
     "ptOracle": "0x70ee0A6DB4F5a2Dc4d9c0b57bE97B9987e75BAFD",
     "yieldContractFactoryV3": "0x40Ae6da2d92aa3DCb7f8d7a7209FD12BDfcb7C85",
