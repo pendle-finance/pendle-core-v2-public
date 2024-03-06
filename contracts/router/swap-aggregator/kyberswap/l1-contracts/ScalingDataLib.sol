@@ -273,4 +273,78 @@ library ScalingDataLib {
         ambient.qty = uint128((uint256(ambient.qty) * newAmount) / oldAmount);
         return abi.encode(ambient);
     }
+
+    function newLighterV2(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.LighterV2 memory structData = abi.decode(data, (IExecutorHelper.LighterV2));
+        structData.amount = uint128((uint256(structData.amount) * newAmount) / oldAmount);
+        return abi.encode(structData);
+    }
+
+    function newUniV1(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        IExecutorHelper.UniV1 memory structData = abi.decode(data, (IExecutorHelper.UniV1));
+        structData.amount = uint128((uint256(structData.amount) * newAmount) / oldAmount);
+        return abi.encode(structData);
+    }
+
+    function newEtherFieETH(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 depositAmount = abi.decode(data, (uint256));
+        depositAmount = uint128((depositAmount * newAmount) / oldAmount);
+        return abi.encode(depositAmount);
+    }
+
+    function newEtherFiWeETH(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.EtherFiWeETH memory structData = abi.decode(data, (IExecutorHelper.EtherFiWeETH));
+        structData.amount = uint128((uint256(structData.amount) * newAmount) / oldAmount);
+        return abi.encode(structData);
+    }
+
+    function newKelp(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        IExecutorHelper.Kelp memory structData = abi.decode(data, (IExecutorHelper.Kelp));
+        structData.amount = uint128((uint256(structData.amount) * newAmount) / oldAmount);
+        return abi.encode(structData);
+    }
+
+    function newEthenaSusde(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.EthenaSusde memory structData = abi.decode(data, (IExecutorHelper.EthenaSusde));
+        structData.amount = uint128((uint256(structData.amount) * newAmount) / oldAmount);
+        return abi.encode(structData);
+    }
+
+    function newRocketPool(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.RocketPool memory structData = abi.decode(data, (IExecutorHelper.RocketPool));
+        uint128 _amount = uint128((uint256(uint128(structData.isDepositAndAmount)) * newAmount) / oldAmount);
+        structData.isDepositAndAmount |= uint256(_amount);
+        return abi.encode(structData);
+    }
+
+    function newMakersDAI(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        IExecutorHelper.MakersDAI memory structData = abi.decode(data, (IExecutorHelper.MakersDAI));
+        uint128 _amount = uint128((uint256(uint128(structData.isRedeemAndAmount)) * newAmount) / oldAmount);
+        structData.isRedeemAndAmount |= uint256(_amount);
+        return abi.encode(structData);
+    }
 }

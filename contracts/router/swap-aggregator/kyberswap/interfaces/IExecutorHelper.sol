@@ -275,6 +275,48 @@ interface IExecutorHelper {
         uint8 settleFlags;
     }
 
+    struct UniV1 {
+        address pool;
+        uint256 amount;
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+    }
+
+    struct LighterV2 {
+        address orderBook;
+        uint256 amount;
+        bool isAsk; // isAsk = orderBook.isAskOrder(orderId);
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+    }
+
+    struct EtherFiWeETH {
+        uint256 amount;
+        bool isWrapping;
+    }
+
+    struct Kelp {
+        uint256 amount;
+        address tokenIn;
+    }
+
+    struct EthenaSusde {
+        uint256 amount;
+        address recipient;
+    }
+
+    struct RocketPool {
+        address pool;
+        uint256 isDepositAndAmount; // 1 isDeposit + 127 empty + 128 amount token in
+    }
+
+    struct MakersDAI {
+        uint256 isRedeemAndAmount; // 1 isRedeem + 127 empty + 128 amount token in
+        address recipient;
+    }
+
     function executeUniswap(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
     function executeStableSwap(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
@@ -368,4 +410,24 @@ interface IExecutorHelper {
     function executeBancorV3(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 
     function executeAmbient(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeUniV1(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeNative(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeBebop(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeLighterV2(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeEtherFieETH(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeEtherFiWeETH(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeKelp(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeRocketPool(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeEthenaSusde(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
+
+    function executeMakersDAI(bytes memory data, uint256 flagsAndPrevAmountOut) external payable returns (uint256);
 }

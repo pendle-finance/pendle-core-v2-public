@@ -194,4 +194,12 @@ library ScalingDataL2Lib {
     function newAmbient(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
         return data.scaleAmbient(oldAmount, newAmount);
     }
+
+    function newLighterV2(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleLighterV2(oldAmount, newAmount);
+    }
 }

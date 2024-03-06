@@ -436,4 +436,18 @@ library DexScaler {
 
         return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (qty * newAmount) / oldAmount, "scaleAmbient");
     }
+
+    function scaleLighterV2(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        uint256 startByte;
+
+        (, startByte) = data._readPool(startByte); // orderbook
+
+        (uint128 amount, ) = data._readUint128(startByte); // amount
+
+        return data.write16Bytes(startByte, oldAmount == 0 ? 0 : (amount * newAmount) / oldAmount, "scaleLighterV2");
+    }
 }

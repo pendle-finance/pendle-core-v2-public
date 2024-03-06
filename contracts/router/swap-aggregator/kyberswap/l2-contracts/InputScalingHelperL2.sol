@@ -69,7 +69,10 @@ library InputScalingHelperL2 {
         ArbswapStable,
         BancorV2,
         BancorV3,
-        Ambient
+        Ambient,
+        Native,
+        LighterV2,
+        Bebop
     }
 
     function _getScaledInputData(bytes calldata inputData, uint256 newAmount) internal pure returns (bytes memory) {
@@ -338,6 +341,12 @@ library InputScalingHelperL2 {
             swap.data = swap.data.newMantis(oldAmount, newAmount); // @dev use identical calldata structure as Mantis
         } else if (DexIndex(functionSelectorIndex) == DexIndex.Ambient) {
             swap.data = swap.data.newAmbient(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.Native) {
+            revert("InputScalingHelper: Can not scale Native swap");
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.LighterV2) {
+            swap.data = swap.data.newLighterV2(oldAmount, newAmount);
+        } else if (DexIndex(functionSelectorIndex) == DexIndex.Bebop) {
+            revert("InputScalingHelper: Can not scale Bebop swap");
         } else {
             revert("InputScaleHelper: Dex type not supported");
         }

@@ -295,6 +295,15 @@ interface IExecutorHelperL2 {
         uint8 settleFlags;
     }
 
+    struct LighterV2 {
+        address orderBook;
+        uint256 amount;
+        bool isAsk; // isAsk = orderBook.isAskOrder(orderId);
+        address tokenIn;
+        address tokenOut;
+        address recipient;
+    }
+
     function executeUniswap(
         uint256 index,
         bytes memory data,
@@ -656,6 +665,24 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeAmbient(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeNative(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeLighterV2(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,

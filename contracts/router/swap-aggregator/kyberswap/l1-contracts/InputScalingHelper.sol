@@ -262,6 +262,26 @@ library InputScalingHelper {
                 swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Bancor V3 and Mantis have same fields
             } else if (functionSelector == IExecutorHelper.executeAmbient.selector) {
                 swap.data = ScalingDataLib.newAmbient(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeNative.selector) {
+                revert("InputScalingHelper: Can not scale Native swap");
+            } else if (functionSelector == IExecutorHelper.executeLighterV2.selector) {
+                swap.data = ScalingDataLib.newLighterV2(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeBebop.selector) {
+                revert("InputScalingHelper: Can not scale Bebop swap");
+            } else if (functionSelector == IExecutorHelper.executeUniV1.selector) {
+                swap.data = ScalingDataLib.newUniV1(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeEtherFieETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeEtherFiWeETH.selector) {
+                swap.data = ScalingDataLib.newEtherFiWeETH(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeKelp.selector) {
+                swap.data = ScalingDataLib.newKelp(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeEthenaSusde.selector) {
+                swap.data = ScalingDataLib.newEthenaSusde(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeRocketPool.selector) {
+                swap.data = ScalingDataLib.newRocketPool(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeMakersDAI.selector) {
+                swap.data = ScalingDataLib.newMakersDAI(swap.data, oldAmount, newAmount);
             } else {
                 revert("AggregationExecutor: Dex type not supported");
             }
