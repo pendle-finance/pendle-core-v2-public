@@ -2,14 +2,16 @@
 pragma solidity ^0.8.17;
 
 import "./PendlePtOracleLib.sol";
+import "./PendleLpOracleLib.sol";
 import "../interfaces/IPPtOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 
-// This is a pre-deployed version of PendlePtOracleLib with additional utility functions.
+// This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
+contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtOracle {
     using PendlePtOracleLib for IPMarket;
+    using PendleLpOracleLib for IPMarket;
 
     error InvalidBlockRate(uint256 blockCycleNumerator);
     error TwapDurationTooLarge(uint32 duration, uint32 cardinalityRequired);
@@ -38,13 +40,20 @@ contract PendlePtOracle is BoringOwnableUpgradeable, IPPtOracle {
         emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 
-    /**
-     * This function returns the twap rate PT/Asset on market
-     * @param market market to get rate from
-     * @param duration twap duration
-     */
-    function getPtToAssetRate(address market, uint32 duration) external view returns (uint256 ptToAssetRate) {
-        ptToAssetRate = IPMarket(market).getPtToAssetRate(duration);
+    function getPtToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getPtToAssetRate(duration);
+    }
+
+    function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getLpToAssetRate(duration);
+    }
+
+    function getPtToSyRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getPtToSyRate(duration);
+    }
+
+    function getLpToSyRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getLpToAssetRate(duration);
     }
 
     /**
