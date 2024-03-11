@@ -178,4 +178,5 @@ library SDKErrorsDirectory {
     error ZeroAddress();
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
     error ShareTransferNotAllowed();
+    error SenderNotSolventAfterTransfer();
 }
