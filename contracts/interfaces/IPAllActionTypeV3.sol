@@ -5,22 +5,33 @@ pragma solidity ^0.8.0;
 import "../router/swap-aggregator/IPSwapAggregator.sol";
 import "./IPLimitRouter.sol";
 
+/*
+ *******************************************************************************************************************
+ *******************************************************************************************************************
+ * NOTICE *
+ * Refer to https://docs.pendle.finance/Developers/Contracts/PendleRouter for more information on
+ * TokenInput, TokenOutput, ApproxParams, LimitOrderData
+ * It's recommended to use Pendle's Hosted SDK to generate the params
+ *******************************************************************************************************************
+ *******************************************************************************************************************
+ */
+
 struct TokenInput {
-    // Token/Sy data
+    // TOKEN DATA
     address tokenIn;
     uint256 netTokenIn;
     address tokenMintSy;
-    // aggregator data
+    // AGGREGATOR DATA
     address pendleSwap;
     SwapData swapData;
 }
 
 struct TokenOutput {
-    // Token/Sy data
+    // TOKEN DATA
     address tokenOut;
     uint256 minTokenOut;
     address tokenRedeemSy;
-    // aggregator data
+    // AGGREGATOR DATA
     address pendleSwap;
     SwapData swapData;
 }

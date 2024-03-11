@@ -4,6 +4,17 @@ pragma solidity ^0.8.0;
 import "../router/base/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
 
+/*
+ *******************************************************************************************************************
+ *******************************************************************************************************************
+ * NOTICE *
+ * Refer to https://docs.pendle.finance/Developers/Contracts/PendleRouter for more information on
+ * TokenInput, TokenOutput, ApproxParams, LimitOrderData
+ * It's recommended to use Pendle's Hosted SDK to generate the params
+ *******************************************************************************************************************
+ *******************************************************************************************************************
+ */
+
 interface IPActionAddRemoveLiqV3 {
     event AddLiquidityDualSyAndPt(
         address indexed caller,
