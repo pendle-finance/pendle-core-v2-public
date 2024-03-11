@@ -53,7 +53,7 @@ contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtOracle {
     }
 
     function getLpToSyRate(address market, uint32 duration) external view returns (uint256) {
-        return IPMarket(market).getLpToAssetRate(duration);
+        return IPMarket(market).getLpToSyRate(duration);
     }
 
     /**
