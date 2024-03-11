@@ -13,7 +13,7 @@
         "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
         "safeWaitTime": 15000,
-        "sySwapper": "0xcb645C93820B92E5F21781C5c3c18C29BCb6126B"
+        "sySwapper": "0x35C16314D6Ee4753289E5cC15A5C5E1Dd4eaD345"
     },
     "baseCodeSplitter": "0x0E669e08bd717d7F9c9DE158636BD8561295fbB5",
     "PENDLE": "0xb3Ed0A426155B79B898849803E3B36552f7ED507",
@@ -23,13 +23,13 @@
     "routerStatic": "0x2700ADB035F82a11899ce1D3f1BF8451c296eABb",
     "pendleSwap": "0xc7565d2282198b4b50ec29dee7b942e2b9bbc203",
     "routerHelper": "0x09D65812dCD0f276e052583d41885cA5C7Dd0086",
-    "ptOracle": "0x70ee0A6DB4F5a2Dc4d9c0b57bE97B9987e75BAFD",
+    "ptOracle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
     "yieldContractFactoryV3": "0x40Ae6da2d92aa3DCb7f8d7a7209FD12BDfcb7C85",
     "marketFactoryV3": "0xC40fEbF5A33b8C92B187d9be0fD3fe0ac2E4B07c",
     "liquiditySeedingHelper": "0x203D3A2Fd52973A34bAb6fC50E3B69863bdb769C",
+    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
     "vePendle": "0x8A09574b0401A856d89d1b583eE22E8cb0C5530B",
-    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
-    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
-    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64"
+    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0"
 }
