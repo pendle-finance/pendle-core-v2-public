@@ -1,0 +1,11 @@
+{
+    "name": "SY ezETH",
+    "SY": "0x7a493be5c2ce014cd049bf178a1ac0db1b434744",
+    "YT": "0x98601E27d41ccff643da9d981dc708cf9eF1F150",
+    "PT": "0xDDFD5e912C1949B4bDb12579002c44B7A83F9E88",
+    "market": "0xd7E0809998693fD87E81D51dE1619fd0EE658031",
+    "expiry": 1719446400,
+    "scalarRoot": "7032730698000000000",
+    "initAnchor": "1105737473000000000",
+    "lnFeeRateRoot": "999500333000000"
+}
