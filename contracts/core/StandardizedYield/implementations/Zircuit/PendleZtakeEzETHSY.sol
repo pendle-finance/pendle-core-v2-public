@@ -13,8 +13,7 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
     address public immutable restakeManager;
     address public immutable renzoOracle;
     uint256 public immutable referralId;
-
-    address public exchangeRateOracle;
+    address public immutable exchangeRateOracle;
 
     event SetNewExchangeRateOracle(address oracle);
 
@@ -22,19 +21,21 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
         address _zircuitStaking,
         address _ezETH,
         address _restakeManager,
-        uint256 _referralId
+        uint256 _referralId,
+        address _exchangeRateOracle
     ) SYBaseUpg(_ezETH) {
+        _disableInitializers();
         zircuitStaking = _zircuitStaking;
         ezETH = _ezETH;
         restakeManager = _restakeManager;
         renzoOracle = IRenzoRestakeManager(restakeManager).renzoOracle();
         referralId = _referralId;
+        exchangeRateOracle = _exchangeRateOracle;
     }
 
-    function initialize(address _exchangeRateOracle) external initializer {
+    function initialize() external initializer {
         __SYBaseUpg_init("SY Zircuit Staking ezETH", "SY-zs-ezETH");
         _safeApproveInf(ezETH, zircuitStaking);
-        exchangeRateOracle = _exchangeRateOracle;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -71,12 +72,7 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
     function exchangeRate() public view virtual override returns (uint256) {
         return IPExchangeRateOracle(exchangeRateOracle).getExchangeRate();
     }
-
-    function setExchangeRateOracle(address newOracle) external onlyOwner {
-        exchangeRateOracle = newOracle;
-        emit SetNewExchangeRateOracle(newOracle);
-    }
-
+    
     /*///////////////////////////////////////////////////////////////
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
