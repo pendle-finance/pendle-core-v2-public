@@ -51,12 +51,10 @@ contract PendleMlpSY is SYBaseWithRewards {
     //////////////////////////////////////////////////////////////*/
 
     function _deposit(
-        address tokenIn,
+        address /*tokenIn*/,
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
-        if (tokenIn == mlp) {
-            IMUXRewardRouter(rewardRouter).stakeMlp(amountDeposited);
-        }
+        IMUXRewardRouter(rewardRouter).stakeMlp(amountDeposited);
         return amountDeposited;
     }
 
@@ -65,9 +63,7 @@ contract PendleMlpSY is SYBaseWithRewards {
         address tokenOut,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
-        if (tokenOut == mlp) {
-            IMUXRewardRouter(rewardRouter).unstakeMlp(amountSharesToRedeem);
-        }
+        IMUXRewardRouter(rewardRouter).unstakeMlp(amountSharesToRedeem);
         _transferOut(tokenOut, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
@@ -119,31 +115,31 @@ contract PendleMlpSY is SYBaseWithRewards {
     function _previewDeposit(
         address,
         uint256 amountTokenToDeposit
-    ) internal view override returns (uint256 /*amountSharesOut*/) {
+    ) internal pure override returns (uint256 /*amountSharesOut*/) {
         return amountTokenToDeposit;
     }
 
     function _previewRedeem(
         address,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
-        return ArrayLib.create(mlp, sMlp);
+        return ArrayLib.create(mlp);
     }
 
     function getTokensOut() public view virtual override returns (address[] memory) {
-        return ArrayLib.create(mlp, sMlp);
+        return ArrayLib.create(mlp);
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == mlp || token == sMlp;
+        return token == mlp;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == mlp || token == sMlp;
+        return token == mlp;
     }
 
     function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
