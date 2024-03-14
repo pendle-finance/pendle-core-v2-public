@@ -118,6 +118,8 @@ library Errors {
 
     error NotFromTrustedRemote(uint16 srcChainId, bytes path);
 
+    error ApxETHNotEnoughBuffer();
+
     // Liquidity Mining
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);

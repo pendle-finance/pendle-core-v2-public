@@ -9,13 +9,15 @@ import "../../../../interfaces/IERC4626.sol";
 contract PendleApxETHSY is SYBase {
     uint256 public constant FEE_DENOMINATOR = 1_000_000;
 
+    error ApxETHNotEnoughBuffer();
+
     address public immutable pirexETH;
     address public immutable pxETH;
     address public immutable apxETH;
 
     constructor(
         address _pirexETH
-    ) SYBase("SY Autocompounding Pirex ETH", "SY apxETH", IPirexETH(_pirexETH).autoPxEth()) {
+    ) SYBase("SY Autocompounding Pirex ETH", "SY-apxETH", IPirexETH(_pirexETH).autoPxEth()) {
         pirexETH = _pirexETH;
         pxETH = IPirexETH(_pirexETH).pxEth();
         apxETH = IPirexETH(_pirexETH).autoPxEth();
@@ -99,7 +101,9 @@ contract PendleApxETHSY is SYBase {
                 return amountPxETH;
             } else {
                 uint256 feeRatio = IPirexETH(pirexETH).fees(IPirexETH.Fees.InstantRedemption);
-                return amountPxETH - (amountPxETH * feeRatio) / FEE_DENOMINATOR;
+                uint256 postFeeAmount = amountPxETH - (amountPxETH * feeRatio) / FEE_DENOMINATOR;
+                if(postFeeAmount > IPirexETH(pirexETH).buffer()) revert ApxETHNotEnoughBuffer();
+                return postFeeAmount;
             }
         }
     }
