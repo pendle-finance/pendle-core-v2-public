@@ -35,7 +35,7 @@ contract PendleGlpSY is SYBaseWithRewardsUpg, GLPPreviewHelper {
         weth = IRewardRouterV2(glpRouter).weth();
     }
 
-    function initialize() external {
+    function initialize() external initializer {
         __SYBaseUpg_init("SY GLP", "SY-GLP");
         approveAllWhitelisted();
     }
