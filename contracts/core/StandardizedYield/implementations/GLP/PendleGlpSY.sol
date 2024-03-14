@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../SYBaseWithRewards.sol";
+import "../../SYBaseWithRewardsUpg.sol";
 import "./GLPPreviewHelper.sol";
 import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/GMX/IRewardRouterV2.sol";
 import "../../../../interfaces/GMX/IGlpManager.sol";
 import "../../../../interfaces/GMX/IGMXVault.sol";
 
-contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
+contract PendleGlpSY is SYBaseWithRewardsUpg, GLPPreviewHelper {
     using ArrayLib for address[];
 
     address public immutable glp;
@@ -19,22 +19,24 @@ contract PendleGlpSY is SYBaseWithRewards, GLPPreviewHelper {
     address public immutable weth;
 
     constructor(
-        string memory _name,
-        string memory _symbol,
         address _glp,
         address _fsGlp,
         address _stakedGlp,
         address _rewardRouter,
         address _glpRouter,
         address _vault
-    ) SYBaseWithRewards(_name, _symbol, _fsGlp) GLPPreviewHelper(_vault) {
+    ) SYBaseUpg(_fsGlp) GLPPreviewHelper(_vault) {
+        _disableInitializers();
         glp = _glp;
         stakedGlp = _stakedGlp;
         rewardRouter = _rewardRouter;
         glpRouter = _glpRouter;
         glpManager = IRewardRouterV2(glpRouter).glpManager();
         weth = IRewardRouterV2(glpRouter).weth();
+    }
 
+    function initialize() external {
+        __SYBaseUpg_init("SY GLP", "SY-GLP");
         approveAllWhitelisted();
     }
 
