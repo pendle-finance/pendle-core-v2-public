@@ -49,4 +49,10 @@ interface IPYieldContractFactory {
     function isPT(address) external view returns (bool);
 
     function isYT(address) external view returns (bool);
+
+    function createYieldContract(
+        address SY,
+        uint32 expiry,
+        bool doCacheIndexSameBlock
+    ) external returns (address PT, address YT);
 }

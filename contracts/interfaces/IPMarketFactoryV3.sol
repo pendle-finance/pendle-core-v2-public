@@ -21,4 +21,11 @@ interface IPMarketFactoryV3 {
         address market,
         address router
     ) external view returns (address treasury, uint80 overriddenFee, uint8 reserveFeePercent);
+
+    function createNewMarket(
+        address PT,
+        int256 scalarRoot,
+        int256 initialAnchor,
+        uint80 lnFeeRateRoot
+    ) external returns (address market);
 }
