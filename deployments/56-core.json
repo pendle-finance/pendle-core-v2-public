@@ -26,7 +26,7 @@
     "ptOracle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
     "yieldContractFactoryV3": "0x40Ae6da2d92aa3DCb7f8d7a7209FD12BDfcb7C85",
     "marketFactoryV3": "0xC40fEbF5A33b8C92B187d9be0fD3fe0ac2E4B07c",
-    "liquiditySeedingHelper": "0x203D3A2Fd52973A34bAb6fC50E3B69863bdb769C",
+    "poolDeployHelper": "0x73Be47237F12F36203823BAc9A4d80dC798B7015",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
