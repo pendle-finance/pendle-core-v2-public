@@ -179,4 +179,5 @@ library SDKErrorsDirectory {
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
     error ShareTransferNotAllowed();
     error SenderNotSolventAfterTransfer();
+    error ERC20InsufficientAllowance(address, uint256, uint256);
 }
