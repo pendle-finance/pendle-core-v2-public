@@ -34,8 +34,8 @@ contract PendlePoolDeployHelper is TokenHelper {
         PoolDeploymentParams memory params,
         address tokenToSeedLiqudity,
         uint256 amountToSeed
-    ) external payable {
-        (address PT, address YT, address market) = _deployPYAndMarket(SY, params);
+    ) external payable returns (address PT, address YT, address market) {
+        (PT, YT, market) = _deployPYAndMarket(SY, params);
         _seedLiquidity(market, SY, PT, YT, tokenToSeedLiqudity, amountToSeed);
     }
 
