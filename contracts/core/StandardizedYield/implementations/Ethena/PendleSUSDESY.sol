@@ -38,7 +38,7 @@ contract PendleSUSDESY is PendleERC4626SY {
         amountSharesOut = super._previewDeposit(tokenIn, amountTokenToDeposit);
         uint256 _newSupply = totalSupply() + amountSharesOut;
         uint256 _supplyCap = supplyCap;
-        
+
         if (_newSupply > _supplyCap) {
             revert SupplyCapExceeded(_newSupply, _supplyCap);
         }

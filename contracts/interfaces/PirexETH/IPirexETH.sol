@@ -24,5 +24,4 @@ interface IPirexETH {
     function autoPxEth() external view returns (address);
 
     function buffer() external view returns (uint256);
-
 }

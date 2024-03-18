@@ -72,7 +72,7 @@ contract PendleZtakeEzETHSY is SYBaseUpg {
     function exchangeRate() public view virtual override returns (uint256) {
         return IPExchangeRateOracle(exchangeRateOracle).getExchangeRate();
     }
-    
+
     /*///////////////////////////////////////////////////////////////
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/

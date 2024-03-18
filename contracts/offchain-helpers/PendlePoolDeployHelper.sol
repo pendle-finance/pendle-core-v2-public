@@ -57,8 +57,15 @@ contract PendlePoolDeployHelper is TokenHelper {
         emit MarketDeployment(market, SY, PT, YT, params);
     }
 
-    function _seedLiquidity(address market, address SY, address PT, address YT, address token, uint256 amount) internal {
-        _transferIn(token, msg.sender, amount);
+    function _seedLiquidity(
+        address market,
+        address SY,
+        address PT,
+        address YT,
+        address token,
+        uint256 amountToSeed
+    ) internal {
+        _transferIn(token, msg.sender, amountToSeed);
 
         // Approval
         _safeApproveInf(token, router);
@@ -68,15 +75,16 @@ contract PendlePoolDeployHelper is TokenHelper {
         _safeApproveInf(PT, router);
 
         // Mint SY
+        uint256 amountSY;
         if (token != SY) {
-            uint256 netNative = (token == NATIVE ? amount : 0);
-            IPAllActionV3(router).mintSyFromToken{ value: netNative }(
+            uint256 netNative = (token == NATIVE ? amountToSeed : 0);
+            amountSY = IPAllActionV3(router).mintSyFromToken{value: netNative}(
                 address(this),
                 SY,
                 0,
                 TokenInput({
                     tokenIn: token,
-                    netTokenIn: amount,
+                    netTokenIn: amountToSeed,
                     tokenMintSy: token,
                     pendleSwap: address(0),
                     swapData: SwapData({
@@ -87,20 +95,16 @@ contract PendlePoolDeployHelper is TokenHelper {
                     })
                 })
             );
+        } else {
+            amountSY = amountToSeed;
         }
 
         // mint PY
-        IPAllActionV3(router).mintPyFromSy(address(this), YT, _selfBalance(SY) / 2, 0);
+        uint256 amountPY = IPAllActionV3(router).mintPyFromSy(address(this), YT, amountSY / 2, 0);
 
         // mint LP
-        IPAllActionV3(router).addLiquidityDualSyAndPt(
-            msg.sender,
-            market,
-            _selfBalance(SY),
-            _selfBalance(PT),
-            0
-        );
-        _transferOut(YT, msg.sender, _selfBalance(YT));
+        IPAllActionV3(router).addLiquidityDualSyAndPt(msg.sender, market, amountSY / 2, amountPY, 0);
+        _transferOut(YT, msg.sender, amountPY);
     }
 
     receive() external payable {}

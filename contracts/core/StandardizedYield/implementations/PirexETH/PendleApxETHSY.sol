@@ -102,7 +102,7 @@ contract PendleApxETHSY is SYBase {
             } else {
                 uint256 feeRatio = IPirexETH(pirexETH).fees(IPirexETH.Fees.InstantRedemption);
                 uint256 postFeeAmount = amountPxETH - (amountPxETH * feeRatio) / FEE_DENOMINATOR;
-                if(postFeeAmount > IPirexETH(pirexETH).buffer()) revert ApxETHNotEnoughBuffer();
+                if (postFeeAmount > IPirexETH(pirexETH).buffer()) revert ApxETHNotEnoughBuffer();
                 return postFeeAmount;
             }
         }

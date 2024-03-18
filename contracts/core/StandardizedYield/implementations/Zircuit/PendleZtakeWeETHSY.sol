@@ -17,7 +17,7 @@ contract PendleZtakeWeETHSY is SYBaseUpg {
 
     constructor(address _zircuitStaking, address _weETH, address _referee) SYBaseUpg(_weETH) {
         _disableInitializers();
-        
+
         zircuitStaking = _zircuitStaking;
         weETH = _weETH;
         liquidityPool = IEtherFiWEEth(_weETH).liquidityPool();
