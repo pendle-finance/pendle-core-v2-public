@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../interfaces/IPPtOracle.sol";
+import "../../interfaces/IPPtLpOracle.sol";
 import "../../interfaces/IPMarket.sol";
 import "../../core/libraries/math/PMath.sol";
 import "../PendleLpOracleLib.sol";
@@ -43,7 +43,7 @@ contract BoringPtUsdChainlinkOracle {
     /// but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
     /// @notice please checkOracleState() before use
     function getPtPriceSample2() external view virtual returns (uint256) {
-        uint256 ptRate = IPPtOracle(ptOracle).getPtToAssetRate(market, twapDuration);
+        uint256 ptRate = IPPtLpOracle(ptOracle).getPtToAssetRate(market, twapDuration);
         uint256 assetPrice = _getUnderlyingAssetPrice();
         return (assetPrice * ptRate) / PMath.ONE;
     }
@@ -60,7 +60,7 @@ contract BoringPtUsdChainlinkOracle {
 
     /// @notice Call only once for each (market, duration). Once successful, it's permanently valid (also for any shorter duration).
     function checkOracleState() external view {
-        (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) = IPPtOracle(
+        (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) = IPPtLpOracle(
             ptOracle
         ).getOracleState(market, twapDuration);
 

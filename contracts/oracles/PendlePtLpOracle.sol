@@ -3,13 +3,13 @@ pragma solidity ^0.8.17;
 
 import "./PendlePtOracleLib.sol";
 import "./PendleLpOracleLib.sol";
-import "../interfaces/IPPtOracle.sol";
+import "../interfaces/IPPtLpOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtOracle {
+contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
     using PendlePtOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
 
@@ -44,6 +44,8 @@ contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtOracle {
         return IPMarket(market).getPtToAssetRate(duration);
     }
 
+    /// @notice make sure you have taken into account the risk of not being able to withdraw from SY to Asset
+    /// More info in StandardizedYield
     function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getLpToAssetRate(duration);
     }
