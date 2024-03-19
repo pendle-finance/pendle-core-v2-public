@@ -23,7 +23,7 @@
     "routerStatic": "0x2700ADB035F82a11899ce1D3f1BF8451c296eABb",
     "pendleSwap": "0xc7565d2282198b4b50ec29dee7b942e2b9bbc203",
     "routerHelper": "0x09D65812dCD0f276e052583d41885cA5C7Dd0086",
-    "ptOracle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
+    "ptAndLpOracle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
     "yieldContractFactoryV3": "0x40Ae6da2d92aa3DCb7f8d7a7209FD12BDfcb7C85",
     "marketFactoryV3": "0xC40fEbF5A33b8C92B187d9be0fD3fe0ac2E4B07c",
     "poolDeployHelper": "0x73Be47237F12F36203823BAc9A4d80dC798B7015",
