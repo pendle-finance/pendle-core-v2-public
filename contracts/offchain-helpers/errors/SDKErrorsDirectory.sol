@@ -182,4 +182,6 @@ library SDKErrorsDirectory {
     error ERC20InsufficientAllowance(address, uint256, uint256);
     error ERC20InsufficientBalance(address, uint256, uint256);
     error IXERC20_NotHighEnoughLimits();
+    error ReturnAmountIsNotEnough();
+    error ErrorNotEnoughAllowance();
 }
