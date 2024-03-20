@@ -1,0 +1,13 @@
+{
+    "name": "APXETH-MAR2025",
+    "SY": "0x440d08d85cb12352DaBac2971De81e9be702d239",
+    "YT": "0x16e1Ad37bAdc81BC08e8aC0E9d4ac1000836C8a0",
+    "PT": "0xa6a0C2b9d06b769635F6C85deB6b500f49F672E8",
+    "market": "0xE6D4986Cd935529FC4505d48E926bcd36A58A0F0",
+    "expiry": 1743033600,
+    "lnFeeRateRoot": "499875041000000",
+    "scalarRoot": "36562897746000000000",
+    "initAnchor": "1091755372000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x6f4309e1bc4b23342072ed3c71056e623ab05e0c7d88fdf74857ed340ee53ad4"
+}
