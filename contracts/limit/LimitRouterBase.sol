@@ -239,7 +239,7 @@ abstract contract LimitRouterBase is
         Order memory order,
         bytes memory signature
     )
-        internal
+        public
         view
         returns (
             bytes32,
