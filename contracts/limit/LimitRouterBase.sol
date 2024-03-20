@@ -29,6 +29,7 @@ abstract contract LimitRouterBase is
 
     uint128 internal constant _ORDER_DOES_NOT_EXIST = 0;
     uint128 internal constant _ORDER_FILLED = 1;
+    uint256 internal constant NEW_PRIME = 12421;
 
     address public feeRecipient;
 
@@ -114,7 +115,7 @@ abstract contract LimitRouterBase is
         _transferOut(SY, feeRecipient, totalFee);
 
         // toMakers == netTakings
-        _checkSafety_emitEvents(a.params, orderHashes, fromMakers, out.netTakings, out.netFees, out.notionalVolumes);
+        _emitEvents(a.params, orderHashes, fromMakers, out.netTakings, out.netFees, out.notionalVolumes);
     }
 
     function fillPYForToken(
@@ -151,7 +152,7 @@ abstract contract LimitRouterBase is
         _transferOut(SY, feeRecipient, totalFee);
 
         // fromMakers == netMakings
-        _checkSafety_emitEvents(a.params, orderHashes, out.netMakings, toMakers, out.netFees, out.notionalVolumes);
+        _emitEvents(a.params, orderHashes, out.netMakings, toMakers, out.netFees, out.notionalVolumes);
     }
 
     // ----------------- verify & convert functions -----------------
@@ -207,7 +208,7 @@ abstract contract LimitRouterBase is
         PT = IPYieldToken(YT).PT();
     }
 
-    function _checkSafety_emitEvents(
+    function _emitEvents(
         FillOrderParams[] memory params,
         bytes32[] memory hashes,
         uint256[] memory fromMakers,
@@ -216,10 +217,6 @@ abstract contract LimitRouterBase is
         uint256[] memory notionalVolumes
     ) internal {
         uint256 len = hashes.length;
-
-        for (uint256 i = 0; i < len; i++) {
-            require(fromMakers[i].mulDown(params[i].order.failSafeRate) <= toMakers[i], "LOP: fail safe");
-        }
 
         for (uint256 i = 0; i < len; i++) {
             Order memory order = params[i].order;
@@ -291,7 +288,14 @@ abstract contract LimitRouterBase is
 
             uint256 totalSy = __mintSy_Single(SY, sharedToken, totalMaking);
             for (uint256 i = l; i < r; i++) {
-                params[i].makingAmount = (params[i].makingAmount * totalSy) / totalMaking;
+                uint256 netToken = params[i].makingAmount;
+                uint256 netSy = (netToken * totalSy) / totalMaking;
+
+                if (_isNewOrder(params[i].order)) {
+                    require(netToken.mulDown(params[i].order.failSafeRate) <= netSy, "LOP: fail safe");
+                }
+
+                params[i].makingAmount = netSy;
             }
         }
     }
@@ -349,6 +353,15 @@ abstract contract LimitRouterBase is
                         _wrap_unwrap_ETH(sharedToken, token, toMakers[i]);
                     }
                     _transferOut(token, params[i].order.receiver, toMakers[i]);
+                }
+            }
+
+            for (uint256 i = l; i < r; i++) {
+                if (_isNewOrder(params[i].order)) {
+                    uint256 netSy = netSyOuts[i];
+                    uint256 netToken = toMakers[i];
+
+                    require(netSy.mulDown(params[i].order.failSafeRate) <= netToken, "LOP: fail safe");
                 }
             }
         }
@@ -410,6 +423,10 @@ abstract contract LimitRouterBase is
             if (payer == params[i].order.receiver) continue;
             token.safeTransferFrom(payer, params[i].order.receiver, netOut[i]);
         }
+    }
+
+    function _isNewOrder(Order memory order) internal pure returns (bool) {
+        return order.salt % NEW_PRIME == 0;
     }
 
     function hashOrder(Order memory order) public view returns (bytes32) {
