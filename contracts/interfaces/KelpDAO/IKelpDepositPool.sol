@@ -12,4 +12,6 @@ interface IKelpDepositPool {
     ) external;
 
     function getRsETHAmountToMint(address asset, uint256 amount) external view returns (uint256 rsethAmountToMint);
+
+    function depositETH(uint256 minRSETHAmountExpected, string calldata referralId) external payable;
 }
