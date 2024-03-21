@@ -92,7 +92,7 @@ contract PendleStTAOSY is SYBase {
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == wTAO;
+        return token == stTAO;
     }
 
     function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
