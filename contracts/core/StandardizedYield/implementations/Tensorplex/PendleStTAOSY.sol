@@ -15,6 +15,7 @@ contract PendleStTAOSY is SYBase {
 
     error MaxStTAOSupplyExceeded(uint256 amountTaoToWrap, uint256 maxTaoForWrap);
 
+    // solhint-disable immutable-vars-naming
     address public immutable stTAO;
     address public immutable wTAO;
 
