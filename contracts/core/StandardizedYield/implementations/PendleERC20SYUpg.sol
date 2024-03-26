@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../SYBaseUpg.sol";
 
-contract PendleERC20SYUpg is SYBaseUpg {
+abstract contract PendleERC20SYUpg is SYBaseUpg {
     using PMath for uint256;
 
     uint256[100] private __gap;
