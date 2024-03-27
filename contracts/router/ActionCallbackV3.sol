@@ -31,14 +31,19 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
     function limitRouterCallback(
         uint256 actualMaking,
         uint256 actualTaking,
-        uint256,
-        /*totalFee*/ bytes memory data
+        uint256 totalFee,
+        bytes memory data
     )
         external
         returns (
             bytes memory // encode as netTransferToLimit, netOutputFromLimit
         )
     {
+        bool isEmptyFill = (actualMaking == 0 && actualTaking == 0 && totalFee == 0);
+        if (isEmptyFill) {
+            return abi.encode(0, 0);
+        }
+
         (OrderType orderType, IPYieldToken YT, uint256 netRemaining, address receiver) = abi.decode(
             data,
             (OrderType, IPYieldToken, uint256, address)
