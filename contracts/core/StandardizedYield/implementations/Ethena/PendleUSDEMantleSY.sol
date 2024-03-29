@@ -11,6 +11,7 @@ contract PendleUSDEMantleSY is PendleERC20SYUpg {
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
     constructor(address _usde) PendleERC20SYUpg(_usde) {
+        _disableInitializers();
     }
 
     function initialize(uint256 _initialSupplyCap) external initializer {
