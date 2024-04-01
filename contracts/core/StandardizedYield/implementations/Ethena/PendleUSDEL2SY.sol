@@ -19,7 +19,6 @@ contract PendleUSDEL2SY is PendleERC20SYUpg {
         _updateSupplyCap(_initialSupplyCap);
     }
 
-
     function _previewDeposit(
         address /*tokenIn*/,
         uint256 amountTokenToDeposit
