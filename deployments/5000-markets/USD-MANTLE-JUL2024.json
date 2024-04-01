@@ -1,0 +1,11 @@
+{
+    "name": "SY USDe Mantle",
+    "SY": "0x5B9e411c9E50164133DE07FE1cAC05A094000105",
+    "YT": "0xb3c0f96c4208185cC22Afd1b7CF21F1dabd9648A",
+    "PT": "0xba567Cf0d8230c0AD8D8bFc50E587E06d6F118E9",
+    "market": "0x7dc07C575A0c512422dCab82CE9Ed74dB58Be30C",
+    "expiry": 1721865600,
+    "scalarRoot": "877034712000000000",
+    "initAnchor": "1819330528000000000",
+    "lnFeeRateRoot": "9950330853000000"
+}
