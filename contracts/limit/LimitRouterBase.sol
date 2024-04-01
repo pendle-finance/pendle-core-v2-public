@@ -320,8 +320,6 @@ abstract contract LimitRouterBase is
         FillOrderParams[] memory params,
         uint256[] memory netSyOuts
     ) internal returns (uint256[] memory toMakers) {
-        // netSyOuts all > 0, guarantee in LimitMath
-
         uint256 len = params.length;
         toMakers = new uint256[](len);
 
@@ -332,6 +330,8 @@ abstract contract LimitRouterBase is
             for (; r < len && __stillShared(sharedToken, params[r].order.token); r++) {
                 totalSy += netSyOuts[r];
             }
+
+            if (totalSy == 0) continue;
 
             if (sharedToken == SY) {
                 for (uint256 i = l; i < r; i++) {
