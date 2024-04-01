@@ -7,11 +7,11 @@ import "../../interfaces/IPYieldToken.sol";
 import "../libraries/MiniHelpers.sol";
 import "../libraries/Errors.sol";
 
-import "../erc20/PendleERC20Permit.sol";
+import "../erc20/PendleERC20.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalToken {
+contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
     address public immutable SY;
     address public immutable factory;
     uint256 public immutable expiry;
@@ -33,7 +33,7 @@ contract PendlePrincipalToken is PendleERC20Permit, Initializable, IPPrincipalTo
         string memory _symbol,
         uint8 __decimals,
         uint256 _expiry
-    ) PendleERC20Permit(_name, _symbol, __decimals) {
+    ) PendleERC20(_name, _symbol, __decimals) {
         SY = _SY;
         expiry = _expiry;
         factory = msg.sender;

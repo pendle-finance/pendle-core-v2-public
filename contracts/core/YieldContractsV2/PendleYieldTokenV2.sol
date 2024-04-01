@@ -15,7 +15,7 @@ import "../libraries/Errors.sol";
 import "../libraries/MiniHelpers.sol";
 
 import "../RewardManager/RewardManager.sol";
-import "../erc20/PendleERC20Permit.sol";
+import "../erc20/PendleERC20.sol";
 import "./InterestManagerYTV2.sol";
 
 /**
@@ -23,7 +23,7 @@ Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
-contract PendleYieldTokenV2 is IPYieldTokenV2, PendleERC20Permit, RewardManager, InterestManagerYTV2 {
+contract PendleYieldTokenV2 is IPYieldTokenV2, PendleERC20, RewardManager, InterestManagerYTV2 {
     using PMath for uint256;
     using SafeERC20 for IERC20;
     using ArrayLib for uint256[];
@@ -72,7 +72,7 @@ contract PendleYieldTokenV2 is IPYieldTokenV2, PendleERC20Permit, RewardManager,
         uint8 __decimals,
         uint256 _expiry,
         bool _doCacheIndexSameBlock
-    ) PendleERC20Permit(_name, _symbol, __decimals) {
+    ) PendleERC20(_name, _symbol, __decimals) {
         SY = _SY;
         PT = _PT;
         expiry = _expiry;

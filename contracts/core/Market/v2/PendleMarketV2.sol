@@ -5,7 +5,7 @@ import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPMarketSwapCallback.sol";
 
-import "../../erc20/PendleERC20Permit.sol";
+import "../../erc20/PendleERC20.sol";
 import "./PendleGaugeV2.sol";
 import "../OracleLib.sol";
 
@@ -15,7 +15,7 @@ Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
-contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
+contract PendleMarketV2 is PendleERC20, PendleGaugeV2, IPMarket {
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
@@ -63,7 +63,7 @@ contract PendleMarketV2 is PendleERC20Permit, PendleGaugeV2, IPMarket {
         address _gaugeController,
         address _externalRewardDistributor
     )
-        PendleERC20Permit(NAME, SYMBOL, 18)
+        PendleERC20(NAME, SYMBOL, 18)
         PendleGaugeV2(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController, _externalRewardDistributor)
     {
         PT = IPPrincipalToken(_PT);
