@@ -9,6 +9,7 @@ contract PendleZtakeUSDESY is SYBaseUpg {
     address public immutable zircuitStaking;
     address public immutable usde;
 
+    // Supply cap might be updated more often than on special occasion. Leave it as normal storage for better conveinence.
     uint256 public supplyCap;
 
     event SupplyCapUpdated(uint256 newSupplyCap);
