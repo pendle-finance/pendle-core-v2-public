@@ -1,0 +1,13 @@
+{
+    "name": "USDE-JUL2024",
+    "SY": "0x42862F48eAdE25661558AFE0A630b132038553D0",
+    "YT": "0x1e3d13932C31d7355fCb3FEc680b0cD159dC1A07",
+    "PT": "0xa0021EF8970104c2d008F38D92f115ad56a9B8e1",
+    "market": "0x19588F29f9402Bb508007FeADd415c875Ee3f19F",
+    "expiry": 1721865600,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "985792836000000000",
+    "initAnchor": "1726141835000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x6a5761c55cf33d1ce74ce23987126ad994fd98c9523cee1a21774dbc65953889"
+}
