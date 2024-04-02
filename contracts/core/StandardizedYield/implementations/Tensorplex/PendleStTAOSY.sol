@@ -51,7 +51,7 @@ contract PendleStTAOSY is SYBase {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
     function exchangeRate() public view virtual override returns (uint256) {
-        return ITensorplexStTAO(stTAO).exchangeRate();
+        return PMath.ONE.divDown(ITensorplexStTAO(stTAO).exchangeRate());
     }
 
     /*///////////////////////////////////////////////////////////////
