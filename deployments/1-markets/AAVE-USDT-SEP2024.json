@@ -1,9 +1,9 @@
 {
     "name": "SY aUSDT",
     "SY": "0x8c28D28bAd669afadC37b034A8070D6d7B9dFB74",
-    "YT": "0x0a3d962946c81096f1529f79dd66a987F2929De2",
-    "PT": "0x3850Cb4591C7A9E6dEF5d4952205704C48Be27EE",
-    "market": "0x9dF2beAF84c24212a495CC8b4aCeeacd2DB8585b",
+    "YT": "0x6cf80d52e1724437c509a9729719ac9b566ca19f",
+    "PT": "0xe6fe6e1f6ef1de6a21cd752e805f953673a7c0f0",
+    "market": "0xb8fbf5cc2826c1c9909f59dd11633b494f46fbfe",
     "expiry": 1735171200,
     "scalarRoot": "9800852549000000000",
     "initAnchor": "1201611142000000000",
