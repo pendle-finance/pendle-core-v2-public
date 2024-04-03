@@ -1,0 +1,13 @@
+{
+    "name": "WEETH-MAY2024",
+    "SY": "0xa6C895EB332E91c5b3D00B7baeEAae478cc502DA",
+    "YT": "0xDcdC1004d5C271ADc048982d7EB900cC4F472333",
+    "PT": "0x1c27Ad8a19Ba026ADaBD615F6Bc77158130cfBE4",
+    "market": "0x952083cde7aaa11AB8449057F7de23A970AA8472",
+    "expiry": 1719446400,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "2580949885000000000",
+    "initAnchor": "1219292290000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x79916503f61474bb592b0916330c0032837170d873bbafaf013f1016c0381a70"
+}

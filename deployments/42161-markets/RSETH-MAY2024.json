@@ -1,0 +1,13 @@
+{
+    "name": "RSETH-MAY2024",
+    "SY": "0xf176fB51F4eB826136a54FDc71C50fCd2202E272",
+    "YT": "0xDA53c73a28dfF704Fe757b8B4f6f6359707533Da",
+    "PT": "0xAFD22F824D51Fb7EeD4778d303d4388AC644b026",
+    "market": "0x6Ae79089b2CF4be441480801bb741A531d94312b",
+    "expiry": 1719446400,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "2469944925000000000",
+    "initAnchor": "1210438979000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xeeb93944e2e93a4fa773547d21bfbff285281a2000c7fe5238e20de7a4c01642"
+}
