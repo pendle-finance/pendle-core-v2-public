@@ -282,6 +282,34 @@ library InputScalingHelper {
                 swap.data = ScalingDataLib.newRocketPool(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeMakersDAI.selector) {
                 swap.data = ScalingDataLib.newMakersDAI(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeRenzo.selector) {
+                swap.data = ScalingDataLib.newRenzo(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeWBETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
+            } else if (functionSelector == IExecutorHelper.executeMantleETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
+            } else if (functionSelector == IExecutorHelper.executeFrxETH.selector) {
+                swap.data = ScalingDataLib.newFrxETH(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeSfrxETH.selector) {
+                swap.data = ScalingDataLib.newSfrxETH(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeSfrxETHConvertor.selector) {
+                swap.data = ScalingDataLib.newSfrxETHConvertor(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeSwellETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
+            } else if (functionSelector == IExecutorHelper.executeRswETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
+            } else if (functionSelector == IExecutorHelper.executeStaderETHx.selector) {
+                swap.data = ScalingDataLib.newEthenaSusde(swap.data, oldAmount, newAmount); // same ethena susde
+            } else if (functionSelector == IExecutorHelper.executeOriginETH.selector) {
+                swap.data = ScalingDataLib.newOriginETH(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executePrimeETH.selector) {
+                swap.data = ScalingDataLib.newOriginETH(swap.data, oldAmount, newAmount); // same originETH
+            } else if (functionSelector == IExecutorHelper.executeMantleUsd.selector) {
+                swap.data = ScalingDataLib.newMantleUsd(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeBedrockUniETH.selector) {
+                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
+            } else if (functionSelector == IExecutorHelper.executeMaiPSM.selector) {
+                swap.data = ScalingDataLib.newFrxETH(swap.data, oldAmount, newAmount); // same frxeth
             } else {
                 revert("AggregationExecutor: Dex type not supported");
             }

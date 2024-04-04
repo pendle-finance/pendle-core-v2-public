@@ -304,6 +304,12 @@ interface IExecutorHelperL2 {
         address recipient;
     }
 
+    struct FrxETH {
+        address pool;
+        uint256 amount;
+        address tokenOut;
+    }
+
     function executeUniswap(
         uint256 index,
         bytes memory data,
@@ -683,6 +689,15 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeLighterV2(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeMaiPSM(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,
