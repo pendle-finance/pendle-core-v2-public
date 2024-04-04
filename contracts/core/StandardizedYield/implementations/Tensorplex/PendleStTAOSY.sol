@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "../../SYBase.sol";
+import "../../SYBaseUpg.sol";
 import "../../../../interfaces/Tensorplex/ITensorplexStTAO.sol";
 
 // wTAO can be modified on stTAO contract on very unlikely special occasions.
@@ -10,7 +10,7 @@ import "../../../../interfaces/Tensorplex/ITensorplexStTAO.sol";
 // @notice: stTAO and wstTAO is the same one.
 // Tensorplex use wstTAO for naming convention on contract writing and stTAO for the name of the token
 
-contract PendleStTAOSY is SYBase {
+contract PendleStTAOSY is SYBaseUpg {
     using PMath for uint256;
 
     error MaxStTAOSupplyExceeded(uint256 amountTaoToWrap, uint256 maxTaoForWrap);
@@ -19,9 +19,14 @@ contract PendleStTAOSY is SYBase {
     address public immutable stTAO;
     address public immutable wTAO;
 
-    constructor(address _stTAO) SYBase("SY Tensorplex Staked TAO", "SY-stTAO", _stTAO) {
+    constructor(address _stTAO) SYBaseUpg(_stTAO) {
+        _disableInitializers();
         stTAO = _stTAO;
         wTAO = ITensorplexStTAO(stTAO).wrappedToken();
+    }
+
+    function initialize() initializer external {
+        __SYBaseUpg_init("SY Tensorplex Staked TAO", "SY-stTAO");
         _safeApproveInf(wTAO, stTAO);
     }
 
