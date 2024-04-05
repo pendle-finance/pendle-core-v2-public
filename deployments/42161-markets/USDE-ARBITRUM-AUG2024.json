@@ -1,0 +1,11 @@
+{
+    "name": "SY USDe",
+    "SY": "0xb3C24D9dcCC2Ec5f778742389ffe448E295B84e0",
+    "YT": "0xF478f7FeaeAB0DFdC91E02cDd6C63c66E30a7335",
+    "PT": "0xad853EB4fB3Fe4a66CdFCD7b75922a0494955292",
+    "market": "0x2Dfaf9a5E4F293BceedE49f2dBa29aACDD88E0C4",
+    "expiry": 1724889600,
+    "scalarRoot": "1120571444000000000",
+    "initAnchor": "1821342325000000000",
+    "lnFeeRateRoot": "9950330853000000"
+}
