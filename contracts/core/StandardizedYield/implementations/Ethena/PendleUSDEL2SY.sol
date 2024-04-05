@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../PendleERC20SYUpg.sol";
 
-contract PendleUSDEMantleSY is PendleERC20SYUpg {
+contract PendleUSDEL2SY is PendleERC20SYUpg {
     uint256 public supplyCap;
 
     event SupplyCapUpdated(uint256 newSupplyCap);
