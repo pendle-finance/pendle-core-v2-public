@@ -1,0 +1,13 @@
+{
+    "name": "STTAO-JUNE2024",
+    "SY": "0x60CceFd60bA522f9221f122BB80A1e8cbAB9285F",
+    "YT": "0x233D32d4D33eD5F2D6b8544137c8836249de372F",
+    "PT": "0x5282Ec643C3790E0F781508162a4Aa13fd09C528",
+    "market": "0x2084b373979415Bc93190071AF3390F92DcDD189",
+    "expiry": 1719446400,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "2097143853000000000",
+    "initAnchor": "1249220799000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xc7b0a026346cd4dae528e85ad21ab019c84e80cebe1b9b65be7683c4e02618bb"
+}
