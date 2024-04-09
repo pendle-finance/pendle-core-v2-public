@@ -25,7 +25,7 @@ contract PendleStTAOSY is SYBaseUpg {
         wTAO = ITensorplexStTAO(stTAO).wrappedToken();
     }
 
-    function initialize() initializer external {
+    function initialize() external initializer {
         __SYBaseUpg_init("SY Tensorplex Staked TAO", "SY-stTAO");
         _safeApproveInf(wTAO, stTAO);
     }
