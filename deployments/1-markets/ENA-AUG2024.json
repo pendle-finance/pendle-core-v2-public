@@ -1,0 +1,13 @@
+{
+    "name": "ENA-AUG2024",
+    "SY": "0x66C68a7bcC4CBcAb43A2947A529765d86D4ef14f",
+    "YT": "0x87be82bBd3e6f1c0871001f8EB4C12b60462c835",
+    "PT": "0x9946C55a34CD105f1e0CF815025EAEcff7356487",
+    "market": "0x9C73879F795CefA1D5239dE08d1B6Aba2D2d1434",
+    "expiry": 1724889600,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "2366933904000000000",
+    "initAnchor": "1373863259000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x268c7817adcde8c584c7a949624f7b8cf376d3dbe2fb0c1f2dbd691ec1ab1382"
+}
