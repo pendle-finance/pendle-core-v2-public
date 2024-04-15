@@ -30,6 +30,7 @@ abstract contract LimitRouterBase is
     uint128 internal constant _ORDER_DOES_NOT_EXIST = 0;
     uint128 internal constant _ORDER_FILLED = 1;
     uint256 internal constant NEW_PRIME = 12421;
+    bytes private constant EMPTY_BYTES = abi.encode();
 
     address public feeRecipient;
 
@@ -62,7 +63,9 @@ abstract contract LimitRouterBase is
         bytes calldata /*optData*/,
         bytes memory callback
     ) external returns (uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory callbackReturn) {
-        _validateOrdersSkipSig(params);
+        params = _validateSkipSigAndFilterOrders(params);
+        if (params.length == 0) return fillNoOrders(callback);
+
         OrderType orderType = params[0].order.orderType;
         if (orderType == OrderType.SY_FOR_PT || orderType == OrderType.SY_FOR_YT) {
             return fillTokenForPY(Args(orderType, params, receiver, maxTaking, callback));
@@ -79,6 +82,13 @@ abstract contract LimitRouterBase is
         address receiver;
         uint256 maxTaking;
         bytes callback;
+    }
+
+    function fillNoOrders(
+        bytes memory callback
+    ) internal returns (uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory callbackReturn) {
+        callbackReturn = callbackIfNeeded(0, 0, 0, callback);
+        return (0, 0, 0, callbackReturn);
     }
 
     function fillTokenForPY(
@@ -98,14 +108,7 @@ abstract contract LimitRouterBase is
         _transferOut(SY, a.receiver, actualMaking);
 
         // callback to Taker
-        if (a.callback.length > 0) {
-            callbackReturn = IPLimitRouterCallback(msg.sender).limitRouterCallback(
-                actualMaking,
-                actualTaking,
-                totalFee,
-                a.callback
-            );
-        }
+        callbackReturn = callbackIfNeeded(actualMaking, actualTaking, totalFee, a.callback);
 
         // Taker => Makers
         address pyToMaker = (a.orderType == OrderType.SY_FOR_PT) ? PT : YT;
@@ -133,14 +136,7 @@ abstract contract LimitRouterBase is
         _transferFromMakers(IERC20(pyFromMaker), a.params, a.receiver, out.netMakings);
 
         // callback to Taker
-        if (a.callback.length > 0) {
-            callbackReturn = IPLimitRouterCallback(msg.sender).limitRouterCallback(
-                actualMaking,
-                actualTaking,
-                totalFee,
-                a.callback
-            );
-        }
+        callbackReturn = callbackIfNeeded(actualMaking, actualTaking, totalFee, a.callback);
 
         // Taker => This
         _transferFrom(IERC20(SY), msg.sender, address(this), actualTaking);
@@ -156,22 +152,33 @@ abstract contract LimitRouterBase is
     }
 
     // ----------------- verify & convert functions -----------------
-    function _validateOrdersSkipSig(FillOrderParams[] memory params) internal view {
+    function _validateSkipSigAndFilterOrders(
+        FillOrderParams[] memory params
+    ) internal view returns (FillOrderParams[] memory res) {
         uint256 len = params.length;
         require(len != 0, "LOP: empty batch");
 
         (address YT, OrderType orderType) = (params[0].order.YT, params[0].order.orderType);
+        require(block.timestamp < IPYieldToken(YT).expiry(), "LOP: PY expired");
 
-        uint256 expiry = IPYieldToken(YT).expiry();
-        require(block.timestamp < expiry, "LOP: PY expired");
-
+        uint256 skipped = 0;
         for (uint256 i = 0; i < len; i++) {
             Order memory order = params[i].order;
+            require(order.orderType == orderType && order.YT == YT, "LOP: mismatch types");
 
-            require(order.orderType == orderType, "LOP: not same orderType");
-            require(order.YT == YT, "LOP: not same YT");
-            require(block.timestamp < order.expiry, "LOP: order expired");
-            require(order.nonce >= nonce[order.maker], "LOP: order invalidated");
+            if (!(block.timestamp < order.expiry && order.nonce >= nonce[order.maker])) {
+                skipped++;
+                params[i].signature = EMPTY_BYTES;
+            }
+        }
+
+        res = new FillOrderParams[](len - skipped);
+        uint256 iter = 0;
+        for (uint256 i = 0; i < len; i++) {
+            if (params[i].signature.length != 0) {
+                res[iter] = params[i];
+                iter++;
+            }
         }
     }
 
@@ -231,6 +238,22 @@ abstract contract LimitRouterBase is
                 notionalVolumes[i],
                 params[i].order.maker,
                 msg.sender
+            );
+        }
+    }
+
+    function callbackIfNeeded(
+        uint256 actualMaking,
+        uint256 actualTaking,
+        uint256 totalFee,
+        bytes memory callback
+    ) internal returns (bytes memory callbackReturn) {
+        if (callback.length > 0) {
+            callbackReturn = IPLimitRouterCallback(msg.sender).limitRouterCallback(
+                actualMaking,
+                actualTaking,
+                totalFee,
+                callback
             );
         }
     }
