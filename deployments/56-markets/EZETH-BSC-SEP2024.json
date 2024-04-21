@@ -1,0 +1,13 @@
+{
+    "name": "EZETH-BSC-SEP2024",
+    "SY": "0xe49269B5D31299BcE407c8CcCf241274e9A93C9A",
+    "YT": "0x964B6D486a89025e5557a5aF3b4CC100A3F9734c",
+    "PT": "0x5eC5033a44ffb6f21DA3A4f4CCe4163485D61747",
+    "market": "0xB2eEA27aF50030A445418553c4892065cf3a720a",
+    "expiry": 1727308800,
+    "lnFeeRateRoot": "2995508979000000",
+    "scalarRoot": "5556274198000000000",
+    "initAnchor": "1183204165000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x888b0330db9ea9445930e709f4164bc583c6af00abb55b1dd0d2b2d26c5d6346"
+}
