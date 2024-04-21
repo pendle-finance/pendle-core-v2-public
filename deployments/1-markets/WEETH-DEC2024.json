@@ -1,0 +1,13 @@
+{
+    "name": "WEETH-DEC2024",
+    "SY": "0xAC0047886a985071476a1186bE89222659970d65",
+    "YT": "0x129e6B5DBC0Ecc12F9e486C5BC9cDF1a6A80bc6A",
+    "PT": "0x6ee2b5E19ECBa773a352E5B21415Dc419A700d1d",
+    "market": "0x7d372819240D14fB477f17b964f95F33BeB4c704",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "2995508979000000",
+    "scalarRoot": "4983038939000000000",
+    "initAnchor": "1335879211000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x2a5cb7f94a354f8c6641a495151e72b44ed00525ce2941a5e173d2a740e1b2b2"
+}
