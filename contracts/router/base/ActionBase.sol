@@ -101,9 +101,7 @@ abstract contract ActionBase is TokenHelper, IPLimitOrderType {
             _transferOut(out.tokenOut, receiver, netTokenOut);
         }
 
-        if (netTokenOut < out.minTokenOut) {
-            revert Errors.RouterInsufficientTokenOut(netTokenOut, out.minTokenOut);
-        }
+        if (netTokenOut < out.minTokenOut) revert("Slippage: INSUFFICIENT_TOKEN_OUT");
     }
 
     function __redeemSy(
@@ -133,7 +131,7 @@ abstract contract ActionBase is TokenHelper, IPLimitOrderType {
         }
 
         netPyOut = IPYieldToken(YT).mintPY(receiver, receiver);
-        if (netPyOut < minPyOut) revert Errors.RouterInsufficientPYOut(netPyOut, minPyOut);
+        if (netPyOut < minPyOut) revert("Slippage: INSUFFICIENT_PT_YT_OUT");
     }
 
     function _redeemPyToSy(
@@ -150,7 +148,7 @@ abstract contract ActionBase is TokenHelper, IPLimitOrderType {
         if (needToBurnYt) _transferFrom(IERC20(YT), msg.sender, YT, netPyIn);
 
         netSyOut = IPYieldToken(YT).redeemPY(receiver);
-        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
     // ----------------- HELPER -----------------
@@ -195,7 +193,7 @@ abstract contract ActionBase is TokenHelper, IPLimitOrderType {
             netSyFee += netSyFeeMarket;
         }
 
-        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
     function _entry_swapExactSyForPt(address market, LimitOrderData calldata limit) internal view returns (address) {
@@ -235,7 +233,7 @@ abstract contract ActionBase is TokenHelper, IPLimitOrderType {
             netSyFee += netSyFeeMarket;
         }
 
-        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
     }
 
     // ----------------- LIMIT ORDERS -----------------

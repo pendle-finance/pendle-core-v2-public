@@ -102,9 +102,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         _swapTokenInput(inp);
 
         netTokenOut = _selfBalance(inp.tokenMintSy);
-        if (netTokenOut < minTokenOut) {
-            revert Errors.RouterInsufficientTokenOut(netTokenOut, minTokenOut);
-        }
+        if (netTokenOut < minTokenOut) revert("Slippage: INSUFFICIENT_TOKEN_OUT");
 
         _transferOut(inp.tokenMintSy, receiver, netTokenOut);
     }

@@ -29,14 +29,14 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         (, , netSyUsed, netPtUsed) = _readMarket(market).addLiquidity(netSyInterm, netPtDesired, block.timestamp);
 
         if (netSyInterm != netSyUsed) {
-            revert Errors.RouterNotAllSyUsed(netSyInterm, netSyUsed);
+            revert("Slippage: NOT_ALL_SY_USED");
         }
 
         // SY has been minted and transferred to the market
         _transferFrom(PT, msg.sender, market, netPtUsed);
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+        if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
         emit AddLiquidityDualTokenAndPt(
             msg.sender,
@@ -70,7 +70,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         _transferFrom(PT, msg.sender, market, netPtUsed);
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+        if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
         emit AddLiquidityDualSyAndPt(msg.sender, market, receiver, netSyUsed, netPtUsed, netLpOut);
     }
@@ -118,7 +118,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         // execute the addLiquidity
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyReceived, netPtLeft);
 
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+        if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
@@ -231,7 +231,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyLeft, netPtReceived);
 
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
+        if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
     }
 
     // ------------------ ADD LIQUIDITY SINGLE TOKEN KEEP YT ------------------
@@ -324,8 +324,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
         (netLpOut, , ) = IPMarket(market).mint(receiver, netSyAddLiquidity, netYtOut);
 
-        if (netLpOut < minLpOut) revert Errors.RouterInsufficientLpOut(netLpOut, minLpOut);
-        if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
+        if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
+        if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
     }
 
     // ------------------ REMOVE LIQUIDITY DUAL ------------------
@@ -343,7 +343,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
         (netSyInterm, netPtOut) = IPMarket(market).burn(address(SY), receiver, netLpToRemove);
-        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
 
         // redeem SY to token
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyInterm, output, false);
@@ -370,8 +370,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
         (netSyOut, netPtOut) = IPMarket(market).burn(receiver, receiver, netLpToRemove);
 
-        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
-        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
 
         emit RemoveLiquidityDualSyAndPt(msg.sender, market, receiver, netLpToRemove, netPtOut, netSyOut);
     }
@@ -408,7 +408,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         netPtOut += netPtOutSwap;
         netSyFee += netSyFeeSwap;
 
-        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
 
         emit RemoveLiquiditySinglePt(msg.sender, market, receiver, netLpToRemove, netPtOut);
     }
@@ -468,7 +468,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         } else {
             (netSyOut, netSyFee) = __removeLpToSyBeforeExpiry(receiver, market, netLpToRemove, limit);
         }
-        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
     function __removeLpToSyAfterExpiry(

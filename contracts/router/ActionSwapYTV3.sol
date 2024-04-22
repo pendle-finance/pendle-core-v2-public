@@ -94,7 +94,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
             netSyFee += netSyFeeMarket;
         }
 
-        if (netYtOut < minYtOut) revert Errors.RouterInsufficientYtOut(netYtOut, minYtOut);
+        if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
     }
 
     // ------------------ SWAP TOKEN FOR TOKEN ------------------
@@ -175,7 +175,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
             netSyOut += SY.balanceOf(receiver) - preSyBalance;
         }
 
-        if (netSyOut < minSyOut) revert Errors.RouterInsufficientSyOut(netSyOut, minSyOut);
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
     // ------------------ SWAP PT FOR YT ------------------
@@ -226,7 +226,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
             guessTotalPtFromSwap
         );
 
-        if (netPtOut < minPtOut) revert Errors.RouterInsufficientPtOut(netPtOut, minPtOut);
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
 
         _transferFrom(IERC20(YT), msg.sender, address(YT), exactYtIn);
         IPMarket(market).swapSyForExactPt(

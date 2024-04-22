@@ -69,7 +69,7 @@ library MarketApproxPtInLib {
                 approx.guessMin = guess;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     /**
@@ -116,7 +116,7 @@ library MarketApproxPtInLib {
                 approx.guessMax = guess - 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     struct Args5 {
@@ -178,7 +178,7 @@ library MarketApproxPtInLib {
                 approx.guessMax = guess - 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     function calcNumerators(
@@ -249,7 +249,7 @@ library MarketApproxPtInLib {
                 approx.guessMax = guess - 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -269,15 +269,13 @@ library MarketApproxPtInLib {
     function nextGuess(ApproxParams memory approx, uint256 iter) internal pure returns (uint256) {
         if (iter == 0 && approx.guessOffchain != 0) return approx.guessOffchain;
         if (approx.guessMin <= approx.guessMax) return (approx.guessMin + approx.guessMax) / 2;
-        revert Errors.ApproxFail();
+        revert("Slippage: guessMin > guessMax");
     }
 
     /// INTENDED TO BE CALLED BY WHEN GUESS.OFFCHAIN == 0 ONLY ///
 
     function validateApprox(ApproxParams memory approx) internal pure {
-        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE) {
-            revert Errors.ApproxParamsInvalid(approx.guessMin, approx.guessMax, approx.eps);
-        }
+        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE) revert("Internal: INVALID_APPROX_PARAMS");
     }
 
     function calcMaxPtIn(MarketState memory market, MarketPreCompute memory comp) internal pure returns (uint256) {
@@ -356,7 +354,7 @@ library MarketApproxPtOutLib {
             }
         }
 
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     /**
@@ -398,7 +396,7 @@ library MarketApproxPtOutLib {
                 approx.guessMin = guess + 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     struct Args6 {
@@ -474,7 +472,7 @@ library MarketApproxPtOutLib {
                 a.approx.guessMax = guess - 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     /**
@@ -516,7 +514,7 @@ library MarketApproxPtOutLib {
                 approx.guessMax = guess - 1;
             }
         }
-        revert Errors.ApproxFail();
+        revert("Slippage: APPROX_EXHAUSTED");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -547,12 +545,10 @@ library MarketApproxPtOutLib {
     function nextGuess(ApproxParams memory approx, uint256 iter) internal pure returns (uint256) {
         if (iter == 0 && approx.guessOffchain != 0) return approx.guessOffchain;
         if (approx.guessMin <= approx.guessMax) return (approx.guessMin + approx.guessMax) / 2;
-        revert Errors.ApproxFail();
+        revert("Slippage: guessMin > guessMax");
     }
 
     function validateApprox(ApproxParams memory approx) internal pure {
-        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE) {
-            revert Errors.ApproxParamsInvalid(approx.guessMin, approx.guessMax, approx.eps);
-        }
+        if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE) revert("Internal: INVALID_APPROX_PARAMS");
     }
 }

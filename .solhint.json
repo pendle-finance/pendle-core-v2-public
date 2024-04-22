@@ -27,7 +27,7 @@
     "reason-string": [
       "warn",
       {
-        "maxLength": 64
+        "maxLength": 32
       }
     ],
     "constructor-syntax": "warn",

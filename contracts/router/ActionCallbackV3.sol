@@ -98,7 +98,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
         uint256 ptOwed = ptToAccount.abs();
         uint256 netPyOut = YT.mintPY(msg.sender, receiver);
 
-        if (netPyOut < ptOwed) revert Errors.RouterInsufficientPtRepay(netPyOut, ptOwed);
+        if (netPyOut < ptOwed) revert("Slippage: INSUFFICIENT_PT_REPAY");
     }
 
     function _callbackSwapYtForSy(int256 ptToAccount, int256 syToAccount, bytes calldata data) internal {
@@ -121,10 +121,8 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
         uint256 netPtOwed = ptToAccount.abs();
 
         uint256 netPyOut = YT.mintPY(msg.sender, receiver);
-        if (netPyOut < minYtOut) revert Errors.RouterInsufficientYtOut(netPyOut, minYtOut);
-        if (exactPtIn + netPyOut < netPtOwed) {
-            revert Errors.RouterInsufficientPtRepay(exactPtIn + netPyOut, netPtOwed);
-        }
+        if (netPyOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
+        if (exactPtIn + netPyOut < netPtOwed) revert("Slippage: INSUFFICIENT_PT_REPAY");
     }
 
     function _callbackSwapExactYtForPt(int256 ptToAccount, int256 syToAccount, bytes calldata data) internal {
@@ -137,9 +135,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
 
         uint256 netSyToMarket = YT.redeemPY(msg.sender);
 
-        if (netSyToMarket < netSyOwed) {
-            revert Errors.RouterInsufficientSyRepay(netSyToMarket, netSyOwed);
-        }
+        if (netSyToMarket < netSyOwed) revert("Slippage: INSUFFICIENT_SY_REPAY");
 
         _transferOut(address(PT), receiver, netPtOut);
     }
