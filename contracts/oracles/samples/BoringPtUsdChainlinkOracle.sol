@@ -34,7 +34,7 @@ contract BoringPtUsdChainlinkOracle {
     /// @notice direct integration with PendlePtOracleLib, which optimizes gas efficiency.
     /// @notice please checkOracleState() before use
     function getPtPriceSample1() external view virtual returns (uint256) {
-        uint256 ptRate = IPMarket(market).getPtToAssetRate(twapDuration);
+        uint256 ptRate = IPMarket(market).getPtToSyRate(twapDuration);
         uint256 assetPrice = _getUnderlyingAssetPrice();
         return (assetPrice * ptRate) / PMath.ONE;
     }
@@ -43,7 +43,7 @@ contract BoringPtUsdChainlinkOracle {
     /// but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
     /// @notice please checkOracleState() before use
     function getPtPriceSample2() external view virtual returns (uint256) {
-        uint256 ptRate = IPPtLpOracle(ptOracle).getPtToAssetRate(market, twapDuration);
+        uint256 ptRate = IPPtLpOracle(ptOracle).getPtToSyRate(market, twapDuration);
         uint256 assetPrice = _getUnderlyingAssetPrice();
         return (assetPrice * ptRate) / PMath.ONE;
     }
