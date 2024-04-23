@@ -1,0 +1,13 @@
+{
+    "name": "SUSDE-JUL2024",
+    "SY": "0xC4ed348c56223C5953939e932E315F9d72Cd83fF",
+    "YT": "0xf65CD2460F4F199C5AC09c74Ac05c40559C29e4F",
+    "PT": "0xd810362556296c834E30C9A61d8e21a5cf29eAb4",
+    "market": "0x107a2e3cD2BB9a32B9eE2E4d51143149F8367eBa",
+    "expiry": 1721865600,
+    "lnFeeRateRoot": "9950330853000000",
+    "scalarRoot": "3647473717000000000",
+    "initAnchor": "1181346623000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x9635851f34f1f995e4c4c0d856ce7c4e544a43601ec96eef349f622b463bb311"
+}
