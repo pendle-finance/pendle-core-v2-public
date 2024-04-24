@@ -15,7 +15,7 @@ contract PendleRouterV4 is Proxy, RouterStorage {
     function _implementation() internal view override returns (address) {
         RouterStorage.CoreStorage storage $ = _getCoreStorage();
         address facet = $.selectorToFacet[msg.sig];
-        require(facet != address(0), "selector not found");
+        require(facet != address(0), "INVALID_SELECTOR");
         return facet;
     }
 }

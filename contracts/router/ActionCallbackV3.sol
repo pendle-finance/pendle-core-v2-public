@@ -54,7 +54,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
             uint256 totalSyToMintPy = index.assetToSyUp(actualTaking);
             uint256 additionalSyToMint = totalSyToMintPy - actualMaking;
 
-            require(additionalSyToMint <= netRemaining, "Router: Max SY to pull exceeded");
+            require(additionalSyToMint <= netRemaining, "Slippage: INSUFFICIENT_SY_LIMIT");
 
             _transferOut(YT.SY(), address(YT), additionalSyToMint);
 
@@ -69,7 +69,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
 
             return abi.encode(additionalSyToMint, netPyToReceiver);
         } else {
-            require(actualMaking <= netRemaining, "Router: Max PY to pull exceeded");
+            require(actualMaking <= netRemaining, "Slippage: INSUFFICIENT_PY_LIMIT");
 
             if (orderType == OrderType.PT_FOR_SY) {
                 _transferOut(address(YT), address(YT), actualMaking);
@@ -79,7 +79,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
 
             uint256 netSyRedeemed = IPYieldToken(YT).redeemPY(address(this));
 
-            require(actualTaking <= netSyRedeemed, "Router: Insufficient SY redeemed");
+            require(actualTaking <= netSyRedeemed, "Slippage: INSUFFICIENT_PY_REDEEM");
 
             uint256 netSyToReceiver = netSyRedeemed - actualTaking;
 
