@@ -18,4 +18,6 @@ contract PendleRouterV4 is Proxy, RouterStorage {
         require(facet != address(0), "INVALID_SELECTOR");
         return facet;
     }
+
+    receive() external payable override {}
 }
