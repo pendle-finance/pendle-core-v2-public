@@ -10,7 +10,12 @@ contract PendleERC20WithSupplyCapSY is PendleERC20SY {
 
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
-    constructor(string memory _name, string memory _symbol, address _erc20, uint256 _initialSupplyCap) PendleERC20SY(_name, _symbol, _erc20) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        address _erc20,
+        uint256 _initialSupplyCap
+    ) PendleERC20SY(_name, _symbol, _erc20) {
         _updateSupplyCap(_initialSupplyCap);
     }
 
