@@ -14,6 +14,7 @@ contract PendleSwellStakingERC20SY is SYBase {
 
     constructor(string memory _name, string memory _symbol, address _stakeToken) SYBase(_name, _symbol, _stakeToken) {
         stakeToken = _stakeToken;
+        _safeApproveInf(_stakeToken, SWELL_STAKING);
     }
 
     /*///////////////////////////////////////////////////////////////
