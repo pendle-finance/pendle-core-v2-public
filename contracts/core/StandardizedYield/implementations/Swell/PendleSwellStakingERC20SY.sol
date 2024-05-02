@@ -27,7 +27,7 @@ contract PendleSwellStakingERC20SY is SYBase {
         if (tokenIn != stakeToken) {
             amountDeposited = _wrapToStakeToken(tokenIn, amountDeposited);
         }
-        ISimpleStakingERC20(SWELL_STAKING).deposit(stakeToken, amountDeposited, address(this));
+        ISwellSimpleStakingERC20(SWELL_STAKING).deposit(stakeToken, amountDeposited, address(this));
         return amountDeposited;
     }
 
@@ -36,7 +36,7 @@ contract PendleSwellStakingERC20SY is SYBase {
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
-        ISimpleStakingERC20(SWELL_STAKING).withdraw(stakeToken, amountSharesToRedeem, receiver);
+        ISwellSimpleStakingERC20(SWELL_STAKING).withdraw(stakeToken, amountSharesToRedeem, receiver);
         return amountSharesToRedeem;
     }
 

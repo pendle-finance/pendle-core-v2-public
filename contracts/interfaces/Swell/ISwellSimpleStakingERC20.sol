@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-interface ISimpleStakingERC20 {
+interface ISwellSimpleStakingERC20 {
     /// @notice Struct to hold the supported booleans
     /// @param deposit true if deposit is supported
     /// @param withdraw true if withdraw is supported
