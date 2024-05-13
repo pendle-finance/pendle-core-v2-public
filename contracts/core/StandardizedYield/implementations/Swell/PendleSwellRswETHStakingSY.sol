@@ -43,4 +43,15 @@ contract PendleSwellRswETHStakingSY is PendleSwellStakingERC20SY {
     function _canWrapToStakeToken(address token) internal view virtual override returns (bool) {
         return token == NATIVE;
     }
+
+    function assetInfo()
+        external
+        view
+        virtual
+        override
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
+    {
+        return (AssetType.TOKEN, NATIVE, 18);
+    }
+
 }
