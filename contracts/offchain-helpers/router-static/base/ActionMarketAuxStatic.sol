@@ -114,12 +114,20 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     function getLpToAssetRate(address market) public view returns (uint256) {
         MarketState memory state = _readState(market);
         PYIndex pyIndexCurrent = _pyIndex(market);
-        MarketPreCompute memory comp = state.getMarketPreCompute(pyIndexCurrent, block.timestamp);
 
-        int256 totalHypotheticalAsset = comp.totalAsset +
-            state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
+        int256 totalHypotheticalAsset;
+        if (state.expiry <= block.timestamp) {
+            // 1 PT = 1 Asset post-expiry
+            totalHypotheticalAsset = state.totalPt + pyIndexCurrent.syToAsset(state.totalSy);
+        } else {
+            MarketPreCompute memory comp = state.getMarketPreCompute(pyIndexCurrent, block.timestamp);
 
-        return uint256(totalHypotheticalAsset.divDown(state.totalLp));
+            totalHypotheticalAsset =
+                comp.totalAsset +
+                state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
+        }
+
+        return totalHypotheticalAsset.divDown(state.totalLp).Uint();
     }
 
     function getPtToAssetRate(address market) public view returns (uint256) {
