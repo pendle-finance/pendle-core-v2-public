@@ -6,6 +6,10 @@ import "../../../../interfaces/IERC4626.sol";
 import "../../../../interfaces/Karak/IKarakVault.sol";
 import "../../../../interfaces/Karak/IKarakVaultSupervisor.sol";
 
+/**
+ * Pendle SY should take either the stake token or the vault token from user to deposit back into Karak.
+ * At any point of time, all holding under SY.totalSupply() should always be deposited inside Karak rather than holding the vault token.
+ */
 abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
     using ArrayLib for address[];
 
@@ -80,6 +84,8 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
                 revert KarakVaultAssetLimitExceeded(assetLimit, totalAsset, amountTokenToDeposit);
             }
         }
+
+        // Karak currently does not accrue any yield inside their 4626, so asset essentially equals to share
         return amountTokenToDeposit;
     }
 
