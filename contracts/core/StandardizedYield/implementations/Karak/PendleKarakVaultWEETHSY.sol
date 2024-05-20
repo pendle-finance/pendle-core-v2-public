@@ -16,17 +16,17 @@ contract PendleKarakVaultWEETHSY is PendleKarakVaultSYBaseUpg {
     constructor(
         address _vault,
         address _vaultSupervisor,
-        address _weETH,
         address _referee
     ) PendleKarakVaultSYBaseUpg(_vault, _vaultSupervisor) {
-        _disableInitializers();
-        weETH = _weETH;
-        liquidityPool = IEtherFiWEEth(_weETH).liquidityPool();
-        eETH = IEtherFiWEEth(_weETH).eETH();
+        weETH = IERC4626(_vault).asset();
+        liquidityPool = IEtherFiWEEth(weETH).liquidityPool();
+        eETH = IEtherFiWEEth(weETH).eETH();
         referee = _referee;
+
+        _disableInitializers();
     }
 
-    function initialize() external {
+    function initialize() initializer external {
         __SYBaseUpg_init("SY Karak WEETH", "SY-Karak-WEETH");
         __KarakVaultSY_init();
         _safeApproveInf(eETH, weETH);

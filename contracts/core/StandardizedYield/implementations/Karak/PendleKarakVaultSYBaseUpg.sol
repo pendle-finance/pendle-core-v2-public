@@ -30,6 +30,7 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
 
     function __KarakVaultSY_init() internal {
         _safeApproveInf(stakeToken, vault);
+        _safeApproveInf(vault, vaultSupervisor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -58,7 +59,7 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 /*amountTokenOut*/) {
-        IKarakVaultSupervisor(vaultSupervisor).returnShares(vault, amountSharesToRedeem);
+        IKarakVaultSupervisor(vaultSupervisor).gimmieShares(vault, amountSharesToRedeem);
         _transferOut(vault, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
@@ -78,10 +79,8 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
             if (totalAsset + amountTokenToDeposit > assetLimit) {
                 revert KarakVaultAssetLimitExceeded(assetLimit, totalAsset, amountTokenToDeposit);
             }
-
-            return amountTokenToDeposit;
         }
-        return _previewToStakeToken(tokenIn, amountTokenToDeposit);
+        return amountTokenToDeposit;
     }
 
     function _previewRedeem(
