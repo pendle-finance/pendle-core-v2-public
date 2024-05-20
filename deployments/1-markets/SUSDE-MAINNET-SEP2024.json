@@ -1,0 +1,13 @@
+{
+    "name": "SUSDE-MAINNET-SEP2024",
+    "SY": "0x4139cDC6345aFFbaC0692b43bed4D059Df3e6d65",
+    "YT": "0xdc02b77a3986da62C7A78FED73949C9767850809",
+    "PT": "0x6c9f097e044506712B58EAC670c9a5fd4BCceF13",
+    "market": "0xd1D7D99764f8a52Aff007b7831cc02748b2013b5",
+    "expiry": 1727308800,
+    "lnFeeRateRoot": "2995508979000000",
+    "scalarRoot": "8580934398000000000",
+    "initAnchor": "1120006408000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x467c0c15148778d0b99a1d9f3bd7406fd0c58d8a6e3284a57a50e55ae0160165"
+}
