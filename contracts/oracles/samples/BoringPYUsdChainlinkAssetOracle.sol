@@ -9,12 +9,12 @@ import "../PendleLpOracleLib.sol";
 import {AggregatorV2V3Interface as IChainlinkAggregator} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
 /**
- * @notice The returned price from this contract is multiplied by the default USD price of the 
+ * @notice The returned price from this contract is multiplied by the default USD price of the
  * underlying asset, as read from a Chainlink-interface oracle.
  *
- * Example of this usage: 
+ * Example of this usage:
  * - PT-wstETH = ptToAssetRate * stETH price
- * - PT-silo-crvUSD = ptToAssetRate * crvUSD price 
+ * - PT-silo-crvUSD = ptToAssetRate * crvUSD price
  *
  * For more details into how the oracle is implemented, refer to PendlePYLpOracle & PendlePYOracleLib.
  */

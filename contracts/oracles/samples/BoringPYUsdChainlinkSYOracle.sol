@@ -9,10 +9,10 @@ import "../PendleLpOracleLib.sol";
 import {AggregatorV2V3Interface as IChainlinkAggregator} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
 /**
- * @notice The returned price from this contract is multiplied by the default USD price of the 
+ * @notice The returned price from this contract is multiplied by the default USD price of the
  * SY-equivalent token, as read from a Chainlink-interface oracle.
  *
- * Example of this usage: 
+ * Example of this usage:
  * - PT-weETH = ptToSyRate * weETH price
  * - PT-ezETH = ptToSyRate * ezETH price
  *
