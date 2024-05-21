@@ -53,5 +53,4 @@ contract PendleSwellRswETHStakingSY is PendleSwellStakingERC20SY {
     {
         return (AssetType.TOKEN, NATIVE, 18);
     }
-
 }

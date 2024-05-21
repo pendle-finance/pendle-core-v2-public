@@ -33,7 +33,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
 
     function pause(address[] calldata addrs) external onlyGuardian {
         uint256 length = addrs.length;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; ) {
             IPPausingInterface(addrs[i]).pause();
             unchecked {
                 ++i;
@@ -45,9 +45,11 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
                             ADMIN CALL
     //////////////////////////////////////////////////////////////*/
 
-    function aggregate(IPGovernanceProxy.Call[] calldata calls) external payable onlyAdmin returns (bytes[] memory rtnData) {
+    function aggregate(
+        IPGovernanceProxy.Call[] calldata calls
+    ) external payable onlyAdmin returns (bytes[] memory rtnData) {
         uint256 length = calls.length;
-        rtnData = new bytes[](length);  
+        rtnData = new bytes[](length);
 
         Call calldata call;
         for (uint256 i = 0; i < length; ) {
