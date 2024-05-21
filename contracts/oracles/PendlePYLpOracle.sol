@@ -3,13 +3,13 @@ pragma solidity ^0.8.17;
 
 import "./PendlePYOracleLib.sol";
 import "./PendleLpOracleLib.sol";
-import "../interfaces/IPPtLpOracle.sol";
+import "../interfaces/IPPYLpOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
+contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
     using PendlePYOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
 
@@ -40,7 +40,6 @@ contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
         emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 
-
     /*///////////////////////////////////////////////////////////////
                     PT, YT, LP to Asset (see EIP-5115)
     //////////////////////////////////////////////////////////////*/
@@ -52,7 +51,7 @@ contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
     }
 
     function getYtToAssetRate(address market, uint32 duration) external view returns (uint256) {
-        return IPMarket(market).getYtToAssetRate(duration);        
+        return IPMarket(market).getYtToAssetRate(duration);
     }
 
     function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
