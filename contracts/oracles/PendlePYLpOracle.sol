@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendlePtOracleLib.sol";
+import "./PendlePYOracleLib.sol";
 import "./PendleLpOracleLib.sol";
 import "../interfaces/IPPtLpOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
@@ -9,8 +9,8 @@ import "../core/libraries/BoringOwnableUpgradeable.sol";
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
-    using PendlePtOracleLib for IPMarket;
+contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
+    using PendlePYOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
 
     error InvalidBlockRate(uint256 blockCycleNumerator);
@@ -40,23 +40,44 @@ contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
         emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 
+
+    /*///////////////////////////////////////////////////////////////
+                    PT, YT, LP to Asset (see EIP-5115)
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice make sure you have taken into account the risk of not being able to withdraw from SY to Asset
+    /// More info in StandardizedYield
     function getPtToAssetRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getPtToAssetRate(duration);
     }
 
-    /// @notice make sure you have taken into account the risk of not being able to withdraw from SY to Asset
-    /// More info in StandardizedYield
+    function getYtToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getYtToAssetRate(duration);        
+    }
+
     function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getLpToAssetRate(duration);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    PT, YT, LP to SY (repricing token)
+    //////////////////////////////////////////////////////////////*/
 
     function getPtToSyRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getPtToSyRate(duration);
     }
 
+    function getYtToSyRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getYtToSyRate(duration);
+    }
+
     function getLpToSyRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getLpToSyRate(duration);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                        Utility functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * A check function for the cardinality status of the market

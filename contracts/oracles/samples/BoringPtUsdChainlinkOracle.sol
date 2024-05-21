@@ -10,10 +10,10 @@ import {AggregatorV2V3Interface as IChainlinkAggregator} from "@chainlink/contra
 
 /**
  * @notice The returned price from this contract is multiplied by the default USD price of the asset, as read from Chainlink Oracles.
- * For more details into how the oracle is implemented, refer to PendlePtOracle & PendlePtOracleLib.
+ * For more details into how the oracle is implemented, refer to PendlePtOracle & PendlePYOracleLib.
  */
 contract BoringPtUsdChainlinkOracle {
-    using PendlePtOracleLib for IPMarket;
+    using PendlePYOracleLib for IPMarket;
 
     uint32 public immutable twapDuration;
     address public immutable market;
@@ -31,7 +31,7 @@ contract BoringPtUsdChainlinkOracle {
         ptOracle = _ptOracle;
     }
 
-    /// @notice direct integration with PendlePtOracleLib, which optimizes gas efficiency.
+    /// @notice direct integration with PendlePYOracleLib, which optimizes gas efficiency.
     /// @notice please checkOracleState() before use
     function getPtPriceSample1() external view virtual returns (uint256) {
         uint256 ptRate = IPMarket(market).getPtToAssetRate(twapDuration);
