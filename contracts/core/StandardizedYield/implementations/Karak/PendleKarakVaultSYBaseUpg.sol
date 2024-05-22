@@ -22,7 +22,7 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
 
     // address public immutable shareToken;
 
-    constructor(address _vault, address _vaultSupervisor) SYBaseUpg(IERC4626(_vault).asset()) {
+    constructor(address _vault, address _vaultSupervisor) SYBaseUpg(_vault) {
         vault = _vault;
         stakeToken = IERC4626(_vault).asset();
         vaultSupervisor = _vaultSupervisor;
