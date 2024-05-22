@@ -37,11 +37,14 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
         _safeApproveInf(vault, vaultSupervisor);
     }
 
-    function _convertTo4626Rate(uint256 rate) internal view returns (uint256) {
+    function exchangeRate() public view override returns (uint256) {
+        uint256 stakeTokenRate = _getStakeTokenExchangeRate();
         uint256 totalAsset = IERC4626(vault).totalAssets();
         uint256 totalSupply = IERC4626(vault).totalSupply();
-        return rate * totalAsset / totalSupply;
+        return (stakeTokenRate * totalAsset) / totalSupply;
     }
+
+    function _getStakeTokenExchangeRate() internal view virtual returns (uint256);
 
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
@@ -90,7 +93,7 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
             if (totalAsset + amountTokenToDeposit > assetLimit) {
                 revert KarakVaultAssetLimitExceeded(assetLimit, totalAsset, amountTokenToDeposit);
             }
-            return amountTokenToDeposit * totalSupply / totalAsset;
+            return (amountTokenToDeposit * totalSupply) / totalAsset;
         }
 
         // Karak currently does not accrue any yield inside their 4626, so asset essentially equals to share

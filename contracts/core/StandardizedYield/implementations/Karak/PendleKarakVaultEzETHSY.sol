@@ -40,8 +40,8 @@ contract PendleKarakVaultEzETHSY is PendleKarakVaultSYBaseUpg {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
 
-    function exchangeRate() public view virtual override returns (uint256) {
-        return _convertTo4626Rate(IPExchangeRateOracle(exchangeRateOracle).getExchangeRate());
+    function _getStakeTokenExchangeRate() internal view virtual override returns (uint256) {
+        return IPExchangeRateOracle(exchangeRateOracle).getExchangeRate();
     }
 
     /*///////////////////////////////////////////////////////////////
