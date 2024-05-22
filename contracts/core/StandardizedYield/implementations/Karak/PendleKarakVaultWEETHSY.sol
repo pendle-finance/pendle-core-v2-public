@@ -6,7 +6,6 @@ import "../../../../interfaces/EtherFi/IEtherFiLiquidityPool.sol";
 import "../../../../interfaces/EtherFi/IEtherFiWEEth.sol";
 
 contract PendleKarakVaultWEETHSY is PendleKarakVaultSYBaseUpg {
-    
     // solhint-disable immutable-vars-naming
     address public immutable weETH;
     address public immutable liquidityPool;
@@ -26,7 +25,7 @@ contract PendleKarakVaultWEETHSY is PendleKarakVaultSYBaseUpg {
         _disableInitializers();
     }
 
-    function initialize() initializer external {
+    function initialize() external initializer {
         __SYBaseUpg_init("SY Karak WEETH", "SY-Karak-WEETH");
         __KarakVaultSY_init();
         _safeApproveInf(eETH, weETH);
