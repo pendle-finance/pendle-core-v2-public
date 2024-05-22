@@ -29,12 +29,18 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
     }
 
     /*///////////////////////////////////////////////////////////////
-                    Karak Vault Initialization
+                    Karak Vault Specilization
     //////////////////////////////////////////////////////////////*/
 
     function __KarakVaultSY_init() internal {
         _safeApproveInf(stakeToken, vault);
         _safeApproveInf(vault, vaultSupervisor);
+    }
+
+    function _convertTo4626Rate(uint256 rate) internal view returns (uint256) {
+        uint256 totalAsset = IERC4626(vault).totalAssets();
+        uint256 totalSupply = IERC4626(vault).totalSupply();
+        return rate * totalAsset / totalSupply;
     }
 
     /*///////////////////////////////////////////////////////////////

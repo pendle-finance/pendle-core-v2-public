@@ -36,7 +36,7 @@ contract PendleKarakVaultWEETHSY is PendleKarakVaultSYBaseUpg {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view override returns (uint256) {
-        return IEtherFiLiquidityPool(liquidityPool).amountForShare(1 ether);
+        return _convertTo4626Rate(IEtherFiLiquidityPool(liquidityPool).amountForShare(1 ether));
     }
 
     /*///////////////////////////////////////////////////////////////

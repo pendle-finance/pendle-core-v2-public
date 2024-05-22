@@ -22,8 +22,8 @@ contract PendleKarakVaultERC20SY is PendleKarakVaultSYBaseUpg {
                                EXCHANGE-RATE
     //////////////////////////////////////////////////////////////*/
 
-    function exchangeRate() public pure override returns (uint256) {
-        return PMath.ONE;
+    function exchangeRate() public view override returns (uint256) {
+        return _convertTo4626Rate(PMath.ONE);
     }
 
     function assetInfo() external view override returns (AssetType, address, uint8) {
