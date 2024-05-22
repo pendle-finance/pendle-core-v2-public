@@ -85,10 +85,12 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
 
         if (tokenIn == stakeToken) {
             uint256 totalAsset = IERC4626(vault).totalAssets();
+            uint256 totalSupply = IERC4626(vault).totalSupply();
             uint256 assetLimit = IKarakVault(vault).assetLimit();
             if (totalAsset + amountTokenToDeposit > assetLimit) {
                 revert KarakVaultAssetLimitExceeded(assetLimit, totalAsset, amountTokenToDeposit);
             }
+            return amountTokenToDeposit * totalSupply / totalAsset;
         }
 
         // Karak currently does not accrue any yield inside their 4626, so asset essentially equals to share
