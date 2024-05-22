@@ -95,8 +95,6 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
             }
             return (amountTokenToDeposit * totalSupply) / totalAsset;
         }
-
-        // Karak currently does not accrue any yield inside their 4626, so asset essentially equals to share
         return amountTokenToDeposit;
     }
 
