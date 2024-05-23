@@ -6,6 +6,7 @@ import "../../../../interfaces/Dolomite/IDolomiteMarginProxy.sol";
 import "../../../../interfaces/Dolomite/IDolomiteMarginContract.sol";
 
 contract PendleDolomiteSY is SYBase {
+    // solhint-disable immutable-vars-naming
     address public immutable asset;
     uint256 public immutable marketId;
     address public immutable marginProxy;
@@ -113,6 +114,7 @@ contract PendleDolomiteSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     // 1 share = 1 dolomite par
+    // 1 asset = 1 dolomite wei
     function _getOwningShares() internal view returns (uint256) {
         IDolomiteMarginContract.Wei memory accountPar = IDolomiteMarginContract(marginContract).getAccountPar(
             _getDefaultAccountInfo(),
