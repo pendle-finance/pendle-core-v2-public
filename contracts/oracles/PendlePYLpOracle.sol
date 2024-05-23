@@ -26,18 +26,12 @@ contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
     uint16 public blockCycleNumerator;
     uint16 public constant BLOCK_CYCLE_DENOMINATOR = 1000;
 
-    constructor(uint16 _blockCycleNumerator) initializer {
-        __BoringOwnable_init();
-        setBlockCycleNumerator(_blockCycleNumerator);
+    constructor(uint16 _blockCycleNumerator) {
+        _setBlockCycleNumerator(_blockCycleNumerator);
     }
 
-    function setBlockCycleNumerator(uint16 newBlockCycleNumerator) public onlyOwner {
-        if (newBlockCycleNumerator < BLOCK_CYCLE_DENOMINATOR) {
-            revert InvalidBlockRate(newBlockCycleNumerator);
-        }
-
-        blockCycleNumerator = newBlockCycleNumerator;
-        emit SetBlockCycleNumerator(newBlockCycleNumerator);
+    function initialize() external initializer {
+        __BoringOwnable_init();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -118,5 +112,19 @@ contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
             revert TwapDurationTooLarge(duration, cardinalityRequired);
         }
         return uint16(cardinalityRequired);
+    }
+
+    // --- Owner-Only Functions ---
+    function setBlockCycleNumerator(uint16 newBlockCycleNumerator) external onlyOwner {
+        _setBlockCycleNumerator(newBlockCycleNumerator);
+    }
+
+    function _setBlockCycleNumerator(uint16 newBlockCycleNumerator) internal {
+        if (newBlockCycleNumerator < BLOCK_CYCLE_DENOMINATOR) {
+            revert InvalidBlockRate(newBlockCycleNumerator);
+        }
+
+        blockCycleNumerator = newBlockCycleNumerator;
+        emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 }
