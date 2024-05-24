@@ -32,16 +32,17 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
                     Karak Vault Specilization
     //////////////////////////////////////////////////////////////*/
 
-    function __KarakVaultSY_init() internal {
+    function __KarakVaultSY_init() internal onlyInitializing {
         _safeApproveInf(stakeToken, vault);
         _safeApproveInf(vault, vaultSupervisor);
     }
 
     function exchangeRate() public view override returns (uint256) {
         uint256 stakeTokenRate = _getStakeTokenExchangeRate();
-        uint256 totalAsset = IERC4626(vault).totalAssets();
-        uint256 totalSupply = IERC4626(vault).totalSupply();
-        return (stakeTokenRate * totalAsset) / totalSupply;
+        // There should be no decimal offset on normal ERC20 tokens
+        // Could not be use for stakeToken without a properly configured ERC20 interface
+        uint256 shareToAssetRate = IERC4626(vault).convertToAssets(PMath.ONE);
+        return (stakeTokenRate * shareToAssetRate) / PMath.ONE;
     }
 
     function _getStakeTokenExchangeRate() internal view virtual returns (uint256);
@@ -59,7 +60,6 @@ abstract contract PendleKarakVaultSYBaseUpg is SYBaseUpg {
         }
 
         if (tokenIn == stakeToken) {
-            // return IKarakVaultSupervisor
             return IKarakVaultSupervisor(vaultSupervisor).deposit(vault, amountDeposited, 0);
         } else {
             IKarakVaultSupervisor(vaultSupervisor).returnShares(vault, amountDeposited);
