@@ -1,0 +1,14 @@
+{
+    "name": "SY Karak sUSDe",
+    "SY": "0x1b641894e66aec7bf5ab86517e8d81763cc8e19e",
+    "YT": "0xdd68f5D26Bf1182d6b241108bfC01f95C030502b",
+    "PT": "0xd351de53277c4218CC29f793263FB60E2fcFC1dC",
+    "market": "0xB1f587B354a4a363f5332e88effbbC2E4961250A",
+    "expiry": 1727308800,
+    "scalarRoot": "3480095243000000000",
+    "initAnchor": "1243231806000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0xb133757035e5f335a6070099cca7dfc7f34b3d2078cb3929db627a5e5228f50b",
+    "deployBlockNumber": 19967918,
+    "reversedFee": 0.2999999999199199
+}

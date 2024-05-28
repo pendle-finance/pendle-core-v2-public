@@ -1,0 +1,14 @@
+{
+    "name": "SY Karak eETH",
+    "SY": "0x8db42af6b2de9e8aee47f3423570d8e9c3873796",
+    "YT": "0x5439c3Ef0072e4A19C44478CDF947F5d957e66C7",
+    "PT": "0x5E9e4bFd81c8c03F8289b827C9B92332789b6fe1",
+    "market": "0x18bAFcaBf2d5898956AE6AC31543d9657a604165",
+    "expiry": 1727308800,
+    "scalarRoot": "3612434850000000000",
+    "initAnchor": "1216826907000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x26bba852c4385f67503265fb85d16df41325aeec85668cea7a8b062d7d1fbe7a",
+    "deployBlockNumber": 19967933,
+    "reversedFee": 0.2999999999199199
+}

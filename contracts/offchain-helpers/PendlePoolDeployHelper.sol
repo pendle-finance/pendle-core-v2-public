@@ -39,6 +39,11 @@ contract PendlePoolDeployHelper is TokenHelper {
         _seedLiquidity(market, SY, PT, YT, tokenToSeedLiqudity, amountToSeed);
     }
 
+    function seedLiquidity(address market, address tokenToSeedLiqudity, uint256 amountToSeed) external payable {
+        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
+        _seedLiquidity(market, address(SY), address(PT), address(YT), tokenToSeedLiqudity, amountToSeed);
+    }
+
     function _deployPYAndMarket(
         address SY,
         PoolDeploymentParams memory params
