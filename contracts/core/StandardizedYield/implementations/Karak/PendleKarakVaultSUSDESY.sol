@@ -34,7 +34,7 @@ contract PendleKarakVaultSUSDESY is PendleKarakVaultSYBaseUpg, IPTokenWithSupply
     //////////////////////////////////////////////////////////////*/
 
     function _getStakeTokenExchangeRate() internal view virtual override returns (uint256) {
-        return IERC4626(susde).convertToAssets(PMath.ONE);
+        return IERC4626(susde).previewRedeem(PMath.ONE);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -46,16 +46,20 @@ contract PendleKarakVaultSUSDESY is PendleKarakVaultSYBaseUpg, IPTokenWithSupply
     }
 
     function _previewToStakeToken(
-        address /*tokenIn*/,
+        address tokenIn,
         uint256 amountTokenToDeposit
     ) internal view virtual override returns (uint256) {
-        return IERC4626(susde).convertToShares(amountTokenToDeposit);
+        assert(tokenIn == usde);
+
+        return IERC4626(susde).previewDeposit(amountTokenToDeposit);
     }
 
     function _wrapToStakeToken(
-        address /*tokenIn*/,
+        address tokenIn,
         uint256 amountDeposited
     ) internal virtual override returns (uint256) {
+        assert(tokenIn == usde);
+
         return IERC4626(susde).deposit(amountDeposited, address(this));
     }
 
