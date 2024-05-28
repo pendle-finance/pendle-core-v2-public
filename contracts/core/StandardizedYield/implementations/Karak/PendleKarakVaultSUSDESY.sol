@@ -26,6 +26,7 @@ contract PendleKarakVaultSUSDESY is PendleKarakVaultSYBaseUpg, IPTokenWithSupply
     function initialize() external initializer {
         __SYBaseUpg_init("SY Karak sUSDe", "SY-Karak-sUSDe");
         __KarakVaultSY_init();
+        _safeApproveInf(usde, susde);
     }
 
     /*///////////////////////////////////////////////////////////////
