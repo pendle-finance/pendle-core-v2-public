@@ -12,4 +12,6 @@ interface IAaveV3AToken {
     function scaledTotalSupply() external view returns (uint256);
 
     function getPreviousIndex(address user) external view returns (uint256);
+
+    function getIncentivesController() external view returns (address);
 }
