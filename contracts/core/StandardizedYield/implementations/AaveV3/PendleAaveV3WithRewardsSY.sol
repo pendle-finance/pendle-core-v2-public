@@ -8,6 +8,9 @@ import "../../../../interfaces/AaveV3/IAaveV3Pool.sol";
 import "../../../../interfaces/AaveV3/IAaveV3IncentiveController.sol";
 
 // @NOTE: In this contract, we denote the "scaled balance" term as "share"
+
+// [NEW] @NOTE: As for the getRewardTokens function, it will check for different incentive controller
+// so this implementation should only be used in L2s. L1 would require more gas optimization
 contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
     using PMath for uint256;
 
@@ -107,7 +110,11 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory res) {
-        return rewardTokens;
+        address currentIncentiveController = IAaveV3AToken(aToken).getIncentivesController();
+        return
+            incentiveController == currentIncentiveController
+                ? rewardTokens
+                : ArrayLib.merge(rewardTokens, IAaveV3IncentiveController(currentIncentiveController).getRewardsList());
     }
 
     function _redeemExternalReward() internal override {
@@ -121,7 +128,7 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
         if (incentiveController != address(0)) {
             // claim old incentive controller rewards
             IAaveV3IncentiveController(incentiveController).claimAllRewardsToSelf(ArrayLib.create(aToken));
-        } 
+        }
 
         incentiveController = currentIncentiveController;
         rewardTokens = ArrayLib.merge(

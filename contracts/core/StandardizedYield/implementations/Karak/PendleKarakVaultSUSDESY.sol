@@ -54,10 +54,7 @@ contract PendleKarakVaultSUSDESY is PendleKarakVaultSYBaseUpg, IPTokenWithSupply
         return IERC4626(susde).previewDeposit(amountTokenToDeposit);
     }
 
-    function _wrapToStakeToken(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256) {
+    function _wrapToStakeToken(address tokenIn, uint256 amountDeposited) internal virtual override returns (uint256) {
         assert(tokenIn == usde);
 
         return IERC4626(susde).deposit(amountDeposited, address(this));
