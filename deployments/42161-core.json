@@ -20,6 +20,14 @@
     "yieldContractFactory": "0x28dE02Ac3c3F5ef427e55c321F73fDc7F192e8E4",
     "marketFactory": "0xf5a7De2D276dbda3EEf1b62A9E718EFf4d29dDC8",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0xb7631b93189900745Db51d960Ba64b8E6C658843",
+        "ActionSwapPTV3": "0xbFA3aAD535e1b996396698f89FFeC7ada0df17E8",
+        "ActionSwapYTV3": "0x8903dBFFcA66b3Fbc027aC81912ea64Fa61A5219",
+        "ActionMiscV3": "0x242063E8002d6a2839951C02b96e089B3e048437",
+        "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
+        "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
+    },
     "routerStatic": "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8",
     "pendleSwap": "0x63a45E0B2686F7be77Bb85735c35704D1046459a",
     "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335",
