@@ -52,51 +52,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         emit SwapYtAndSy(msg.sender, market, receiver, netYtOut.Int(), exactSyIn.neg());
     }
 
-    function _entry_swapExactSyForYt(IPYieldToken YT, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : address(YT);
-    }
-
-    function _swapExactSyForYt(
-        address receiver,
-        address market,
-        IStandardizedYield SY,
-        IPYieldToken YT,
-        uint256 exactSyIn,
-        uint256 minYtOut,
-        ApproxParams calldata guessYtOut,
-        LimitOrderData calldata limit
-    ) internal returns (uint256 netYtOut, uint256 netSyFee) {
-        uint256 netSyLeft = exactSyIn;
-        bool doMarketOrder = true;
-
-        if (!_isEmptyLimit(limit)) {
-            (netSyLeft, netYtOut, netSyFee, doMarketOrder) = _fillLimit(receiver, SY, netSyLeft, limit);
-            if (doMarketOrder) {
-                _transferOut(address(SY), address(YT), netSyLeft);
-            }
-        }
-
-        if (doMarketOrder) {
-            (uint256 netYtOutMarket, ) = _readMarket(market).approxSwapExactSyForYt(
-                YT.newIndex(),
-                netSyLeft,
-                block.timestamp,
-                guessYtOut
-            );
-
-            (, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(
-                address(YT),
-                netYtOutMarket, // exactPtIn = netYtOut
-                _encodeSwapExactSyForYt(receiver, YT)
-            );
-
-            netYtOut += netYtOutMarket;
-            netSyFee += netSyFeeMarket;
-        }
-
-        if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
-    }
-
     // ------------------ SWAP TOKEN FOR TOKEN ------------------
 
     function swapExactYtForToken(
@@ -136,46 +91,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
 
         (netSyOut, netSyFee) = _swapExactYtForSy(receiver, market, SY, YT, exactYtIn, minSyOut, limit);
         emit SwapYtAndSy(msg.sender, market, receiver, exactYtIn.neg(), netSyOut.Int());
-    }
-
-    function _entry_swapExactYtForSy(IPYieldToken YT, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : address(YT);
-    }
-
-    function _swapExactYtForSy(
-        address receiver,
-        address market,
-        IStandardizedYield SY,
-        IPYieldToken YT,
-        uint256 exactYtIn,
-        uint256 minSyOut,
-        LimitOrderData calldata limit
-    ) internal returns (uint256 netSyOut, uint256 netSyFee) {
-        uint256 netYtLeft = exactYtIn;
-        bool doMarketOrder = true;
-
-        if (!_isEmptyLimit(limit)) {
-            (netYtLeft, netSyOut, netSyFee, doMarketOrder) = _fillLimit(receiver, YT, netYtLeft, limit);
-            if (doMarketOrder) {
-                _transferOut(address(YT), address(YT), netYtLeft);
-            }
-        }
-
-        if (doMarketOrder) {
-            uint256 preSyBalance = SY.balanceOf(receiver);
-
-            (, uint256 netSyFeeMarket) = IPMarket(market).swapSyForExactPt(
-                address(YT),
-                netYtLeft, // exactPtOut = netYtLeft
-                _encodeSwapYtForSy(receiver, YT)
-            );
-
-            // avoid stack issue
-            netSyFee += netSyFeeMarket;
-            netSyOut += SY.balanceOf(receiver) - preSyBalance;
-        }
-
-        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
     // ------------------ SWAP PT FOR YT ------------------

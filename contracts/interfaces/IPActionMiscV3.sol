@@ -26,6 +26,26 @@ interface IPActionMiscV3 {
         bytes returnData;
     }
 
+    struct ExitPreExpReturnParams {
+        uint256 netPtFromRemove;
+        uint256 netSyFromRemove;
+        uint256 netPyRedeem;
+        uint256 netSyFromRedeem;
+        uint256 netPtSwap;
+        uint256 netYtSwap;
+        uint256 netSyFromSwap;
+        uint256 netSyFee;
+        uint256 totalSyOut;
+    }
+
+    struct ExitPostExpReturnParams {
+        uint256 netPtFromRemove;
+        uint256 netSyFromRemove;
+        uint256 netPtRedeem;
+        uint256 netSyFromRedeem;
+        uint256 totalSyOut;
+    }
+
     event MintSyFromToken(
         address indexed caller,
         address indexed tokenIn,
@@ -78,6 +98,42 @@ interface IPActionMiscV3 {
         uint256 netPyIn,
         uint256 netTokenOut,
         uint256 netSyInterm
+    );
+
+    event ExitPreExpToToken(
+        address indexed caller,
+        address indexed market,
+        address indexed token,
+        address receiver,
+        uint256 netLpIn,
+        uint256 totalTokenOut,
+        ExitPreExpReturnParams params
+    );
+
+    event ExitPreExpToSy(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        uint256 netLpIn,
+        ExitPreExpReturnParams params
+    );
+
+    event ExitPostExpToToken(
+        address indexed caller,
+        address indexed market,
+        address indexed token,
+        address receiver,
+        uint256 netLpIn,
+        uint256 totalTokenOut,
+        ExitPostExpReturnParams params
+    );
+
+    event ExitPostExpToSy(
+        address indexed caller,
+        address indexed market,
+        address indexed receiver,
+        uint256 netLpIn,
+        ExitPostExpReturnParams params
     );
 
     function mintSyFromToken(
@@ -142,6 +198,49 @@ interface IPActionMiscV3 {
         address tokenRedeemSy,
         uint256 minTokenOut
     ) external payable returns (uint256 netTokenOut, uint256 netSyInterm);
+
+    function exitPreExpToToken(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 netYtIn,
+        uint256 netLpIn,
+        TokenOutput calldata output,
+        LimitOrderData calldata limit
+    ) external returns (uint256 netTokenOut, ExitPreExpReturnParams memory params);
+
+    function exitPreExpToSy(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 netYtIn,
+        uint256 netLpIn,
+        uint256 minSyOut,
+        LimitOrderData calldata limit
+    ) external returns (ExitPreExpReturnParams memory params);
+
+    function exitPostExpToToken(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 netLpIn,
+        TokenOutput calldata output
+    ) external returns (uint256 netTokenOut, ExitPostExpReturnParams memory params);
+
+    function exitPostExpToSy(
+        address receiver,
+        address market,
+        uint256 netPtIn,
+        uint256 netLpIn,
+        uint256 minSyOut
+    ) external returns (ExitPostExpReturnParams memory params);
+
+    function callAndReflect(
+        address payable reflector,
+        bytes calldata selfCall1,
+        bytes calldata selfCall2,
+        bytes calldata reflectCall
+    ) external payable returns (bytes memory selfRes1, bytes memory selfRes2, bytes memory reflectRes);
 
     function boostMarkets(address[] memory markets) external;
 

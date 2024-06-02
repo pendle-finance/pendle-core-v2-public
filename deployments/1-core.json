@@ -25,7 +25,7 @@
         "ActionAddRemoveLiqV3": "0xb7631b93189900745Db51d960Ba64b8E6C658843",
         "ActionSwapPTV3": "0xbFA3aAD535e1b996396698f89FFeC7ada0df17E8",
         "ActionSwapYTV3": "0x8903dBFFcA66b3Fbc027aC81912ea64Fa61A5219",
-        "ActionMiscV3": "0x242063E8002d6a2839951C02b96e089B3e048437",
+        "ActionMiscV3": "0x9afd337e41f59e5c2e6f2be05f32e958a4dbcd9a",
         "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
         "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
     },
@@ -43,5 +43,6 @@
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
-    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9"
+    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
+    "reflector": "0x5a04b737D770Ed478cb9b65D1864c24d2E9Ca227"
 }

@@ -24,7 +24,7 @@
         "ActionAddRemoveLiqV3": "0xb7631b93189900745Db51d960Ba64b8E6C658843",
         "ActionSwapPTV3": "0xbFA3aAD535e1b996396698f89FFeC7ada0df17E8",
         "ActionSwapYTV3": "0x8903dBFFcA66b3Fbc027aC81912ea64Fa61A5219",
-        "ActionMiscV3": "0x242063E8002d6a2839951C02b96e089B3e048437",
+        "ActionMiscV3": "0x9afd337e41f59e5c2e6f2be05f32e958a4dbcd9a",
         "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
         "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
     },
@@ -39,5 +39,6 @@
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
     "vePendle": "0x8A09574b0401A856d89d1b583eE22E8cb0C5530B",
-    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0"
+    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
+    "reflector": "0x5a04b737D770Ed478cb9b65D1864c24d2E9Ca227"
 }
