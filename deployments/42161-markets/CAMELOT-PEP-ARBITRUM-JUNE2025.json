@@ -1,0 +1,14 @@
+{
+    "name": "SY Camelot",
+    "SY": "0xc79d8a2aa6d769138e599d4dbc30569c9870a6ee",
+    "YT": "0x6382276be546b4816a72a9ef08c52575e569dda0",
+    "PT": "0xcef75d0914d183c8eadfafaea9dfef688aaffcf3",
+    "market": "0xe9e114d1b119bbdeb7a35e1ce3c82db01622ada2",
+    "expiry": 1750896000,
+    "scalarRoot": "13559889929000000000",
+    "initAnchor": "1206279539000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x3da72680ebb07a420f9e62854769dff7391abd72448916014bc95ef120a65b51",
+    "deployBlockNumber": 217875356,
+    "reversedFee": 0.09999999999164011
+}
