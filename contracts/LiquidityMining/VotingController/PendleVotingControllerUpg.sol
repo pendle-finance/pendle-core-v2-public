@@ -150,6 +150,11 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
                     GOVERNANCE-ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    modifier onlyHelperAndOwner() {
+        require(msg.sender == ownerHelper || msg.sender == owner, "not allowed");
+        _;
+    }
+
     /**
      * @notice add a pool to allow users to vote. Can only be done by governance
      * @custom:gov NOTE TO GOV:
@@ -157,7 +162,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * - `pool` must not have been added before (even if has been removed).
      * - `chainId` must be valid.
      */
-    function addPool(uint64 chainId, address pool) external onlyOwner {
+    function addPool(uint64 chainId, address pool) external onlyHelperAndOwner {
         if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
         if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
 
@@ -256,6 +261,10 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         } else {
             (userPosition.amount, userPosition.expiry) = vePendle.positionData(user);
         }
+    }
+
+    function setOwnerHelper(address _helper) public onlyOwner {
+        ownerHelper = _helper;
     }
 
     //solhint-disable-next-line

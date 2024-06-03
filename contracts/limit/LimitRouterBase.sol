@@ -41,7 +41,14 @@ abstract contract LimitRouterBase is
 
     mapping(bytes32 => OrderStatus) internal _status;
 
-    uint256[100] private __gap;
+    address public ownerHelper;
+
+    uint256[99] private __gap;
+
+    modifier onlyHelperAndOwner() {
+        require(msg.sender == ownerHelper || msg.sender == owner, "not allowed");
+        _;
+    }
 
     constructor(address _WNATIVE) {
         WNATIVE = _WNATIVE;
@@ -466,17 +473,32 @@ abstract contract LimitRouterBase is
     }
 
     // ----------------- Owner -----------------
+
     function setFeeRecipient(address _feeRecipient) public onlyOwner {
         feeRecipient = _feeRecipient;
     }
 
-    function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots) public onlyOwner {
+    function setOwnerHelper(address _helper) public onlyOwner {
+        ownerHelper = _helper;
+    }
+
+    function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots) public onlyHelperAndOwner {
         uint256 len = YTs.length;
         require(len == lnFeeRateRoots.length, "LOP: length mismatch");
+
+        if (msg.sender == ownerHelper) {
+            _requireFeeNotSet(YTs);
+        }
 
         for (uint256 i = 0; i < len; i++) {
             require(lnFeeRateRoots[i] > 0, "LOP: zero fee not allowed");
             __lnFeeRateRoot[YTs[i]] = lnFeeRateRoots[i];
+        }
+    }
+
+    function _requireFeeNotSet(address[] memory YTs) internal view {
+        for (uint256 i = 0; i < YTs.length; i++) {
+            require(__lnFeeRateRoot[YTs[i]] == 0, "LOP: fee already set");
         }
     }
 }
