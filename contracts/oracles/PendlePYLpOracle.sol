@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendlePtOracleLib.sol";
+import "./PendlePYOracleLib.sol";
 import "./PendleLpOracleLib.sol";
-import "../interfaces/IPPtLpOracle.sol";
+import "../interfaces/IPPYLpOracle.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
-    using PendlePtOracleLib for IPMarket;
+contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
+    using PendlePYOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
 
     error InvalidBlockRate(uint256 blockCycleNumerator);
@@ -26,37 +26,53 @@ contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
     uint16 public blockCycleNumerator;
     uint16 public constant BLOCK_CYCLE_DENOMINATOR = 1000;
 
-    constructor(uint16 _blockCycleNumerator) initializer {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(uint16 _blockCycleNumerator) external initializer {
         __BoringOwnable_init();
-        setBlockCycleNumerator(_blockCycleNumerator);
+        _setBlockCycleNumerator(_blockCycleNumerator);
     }
 
-    function setBlockCycleNumerator(uint16 newBlockCycleNumerator) public onlyOwner {
-        if (newBlockCycleNumerator < BLOCK_CYCLE_DENOMINATOR) {
-            revert InvalidBlockRate(newBlockCycleNumerator);
-        }
+    // Refer to https://docs.pendle.finance/Home on how to use the oracle
 
-        blockCycleNumerator = newBlockCycleNumerator;
-        emit SetBlockCycleNumerator(newBlockCycleNumerator);
-    }
-
-    function getPtToAssetRate(address market, uint32 duration) external view returns (uint256) {
-        return IPMarket(market).getPtToAssetRate(duration);
-    }
-
-    /// @notice make sure you have taken into account the risk of not being able to withdraw from SY to Asset
-    /// More info in StandardizedYield
-    function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
-        return IPMarket(market).getLpToAssetRate(duration);
-    }
+    /*///////////////////////////////////////////////////////////////
+                    PT, YT, LP to SY
+    //////////////////////////////////////////////////////////////*/
 
     function getPtToSyRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getPtToSyRate(duration);
     }
 
+    function getYtToSyRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getYtToSyRate(duration);
+    }
+
     function getLpToSyRate(address market, uint32 duration) external view returns (uint256) {
         return IPMarket(market).getLpToSyRate(duration);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                    PT, YT, LP to Asset
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice make sure you have taken into account the risk of not being able to withdraw from SY to Asset
+    function getPtToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getPtToAssetRate(duration);
+    }
+
+    function getYtToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getYtToAssetRate(duration);
+    }
+
+    function getLpToAssetRate(address market, uint32 duration) external view returns (uint256) {
+        return IPMarket(market).getLpToAssetRate(duration);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        Utility functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * A check function for the cardinality status of the market
@@ -98,5 +114,19 @@ contract PendlePtLpOracle is BoringOwnableUpgradeable, IPPtLpOracle {
             revert TwapDurationTooLarge(duration, cardinalityRequired);
         }
         return uint16(cardinalityRequired);
+    }
+
+    // --- Owner-Only Functions ---
+    function setBlockCycleNumerator(uint16 newBlockCycleNumerator) external onlyOwner {
+        _setBlockCycleNumerator(newBlockCycleNumerator);
+    }
+
+    function _setBlockCycleNumerator(uint16 newBlockCycleNumerator) internal {
+        if (newBlockCycleNumerator < BLOCK_CYCLE_DENOMINATOR) {
+            revert InvalidBlockRate(newBlockCycleNumerator);
+        }
+
+        blockCycleNumerator = newBlockCycleNumerator;
+        emit SetBlockCycleNumerator(newBlockCycleNumerator);
     }
 }

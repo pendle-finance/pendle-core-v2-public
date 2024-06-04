@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendlePtOracleLib.sol";
+import "./PendlePYOracleLib.sol";
 
 library PendleLpOracleLib {
-    using PendlePtOracleLib for IPMarket;
+    using PendlePYOracleLib for IPMarket;
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
@@ -16,7 +16,7 @@ library PendleLpOracleLib {
      * @param duration twap duration
      */
     function getLpToAssetRate(IPMarket market, uint32 duration) internal view returns (uint256) {
-        (uint256 syIndex, uint256 pyIndex) = PendlePtOracleLib.getSYandPYIndexCurrent(market);
+        (uint256 syIndex, uint256 pyIndex) = PendlePYOracleLib.getSYandPYIndexCurrent(market);
         uint256 lpToAssetRateRaw = _getLpToAssetRateRaw(market, duration, pyIndex);
         if (syIndex >= pyIndex) {
             return lpToAssetRateRaw;
@@ -32,7 +32,7 @@ library PendleLpOracleLib {
      * @param duration twap duration
      */
     function getLpToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
-        (uint256 syIndex, uint256 pyIndex) = PendlePtOracleLib.getSYandPYIndexCurrent(market);
+        (uint256 syIndex, uint256 pyIndex) = PendlePYOracleLib.getSYandPYIndexCurrent(market);
         uint256 lpToAssetRateRaw = _getLpToAssetRateRaw(market, duration, pyIndex);
         if (syIndex >= pyIndex) {
             return lpToAssetRateRaw.divDown(syIndex);

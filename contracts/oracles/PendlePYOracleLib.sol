@@ -6,7 +6,7 @@ import "../core/libraries/math/PMath.sol";
 
 // This library can & should be integrated directly for optimal gas usage.
 // If you prefer not to integrate it directly, the PendlePtOracle contract (a pre-deployed version of this contract) can be used.
-library PendlePtOracleLib {
+library PendlePYOracleLib {
     using PMath for uint256;
     using PMath for int256;
 
@@ -25,6 +25,21 @@ library PendlePtOracleLib {
         }
     }
 
+    /**
+     * This function returns the twap rate YT/Asset on market, but take into account the current rate of SY
+     This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
+     * @param market market to get rate from
+     * @param duration twap duration
+     */
+    function getYtToAssetRate(IPMarket market, uint32 duration) internal view returns (uint256) {
+        (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
+        if (syIndex >= pyIndex) {
+            return getYtToAssetRateRaw(market, duration);
+        } else {
+            return (getYtToAssetRateRaw(market, duration) * syIndex) / pyIndex;
+        }
+    }
+
     /// @notice Similar to getPtToAsset but returns the rate in SY instead
     function getPtToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
@@ -32,6 +47,16 @@ library PendlePtOracleLib {
             return getPtToAssetRateRaw(market, duration).divDown(syIndex);
         } else {
             return getPtToAssetRateRaw(market, duration).divDown(pyIndex);
+        }
+    }
+
+    /// @notice Similar to getPtToAsset but returns the rate in SY instead
+    function getYtToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
+        (uint256 syIndex, uint256 pyIndex) = getSYandPYIndexCurrent(market);
+        if (syIndex >= pyIndex) {
+            return getYtToAssetRateRaw(market, duration).divDown(syIndex);
+        } else {
+            return getYtToAssetRateRaw(market, duration).divDown(pyIndex);
         }
     }
 
@@ -47,6 +72,11 @@ library PendlePtOracleLib {
             uint256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry).Uint();
             return PMath.ONE.divDown(assetToPtRate);
         }
+    }
+
+    /// @notice returns the raw rate without taking into account whether SY is solvent
+    function getYtToAssetRateRaw(IPMarket market, uint32 duration) internal view returns (uint256) {
+        return PMath.ONE - getPtToAssetRateRaw(market, duration);
     }
 
     function getSYandPYIndexCurrent(IPMarket market) internal view returns (uint256 syIndex, uint256 pyIndex) {

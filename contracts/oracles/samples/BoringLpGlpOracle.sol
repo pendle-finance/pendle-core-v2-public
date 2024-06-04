@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "../PendleLpOracleLib.sol";
-import "../../interfaces/IPPtLpOracle.sol";
+import "../../interfaces/IPPYLpOracle.sol";
 import "../../interfaces/GMX/IGlpManager.sol";
 import "../../core/libraries/math/PMath.sol";
 
@@ -23,7 +23,7 @@ contract BoringLpGlpOracle {
         market = _market;
         glpManager = _glpManager;
 
-        (bool increaseCardinalityRequired, , bool oldestObservationSatisfied) = IPPtLpOracle(_ptOracle).getOracleState(
+        (bool increaseCardinalityRequired, , bool oldestObservationSatisfied) = IPPYLpOracle(_ptOracle).getOracleState(
             market,
             twapDuration
         );
