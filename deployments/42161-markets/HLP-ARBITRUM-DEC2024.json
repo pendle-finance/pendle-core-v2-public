@@ -1,0 +1,15 @@
+{
+    "name": "HLP-ARBITRUM-DEC2024",
+    "SY": "0x4c43F75F34BF34D3DB3fc3841845d2b69A5eB6A3",
+    "YT": "0x93f94f1aDFa5f39E7f4C92f0e35c60d66EB5C3F6",
+    "PT": "0x04867479568E20e5e6b739B2858c642B9450cfe0",
+    "market": "0x766FFd36125cE45bdfcA913517ecF25A828996b4",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "7695280367000000000",
+    "initAnchor": "1192745632000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x2126c4504ec8583e3e7e0cce7a2face41bea721527f4607c9c3240b12df428e7",
+    "deployBlockNumber": 218176630,
+    "reversedFee": 0.09999999999164011
+}

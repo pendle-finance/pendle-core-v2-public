@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../SYBaseWithRewards.sol";
+import "../../SYBaseWithRewardsUpg.sol";
 import "../../../libraries/ArrayLib.sol";
 import "../../../../interfaces/HMX/IHMXCompounder.sol";
 import "../../../../interfaces/HMX/IHLPStaking.sol";
@@ -9,35 +9,36 @@ import "../../../../interfaces/HMX/IHMXStaking.sol";
 import "../../../../interfaces/HMX/IHMXVester.sol";
 import "./HLPPricingHelper.sol";
 
-contract PendleHlpSY is SYBaseWithRewards {
+contract PendleHlpSY is SYBaseWithRewardsUpg {
     using ArrayLib for address[];
 
+    // solhint-disable immutable-vars-naming
     address public immutable hlp;
-    address public immutable usdc;
-    address public immutable compounder;
 
+    address public immutable usdc;
+    address public immutable arb;
+
+    address public immutable compounder;
     address public immutable vester;
     address public immutable hlpStakingPool;
     address public immutable hmxStakingPool;
-
-    address[] public allRewardTokens;
 
     // off-chain usage only, no security related, no auditing required
     address public immutable hlpPriceHelper;
 
     constructor(
-        string memory _name,
-        string memory _symbol,
         address _hlp,
         address _usdc,
+        address _arb,
         address _compounder,
         address _vester,
         address _hlpStakingPool,
         address _hmxStakingPool,
         address _hlpPriceHelper
-    ) SYBaseWithRewards(_name, _symbol, _hlp) {
+    ) SYBaseUpg(_hlp) {
         hlp = _hlp;
         usdc = _usdc;
+        arb = _arb;
 
         compounder = _compounder;
         vester = _vester;
@@ -47,9 +48,14 @@ contract PendleHlpSY is SYBaseWithRewards {
 
         hlpPriceHelper = _hlpPriceHelper;
 
-        allRewardTokens.push(_usdc);
+        _disableInitializers();
+    }
+
+    function initialize() external initializer {
+        __SYBaseUpg_init("SY HLP", "SY-HLP");
         _safeApproveInf(hlp, hlpStakingPool);
     }
+
 
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
@@ -95,13 +101,8 @@ contract PendleHlpSY is SYBaseWithRewards {
      * @dev See {IStandardizedYield-getRewardTokens}
      */
 
-    function addRewardToken(address token) external onlyOwner {
-        require(!allRewardTokens.contains(token), "invalid additional reward token");
-        allRewardTokens.push(token);
-    }
-
     function _getRewardTokens() internal view override returns (address[] memory res) {
-        return allRewardTokens;
+        return ArrayLib.create(usdc, arb);
     }
 
     function _redeemExternalReward() internal override {
