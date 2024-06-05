@@ -37,7 +37,9 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
         aavePool = _aavePool;
         underlying = IAaveV3AToken(aToken).UNDERLYING_ASSET_ADDRESS();
 
-        _updateIncentiveController(_incentiveController);
+        if (_incentiveController != address(0)) {
+            _updateIncentiveController(_incentiveController);
+        }
         _safeApproveInf(underlying, _aavePool);
     }
 
@@ -128,7 +130,7 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
     }
 
     function _updateIncentiveController(address _incentiveController) internal {
-        if (_incentiveController != address(0) && _incentiveController == incentiveController) {
+        if (_incentiveController == incentiveController) {
             revert SameIncentiveController();
         }
         _redeemExternalReward();
