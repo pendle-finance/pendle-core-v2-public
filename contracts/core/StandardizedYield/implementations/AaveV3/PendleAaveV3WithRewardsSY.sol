@@ -14,6 +14,10 @@ import "../../../../interfaces/AaveV3/IAaveV3IncentiveController.sol";
 contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
     using PMath for uint256;
 
+    event NewIncentiveController(address incentiveController);
+
+    error SameIncentiveController();
+
     // solhint-disable immutable-vars-naming
     address public immutable aToken;
     address public immutable aavePool;
@@ -26,14 +30,14 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
         string memory _name,
         string memory _symbol,
         address _aavePool,
-        address _aToken
+        address _aToken,
+        address _incentiveController
     ) SYBaseWithRewards(_name, _symbol, _aToken) {
         aToken = _aToken;
         aavePool = _aavePool;
         underlying = IAaveV3AToken(aToken).UNDERLYING_ASSET_ADDRESS();
 
-        _updateIncentiveController();
-
+        _updateIncentiveController(_incentiveController);
         _safeApproveInf(underlying, _aavePool);
     }
 
@@ -106,34 +110,37 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
                             REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
+    function updateIncentiveController(address _incentiveController) external onlyOwner {
+        _updateIncentiveController(_incentiveController);
+    }
+
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory res) {
-        address currentIncentiveController = IAaveV3AToken(aToken).getIncentivesController();
-        return
-            incentiveController == currentIncentiveController
-                ? rewardTokens
-                : ArrayLib.merge(rewardTokens, IAaveV3IncentiveController(currentIncentiveController).getRewardsList());
+        return rewardTokens;
     }
 
     function _redeemExternalReward() internal override {
-        _updateIncentiveController();
-        IAaveV3IncentiveController(incentiveController).claimAllRewardsToSelf(ArrayLib.create(aToken));
-    }
-
-    function _updateIncentiveController() internal {
-        address currentIncentiveController = IAaveV3AToken(aToken).getIncentivesController();
-        if (currentIncentiveController == incentiveController) return;
         if (incentiveController != address(0)) {
-            // claim old incentive controller rewards
             IAaveV3IncentiveController(incentiveController).claimAllRewardsToSelf(ArrayLib.create(aToken));
         }
+    }
 
-        incentiveController = currentIncentiveController;
-        rewardTokens = ArrayLib.merge(
-            rewardTokens,
-            IAaveV3IncentiveController(currentIncentiveController).getRewardsList()
-        );
+    function _updateIncentiveController(address _incentiveController) internal {
+        if (_incentiveController != address(0) && _incentiveController == incentiveController) {
+            revert SameIncentiveController();
+        }
+        _redeemExternalReward();
+
+        incentiveController = _incentiveController;
+        if (_incentiveController != address(0)) {
+            rewardTokens = ArrayLib.merge(
+                rewardTokens,
+                IAaveV3IncentiveController(_incentiveController).getRewardsList()
+            );
+        }
+
+        emit NewIncentiveController(_incentiveController);
     }
 }
