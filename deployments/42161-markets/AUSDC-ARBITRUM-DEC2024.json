@@ -1,0 +1,15 @@
+{
+    "name": "AUSDC-ARBITRUM-DEC2024",
+    "SY": "0x369751A0b33DF3adE5e2eE55e7bB9556B10F390C",
+    "YT": "0xF065e0f7AFA89DF5f2a8a109239C809f115129AE",
+    "PT": "0xBB47aD7f407CBD385C9269ebd0d1Eb1CB634cDfa",
+    "market": "0x875F154f4eC93255bEAEA9367c3AdF71Cdcb4Cc0",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "27962832412000000000",
+    "initAnchor": "1063018566000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xd410faa4eb101a546a650b23663e7c8173932f2b326fa574357c058500c259b0",
+    "deployBlockNumber": 218890502,
+    "reversedFee": 0.09999999999164011
+}
