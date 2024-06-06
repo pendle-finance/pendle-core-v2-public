@@ -116,6 +116,10 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
         _updateIncentiveController(_incentiveController);
     }
 
+    function updateRewardTokenList() external onlyOwner {
+        _updateRewardTokenList();
+    }
+
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
@@ -137,12 +141,12 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
 
         incentiveController = _incentiveController;
         if (_incentiveController != address(0)) {
-            rewardTokens = ArrayLib.merge(
-                rewardTokens,
-                IAaveV3IncentiveController(_incentiveController).getRewardsList()
-            );
+            _updateRewardTokenList();
         }
-
         emit NewIncentiveController(_incentiveController);
+    }
+
+    function _updateRewardTokenList() internal {
+        rewardTokens = ArrayLib.merge(rewardTokens, IAaveV3IncentiveController(incentiveController).getRewardsList());
     }
 }
