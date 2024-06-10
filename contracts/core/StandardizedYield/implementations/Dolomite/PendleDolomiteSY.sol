@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import "../../SYBase.sol";
 import "../../../../interfaces/Dolomite/IDolomiteMarginProxy.sol";
 import "../../../../interfaces/Dolomite/IDolomiteMarginContract.sol";
+import "../../../../interfaces/Dolomite/IDolomiteDToken.sol";
 
 contract PendleDolomiteSY is SYBase {
     // solhint-disable immutable-vars-naming
@@ -11,19 +12,23 @@ contract PendleDolomiteSY is SYBase {
     uint256 public immutable marketId;
     address public immutable marginProxy;
     address public immutable marginContract;
+    address public immutable dToken;
 
     constructor(
         string memory _name,
         string memory _symbol,
         address _asset,
         address _marginProxy,
-        address _marginContract
-    ) SYBase(_name, _symbol, _asset) {
+        address _marginContract,
+        address _dToken
+    ) SYBase(_name, _symbol, _dToken) {
         asset = _asset;
         marketId = IDolomiteMarginContract(_marginContract).getMarketIdByTokenAddress(asset);
         marginProxy = _marginProxy;
         marginContract = _marginContract;
-        _safeApproveInf(asset, marginContract);
+        dToken = _dToken;
+
+        _safeApproveInf(asset, dToken);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -31,28 +36,26 @@ contract PendleDolomiteSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function _deposit(
-        address /*tokenIn*/,
+        address tokenIn,
         uint256 amountDeposited
     ) internal override returns (uint256 /*amountSharesOut*/) {
-        uint256 preBal = _getOwningShares();
-        IDolomiteMarginProxy(marginProxy).depositWeiIntoDefaultAccount(marketId, amountDeposited);
-        return _getOwningShares() - preBal;
+        if (tokenIn == dToken) {
+            return amountDeposited;
+        }
+        return IDolomiteDToken(dToken).mint(amountDeposited);
     }
 
     function _redeem(
         address receiver,
-        address /*tokenOut*/,
+        address tokenOut,
         uint256 amountSharesToRedeem
     ) internal override returns (uint256 amountTokenOut) {
-        uint256 preBal = _selfBalance(asset);
-        IDolomiteMarginProxy(marginProxy).withdrawParFromDefaultAccount(
-            marketId,
-            amountSharesToRedeem,
-            IDolomiteMarginProxy.BalanceCheckFlag.None
-        );
-
-        amountTokenOut = _selfBalance(asset) - preBal;
-        _transferOut(asset, receiver, amountTokenOut);
+        if (tokenOut == dToken) {
+            amountTokenOut = amountSharesToRedeem;
+        } else {
+            amountTokenOut = IDolomiteDToken(dToken).redeem(amountSharesToRedeem);
+        }
+        _transferOut(tokenOut, receiver, amountTokenOut);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -90,41 +93,22 @@ contract PendleDolomiteSY is SYBase {
     }
 
     function getTokensIn() public view override returns (address[] memory res) {
-        return ArrayLib.create(asset);
+        return ArrayLib.create(asset, dToken);
     }
 
     function getTokensOut() public view override returns (address[] memory res) {
-        return ArrayLib.create(asset);
+        return ArrayLib.create(asset, dToken);
     }
 
     function isValidTokenIn(address token) public view override returns (bool) {
-        return token == asset;
+        return token == asset || token == dToken;
     }
 
     function isValidTokenOut(address token) public view override returns (bool) {
-        return token == asset;
+        return token == asset || token == dToken;
     }
 
     function assetInfo() external view override returns (AssetType, address, uint8) {
         return (AssetType.TOKEN, address(asset), IERC20Metadata(asset).decimals());
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                            DOLOMITE HELPER
-    //////////////////////////////////////////////////////////////*/
-
-    // 1 share = 1 dolomite par
-    // 1 asset = 1 dolomite wei
-    function _getOwningShares() internal view returns (uint256) {
-        IDolomiteMarginContract.Wei memory accountPar = IDolomiteMarginContract(marginContract).getAccountPar(
-            _getDefaultAccountInfo(),
-            marketId
-        );
-        return accountPar.value;
-    }
-
-    function _getDefaultAccountInfo() internal view returns (IDolomiteMarginContract.Info memory account) {
-        account.owner = address(this);
-        account.number = 0;
     }
 }
