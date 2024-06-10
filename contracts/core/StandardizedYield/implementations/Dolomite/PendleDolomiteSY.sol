@@ -2,7 +2,6 @@
 pragma solidity ^0.8.23;
 
 import "../../SYBase.sol";
-import "../../../../interfaces/Dolomite/IDolomiteMarginProxy.sol";
 import "../../../../interfaces/Dolomite/IDolomiteMarginContract.sol";
 import "../../../../interfaces/Dolomite/IDolomiteDToken.sol";
 
@@ -21,11 +20,10 @@ contract PendleDolomiteSY is SYBase {
         address _dToken
     ) SYBase(_name, _symbol, _dToken) {
         asset = _asset;
-        marketId = IDolomiteMarginContract(_marginContract).getMarketIdByTokenAddress(asset);
+        marketId = IDolomiteMarginContract(_marginContract).getMarketIdByTokenAddress(_asset);
         marginContract = _marginContract;
         dToken = _dToken;
-
-        _safeApproveInf(asset, dToken);
+        _safeApproveInf(_asset, _marginContract);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -74,17 +72,23 @@ contract PendleDolomiteSY is SYBase {
     //////////////////////////////////////////////////////////////*/
 
     function _previewDeposit(
-        address /*tokenIn*/,
+        address tokenIn,
         uint256 amountTokenToDeposit
     ) internal view override returns (uint256) {
+        if (tokenIn == dToken) {
+            return amountTokenToDeposit;
+        }
         uint256 index = _getDolomiteCurrentSupplyIndex();
         return (amountTokenToDeposit * PMath.ONE) / index;
     }
 
     function _previewRedeem(
-        address /*tokenOut*/,
+        address tokenOut,
         uint256 amountSharesToRedeem
     ) internal view override returns (uint256) {
+        if (tokenOut == dToken) {
+            return amountSharesToRedeem;
+        }
         uint256 index = _getDolomiteCurrentSupplyIndex();
         return (amountSharesToRedeem * index) / PMath.ONE;
     }
