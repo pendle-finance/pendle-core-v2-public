@@ -10,7 +10,6 @@ contract PendleDolomiteSY is SYBase {
     // solhint-disable immutable-vars-naming
     address public immutable asset;
     uint256 public immutable marketId;
-    address public immutable marginProxy;
     address public immutable marginContract;
     address public immutable dToken;
 
@@ -18,13 +17,11 @@ contract PendleDolomiteSY is SYBase {
         string memory _name,
         string memory _symbol,
         address _asset,
-        address _marginProxy,
         address _marginContract,
         address _dToken
     ) SYBase(_name, _symbol, _dToken) {
         asset = _asset;
         marketId = IDolomiteMarginContract(_marginContract).getMarketIdByTokenAddress(asset);
-        marginProxy = _marginProxy;
         marginContract = _marginContract;
         dToken = _dToken;
 
