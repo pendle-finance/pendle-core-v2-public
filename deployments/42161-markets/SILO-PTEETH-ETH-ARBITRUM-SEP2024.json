@@ -1,0 +1,14 @@
+{
+    "name": "SY Silo",
+    "SY": "0x3a26d8f73057A2487F9F752D1a71Cd2c56Fa412C",
+    "YT": "0x242FFeaACA4A3A845DfA06234Ea91397528866c6",
+    "PT": "0xb344f1C68Ed753B5d1D8B1885006Fa7C05D5FfAc",
+    "market": "0x77198965565e945f1B7Ba02d39B1fb49510c83ED",
+    "expiry": 1727308800,
+    "scalarRoot": "18045448116000000000",
+    "initAnchor": "1046473512000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x0766bd58d7bc86b4298fb9da94d38d8792e4ef0ccce972a01e0352f8bb2d58d1",
+    "deployBlockNumber": 220642583,
+    "reversedFee": 0.09999999999164011
+}
