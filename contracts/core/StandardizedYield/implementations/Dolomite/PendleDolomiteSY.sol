@@ -15,15 +15,13 @@ contract PendleDolomiteSY is SYBase {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _asset,
-        address _marginContract,
         address _dToken
     ) SYBase(_name, _symbol, _dToken) {
-        asset = _asset;
-        marketId = IDolomiteMarginContract(_marginContract).getMarketIdByTokenAddress(_asset);
-        marginContract = _marginContract;
+        asset = IDolomiteDToken(_dToken).underlyingToken();
+        marketId = IDolomiteDToken(_dToken).marketId();
+        marginContract = IDolomiteDToken(_dToken).DOLOMITE_MARGIN();
         dToken = _dToken;
-        _safeApproveInf(_asset, _marginContract);
+        _safeApproveInf(asset, marginContract);
     }
 
     /*///////////////////////////////////////////////////////////////
