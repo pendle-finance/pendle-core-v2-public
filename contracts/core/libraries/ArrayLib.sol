@@ -121,7 +121,7 @@ library ArrayLib {
     }
 
     function create(address a, address b, address c, address d) internal pure returns (address[] memory res) {
-        res = new address[](3);
+        res = new address[](4);
         res[0] = a;
         res[1] = b;
         res[2] = c;
