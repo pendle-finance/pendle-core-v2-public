@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../SYBase.sol";
+import "../../SYBaseUpg.sol";
 import "../../StEthHelper.sol";
 import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 import "../../../../interfaces/Mellow/IMellowVault.sol";
 import "../../../../interfaces/Mellow/IMellowVaultConfigurator.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
-contract PendleMellowVaultERC20SY is SYBase, IPTokenWithSupplyCap {
+contract PendleMellowVaultERC20SYUpg is SYBaseUpg, IPTokenWithSupplyCap {
     // solhint-disable immutable-vars-naming
     address public immutable vault;
     address public immutable configurator;
 
-    constructor(string memory _name, string memory _symbol, address _vault) SYBase(_name, _symbol, _vault) {
+    constructor(address _vault) SYBaseUpg(_vault) {
         vault = _vault;
         configurator = IMellowVault(_vault).configurator();
     }

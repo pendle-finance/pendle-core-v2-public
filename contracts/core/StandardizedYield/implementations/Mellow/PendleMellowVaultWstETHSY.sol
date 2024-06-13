@@ -1,17 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleMellowVaultERC20SY.sol";
+import "./PendleMellowVaultERC20SYUpg.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
-contract PendleMellowVaultWstETHSY is PendleMellowVaultERC20SY, StEthHelper {
+contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelper {
     error MellowVaultHasInvalidAssets();
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _vault
-    ) PendleMellowVaultERC20SY(_name, _symbol, _vault) {
+    // solhint-disable immutable-vars-naming
+    uint256 public immutable interfaceVersion;
+
+    constructor(address _vault, uint256 _interfaceVersion) PendleMellowVaultERC20SYUpg(_vault) {
+        if (_interfaceVersion > 1) {
+            revert("invalid interface version");
+        }
+        interfaceVersion = _interfaceVersion;
+        _disableInitializers();
+    }
+
+    function initialize(string memory _name, string memory _symbol) external initializer {
+        __SYBaseUpg_init(_name, _symbol);
         _safeApproveInf(WSTETH, vault);
     }
 
@@ -25,13 +33,23 @@ contract PendleMellowVaultWstETHSY is PendleMellowVaultERC20SY, StEthHelper {
         if (tokenIn != WSTETH) {
             (tokenIn, amountDeposited) = (WSTETH, _depositWstETH(tokenIn, amountDeposited));
         }
-        (, amountSharesOut) = IMellowVault(vault).deposit(
-            address(this),
-            ArrayLib.create(amountDeposited),
-            0,
-            type(uint256).max,
-            0
-        );
+
+        if (interfaceVersion == 0) {
+            (, amountSharesOut) = IMellowVault(vault).deposit(
+                address(this),
+                ArrayLib.create(amountDeposited),
+                0,
+                type(uint256).max,
+                0
+            );
+        } else if (interfaceVersion == 1) {
+            (, amountSharesOut) = IMellowVault(vault).deposit(
+                address(this),
+                ArrayLib.create(amountDeposited),
+                0,
+                type(uint256).max
+            );
+        }
     }
 
     /// @dev Mellow uses math calculations under 2**96 base. Also they are taking into account oracle prices
