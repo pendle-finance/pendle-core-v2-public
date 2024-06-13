@@ -32,6 +32,8 @@ contract PendleMellowVaultWstETHSY is PendleMellowVaultERC20SY, StEthHelper {
         );
     }
 
+    /// @dev Mellow uses math calculations under 2**96 base. Also they are taking into account oracle prices
+    /// even with one asset. So a discrepancy of 1e-6 in the result should be expected.
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit
