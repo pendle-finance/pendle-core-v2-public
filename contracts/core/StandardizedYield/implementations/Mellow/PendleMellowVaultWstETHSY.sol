@@ -5,7 +5,9 @@ import "./PendleMellowVaultERC20SYUpg.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
 contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelper {
+
     error MellowVaultHasInvalidAssets();
+    error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
     // solhint-disable immutable-vars-naming
     uint256 public immutable interfaceVersion;
@@ -58,7 +60,7 @@ contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelpe
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit
-    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
+    ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == vault) {
             return amountTokenToDeposit;
         }
@@ -66,7 +68,13 @@ contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelpe
             (tokenIn, amountTokenToDeposit) = (WSTETH, _previewDepositWstETH(tokenIn, amountTokenToDeposit));
         }
         (uint256 tvl, uint256 supply) = _getMellowVaultTvl();
-        return (amountTokenToDeposit * supply) / tvl;
+        amountSharesOut = (amountTokenToDeposit * supply) / tvl;
+
+        uint256 supplyCap = IMellowVaultConfigurator(configurator).maximalTotalSupply();
+        uint256 newSupply = supply + amountSharesOut;
+        if (newSupply > supplyCap) {
+            revert SupplyCapExceeded(newSupply, supplyCap);
+        }
     }
 
     function getTokensIn() public view override returns (address[] memory res) {
