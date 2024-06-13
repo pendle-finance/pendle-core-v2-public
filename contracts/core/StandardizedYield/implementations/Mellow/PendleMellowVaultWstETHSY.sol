@@ -11,7 +11,9 @@ contract PendleMellowVaultWstETHSY is PendleMellowVaultERC20SY, StEthHelper {
         string memory _name,
         string memory _symbol,
         address _vault
-    ) PendleMellowVaultERC20SY(_name, _symbol, _vault) {}
+    ) PendleMellowVaultERC20SY(_name, _symbol, _vault) {
+        _safeApproveInf(WSTETH, vault);
+    }
 
     function _deposit(
         address tokenIn,
