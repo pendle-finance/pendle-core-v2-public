@@ -20,6 +20,7 @@ contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelpe
 
     function initialize(string memory _name, string memory _symbol) external initializer {
         __SYBaseUpg_init(_name, _symbol);
+        _safeApproveInf(STETH, WSTETH);
         _safeApproveInf(WSTETH, vault);
     }
 
