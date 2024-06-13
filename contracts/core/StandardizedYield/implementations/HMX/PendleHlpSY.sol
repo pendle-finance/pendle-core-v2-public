@@ -56,7 +56,6 @@ contract PendleHlpSY is SYBaseWithRewardsUpg {
         _safeApproveInf(hlp, hlpStakingPool);
     }
 
-
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
