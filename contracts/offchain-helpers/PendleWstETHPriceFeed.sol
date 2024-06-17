@@ -14,11 +14,12 @@ contract PendleWstETHPriceFeed is IPPriceFeed {
 
     function getPrice() external view returns (uint256) {
         uint256 toStETH = IWstETH(WSTETH).stEthPerToken();
-        uint256 toETH = (toStETH * _getFeedPrice(STETH_TO_ETH)) / FEED_MULTIPLIER;
-        return (toETH * _getFeedPrice(ETH_TO_USD)) / FEED_MULTIPLIER;
+        uint256 toETH = _applyFeedMultiplier(toStETH, STETH_TO_ETH);
+        return _applyFeedMultiplier(toETH, ETH_TO_USD);
     }
 
-    function _getFeedPrice(address feed) internal view returns (uint256) {
-        return uint256(IChainlinkAggregator(feed).latestAnswer());
+    function _applyFeedMultiplier(uint256 base, address feed) internal view returns (uint256) {
+        return
+            (base * uint256(IChainlinkAggregator(feed).latestAnswer())) / 10 ** (IChainlinkAggregator(feed).decimals());
     }
 }
