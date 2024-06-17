@@ -6,16 +6,30 @@ import "../../StEthHelper.sol";
 import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 import "../../../../interfaces/Mellow/IMellowVault.sol";
 import "../../../../interfaces/Mellow/IMellowVaultConfigurator.sol";
+import "../../../../interfaces/IPPriceFeed.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
 contract PendleMellowVaultERC20SYUpg is SYBaseUpg, IPTokenWithSupplyCap {
+    event SetPricingHelper(address newPricingHelper);
+
     // solhint-disable immutable-vars-naming
     address public immutable vault;
     address public immutable configurator;
+    address public pricingHelper;
 
     constructor(address _vault) SYBaseUpg(_vault) {
         vault = _vault;
         configurator = IMellowVault(_vault).configurator();
+        _disableInitializers();
+    }
+
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address _pricingHelper
+    ) external virtual initializer {
+        __SYBaseUpg_init(_name, _symbol);
+        _setPricingHelper(_pricingHelper);
     }
 
     function _deposit(
@@ -83,5 +97,23 @@ contract PendleMellowVaultERC20SYUpg is SYBaseUpg, IPTokenWithSupplyCap {
 
     function getAbsoluteTotalSupply() external view virtual returns (uint256) {
         return IERC20(vault).totalSupply();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                        OFF-CHAIN USAGE ONLY
+            (NO SECURITY RELATED && CAN BE LEFT UNAUDITED)
+    //////////////////////////////////////////////////////////////*/
+
+    function setPricingHelper(address _pricingHelper) external onlyOwner {
+        _setPricingHelper(_pricingHelper);
+    }
+
+    function _setPricingHelper(address _pricingHelper) internal {
+        pricingHelper = _pricingHelper;
+        emit SetPricingHelper(_pricingHelper);
+    }
+
+    function getPrice() external view returns (uint256) {
+        return IPPriceFeed(pricingHelper).getPrice();
     }
 }

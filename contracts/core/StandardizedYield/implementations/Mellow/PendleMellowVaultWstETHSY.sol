@@ -5,7 +5,6 @@ import "./PendleMellowVaultERC20SYUpg.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
 contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelper {
-
     error MellowVaultHasInvalidAssets();
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
@@ -17,13 +16,17 @@ contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelpe
             revert("invalid interface version");
         }
         interfaceVersion = _interfaceVersion;
-        _disableInitializers();
     }
 
-    function initialize(string memory _name, string memory _symbol) external initializer {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address _pricingHelper
+    ) external override initializer {
         __SYBaseUpg_init(_name, _symbol);
         _safeApproveInf(STETH, WSTETH);
         _safeApproveInf(WSTETH, vault);
+        _setPricingHelper(_pricingHelper);
     }
 
     function _deposit(
