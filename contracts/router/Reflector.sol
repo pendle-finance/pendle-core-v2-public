@@ -30,7 +30,11 @@ contract Reflector is TokenHelper, IPReflector {
         bytes4 selector = bytes4(inputData[:4]);
         bytes calldata data = inputData[4:];
 
-        if (selector == IPActionAddRemoveLiqV3.addLiquiditySingleToken.selector) {
+        if (
+            selector == IPActionAddRemoveLiqV3.addLiquiditySingleToken.selector ||
+            selector == IPActionSwapPTV3.swapExactTokenForPt.selector ||
+            selector == IPActionSwapYTV3.swapExactTokenForYt.selector
+        ) {
             (
                 address v1,
                 address v2,
