@@ -3,12 +3,19 @@ pragma solidity ^0.8.17;
 
 import "../SYBaseUpg.sol";
 
-abstract contract PendleERC20SYUpg is SYBaseUpg {
+contract PendleERC20SYUpg is SYBaseUpg {
     using PMath for uint256;
 
     uint256[100] private __gap;
 
-    constructor(address _erc20) SYBaseUpg(_erc20) {}
+    constructor(address _erc20) SYBaseUpg(_erc20) {
+        _disableInitializers();
+    }
+
+    function initialize(string memory _name, string memory _symbol) external virtual initializer {
+        __SYBaseUpg_init(_name, _symbol);
+    }
+
 
     function _deposit(
         address /*tokenIn*/,

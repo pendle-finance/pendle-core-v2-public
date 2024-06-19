@@ -1,0 +1,15 @@
+{
+    "name": "WEETHs-MAINNET-AUG2024",
+    "SY": "0x9e8f10574ACc2c62C6e5d19500CEd39163Da37A9",
+    "YT": "0x28cE264D0938C1051687FEbDCeFacc2242BA9E0E",
+    "PT": "0xda6530EfaFD63A42d7b9a0a5a60A03839CDb813A",
+    "market": "0xcAa8ABB72A75C623BECe1f4D5c218F425d47A0D0",
+    "expiry": 1724889600,
+    "lnFeeRateRoot": "2995508979000000",
+    "scalarRoot": "5887618402000000000",
+    "initAnchor": "1078728622000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xfa253a76ff6c8d75baa512b4aa86487a19963e509c8a0864fd63369e1de8824e",
+    "deployBlockNumber": 20123766,
+    "reversedFee": 0.2999999999199199
+}

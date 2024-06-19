@@ -14,9 +14,7 @@ contract PendleSUSDEMantleSY is PendleERC20SYUpg {
     address public exchangeRateOracle;
     uint256 public supplyCap;
 
-    constructor(address _susde) PendleERC20SYUpg(_susde) {
-        _disableInitializers();
-    }
+    constructor(address _susde) PendleERC20SYUpg(_susde) {}
 
     function initialize(uint256 _initialSupplyCap, address _initialExchangeRateOracle) external initializer {
         __SYBaseUpg_init("SY Ethena sUSDE", "SY-sUSDE");
