@@ -67,7 +67,7 @@ library PendlePYOracleLib {
         if (expiry <= block.timestamp) {
             return PMath.ONE;
         } else {
-            uint256 lnImpliedRate = _getMarketLnImpliedRate(market, duration);
+            uint256 lnImpliedRate = getMarketLnImpliedRate(market, duration);
             uint256 timeToExpiry = expiry - block.timestamp;
             uint256 assetToPtRate = MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry).Uint();
             return PMath.ONE.divDown(assetToPtRate);
@@ -92,7 +92,7 @@ library PendlePYOracleLib {
         }
     }
 
-    function _getMarketLnImpliedRate(IPMarket market, uint32 duration) private view returns (uint256) {
+    function getMarketLnImpliedRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         uint32[] memory durations = new uint32[](2);
         durations[0] = duration;
 

@@ -16,7 +16,7 @@ library PendleLpOracleLib {
      * @param duration twap duration
      */
     function getLpToAssetRate(IPMarket market, uint32 duration) internal view returns (uint256) {
-        (uint256 syIndex, uint256 pyIndex) = PendlePYOracleLib.getSYandPYIndexCurrent(market);
+        (uint256 syIndex, uint256 pyIndex) = market.getSYandPYIndexCurrent();
         uint256 lpToAssetRateRaw = _getLpToAssetRateRaw(market, duration, pyIndex);
         if (syIndex >= pyIndex) {
             return lpToAssetRateRaw;
@@ -32,7 +32,7 @@ library PendleLpOracleLib {
      * @param duration twap duration
      */
     function getLpToSyRate(IPMarket market, uint32 duration) internal view returns (uint256) {
-        (uint256 syIndex, uint256 pyIndex) = PendlePYOracleLib.getSYandPYIndexCurrent(market);
+        (uint256 syIndex, uint256 pyIndex) = market.getSYandPYIndexCurrent();
         uint256 lpToAssetRateRaw = _getLpToAssetRateRaw(market, duration, pyIndex);
         if (syIndex >= pyIndex) {
             return lpToAssetRateRaw.divDown(syIndex);
@@ -76,11 +76,11 @@ library PendleLpOracleLib {
         MarketState memory state,
         uint32 duration
     ) private view returns (int256 rateOracle, int256 rateHypTrade) {
-        rateOracle = PMath.IONE.divDown(market.getPtToAssetRateRaw(duration).Int());
-        int256 rateLastTrade = MarketMathCore._getExchangeRateFromImpliedRate(
-            state.lastLnImpliedRate,
-            state.expiry - block.timestamp
-        );
+        uint256 lnImpliedRate = market.getMarketLnImpliedRate(duration);
+        uint256 timeToExpiry = state.expiry - block.timestamp;
+        rateOracle = MarketMathCore._getExchangeRateFromImpliedRate(lnImpliedRate, timeToExpiry);
+
+        int256 rateLastTrade = MarketMathCore._getExchangeRateFromImpliedRate(state.lastLnImpliedRate, timeToExpiry);
         rateHypTrade = (rateLastTrade + rateOracle) / 2;
     }
 }

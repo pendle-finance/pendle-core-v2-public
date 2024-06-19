@@ -155,7 +155,7 @@ library MarketMathCore {
             }
         }
 
-        if (lpToAccount <= 0) revert Errors.MarketZeroAmountsOutput();
+        if (lpToAccount <= 0 || syUsed <= 0 || ptUsed <= 0) revert Errors.MarketZeroAmountsOutput();
 
         /// ------------------------------------------------------------
         /// WRITE
