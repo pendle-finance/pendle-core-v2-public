@@ -156,7 +156,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     }
 
     /**
-     * @notice add a pool to allow users to vote. Can only be done by governance
+     * @notice add a pool to allow users to vote. Can only be done by [governance/owner helper]
      * @custom:gov NOTE TO GOV:
      * - Previous week's results should have been broadcasted prior to calling this function.
      * - `pool` must not have been added before (even if has been removed).
