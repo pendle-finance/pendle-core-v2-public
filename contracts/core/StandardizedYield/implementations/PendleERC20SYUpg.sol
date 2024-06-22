@@ -50,7 +50,7 @@ contract PendleERC20SYUpg is SYBaseUpg {
         return amountSharesToRedeem;
     }
 
-    function getTokensIn() public view override returns (address[] memory res) {
+    function getTokensIn() public view virtual override returns (address[] memory res) {
         return ArrayLib.create(yieldToken);
     }
 

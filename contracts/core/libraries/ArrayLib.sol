@@ -128,6 +128,21 @@ library ArrayLib {
         res[3] = d;
     }
 
+    function create(
+        address a,
+        address b,
+        address c,
+        address d,
+        address e
+    ) internal pure returns (address[] memory res) {
+        res = new address[](5);
+        res[0] = a;
+        res[1] = b;
+        res[2] = c;
+        res[3] = d;
+        res[4] = e;
+    }
+
     function create(uint256 a) internal pure returns (uint256[] memory res) {
         res = new uint256[](1);
         res[0] = a;
