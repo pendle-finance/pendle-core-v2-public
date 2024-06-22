@@ -58,7 +58,7 @@ contract PendleERC20SYUpg is SYBaseUpg {
         return ArrayLib.create(yieldToken);
     }
 
-    function isValidTokenIn(address token) public view override returns (bool) {
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
         return token == yieldToken;
     }
 
