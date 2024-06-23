@@ -12,11 +12,7 @@ contract PendleDolomiteSY is SYBase {
     address public immutable marginContract;
     address public immutable dToken;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _dToken
-    ) SYBase(_name, _symbol, _dToken) {
+    constructor(string memory _name, string memory _symbol, address _dToken) SYBase(_name, _symbol, _dToken) {
         asset = IDolomiteDToken(_dToken).underlyingToken();
         marketId = IDolomiteDToken(_dToken).marketId();
         marginContract = IDolomiteDToken(_dToken).DOLOMITE_MARGIN();
@@ -69,10 +65,7 @@ contract PendleDolomiteSY is SYBase {
                         MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view override returns (uint256) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
         if (tokenIn == dToken) {
             return amountTokenToDeposit;
         }
@@ -80,10 +73,7 @@ contract PendleDolomiteSY is SYBase {
         return (amountTokenToDeposit * PMath.ONE) / index;
     }
 
-    function _previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) internal view override returns (uint256) {
+    function _previewRedeem(address tokenOut, uint256 amountSharesToRedeem) internal view override returns (uint256) {
         if (tokenOut == dToken) {
             return amountSharesToRedeem;
         }

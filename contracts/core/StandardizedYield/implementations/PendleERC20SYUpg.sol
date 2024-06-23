@@ -16,7 +16,6 @@ contract PendleERC20SYUpg is SYBaseUpg {
         __SYBaseUpg_init(_name, _symbol);
     }
 
-
     function _deposit(
         address /*tokenIn*/,
         uint256 amountDeposited
