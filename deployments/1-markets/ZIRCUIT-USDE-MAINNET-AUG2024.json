@@ -1,0 +1,14 @@
+{
+    "name": "SY Zircuit USDe",
+    "SY": "0xD24Cfe2d0fa81369ca6291c28ac5426e16B6d57a",
+    "YT": "0x0393e1aBF08f7B80e193e06ca65346FE86A0a189",
+    "PT": "0x1070E528dd1561a4276bbB13a0C837deB8b69c7a",
+    "market": "0xF148a0B15712f5BfeefAdb4E6eF9739239F88b07",
+    "expiry": 1724284800,
+    "scalarRoot": "7103430063000000000",
+    "initAnchor": "1053389275000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x209ff81d5472c4f8abf8aa0fbe2e6714293946dc9d84a1a750e4becb32de5191",
+    "deployBlockNumber": 20158751,
+    "reversedFee": 0.2999999999199199
+}
