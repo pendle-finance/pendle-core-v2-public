@@ -1,0 +1,14 @@
+{
+    "name": "SY rswETH",
+    "SY": "0x7786729eEe8b9d30fE7d91fDFf23A0f1D0C615D9",
+    "YT": "0xD66b560f4e3e85f22C192d91dA847886d5C5Fd00",
+    "PT": "0xF0574d8B9Dc3a9DE768eaa7DBB7bB0C68521b148",
+    "market": "0x038C1b03daB3B891AfbCa4371ec807eDAa3e6eB6",
+    "expiry": 1727308800,
+    "scalarRoot": "17440323323000000000",
+    "initAnchor": "1039157222000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x4361f78fe35b92c76efc9acc04076b02a26ad1107fae564d82c8c9eaa47502d6",
+    "deployBlockNumber": 20160670,
+    "reversedFee": 0.09999999999164011
+}
