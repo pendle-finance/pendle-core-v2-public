@@ -37,9 +37,11 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
 
     uint128 internal constant WEEK = 1 weeks;
 
+    // solhint-disable immutable-vars-naming
     address public immutable pendle;
     IPMarketFactory public immutable marketFactory;
     IPMarketFactory public immutable marketFactory2;
+    IPMarketFactory public immutable marketFactory3;
 
     mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) public epochRewardReceived;
@@ -49,7 +51,8 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     modifier onlyPendleMarket() {
         if (
             marketFactory.isValidMarket(msg.sender) ||
-            (marketFactory2 != IPMarketFactory(address(0)) && marketFactory2.isValidMarket(msg.sender))
+            marketFactory2.isValidMarket(msg.sender) || 
+            marketFactory3.isValidMarket(msg.sender)
         ) {
             _;
         } else {
@@ -57,10 +60,11 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         }
     }
 
-    constructor(address _pendle, address _marketFactory, address _marketFactory2) {
+    constructor(address _pendle, address _marketFactory, address _marketFactory2, address _marketFactory3) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
         marketFactory2 = IPMarketFactory(_marketFactory2);
+        marketFactory3 = IPMarketFactory(_marketFactory3);
     }
 
     /**

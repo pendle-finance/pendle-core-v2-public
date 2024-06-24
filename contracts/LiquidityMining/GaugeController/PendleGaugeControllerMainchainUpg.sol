@@ -16,8 +16,9 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGa
         address _votingController,
         address _pendle,
         address _marketFactory,
-        address _marketFactory2
-    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory, _marketFactory2) {
+        address _marketFactory2,
+        address _marketFactory3
+    ) PendleGaugeControllerBaseUpg(_pendle, _marketFactory, _marketFactory2, _marketFactory3) {
         votingController = _votingController;
         _disableInitializers();
     }
