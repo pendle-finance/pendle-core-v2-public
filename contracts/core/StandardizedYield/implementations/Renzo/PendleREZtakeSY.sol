@@ -9,8 +9,6 @@ contract PendleREZtakeSY is SYBase {
     address public constant ztake = 0x1736011D3E075351B319DBC1da28Dac68Ea830A6;
     address public constant rez = 0x3B50805453023a91a8bf641e279401a0b23FA6F9;
 
-    uint256 public currentRequestIndex;
-
     constructor() SYBase("SY Renzo REZ Staking", "SY-REZtake", rez) {
         _safeApproveInf(rez, ztake);
     }
@@ -26,7 +24,7 @@ contract PendleREZtakeSY is SYBase {
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256) {
         IRenzoReztake(ztake).unStake(amountSharesToRedeem);
-        IRenzoReztake(ztake).claim(currentRequestIndex++);
+        IRenzoReztake(ztake).claim(0);
         _transferOut(rez, receiver, amountSharesToRedeem);
         return amountSharesToRedeem;
     }
