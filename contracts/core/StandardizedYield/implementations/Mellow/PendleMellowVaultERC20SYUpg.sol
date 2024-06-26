@@ -15,6 +15,7 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
     // solhint-disable immutable-vars-naming
     uint256 public immutable interfaceVersion;
 
+    // [ERC20 deposit of the vault, vault address, interface version (0 = referral, 1 = non referral)]
     constructor(address _depositToken, address _vault, uint256 _interfaceVersion) PendleMellowVaultSYBaseUpg(_vault) {
         depositToken = _depositToken;
         if (_interfaceVersion > 1) {
