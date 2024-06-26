@@ -51,7 +51,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     modifier onlyPendleMarket() {
         if (
             marketFactory.isValidMarket(msg.sender) ||
-            marketFactory2.isValidMarket(msg.sender) || 
+            marketFactory2.isValidMarket(msg.sender) ||
             marketFactory3.isValidMarket(msg.sender)
         ) {
             _;

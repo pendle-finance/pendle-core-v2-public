@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./PendleMellowVaultERC20SYUpg.sol";
+import "./PendleMellowVaultSYBaseUpg.sol";
 
 /// @dev This SY implementation intends to ignore native interest from Mellow Vault's underlying
-contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultERC20SYUpg, StEthHelper {
+contract PendleMellowVaultWstETHSYUpg is PendleMellowVaultSYBaseUpg, StEthHelper {
     error MellowVaultHasInvalidAssets();
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
     // solhint-disable immutable-vars-naming
     uint256 public immutable interfaceVersion;
 
-    constructor(address _vault, uint256 _interfaceVersion) PendleMellowVaultERC20SYUpg(_vault) {
+    constructor(address _vault, uint256 _interfaceVersion) PendleMellowVaultSYBaseUpg(_vault) {
         if (_interfaceVersion > 1) {
             revert("invalid interface version");
         }

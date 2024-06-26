@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.0;
 
 import "./PendleMellowVaultSYBaseUpg.sol";
+import "../../../../interfaces/IERC4626.sol";
 
-contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
+contract PendleMellowVaultERC4626SYUpg is PendleMellowVaultSYBaseUpg {
     error MellowVaultHasInvalidAssets();
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
     using PMath for uint256;
 
     // solhint-disable immutable-vars-naming
-    address public immutable depositToken;
+    address public immutable erc4626;
+    address public immutable asset;
 
     // solhint-disable immutable-vars-naming
     uint256 public immutable interfaceVersion;
 
-    constructor(address _depositToken, address _vault, uint256 _interfaceVersion) PendleMellowVaultSYBaseUpg(_vault) {
-        depositToken = _depositToken;
+    constructor(address _erc4626, address _vault, uint256 _interfaceVersion) PendleMellowVaultSYBaseUpg(_vault) {
+        erc4626 = _erc4626;
+        asset = IERC4626(_erc4626).asset();
+
         if (_interfaceVersion > 1) {
             revert("invalid interface version");
         }
@@ -29,7 +33,8 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
         address _pricingHelper
     ) external override initializer {
         __SYBaseUpg_init(_name, _symbol);
-        _safeApproveInf(depositToken, vault);
+        _safeApproveInf(asset, erc4626);
+        _safeApproveInf(erc4626, vault);
         _setPricingHelper(_pricingHelper);
     }
 
@@ -39,6 +44,9 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
     ) internal virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == vault) {
             return amountDeposited;
+        }
+        if (tokenIn != erc4626) {
+            (tokenIn, amountDeposited) = (erc4626, IERC4626(erc4626).deposit(amountDeposited, address(this)));
         }
 
         if (interfaceVersion == 0) {
@@ -60,7 +68,9 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
     }
 
     function exchangeRate() public view virtual override returns (uint256 res) {
-        return PMath.ONE;
+        uint256 totalAssets = IERC4626(erc4626).totalAssets();
+        uint256 totalSupply = IERC4626(erc4626).totalSupply();
+        return totalAssets.divDown(totalSupply);
     }
 
     function _previewDeposit(
@@ -69,6 +79,10 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
     ) internal view virtual override returns (uint256 amountSharesOut) {
         if (tokenIn == vault) {
             return amountTokenToDeposit;
+        }
+
+        if (tokenIn != erc4626) {
+            (tokenIn, amountTokenToDeposit) = (erc4626, IERC4626(erc4626).previewDeposit(amountTokenToDeposit));
         }
 
         (uint256 tvl, uint256 supply) = _getMellowVaultTvl();
@@ -82,18 +96,18 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
-        return ArrayLib.create(depositToken, vault);
+        return ArrayLib.create(asset, erc4626, vault);
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == depositToken || token == vault;
+        return token == asset || token == erc4626 || token == vault;
     }
 
-    /// @dev returns mellow TVL in depositToken
+    /// @dev returns mellow TVL in erc4626
     /// @dev reverts if the vault contains more than 1 token
     function _getMellowVaultTvl() internal view returns (uint256 tvl, uint256 supply) {
         (address[] memory tokens, uint256[] memory amounts) = IMellowVault(vault).underlyingTvl();
-        if (tokens.length > 1 || tokens[0] != depositToken) {
+        if (tokens.length > 1 || tokens[0] != erc4626) {
             revert MellowVaultHasInvalidAssets();
         }
 
@@ -108,6 +122,6 @@ contract PendleMellowVaultERC20SYUpg is PendleMellowVaultSYBaseUpg {
         override
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
-        return (AssetType.TOKEN, depositToken, IERC20Metadata(depositToken).decimals());
+        return (AssetType.TOKEN, asset, IERC20Metadata(asset).decimals());
     }
 }
