@@ -68,9 +68,8 @@ contract PendleMellowVaultERC4626SYUpg is PendleMellowVaultSYBaseUpg {
     }
 
     function exchangeRate() public view virtual override returns (uint256 res) {
-        uint256 totalAssets = IERC4626(erc4626).totalAssets();
-        uint256 totalSupply = IERC4626(erc4626).totalSupply();
-        return totalAssets.divDown(totalSupply);
+        (uint256 tvl, uint256 supply) = _getMellowVaultTvl();
+        return IERC4626(erc4626).convertToAssets(tvl * PMath.ONE / supply);
     }
 
     function _previewDeposit(
