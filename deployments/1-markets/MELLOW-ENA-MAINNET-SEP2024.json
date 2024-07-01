@@ -1,0 +1,14 @@
+{
+    "name": "SY Mellow ENA",
+    "SY": "0x64046776c9C856fDc5c39c6EBa101adC8E18291f",
+    "YT": "0x4F214344569653eb3F6b32a094df883FB9A80fB3",
+    "PT": "0x74fd29B63766E9D05Ed9D1181a365522d096ED6F",
+    "market": "0xf68300929DF14d933EBa2D45917563d5ed065666",
+    "expiry": 1727308800,
+    "scalarRoot": "4268949154000000000",
+    "initAnchor": "1128322258000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x59c2a18870f9cced570a7e6529b075127aeeb3631bc23470f8c662328c9ad5a2",
+    "deployBlockNumber": 20208485,
+    "reversedFee": 0.2999999999199199
+}

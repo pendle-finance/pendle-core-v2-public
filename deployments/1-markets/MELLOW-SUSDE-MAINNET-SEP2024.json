@@ -1,0 +1,14 @@
+{
+    "name": "SY Mellow sUSDe",
+    "SY": "0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e",
+    "YT": "0xDBdE8d8a18d76fc86E8d40C2f33ea4DDE161806e",
+    "PT": "0x60CB28103608C41BFD04Ad09D3F7e6221A713b07",
+    "market": "0x4803a036c4352Bd53906B1C70040FA271D3aFE65",
+    "expiry": 1727308800,
+    "scalarRoot": "8889322607000000000",
+    "initAnchor": "1079818791000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x33e2eee0d298954de47a52b72f34f9428631bc51cf8aa34c77b38c1475530a85",
+    "deployBlockNumber": 20208513,
+    "reversedFee": 0.2999999999199199
+}

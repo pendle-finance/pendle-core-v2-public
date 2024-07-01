@@ -1,0 +1,14 @@
+{
+    "name": "SY REZ",
+    "SY": "0x54264c1b0355c71A678d5A171Ca796429DDCB4f4",
+    "YT": "0x96F2E86b6Ba7Bec41F5BA89D1Aa7c7E75d76d1E5",
+    "PT": "0x40Fa9153353ccA703352cA2655aD033901b8bCa0",
+    "market": "0xd8072F2084F5876D6EC25c423eA71eDC0469cCe5",
+    "expiry": 1727308800,
+    "scalarRoot": "12520218686000000000",
+    "initAnchor": "1043753324000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x55915f840fea487554db30912bae551d34e789f4b85b17ad8be20258153db2ec",
+    "deployBlockNumber": 20195130,
+    "reversedFee": 0.09999999999164011
+}
