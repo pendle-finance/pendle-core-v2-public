@@ -1,0 +1,14 @@
+{
+    "name": "SY pzETH",
+    "SY": "0x9309bcD974Cd13457eab1383539b46C93e90B66A",
+    "YT": "0xa2B4c479C98163BbDBd3987a9f3474bB7bc72F84",
+    "PT": "0xdBD8a24E780E7661c5c9f66310A3D4Ad309cD763",
+    "market": "0xd3bb297264bd6115aE163db4153038a79D78acBA",
+    "expiry": 1727308800,
+    "scalarRoot": "7745870381000000000",
+    "initAnchor": "1070721709000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0xa842b886054964c8bec76dc6297dbe01b642cd0cff83a0151ecdab0f0f58f32d",
+    "deployBlockNumber": 20216077,
+    "reversedFee": 0.2999999999199199
+}
