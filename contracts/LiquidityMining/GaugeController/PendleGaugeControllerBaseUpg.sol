@@ -46,14 +46,18 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) public epochRewardReceived;
 
-    uint256[100] private __gap;
+    mapping(address => bool) public isValidMarket;
+    uint256[99] private __gap;
 
     modifier onlyPendleMarket() {
-        if (
+        if (isValidMarket[msg.sender]) {
+            _;
+        } else if (
             marketFactory.isValidMarket(msg.sender) ||
             marketFactory2.isValidMarket(msg.sender) ||
             marketFactory3.isValidMarket(msg.sender)
         ) {
+            isValidMarket[msg.sender] = true;
             _;
         } else {
             revert Errors.GCNotPendleMarket(msg.sender);

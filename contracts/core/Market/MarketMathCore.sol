@@ -147,11 +147,11 @@ library MarketMathCore {
             if (netLpByPt < netLpBySy) {
                 lpToAccount = netLpByPt;
                 ptUsed = ptDesired;
-                syUsed = (market.totalSy * lpToAccount) / market.totalLp;
+                syUsed = (market.totalSy * lpToAccount).rawDivUp(market.totalLp);
             } else {
                 lpToAccount = netLpBySy;
                 syUsed = syDesired;
-                ptUsed = (market.totalPt * lpToAccount) / market.totalLp;
+                ptUsed = (market.totalPt * lpToAccount).rawDivUp(market.totalLp);
             }
         }
 

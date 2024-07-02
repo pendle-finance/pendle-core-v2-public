@@ -39,15 +39,12 @@ abstract contract RewardManager is RewardManagerAbstract {
 
                 RewardState memory _state = rewardState[token];
                 (uint256 lastBalance, uint256 index) = (_state.lastBalance, _state.index);
-
-                uint256 accrued = _selfBalance(tokens[i]) - lastBalance;
-
                 if (index == 0) index = INITIAL_REWARD_INDEX;
-                if (totalShares != 0) index += accrued.divDown(totalShares);
 
+                (uint256 consumedIndex, uint256 consumedReward) = _getConsumedReward(token, lastBalance, totalShares);
                 rewardState[token] = RewardState({
-                    index: index.Uint128(),
-                    lastBalance: (lastBalance + accrued).Uint128()
+                    index: (index + consumedIndex).Uint128(),
+                    lastBalance: (lastBalance + consumedReward).Uint128()
                 });
                 indexes[i] = index;
             }
@@ -56,6 +53,20 @@ abstract contract RewardManager is RewardManagerAbstract {
                 indexes[i] = rewardState[tokens[i]].index;
             }
         }
+    }
+
+    function _getConsumedReward(
+        address token,
+        uint256 lastBalance,
+        uint256 totalShares
+    ) private view returns (uint256 consumedIndex, uint256 consumedReward) {
+        if (totalShares == 0) {
+            return (0, 0);
+        }
+
+        uint256 accrued = _selfBalance(token) - lastBalance;
+        consumedIndex = accrued.divDown(totalShares);
+        consumedReward = (consumedIndex * totalShares + PMath.ONE - 1) / PMath.ONE;
     }
 
     /// @dev this function doesn't need redeemExternal since redeemExternal is bundled in updateRewardIndex

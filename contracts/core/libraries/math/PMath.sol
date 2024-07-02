@@ -63,6 +63,10 @@ library PMath {
         return (a + b - 1) / b;
     }
 
+    function rawDivUp(int256 a, int256 b) internal pure returns (int256) {
+        return (a + b - 1) / b;
+    }
+
     // @author Uniswap
     function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {
