@@ -12,7 +12,7 @@ contract PendleWEEthsSY is PendleERC20SYUpg {
     // solhint-disable const-name-snakecase
     // solhint-disable ordering
 
-    address public constant weETHs = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88 ;
+    address public constant weETHs = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant vedoTeller = 0x99dE9e5a3eC2750a6983C8732E6e795A35e7B861;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public constant WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
@@ -39,7 +39,7 @@ contract PendleWEEthsSY is PendleERC20SYUpg {
         if (tokenIn == weETHs) {
             return amountDeposited;
         }
-        return IVedoTeller(vedoTeller).deposit(tokenIn, amountDeposited, 0);
+        return IVedoTeller(vedoTeller).bulkDeposit(tokenIn, amountDeposited, 0, address(this));
     }
 
     function _previewDeposit(
@@ -53,11 +53,11 @@ contract PendleWEEthsSY is PendleERC20SYUpg {
         amountSharesOut = amountTokenToDeposit.divDown(rate);
     }
 
-    function isValidTokenIn(address token) public view override returns (bool) {
+    function isValidTokenIn(address token) public pure override returns (bool) {
         return token == weETHs || token == WETH || token == WEETH || token == EETH || token == WSTETH;
     }
 
-    function getTokensIn() public view override returns (address[] memory res) {
+    function getTokensIn() public pure override returns (address[] memory res) {
         return ArrayLib.create(weETHs, WETH, WEETH, EETH, WSTETH);
     }
 }
