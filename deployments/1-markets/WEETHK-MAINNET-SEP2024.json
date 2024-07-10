@@ -1,0 +1,15 @@
+{
+    "name": "WEETHK-MAINNET-SEP2024",
+    "SY": "0xE2796707590384430d887f15bDf97c660d95894a",
+    "YT": "0xD09FC28733E094F7c327fb9D1e526177305EF9e2",
+    "PT": "0xb94AE63D5537932303F107C09E5783491e423c54",
+    "market": "0x905A5a4792A0C27a2AdB2777f98C577D320079EF",
+    "expiry": 1727308800,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "19192037946000000000",
+    "initAnchor": "1026347522000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xac67756593c560cc29a9604ebc7dfb3eb4fc88513154d1c92bb54d4813932220",
+    "deployBlockNumber": 20273043,
+    "reversedFee": 0.09999999999164011
+}
