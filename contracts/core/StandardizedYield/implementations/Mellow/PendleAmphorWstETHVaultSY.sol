@@ -8,7 +8,9 @@ import "../../../../interfaces/IERC4626.sol";
 contract PendleAmphorWstETHVaultSY is SYBase, StEthHelper {
     address public constant VAULT = 0x06824C27C8a0DbDe5F72f770eC82e3c0FD4DcEc3;
 
-    constructor() SYBase("SY Amphor LRT", "SY amphrLRT", VAULT) {}
+    constructor() SYBase("SY Amphor LRT", "SY amphrLRT", VAULT) {
+        _safeApproveInf(WSTETH, VAULT);
+    }
 
     function _deposit(
         address tokenIn,
