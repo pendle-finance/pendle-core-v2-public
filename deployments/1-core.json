@@ -10,11 +10,10 @@
         "wrappedNative": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
         "initialRewardFee": "30000000000000000",
         "initialInterestFee": "30000000000000000",
-        "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
         "initialPendlePerSec": "826719576719576719",
         "safeWaitTime": 15000,
-        "sySwapper": "0x987d9E19D79AFb5508201B50Ac920F119688e8E5"
+        "sySwapper": "0x248087C69e72E211b7264720Bf6cC5A954F98CDE"
     },
     "baseCodeSplitter": "0x35878C2Cff38cC4032E85283183428170BA618A2",
     "PENDLE": "0x808507121b80c02388fad14726482e061b8da827",
@@ -31,18 +30,19 @@
     },
     "routerStatic": "0x263833d47eA3fA4a30f269323aba6a107f9eB14C",
     "pendleSwap": "0x1e8b6Ac39f8A33f46a6Eb2D1aCD1047B99180AD1",
-    "routerHelper": "0x462206b11d185ef6F64B41D344325401C37EC335",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
     "yieldContractFactoryV3": "0xdF3601014686674e53d1Fa52F7602525483F9122",
     "marketFactoryV3": "0x1A6fCc85557BC4fB7B534ed835a03EF056552D52",
+    "yieldContractFactoryV4": "0x273b4bFA3Bb30fe8F32c467b5f0046834557F072",
+    "marketFactoryV4": "0x3d75Bd20C983edb5fD218A1b7e0024F1056c7A2F",
     "poolDeployHelper": "0x1E4c3DE54DecbD51F1F9a6b4eaFd265FAc04e831",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "reflector": "0x5f76f0224FAbD73f6D0ae84cf8F8005A1Ee742cd",
     "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
-    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
-    "reflector": "0x5f76f0224FAbD73f6D0ae84cf8F8005A1Ee742cd"
+    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9"
 }

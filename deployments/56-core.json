@@ -10,10 +10,9 @@
         "wrappedNative": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
         "initialRewardFee": "30000000000000000",
         "initialInterestFee": "30000000000000000",
-        "initialFeeRateRoot": "999500333083533",
         "initialReserveFeePercent": "80",
         "safeWaitTime": 15000,
-        "sySwapper": "0x35C16314D6Ee4753289E5cC15A5C5E1Dd4eaD345"
+        "sySwapper": "0xdf7083f2A0F8a191ab5eEAFebE92ED21cD3Dd915"
     },
     "baseCodeSplitter": "0x0E669e08bd717d7F9c9DE158636BD8561295fbB5",
     "PENDLE": "0xb3Ed0A426155B79B898849803E3B36552f7ED507",
@@ -30,15 +29,16 @@
     },
     "routerStatic": "0x2700ADB035F82a11899ce1D3f1BF8451c296eABb",
     "pendleSwap": "0x439B4d66255eFf74e621FBacb00D7162b588Ff4b",
-    "routerHelper": "0x09D65812dCD0f276e052583d41885cA5C7Dd0086",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
     "yieldContractFactoryV3": "0x40Ae6da2d92aa3DCb7f8d7a7209FD12BDfcb7C85",
     "marketFactoryV3": "0xC40fEbF5A33b8C92B187d9be0fD3fe0ac2E4B07c",
+    "yieldContractFactoryV4": "0xdb6380041441A94050199b4A46771D8d93553509",
+    "marketFactoryV4": "0x7D20e644D2A9e149e5be9bE9aD2aB243a7835d37",
     "poolDeployHelper": "0x73Be47237F12F36203823BAc9A4d80dC798B7015",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "reflector": "0x5f76f0224FAbD73f6D0ae84cf8F8005A1Ee742cd",
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
     "vePendle": "0x8A09574b0401A856d89d1b583eE22E8cb0C5530B",
-    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
-    "reflector": "0x5f76f0224FAbD73f6D0ae84cf8F8005A1Ee742cd"
+    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0"
 }
