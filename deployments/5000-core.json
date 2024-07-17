@@ -32,7 +32,7 @@
     "marketFactoryV3": "0xD228EC1f7D4313fe321fab511A872475D07F5bA6",
     "yieldContractFactoryV4": "0x5256e5dbe627e696b2e54eb77c2227276D80cd3c",
     "marketFactoryV4": "0xCa274A44a52241c1a8EFb9f84Bf492D8363929FC",
-    "poolDeployHelper": "0x01D0A833C3aD951e37E6f9bf5ecE86e519fF8a0c",
+    "poolDeployHelper": "0x3034279ee8161cDCCFB87C884d3e3D733602d712",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "reflector": "0x5f76f0224FAbD73f6D0ae84cf8F8005A1Ee742cd",
