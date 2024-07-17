@@ -3,8 +3,9 @@ pragma solidity ^0.8.17;
 
 import "../PendleERC20SYUpg.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
+import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 
-contract PendleSUSDEMantleSY is PendleERC20SYUpg {
+contract PendleSUSDEMantleSY is PendleERC20SYUpg, IPTokenWithSupplyCap {
     event SetNewExchangeRateOracle(address oracle);
 
     event SupplyCapUpdated(uint256 newSupplyCap);
@@ -80,5 +81,13 @@ contract PendleSUSDEMantleSY is PendleERC20SYUpg {
         if (_supply > _supplyCap) {
             revert SupplyCapExceeded(_supply, _supplyCap);
         }
+    }
+
+    function getAbsoluteSupplyCap() external view returns (uint256) {
+        return supplyCap;
+    }
+
+    function getAbsoluteTotalSupply() external view returns (uint256) {
+        return totalSupply();
     }
 }

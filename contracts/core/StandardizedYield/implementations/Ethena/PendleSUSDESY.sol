@@ -2,8 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "../PendleERC4626SY.sol";
+import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 
-contract PendleSUSDESY is PendleERC4626SY {
+contract PendleSUSDESY is PendleERC4626SY, IPTokenWithSupplyCap {
     uint256 public supplyCap;
 
     event SupplyCapUpdated(uint256 newSupplyCap);
@@ -70,5 +71,13 @@ contract PendleSUSDESY is PendleERC4626SY {
 
     function isValidTokenOut(address token) public view override returns (bool) {
         return token == yieldToken;
+    }
+
+    function getAbsoluteSupplyCap() external view returns (uint256) {
+        return supplyCap;
+    }
+
+    function getAbsoluteTotalSupply() external view returns (uint256) {
+        return totalSupply();
     }
 }
