@@ -1,0 +1,15 @@
+{
+    "name": "UNIETH-ARBITRUM-DEC2024",
+    "SY": "0x5b56f4bf94807B547EB5E7eBa5Cd8C033af83aed",
+    "YT": "0xa810ba21e65D54dE0283002dB8fB6Ea504c83234",
+    "PT": "0x22e9aD26eA0e65a7073571d5D7172ff6336084AD",
+    "market": "0x279b44E48226d40Ec389129061cb0B56C5c09e46",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "23146542820000000000",
+    "initAnchor": "1041871770000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xb6cb8c3bcc9210d3c65fef2e82e2ffe0047c736948f91b2e1c3fd55e3d72777c",
+    "deployBlockNumber": 233743830,
+    "reversedFee": 0.09999999999164011
+}
