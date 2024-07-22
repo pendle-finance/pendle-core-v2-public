@@ -1,0 +1,14 @@
+{
+    "name": "SY amphrLRT",
+    "SY": "0x33A269066457E5E3Dc9B6dD1c7D854A7Df714B6d",
+    "YT": "0x0aa0f6308214Bf53F6EAEFcD56a2bF4482EC4B34",
+    "PT": "0x96056fC19b633a662FE0366c8cDd38C371407De4",
+    "market": "0xb9e8bb1105382b018c6aDfd95Fd9272542Cc1776",
+    "expiry": 1727308800,
+    "scalarRoot": "8934763681000000000",
+    "initAnchor": "1047162471000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x8d036eb45eae0ce6dba13bacc90ef5c21466769c5ba31b30fdfa9977c05e92a9",
+    "deployBlockNumber": 20360873,
+    "reversedFee": 0.2999999999199199
+}
