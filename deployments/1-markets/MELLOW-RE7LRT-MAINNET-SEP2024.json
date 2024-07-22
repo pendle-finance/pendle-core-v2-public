@@ -1,0 +1,14 @@
+{
+    "name": "SY wstETH",
+    "SY": "0xE833C7A12A10A44Cb8b19BdF0931053AC136F105",
+    "YT": "0xFdfc9E828aE3708814996147D23aCeaeF4e4CdF2",
+    "PT": "0x5C8151643F7aAC530e2c5D13F91cA2A2D645A9a7",
+    "market": "0x020ABA13E46BaA0dDCBaB4505fABAd697e223908",
+    "expiry": 1727308800,
+    "scalarRoot": "16331567689000000000",
+    "initAnchor": "1025801903000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xd8b2fbe6372c456c6c32755e1a80a0f8bb2fd59a3b823f85f4cff920d9a5cd63",
+    "deployBlockNumber": 20360384,
+    "reversedFee": 0.09999999999164011
+}
