@@ -1,0 +1,15 @@
+{
+    "name": "RSWETH-SWELL-STAKING-MAINNET-SEP2024",
+    "SY": "0x4f3A7a07A968B67F1f9692b70242f10E665d38Ad",
+    "YT": "0x5b8AB5cbE12365cF0939501c80a99F481253a6e4",
+    "PT": "0x23DBE2A711F0e528a3C0a7c713b5aEFF3e9a2826",
+    "market": "0x2801b56f6cCc8046AE29e86C0FCe556E046122E2",
+    "expiry": 1727308800,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "26519511256000000000",
+    "initAnchor": "1019694626000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0xd551f8f645ee2173a0b928a91666d2d2f8868b3f4d4a486faaeb1ac3c3afdd57",
+    "deployBlockNumber": 20368034,
+    "reversedFee": 0.09999999999164011
+}
