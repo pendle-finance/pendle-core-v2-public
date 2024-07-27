@@ -9,7 +9,8 @@ contract PendleGTokenSY is PendleERC4626SY {
         string memory _name,
         string memory _symbol,
         address _erc4626
-    ) PendleERC4626SY(_name, _symbol, _erc4626) {}
+    ) PendleERC4626SY(_name, _symbol, _erc4626) {
+    }
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](1);
@@ -18,5 +19,9 @@ contract PendleGTokenSY is PendleERC4626SY {
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
         return token == yieldToken;
+    }
+
+    function exchangeRate() public view virtual override returns (uint256) {
+        return IERC4626(yieldToken).convertToAssets(10 ** 18);
     }
 }
