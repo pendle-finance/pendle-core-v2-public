@@ -1,0 +1,14 @@
+{
+    "name": "SY ENA",
+    "SY": "0x1a7096563C94029DfD55E625A19F099726ac4f3F",
+    "YT": "0xb978b4CC7BD1bcC684c3da0F3305c564ed859014",
+    "PT": "0xAfA002De2DADb57B2b04e32aa4F42a69AdEBF2FD",
+    "market": "0x403829bCE022844f66cDB2911D2260526d4eb843",
+    "expiry": 1730332800,
+    "scalarRoot": "5768198181000000000",
+    "initAnchor": "1102274528000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "deployTxHash": "0x458db49bf4423b7f2728a58333a8fd138bb59963a870b81d1501e481884e21ac",
+    "deployBlockNumber": 20395113,
+    "reversedFee": 0.2999999999199199
+}
