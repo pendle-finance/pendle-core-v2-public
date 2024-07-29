@@ -111,6 +111,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return getPtToAssetRate(market).divDown(SY.exchangeRate());
     }
 
+    function getYtToSyRate(address market) external view returns (uint256) {
+        (IStandardizedYield SY, , ) = _readTokens(market);
+        return getYtToAssetRate(market).divDown(SY.exchangeRate());
+    }
+
     function getLpToAssetRate(address market) public view returns (uint256) {
         MarketState memory state = _readState(market);
         PYIndex pyIndexCurrent = _pyIndex(market);
@@ -133,6 +138,10 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     function getPtToAssetRate(address market) public view returns (uint256) {
         MarketState memory state = _readState(market);
         return _getPtToAssetRate(market, state, _pyIndex(market));
+    }
+
+    function getYtToAssetRate(address market) public view returns (uint256) {
+        return PMath.ONE - getPtToAssetRate(market);
     }
 
     function _getPtToAssetRate(

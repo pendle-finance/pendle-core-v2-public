@@ -31,7 +31,11 @@ interface IPActionMarketAuxStatic {
 
     function getPtToSyRate(address market) external view returns (uint256);
 
+    function getYtToSyRate(address market) external view returns (uint256);
+
     function getLpToAssetRate(address market) external view returns (uint256);
 
     function getPtToAssetRate(address market) external view returns (uint256);
+
+    function getYtToAssetRate(address market) external view returns (uint256);
 }
