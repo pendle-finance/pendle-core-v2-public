@@ -1,0 +1,15 @@
+{
+    "name": "GUSDC-ARBITRUM-SEP2024",
+    "SY": "0x0a9eD458E6c283D1E84237e3347333Aa08221d09",
+    "YT": "0x03577ffA91EDB93ac3aEE081EfBE6F323da949e1",
+    "PT": "0x2Be6Fab4d1408e7ad6AD91cE7B77FA2A7670782f",
+    "market": "0xa877a0E177b54A37066c1786F91a1DAb68F094AF",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "23793702873000000000",
+    "initAnchor": "1059760693000000000",
+    "doCacheIndexSameBlock": false,
+    "deployTxHash": "0x1dc134ce1ab711c37388eb1f02d481310a765200d62bc3fbaf560ee684a1fbd5",
+    "deployBlockNumber": 237601819,
+    "reversedFee": 0.09999999999164011
+}
