@@ -22,6 +22,6 @@ contract PendleGTokenSY is PendleERC4626SY {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return IERC4626(yieldToken).convertToAssets(10 ** 18);
+        return IERC4626(yieldToken).convertToAssets(10e18);
     }
 }
