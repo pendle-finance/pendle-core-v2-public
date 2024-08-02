@@ -6,7 +6,12 @@ interface ISophonFarming {
 
     function transferPoints(uint256 _pid, address _sender, address _receiver, uint256 _transferAmount) external;
 
-    function poolInfo(uint256 _pid) external view returns (address, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256, string memory);
+    function poolInfo(
+        uint256 _pid
+    )
+        external
+        view
+        returns (address, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256, string memory);
 
     function deposit(uint256 _pid, uint256 _amount, uint256 _boostAmount) external;
 

@@ -25,8 +25,8 @@ contract PendleSophonFarmingSY is SYBaseWithRewards {
         _safeApproveInf(yieldToken, _sophonFarming);
     }
 
-    function __getPoolDepositToken(address _sophonFarming, uint256 _pid) internal returns (address) {
-        (address lp,,,,,,,,,) = ISophonFarming(_sophonFarming).poolInfo(_pid);
+    function __getPoolDepositToken(address _sophonFarming, uint256 _pid) internal view returns (address) {
+        (address lp, , , , , , , , , ) = ISophonFarming(_sophonFarming).poolInfo(_pid);
         return lp;
     }
 
