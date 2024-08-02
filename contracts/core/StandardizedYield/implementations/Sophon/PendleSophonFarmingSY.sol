@@ -6,6 +6,8 @@ import "../../../../interfaces/Sophon/ISophonFarming.sol";
 import "../../../../interfaces/Sophon/IPSophonPointManager.sol";
 
 contract PendleSophonFarmingSY is SYBaseWithRewards {
+    using Address for address;
+
     address public immutable sophonFarming;
     uint256 public immutable pid;
     address public immutable pointManager;
@@ -23,9 +25,9 @@ contract PendleSophonFarmingSY is SYBaseWithRewards {
         _safeApproveInf(yieldToken, _sophonFarming);
     }
 
-    function __getPoolDepositToken(address _sophonFarming, uint256 _pid) internal view returns (address) {
-        ISophonFarming.PoolInfo memory info = ISophonFarming(_sophonFarming).poolInfo(_pid);
-        return info.lpToken;
+    function __getPoolDepositToken(address _sophonFarming, uint256 _pid) internal returns (address) {
+        (address lp,,,,,,,,,) = ISophonFarming(_sophonFarming).poolInfo(_pid);
+        return lp;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -65,6 +67,7 @@ contract PendleSophonFarmingSY is SYBaseWithRewards {
 
     function _redeemExternalReward() internal override {
         uint256 owningPoints = _getOwningPoints();
+        if (owningPoints == 0) return;
         ISophonFarming(sophonFarming).transferPoints(pid, address(this), pointManager, owningPoints);
         IPSophonPointManager(pointManager).claimPointReceiptToken();
     }
