@@ -67,6 +67,14 @@ library PMath {
         return (a + b - 1) / b;
     }
 
+    function slipUp(uint256 a, uint256 factor) internal pure returns (uint256) {
+        return mulDown(a, ONE + factor);
+    }
+
+    function slipDown(uint256 a, uint256 factor) internal pure returns (uint256) {
+        return mulDown(a, ONE - factor);
+    }
+
     // @author Uniswap
     function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {

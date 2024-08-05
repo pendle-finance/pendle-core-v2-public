@@ -144,6 +144,90 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return PMath.ONE - getPtToAssetRate(market);
     }
 
+    /// @param slippage A fixed-point number with 18 decimal places
+    function swapExactSyForPtStaticAndGenerateApproxParams(
+        address market,
+        uint256 exactSyIn,
+        uint256 slippage
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter,
+            ApproxParams memory approxParams
+        )
+    {
+        (netPtOut, netSyFee, priceImpact, exchangeRateAfter) = IPActionMarketCoreStatic(address(this))
+            .swapExactSyForPtStatic(market, exactSyIn);
+        approxParams = genApproxParamsToSwapExactSyForPt(market, netPtOut, slippage);
+    }
+
+    /// @param slippage A fixed-point number with 18 decimal places
+    function swapExactTokenForPtStaticAndGenerateApproxParams(
+        address market,
+        address tokenIn,
+        uint256 amountTokenIn,
+        uint256 slippage
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netSyMinted,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter,
+            ApproxParams memory approxParams
+        )
+    {
+        (netPtOut, netSyMinted, netSyFee, priceImpact, exchangeRateAfter) = IPActionMarketCoreStatic(address(this))
+            .swapExactTokenForPtStatic(market, tokenIn, amountTokenIn);
+        approxParams = genApproxParamsToSwapExactSyForPt(market, netPtOut, slippage);
+    }
+
+    /// @param slippage A fixed-point number with 18 decimal places
+    function genApproxParamsToSwapExactSyForPt(
+        address market,
+        uint256 netPtOut,
+        uint256 slippage
+    ) public view returns (ApproxParams memory) {
+        MarketState memory state = _readState(market);
+        MarketPreCompute memory comp = state.getMarketPreCompute(_pyIndex(market), block.timestamp);
+
+        uint256 guessLowerBound = 0;
+        uint256 guessUpperBound = MarketApproxPtOutLib.calcMaxPtOut(comp, state.totalPt);
+        return genApproxParamsPtOut(netPtOut, guessLowerBound, guessUpperBound, slippage);
+    }
+
+    /// @param slippage A fixed-point number with 18 decimal places
+    function genApproxParamsPtOut(
+        uint256 netPtOut,
+        uint256 guessLowerBound,
+        uint256 guessUpperBound,
+        uint256 slippage
+    ) internal pure returns (ApproxParams memory) {
+        uint256 guessOffchain = netPtOut;
+        uint256 MAX_ITERATION = 30;
+
+        uint256 MIN_EPS_CAP = PMath.ONE / 10 ** 5;
+        uint256 eps = PMath.min(slippage / 2, MIN_EPS_CAP);
+
+        uint256 guessMin = PMath.max(guessLowerBound, netPtOut.slipDown(slippage));
+        uint256 guessMax = PMath.min(guessUpperBound, netPtOut.slipUp(5 * slippage));
+
+        return
+            ApproxParams({
+                guessOffchain: guessOffchain,
+                maxIteration: MAX_ITERATION,
+                eps: eps,
+                guessMin: guessMin,
+                guessMax: guessMax
+            });
+    }
+
     function _getPtToAssetRate(
         address market,
         MarketState memory state,

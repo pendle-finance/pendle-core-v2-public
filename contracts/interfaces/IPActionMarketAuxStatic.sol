@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "./IPMarket.sol";
+import {ApproxParams} from "../router/base/MarketApproxLib.sol";
 
 interface IPActionMarketAuxStatic {
     function calcPriceImpactPY(address market, int256 netPtOut) external view returns (uint256);
@@ -38,4 +39,38 @@ interface IPActionMarketAuxStatic {
     function getPtToAssetRate(address market) external view returns (uint256);
 
     function getYtToAssetRate(address market) external view returns (uint256);
+
+    /// @param slippage A fixed-point number with 18 decimal places
+    function swapExactSyForPtStaticAndGenerateApproxParams(
+        address market,
+        uint256 exactSyIn,
+        uint256 slippage
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter,
+            ApproxParams memory approxParams
+        );
+
+    /// @param slippage A fixed-point number with 18 decimal places
+    function swapExactTokenForPtStaticAndGenerateApproxParams(
+        address market,
+        address tokenIn,
+        uint256 amountTokenIn,
+        uint256 slippage
+    )
+        external
+        view
+        returns (
+            uint256 netPtOut,
+            uint256 netSyMinted,
+            uint256 netSyFee,
+            uint256 priceImpact,
+            uint256 exchangeRateAfter,
+            ApproxParams memory approxParams
+        );
 }
