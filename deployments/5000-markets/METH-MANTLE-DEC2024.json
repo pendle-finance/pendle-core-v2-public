@@ -1,0 +1,15 @@
+{
+    "name": "METH-MANTLE-DEC2024",
+    "SY": "0x9Ab557331dDada945eB2eCE19b90Bd7a843F8665",
+    "YT": "0x007D35c67f97f2a898102a66dF346f9e9422f7f0",
+    "PT": "0x1333B49BBdD06544a25647f9127358D9A9486105",
+    "market": "0x99E83709846b6cB82d47a0D78b175E68497EA28B",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "17109333040000000000",
+    "initAnchor": "1059728064000000000",
+    "doCacheIndexSameBlock": false,
+    "deployTxHash": "0x7bff0037b3fc02ab80924ea1d428950c5a463839d732ef86e377cf8530eed2d5",
+    "deployBlockNumber": 67403685,
+    "reversedFee": 0.09999999999164011
+}
