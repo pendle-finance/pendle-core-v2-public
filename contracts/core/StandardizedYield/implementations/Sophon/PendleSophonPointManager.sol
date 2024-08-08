@@ -5,6 +5,7 @@ import "../../../erc20/PendleERC20.sol";
 import "../../../libraries/BoringOwnableUpgradeable.sol";
 import "../../../../interfaces/Sophon/ISophonFarming.sol";
 import "../../../../interfaces/Sophon/IPSophonPointManager.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract PendleSophonPointManager is PendleERC20, BoringOwnableUpgradeable, IPSophonPointManager {
     // solhint-disable immutable-vars-naming
@@ -18,11 +19,16 @@ contract PendleSophonPointManager is PendleERC20, BoringOwnableUpgradeable, IPSo
         address _sophonFarming,
         uint256 _pid,
         address _sy
-    ) PendleERC20("Sophon Point Receipt Token", "SPOINT", 18) initializer {
+    ) PendleERC20("Sophon Point Receipt Token", __getSpointSymbol(_pid), 18) initializer {
         sophonFarming = _sophonFarming;
         pid = _pid;
         sy = _sy;
         __BoringOwnable_init();
+    }
+
+    function __getSpointSymbol(uint256 _pid) internal pure returns (string memory) {
+        string memory id = Strings.toString(_pid);
+        return string(abi.encodePacked("SPOINT-", id));
     }
 
     function claimPointReceiptToken() external {
@@ -39,7 +45,7 @@ contract PendleSophonPointManager is PendleERC20, BoringOwnableUpgradeable, IPSo
     }
 
     function _afterTokenTransfer(address, address to, uint256 amount) internal virtual override {
-        if (to != address(0) && _shouldBurnReceiptToken(to)) {
+        if (amount != 0 && to != address(0) && _shouldBurnReceiptToken(to)) {
             _burn(to, amount);
             ISophonFarming(sophonFarming).transferPoints(pid, address(this), to, amount);
         }
