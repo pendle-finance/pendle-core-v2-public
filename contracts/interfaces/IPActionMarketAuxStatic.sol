@@ -28,6 +28,14 @@ interface IPActionMarketAuxStatic {
 
     function getTradeExchangeRateIncludeFee(address market, int256 netPtOut) external view returns (uint256);
 
+    function getYieldTokenAndPtRate(
+        address market
+    ) external view returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut);
+
+    function getYieldTokenAndYtRate(
+        address market
+    ) external view returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut);
+
     function getLpToSyRate(address market) external view returns (uint256);
 
     function getPtToSyRate(address market) external view returns (uint256);

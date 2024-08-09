@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPRouterStatic.sol";
 import "./StorageLayout.sol";
+import "hardhat/console.sol";
 
 contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using MarketMathCore for MarketState;
@@ -99,6 +100,60 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         uint256 pyPreTradeRate = ytPreTradePrice.divDown(ptPreTradePrice);
         uint256 pyTradeRate = ytTradePrice.divDown(ptTradePrice);
         priceImpact = _calculateImpact(pyPreTradeRate, pyTradeRate);
+    }
+
+    /**
+     * @notice get the rate of yieldToken & PT
+     * @return yieldToken the address of yieldToken
+     * @return netPtOut the amount of PT that can be swapped from 1 yieldToken (10**yieldToken.decimals())
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 PT (10**PT.decimals())
+     */
+    function getYieldTokenAndPtRate(
+        address market
+    ) public view returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut) {
+        (IStandardizedYield SY, IPPrincipalToken PT, ) = _readTokens(market);
+        yieldToken = SY.yieldToken();
+        uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
+        uint256 ptDecimals = PT.decimals();
+
+        (netPtOut, , , , ) = IPRouterStatic(address(this)).swapExactTokenForPtStatic(
+            market,
+            yieldToken,
+            10 ** yieldDecimals
+        );
+
+        (netYieldTokenOut, , , , ) = IPRouterStatic(address(this)).swapExactPtForTokenStatic(
+            market,
+            10 ** ptDecimals,
+            yieldToken
+        );
+    }
+
+    /**
+     * @notice get the rate of yieldToken & YT
+     * @return yieldToken the address of yieldToken
+     * @return netYtOut the amount of YT that can be swapped from 1 yieldToken (10**yieldToken.decimals())
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 YT (10**YT.decimals())
+     */
+    function getYieldTokenAndYtRate(
+        address market
+    ) public view returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut) {
+        (IStandardizedYield SY, IPPrincipalToken PT, ) = _readTokens(market);
+        yieldToken = SY.yieldToken();
+        uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
+        uint256 ptDecimals = PT.decimals();
+
+        (netYtOut, , , , ) = IPRouterStatic(address(this)).swapExactTokenForYtStatic(
+            market,
+            yieldToken,
+            10 ** yieldDecimals
+        );
+
+        (netYieldTokenOut, , , , , , , ) = IPRouterStatic(address(this)).swapExactYtForTokenStatic(
+            market,
+            10 ** ptDecimals,
+            yieldToken
+        );
     }
 
     function getLpToSyRate(address market) public view returns (uint256) {
