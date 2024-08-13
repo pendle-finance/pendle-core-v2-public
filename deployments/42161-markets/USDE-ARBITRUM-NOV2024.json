@@ -1,0 +1,15 @@
+{
+    "name": "USDE-ARBITRUM-NOV2024",
+    "SY": "0xA4ffe78ba40B7Ec0C348fFE36a8dE4F9d6198d2d",
+    "YT": "0x8D0aC6c608fd4BF52FcC31DcEf30D0aE2aED2e81",
+    "PT": "0x1FA42e6730DF74fF2742704761Da41111bB7F019",
+    "market": "0x281fE15fd3E08A282f52D5cf09a4d13c3709E66D",
+    "expiry": 1732752000,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "19026849490000000000",
+    "initAnchor": "1035435023000000000",
+    "doCacheIndexSameBlock": false,
+    "deployTxHash": "0xd5240b8e6f8f7802b58a5b0092748085080475c26996fe2c92ac16ab0686a793",
+    "deployBlockNumber": 242366888,
+    "reversedFee": 0.09999999999164011
+}
