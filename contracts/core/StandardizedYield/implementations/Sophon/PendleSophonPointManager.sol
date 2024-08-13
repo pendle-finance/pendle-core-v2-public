@@ -19,7 +19,7 @@ contract PendleSophonPointManager is PendleERC20, BoringOwnableUpgradeable, IPSo
         address _sophonFarming,
         uint256 _pid,
         address _sy
-    ) PendleERC20("Sophon Point Receipt Token", __getSpointSymbol(_pid), 18) initializer {
+    ) PendleERC20("Pendle Sophon Point Receipt Token", __getSpointSymbol(_pid), 18) initializer {
         sophonFarming = _sophonFarming;
         pid = _pid;
         sy = _sy;
