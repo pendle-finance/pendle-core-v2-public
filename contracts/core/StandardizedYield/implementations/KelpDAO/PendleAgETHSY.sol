@@ -29,9 +29,9 @@ contract PendleAgETHSY is SYBase {
     function _deposit(
         address tokenIn,
         uint256 amountDeposited
-    ) internal virtual override returns (uint256 amountSharesOut) {
+    ) internal virtual override returns (uint256) {
         if (tokenIn == agETH) {
-            amountSharesOut = amountDeposited;
+            return amountDeposited;
         } else {
             if (tokenIn == NATIVE) {
                 IKelpDepositPool(depositPool).depositETH{value: amountDeposited}(
@@ -40,7 +40,7 @@ contract PendleAgETHSY is SYBase {
                 );
                 (amountDeposited, tokenIn) = (_selfBalance(rsETH), rsETH);
             }
-            IERC4626(agETH).deposit(amountDeposited, address(this));
+            return IERC4626(agETH).deposit(amountDeposited, address(this));
         }
     }
 
