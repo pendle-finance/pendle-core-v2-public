@@ -1,0 +1,15 @@
+{
+    "name": "AGETH-MAINNET-DEC2024",
+    "SY": "0xb1B9150f2085f6a553b547099977181CA802752A",
+    "YT": "0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978",
+    "PT": "0x7aa68E84bCD8d1B4C9e10B1e565DB993f68a3E09",
+    "market": "0xa1073303F32dE052643FAfF61d90858e33b4E033",
+    "expiry": 1735171200,
+    "lnFeeRateRoot": "999500333000000",
+    "scalarRoot": "23310972242000000000",
+    "initAnchor": "1034345736000000000",
+    "doCacheIndexSameBlock": true,
+    "deployTxHash": "0x281363980f9357db7d020195a7b767e6c8cb9a1754c58910dccf669e5088c411",
+    "deployBlockNumber": 20561480,
+    "reversedFee": 0.09999999999164011
+}
