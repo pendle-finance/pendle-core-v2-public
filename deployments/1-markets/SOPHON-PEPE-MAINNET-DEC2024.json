@@ -1,0 +1,14 @@
+{
+    "name": "SY Sophon PEPE",
+    "SY": "0x065347C1Dd7A23Aa043e3844B4D0746ff7715246",
+    "YT": "0xD6cbbd0ce608B4b694bb7aED474AF7621c94D7C3",
+    "PT": "0xB00834d31102DCfc9bB266127cc9F9ef03BefEe1",
+    "market": "0x02f67a8E59b79891ae0C4c4dEbcb332d644512e1",
+    "expiry": 1735171200,
+    "scalarRoot": "10057120364000000000",
+    "initAnchor": "1079608524000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x4b6cca95af69cb185b2e65469e3820f6f53a8e6a56a60f141af186513083ebaf",
+    "deployBlockNumber": 20559351,
+    "reversedFee": 0.09999999999164011
+}
