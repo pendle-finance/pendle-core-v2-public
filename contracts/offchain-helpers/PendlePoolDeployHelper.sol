@@ -112,5 +112,24 @@ contract PendlePoolDeployHelper is TokenHelper {
         _transferOut(YT, msg.sender, amountPY);
     }
 
+    function redeployMarket(
+        address oldMarket,
+        uint256 amountLp,
+        uint80 lnFeeRateRoot,
+        int256 scalarRoot,
+        int256 initialRateAnchor
+    ) external returns (address newMarket) {
+        (, IPPrincipalToken PT, ) = IPMarket(oldMarket).readTokens();
+        newMarket = IPMarketFactoryV3(marketFactory).createNewMarket(
+            address(PT),
+            scalarRoot,
+            initialRateAnchor,
+            lnFeeRateRoot
+        );
+        _transferFrom(IERC20(oldMarket), msg.sender, oldMarket, amountLp);
+        (uint256 netSyOut, uint256 netPtOut) = IPMarketV3(oldMarket).burn(newMarket, newMarket, amountLp);
+        IPMarketV3(newMarket).mint(msg.sender, netSyOut, netPtOut);
+    }
+
     receive() external payable {}
 }
