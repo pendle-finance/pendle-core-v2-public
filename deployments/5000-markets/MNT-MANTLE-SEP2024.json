@@ -1,0 +1,12 @@
+{
+    "name": "MNT-MANTLE",
+    "SY": "0xddceec69d4a705970a5c60c8e6406ec81f2370bc",
+    "YT": "0x40AE8DbD3C41E38Fe1BBc010eee40685003945a3",
+    "PT": "0xC57c7Be308cf2f52dcF095d8D4C67d5984270da0",
+    "market": "0x4604FC1C52cBfc38C4E6DFd2CD2a9bF5b84f65Cb",
+    "expiry": 1727913600,
+    "scalarRoot": "6555704174000000000",
+    "initAnchor": "1044994384000000000",
+    "lnFeeRateRoot": "2995508979000000",
+    "reversedFee": 0.2999999999199199
+}
