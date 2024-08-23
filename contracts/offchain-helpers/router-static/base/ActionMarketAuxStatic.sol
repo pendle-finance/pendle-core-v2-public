@@ -105,8 +105,8 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     /**
      * @notice get the rate of yieldToken & PT
      * @return yieldToken the address of yieldToken
-     * @return netPtOut the amount of PT that can be swapped from 1 yieldToken (10**yieldToken.decimals())
-     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 PT (10**PT.decimals())
+     * @return netPtOut the amount of PT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't swap, return type(uint256).max
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 PT (10**PT.decimals()). If can't swap, return type(uint256).max
      */
     function getYieldTokenAndPtRate(
         address market
@@ -116,44 +116,71 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
         uint256 ptDecimals = PT.decimals();
 
-        (netPtOut, , , , ) = IPRouterStatic(address(this)).swapExactTokenForPtStatic(
-            market,
-            yieldToken,
-            10 ** yieldDecimals
-        );
+        try IPRouterStatic(address(this)).swapExactTokenForPtStatic(market, yieldToken, 10 ** yieldDecimals) returns (
+            uint256 netPtOutRet,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        ) {
+            netPtOut = netPtOutRet;
+        } catch {
+            netPtOut = type(uint256).max;
+        }
 
-        (netYieldTokenOut, , , , ) = IPRouterStatic(address(this)).swapExactPtForTokenStatic(
-            market,
-            10 ** ptDecimals,
-            yieldToken
-        );
+        try IPRouterStatic(address(this)).swapExactPtForTokenStatic(market, 10 ** ptDecimals, yieldToken) returns (
+            uint256 netYieldTokenOutRet,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        ) {
+            netYieldTokenOut = netYieldTokenOutRet;
+        } catch {
+            netYieldTokenOut = type(uint256).max;
+        }
     }
 
     /**
      * @notice get the rate of yieldToken & YT
      * @return yieldToken the address of yieldToken
-     * @return netYtOut the amount of YT that can be swapped from 1 yieldToken (10**yieldToken.decimals())
-     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 YT (10**YT.decimals())
+     * @return netYtOut the amount of YT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't swap, return type(uint256).max
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 YT (10**YT.decimals()). If can't swap, return type(uint256).max
      */
     function getYieldTokenAndYtRate(
         address market
     ) public view returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut) {
-        (IStandardizedYield SY, IPPrincipalToken PT, ) = _readTokens(market);
+        (IStandardizedYield SY, , IPYieldToken YT) = _readTokens(market);
         yieldToken = SY.yieldToken();
         uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
-        uint256 ptDecimals = PT.decimals();
+        uint256 ytDecimals = YT.decimals();
 
-        (netYtOut, , , , ) = IPRouterStatic(address(this)).swapExactTokenForYtStatic(
-            market,
-            yieldToken,
-            10 ** yieldDecimals
-        );
+        try IPRouterStatic(address(this)).swapExactTokenForYtStatic(market, yieldToken, 10 ** yieldDecimals) returns (
+            uint256 netYtOutRet,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        ) {
+            netYtOut = netYtOutRet;
+        } catch {
+            netYtOut = type(uint256).max;
+        }
 
-        (netYieldTokenOut, , , , , , , ) = IPRouterStatic(address(this)).swapExactYtForTokenStatic(
-            market,
-            10 ** ptDecimals,
-            yieldToken
-        );
+        try IPRouterStatic(address(this)).swapExactYtForTokenStatic(market, 10 ** ytDecimals, yieldToken) returns (
+            uint256 netYieldTokenOutRet,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        ) {
+            netYieldTokenOut = netYieldTokenOutRet;
+        } catch {
+            netYieldTokenOut = type(uint256).max;
+        }
     }
 
     function getLpToSyRate(address market) public view returns (uint256) {
