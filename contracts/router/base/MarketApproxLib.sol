@@ -102,19 +102,13 @@ library MarketApproxPtInLib {
                 MarketApproxEstimate.TokenType.SY,
                 MarketApproxEstimate.TokenType.YT
             );
-            approx.guessMin = PMath.max(
-                approx.guessMin,
-                PMath.max(index.syToAsset(exactSyIn), estimatedYtOut.slipDown(GUESS_RANGE_SLIP))
-            );
-            approx.guessMax = PMath.min(
-                approx.guessMax,
-                PMath.min(
-                    calcMaxPtIn(market, comp),
-                    // No slip estimatedYtOut for guess max,
-                    // Because the result should not exceed estimatedYtOut.
-                    estimatedYtOut
-                )
-            );
+            approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
+            approx.guessMin = PMath.min(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
+
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
+            // No slip estimatedYtOut for guess max,
+            // Because the result should not exceed estimatedYtOut.
+            approx.guessMax = PMath.min(approx.guessMax, estimatedYtOut);
             validateApprox(approx);
         } else {
             state = ApproxState.RESULT_FINDING;
@@ -389,15 +383,10 @@ library MarketApproxPtOutLib {
 
             approx.guessOffchain = estimatedPtOut;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtOut.slipDown(GUESS_RANGE_SLIP));
-            approx.guessMax = PMath.min(
-                approx.guessMax,
-                PMath.min(
-                    calcMaxPtOut(comp, market.totalPt),
-                    // No slip estimatedPtOut for guess max,
-                    // Because the result should not exceed estimatedPtOut.
-                    estimatedPtOut
-                )
-            );
+            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
+            // No slip estimatedPtOut for guess max,
+            // Because the result should not exceed estimatedPtOut.
+            approx.guessMax = PMath.min(approx.guessMax, estimatedPtOut);
             validateApprox(approx);
         } else {
             state = ApproxState.RESULT_FINDING;
