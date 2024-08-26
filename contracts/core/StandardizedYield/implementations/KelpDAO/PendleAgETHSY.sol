@@ -26,10 +26,7 @@ contract PendleAgETHSY is SYBase {
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
 
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256) {
+    function _deposit(address tokenIn, uint256 amountDeposited) internal virtual override returns (uint256) {
         if (tokenIn == agETH) {
             return amountDeposited;
         } else {
