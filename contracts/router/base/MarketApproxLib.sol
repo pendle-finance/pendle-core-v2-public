@@ -177,7 +177,7 @@ library MarketApproxPtInLib {
                     _totalPtIn,
                     _netSyHolding
                 );
-                estimatedPtSwap = a.totalPtIn - estimatedPtAdd;
+                estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
             }
             approx.guessOffchain = estimatedPtSwap;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
@@ -493,7 +493,7 @@ library MarketApproxPtOutLib {
                     _netPtHolding,
                     _totalSyIn
                 );
-                estimatedPtSwap = estimatedPtAdd - a.netPtHolding;
+                estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
             }
 
             a.approx.guessOffchain = estimatedPtSwap;
