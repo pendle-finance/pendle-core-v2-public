@@ -102,6 +102,7 @@ library MarketApproxPtInLib {
                 MarketApproxEstimate.TokenType.SY,
                 MarketApproxEstimate.TokenType.YT
             );
+            approx.guessOffchain = estimatedYtOut;
             approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
             approx.guessMin = PMath.min(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
 
