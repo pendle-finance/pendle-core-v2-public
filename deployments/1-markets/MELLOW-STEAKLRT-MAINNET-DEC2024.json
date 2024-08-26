@@ -1,0 +1,14 @@
+{
+    "name": "MELLOW-STEAKLRT-MAINNET-DEC2024",
+    "SY": "0x998a1d40f097fd36bff15ca78fc0673bd2a8280c",
+    "YT": "0xd6A4271F065DC7597aa37AFCDD4490000995719A",
+    "PT": "0xE0a5Fe2c7b188D47490778995f4fa8C0bc8eBA8B",
+    "market": "0x67Ec4046800bC2C27A51528e9D382d43c3146D29",
+    "expiry": 1735171200,
+    "scalarRoot": "23352202321000000000",
+    "initAnchor": "1032480618000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0xe9a6fa4568511a4d88ac9c073f3d68a33aee0d9a48fe11f18670f531e2ea18a3",
+    "deployBlockNumber": 20611857,
+    "reversedFee": 0.19999999993256523
+}
