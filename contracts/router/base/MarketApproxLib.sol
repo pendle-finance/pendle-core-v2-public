@@ -170,17 +170,33 @@ library MarketApproxPtInLib {
     ) internal pure returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/) {
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        ApproxState.State state;
         if (approx.guessOffchain == 0) {
-            // no limit on min
+            state = ApproxState.State.INITIAL;
+            uint256 estimatedPtSwap;
+            {
+                (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
+                    a.market,
+                    a.index,
+                    a.blockTime,
+                    _totalPtIn,
+                    _netSyHolding
+                );
+                estimatedPtSwap = a.totalPtIn - estimatedPtAdd;
+            }
+            approx.guessOffchain = estimatedPtSwap;
+            approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
             approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(a.market, comp));
             approx.guessMax = PMath.min(approx.guessMax, a.totalPtIn);
+            approx.guessMax = PMath.min(approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
             validateApprox(approx);
             require(a.market.totalLp != 0, "no existing lp");
+        } else {
+            state = ApproxState.State.RESULT_FINDING;
         }
 
+        uint256 guess = approx.guessOffchain;
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
-            uint256 guess = nextGuess(approx, iter);
-
             (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = calcNumerators(
                 a.market,
                 a.index,
@@ -196,10 +212,10 @@ library MarketApproxPtInLib {
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
-                approx.guessMin = guess + 1;
+                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ true);
             } else {
                 // needs less SY --> swap less PT
-                approx.guessMax = guess - 1;
+                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
