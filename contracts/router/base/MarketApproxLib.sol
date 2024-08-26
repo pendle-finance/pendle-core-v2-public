@@ -35,6 +35,8 @@ library MarketApproxPtInLib {
     using PMath for int256;
     using LogExpMath for int256;
 
+    uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
+
     /**
      * @dev algorithm:
      *     - Bin search the amount of PT to swap in
@@ -89,17 +91,39 @@ library MarketApproxPtInLib {
         ApproxParams memory approx
     ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        ApproxState.State state;
         if (approx.guessOffchain == 0) {
-            approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
+            state = ApproxState.State.INITIAL;
+            uint256 estimatedYtOut = MarketApproxEstimate.estimateAmount(
+                market,
+                index,
+                blockTime,
+                exactSyIn,
+                MarketApproxEstimate.TokenType.SY,
+                MarketApproxEstimate.TokenType.YT
+            );
+            approx.guessMin = PMath.max(
+                approx.guessMin,
+                PMath.max(index.syToAsset(exactSyIn), estimatedYtOut.slipDown(GUESS_RANGE_SLIP))
+            );
+            approx.guessMax = PMath.min(
+                approx.guessMax,
+                PMath.min(
+                    calcMaxPtIn(market, comp),
+                    // No slip estimatedYtOut for guess max,
+                    // Because the result should not exceed estimatedYtOut.
+                    estimatedYtOut
+                )
+            );
             validateApprox(approx);
+        } else {
+            state = ApproxState.State.RESULT_FINDING;
         }
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
 
+        uint256 guess = approx.guessOffchain;
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
-            uint256 guess = nextGuess(approx, iter);
-
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
 
             uint256 netSyToTokenizePt = index.assetToSyUp(guess);
@@ -111,9 +135,9 @@ library MarketApproxPtInLib {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
                     return (guess, netSyFee);
                 }
-                approx.guessMin = guess;
+                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                approx.guessMax = guess - 1;
+                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
