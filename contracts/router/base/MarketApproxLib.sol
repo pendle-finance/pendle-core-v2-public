@@ -318,6 +318,8 @@ library MarketApproxPtOutLib {
     using PMath for int256;
     using LogExpMath for int256;
 
+    uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
+
     /**
      * @dev algorithm:
      *     - Bin search the amount of PT to swapExactOut
@@ -333,24 +335,46 @@ library MarketApproxPtOutLib {
         ApproxParams memory approx
     ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        ApproxState.State state;
         if (approx.guessOffchain == 0) {
-            // no limit on min
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
+            state = ApproxState.State.INITIAL;
+            uint256 estimatedPtOut = MarketApproxEstimate.estimateAmount(
+                market,
+                index,
+                blockTime,
+                exactSyIn,
+                MarketApproxEstimate.TokenType.SY,
+                MarketApproxEstimate.TokenType.PT
+            );
+
+            approx.guessOffchain = estimatedPtOut;
+            approx.guessMin = PMath.max(approx.guessMin, estimatedPtOut.slipDown(GUESS_RANGE_SLIP));
+            approx.guessMax = PMath.min(
+                approx.guessMax,
+                PMath.min(
+                    calcMaxPtOut(comp, market.totalPt),
+                    // No slip estimatedPtOut for guess max,
+                    // Because the result should not exceed estimatedPtOut.
+                    estimatedPtOut
+                )
+            );
             validateApprox(approx);
+        } else {
+            state = ApproxState.State.RESULT_FINDING;
         }
 
-        for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
-            uint256 guess = nextGuess(approx, iter);
+        uint256 guess = approx.guessOffchain;
 
+        for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
                     return (guess, netSyFee);
                 }
-                approx.guessMin = guess;
+                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                approx.guessMax = guess - 1;
+                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
 
