@@ -5,7 +5,7 @@ import "../PendleERC20SYUpg.sol";
 import "../../../../interfaces/EtherFi/IVedaTeller.sol";
 import "../../../../interfaces/EtherFi/IVedaAccountant.sol";
 
-contract PendleWEEthsSY is PendleERC20SYUpg {
+contract PendleEBTCSY is PendleERC20SYUpg {
     using PMath for uint256;
 
     // solhint-disable immutable-vars-naming
