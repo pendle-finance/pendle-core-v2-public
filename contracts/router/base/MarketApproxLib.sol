@@ -91,9 +91,9 @@ library MarketApproxPtInLib {
         ApproxParams memory approx
     ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState.State state;
+        ApproxState state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.State.INITIAL;
+            state = ApproxState.INITIAL;
             uint256 estimatedYtOut = MarketApproxEstimate.estimateAmount(
                 market,
                 index,
@@ -117,7 +117,7 @@ library MarketApproxPtInLib {
             );
             validateApprox(approx);
         } else {
-            state = ApproxState.State.RESULT_FINDING;
+            state = ApproxState.RESULT_FINDING;
         }
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
@@ -135,9 +135,9 @@ library MarketApproxPtInLib {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
                     return (guess, netSyFee);
                 }
-                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
+                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -170,9 +170,9 @@ library MarketApproxPtInLib {
     ) internal pure returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/) {
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxState.State state;
+        ApproxState state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.State.INITIAL;
+            state = ApproxState.INITIAL;
             uint256 estimatedPtSwap;
             {
                 (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
@@ -192,7 +192,7 @@ library MarketApproxPtInLib {
             validateApprox(approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state = ApproxState.State.RESULT_FINDING;
+            state = ApproxState.RESULT_FINDING;
         }
 
         uint256 guess = approx.guessOffchain;
@@ -212,10 +212,10 @@ library MarketApproxPtInLib {
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
-                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ true);
             } else {
                 // needs less SY --> swap less PT
-                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -375,9 +375,9 @@ library MarketApproxPtOutLib {
         ApproxParams memory approx
     ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState.State state;
+        ApproxState state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.State.INITIAL;
+            state = ApproxState.INITIAL;
             uint256 estimatedPtOut = MarketApproxEstimate.estimateAmount(
                 market,
                 index,
@@ -400,7 +400,7 @@ library MarketApproxPtOutLib {
             );
             validateApprox(approx);
         } else {
-            state = ApproxState.State.RESULT_FINDING;
+            state = ApproxState.RESULT_FINDING;
         }
 
         uint256 guess = approx.guessOffchain;
@@ -412,9 +412,9 @@ library MarketApproxPtOutLib {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
                     return (guess, netSyFee);
                 }
-                (state, guess) = ApproxState.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
+                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                (state, guess) = ApproxState.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
 
@@ -491,9 +491,9 @@ library MarketApproxPtOutLib {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxState.State state;
+        ApproxState state;
         if (a.approx.guessOffchain == 0) {
-            state = ApproxState.State.INITIAL;
+            state = ApproxState.INITIAL;
             uint256 estimatedPtSwap;
             {
                 (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
@@ -513,7 +513,7 @@ library MarketApproxPtOutLib {
             validateApprox(a.approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state = ApproxState.State.RESULT_FINDING;
+            state = ApproxState.RESULT_FINDING;
         }
 
         uint256 guess = a.approx.guessOffchain;
@@ -547,10 +547,10 @@ library MarketApproxPtOutLib {
 
             if (ptNumerator <= syNumerator) {
                 // needs more PT
-                (state, guess) = ApproxState.advanceUp(state, guess, a.approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceUp(state, guess, a.approx, /* excludeGuessFromRange= */ true);
             } else {
                 // needs less PT
-                (state, guess) = ApproxState.advanceDown(state, guess, a.approx, /* excludeGuessFromRange= */ true);
+                (state, guess) = ApproxStateLib.advanceDown(state, guess, a.approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -717,62 +717,62 @@ library MarketApproxEstimate {
     }
 }
 
+enum ApproxState {
+    INITIAL,
+    RANGE_SEARCHING,
+    RESULT_FINDING
+}
+
 /// A small library for determining the next guess from the current
 /// `ApproxParams` state, dynamically adjusting the search range to fit the valid
 /// result range.
-library ApproxState {
-    enum State {
-        INITIAL,
-        RANGE_SEARCHING,
-        RESULT_FINDING
-    }
-
+library ApproxStateLib {
     function advanceDown(
-        State curState,
+        ApproxState curState,
         uint256 guess,
         ApproxParams memory approx,
         bool excludeGuessFromRange
-    ) internal pure returns (State nextState, uint256 nextGuess) {
+    ) internal pure returns (ApproxState nextState, uint256 nextGuess) {
         approx.guessMax = guess;
         if (excludeGuessFromRange) approx.guessMax--;
 
-        if (curState == State.INITIAL) {
-            return (State.RANGE_SEARCHING, approx.guessMin);
-        } else if (curState == State.RANGE_SEARCHING) {
+        if (curState == ApproxState.INITIAL) {
+            return (ApproxState.RANGE_SEARCHING, approx.guessMin);
+        } else if (curState == ApproxState.RANGE_SEARCHING) {
             if (guess == approx.guessMin) {
                 // change guessMin to double the distance from it to guessOffchain
                 uint256 boundDiff = approx.guessOffchain - approx.guessMin;
                 approx.guessMin -= boundDiff;
-                return (State.RANGE_SEARCHING, approx.guessMin);
+                return (ApproxState.RANGE_SEARCHING, approx.guessMin);
             }
         }
 
-        nextState = State.RESULT_FINDING;
+        nextState = ApproxState.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
 
     function advanceUp(
-        State curState,
+        ApproxState curState,
         uint256 guess,
         ApproxParams memory approx,
         bool excludeGuessFromRange
-    ) internal pure returns (State nextState, uint256 nextGuess) {
+    ) internal pure returns (ApproxState nextState, uint256 nextGuess) {
         approx.guessMin = guess;
         if (excludeGuessFromRange) approx.guessMin++;
 
-        if (curState == State.INITIAL) {
-            return (State.RANGE_SEARCHING, approx.guessMax);
-        } else if (curState == State.RANGE_SEARCHING) {
+        if (curState == ApproxState.INITIAL) {
+            return (ApproxState.RANGE_SEARCHING, approx.guessMax);
+        } else if (curState == ApproxState.RANGE_SEARCHING) {
             if (guess == approx.guessMax) {
                 // change guessMax to double the distance from guessOffchain to it
                 uint256 boundDiff = approx.guessMax - approx.guessOffchain;
                 approx.guessMax += boundDiff;
-                return (State.RANGE_SEARCHING, approx.guessMax);
+                return (ApproxState.RANGE_SEARCHING, approx.guessMax);
             }
         }
 
-        nextState = State.RESULT_FINDING;
+        nextState = ApproxState.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
