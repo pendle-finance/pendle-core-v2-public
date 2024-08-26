@@ -19,7 +19,7 @@ contract PendleUniBTCSY is SYBase {
         address tokenIn,
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
-        if (tokenIn != WBTC) {
+        if (tokenIn != UNIBTC) {
             IBedrockUniBTCVault(VAULT).mint(tokenIn, amountDeposited);
         }
         return amountDeposited; /// (WBTC & FBTC both have 8 decimals)
