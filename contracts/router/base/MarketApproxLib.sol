@@ -635,3 +635,64 @@ library MarketApproxEstimate {
         return (pa, sa);
     }
 }
+
+/// A small library for determining the next guess from the current
+/// `ApproxParams` state, dynamically adjusting the search range to fit the valid
+/// result range.
+library ApproxState {
+    enum State {
+        INITIAL,
+        RANGE_SEARCHING,
+        RESULT_FINDING
+    }
+
+    function advanceDown(
+        State curState,
+        uint256 guess,
+        ApproxParams memory approx,
+        bool excludeGuessFromRange
+    ) internal pure returns (State nextState, uint256 nextGuess) {
+        approx.guessMax = guess;
+        if (excludeGuessFromRange) approx.guessMax--;
+
+        if (curState == State.INITIAL) {
+            return (State.RANGE_SEARCHING, approx.guessMin);
+        } else if (curState == State.RANGE_SEARCHING) {
+            if (guess == approx.guessMin) {
+                // change guessMin to double the distance from it to guessOffchain
+                uint256 boundDiff = approx.guessOffchain - approx.guessMin;
+                approx.guessMin -= boundDiff;
+                return (State.RANGE_SEARCHING, approx.guessMin);
+            }
+        }
+
+        nextState = State.RESULT_FINDING;
+        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
+        else revert("Slippage: guessMin > guessMax");
+    }
+
+    function advanceUp(
+        State curState,
+        uint256 guess,
+        ApproxParams memory approx,
+        bool excludeGuessFromRange
+    ) internal pure returns (State nextState, uint256 nextGuess) {
+        approx.guessMin = guess;
+        if (excludeGuessFromRange) approx.guessMin++;
+
+        if (curState == State.INITIAL) {
+            return (State.RANGE_SEARCHING, approx.guessMax);
+        } else if (curState == State.RANGE_SEARCHING) {
+            if (guess == approx.guessMax) {
+                // change guessMax to double the distance from guessOffchain to it
+                uint256 boundDiff = approx.guessMax - approx.guessOffchain;
+                approx.guessMax += boundDiff;
+                return (State.RANGE_SEARCHING, approx.guessMax);
+            }
+        }
+
+        nextState = State.RESULT_FINDING;
+        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
+        else revert("Slippage: guessMin > guessMax");
+    }
+}
