@@ -104,7 +104,7 @@ library MarketApproxPtInLib {
             );
             approx.guessOffchain = estimatedYtOut;
             approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
-            approx.guessMin = PMath.min(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
+            approx.guessMin = PMath.max(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
 
             approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
             // No slip estimatedYtOut for guess max,
