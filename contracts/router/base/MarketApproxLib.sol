@@ -161,12 +161,14 @@ library MarketApproxPtInLib {
         uint256 _totalPtIn,
         uint256 _netSyHolding,
         uint256 _blockTime,
-        ApproxParams memory approx
+        ApproxParams memory _approx
     )
         internal
         pure
         returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/, uint256 /* iteration */)
     {
+        // hoist approx params here to avoid stack too deep
+        ApproxParams memory approx = _approx;
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxState state;
@@ -178,8 +180,8 @@ library MarketApproxPtInLib {
                     a.market,
                     a.index,
                     a.blockTime,
-                    _totalPtIn,
-                    _netSyHolding
+                    a.totalPtIn,
+                    a.netSyHolding
                 );
                 estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
             }
@@ -498,8 +500,8 @@ library MarketApproxPtOutLib {
                     a.market,
                     a.index,
                     a.blockTime,
-                    _netPtHolding,
-                    _totalSyIn
+                    a.netPtHolding,
+                    a.totalSyIn
                 );
                 estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
             }
