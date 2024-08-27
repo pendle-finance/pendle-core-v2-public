@@ -89,7 +89,7 @@ library MarketApproxPtInLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/) {
+    ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState state;
         if (approx.guessOffchain == 0) {
@@ -128,7 +128,7 @@ library MarketApproxPtInLib {
 
             if (netSyToPull <= exactSyIn) {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
-                    return (guess, netSyFee);
+                    return (guess, netSyFee, iter);
                 }
                 (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
@@ -162,7 +162,11 @@ library MarketApproxPtInLib {
         uint256 _netSyHolding,
         uint256 _blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/, uint256 /* iteration */)
+    {
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxState state;
@@ -202,7 +206,7 @@ library MarketApproxPtInLib {
             );
 
             if (PMath.isAApproxB(syNumerator, ptNumerator, approx.eps)) {
-                return (guess, netSyOut, netSyFee);
+                return (guess, netSyOut, netSyFee, iter);
             }
 
             if (syNumerator <= ptNumerator) {
@@ -368,7 +372,7 @@ library MarketApproxPtOutLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/) {
+    ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState state;
         if (approx.guessOffchain == 0) {
@@ -400,7 +404,7 @@ library MarketApproxPtOutLib {
 
             if (netSyIn <= exactSyIn) {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
-                    return (guess, netSyFee);
+                    return (guess, netSyFee, iter);
                 }
                 (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
             } else {
@@ -477,7 +481,11 @@ library MarketApproxPtOutLib {
         uint256 _netPtHolding,
         uint256 _blockTime,
         ApproxParams memory _approx
-    ) internal pure returns (uint256, /*netPtFromSwap*/ uint256, /*netSySwap*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (uint256, /*netPtFromSwap*/ uint256, /*netSySwap*/ uint256 /*netSyFee*/, uint256 /* iteration */)
+    {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
@@ -532,7 +540,7 @@ library MarketApproxPtOutLib {
             }
 
             if (PMath.isAApproxB(ptNumerator, syNumerator, a.approx.eps)) {
-                return (guess, netSyIn, netSyFee);
+                return (guess, netSyIn, netSyFee, iter);
             }
 
             if (ptNumerator <= syNumerator) {
