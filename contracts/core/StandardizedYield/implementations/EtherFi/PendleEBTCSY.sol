@@ -17,6 +17,8 @@ contract PendleEBTCSY is PendleERC20SYUpg {
     address public constant wBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant vedaTeller = 0xe19a43B1b8af6CeE71749Af2332627338B3242D1;
 
+    uint256 public constant ONE_SHARE = 10**8;
+
     address public immutable vedaAccountant;
 
     constructor() PendleERC20SYUpg(eBTC) {
@@ -46,7 +48,7 @@ contract PendleEBTCSY is PendleERC20SYUpg {
             return amountTokenToDeposit;
         }
         uint256 rate = IVedaAccountant(vedaAccountant).getRateInQuoteSafe(tokenIn);
-        amountSharesOut = amountTokenToDeposit.divDown(rate);
+        amountSharesOut = amountTokenToDeposit * ONE_SHARE / rate;
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {
@@ -54,6 +56,6 @@ contract PendleEBTCSY is PendleERC20SYUpg {
     }
 
     function getTokensIn() public pure override returns (address[] memory res) {
-        return ArrayLib.create(eBTC, wBTC, tBTC);
+        return ArrayLib.create(wBTC, tBTC, eBTC);
     }
 }
