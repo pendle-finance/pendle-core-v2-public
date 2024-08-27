@@ -89,7 +89,7 @@ library MarketApproxPtInLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/, uint256 /* iteration */) {
+    ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState state;
         if (approx.guessOffchain == 0) {
@@ -165,7 +165,7 @@ library MarketApproxPtInLib {
     )
         internal
         pure
-        returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256 /*netSyFee*/, uint256 /* iteration */)
+        returns (uint256 /*netPtSwap*/, uint256 /*netSyFromSwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
         // hoist approx params here to avoid stack too deep
         ApproxParams memory approx = _approx;
@@ -374,7 +374,7 @@ library MarketApproxPtOutLib {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/, uint256 /* iteration */) {
+    ) internal pure returns (uint256 /*netPtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState state;
         if (approx.guessOffchain == 0) {
@@ -486,7 +486,7 @@ library MarketApproxPtOutLib {
     )
         internal
         pure
-        returns (uint256, /*netPtFromSwap*/ uint256, /*netSySwap*/ uint256 /*netSyFee*/, uint256 /* iteration */)
+        returns (uint256 /*netPtFromSwap*/, uint256 /*netSySwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
 
