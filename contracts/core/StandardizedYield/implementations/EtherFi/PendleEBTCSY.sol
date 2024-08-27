@@ -6,8 +6,6 @@ import "../../../../interfaces/EtherFi/IVedaTeller.sol";
 import "../../../../interfaces/EtherFi/IVedaAccountant.sol";
 
 contract PendleEBTCSY is PendleERC20SYUpg {
-    using PMath for uint256;
-
     // solhint-disable immutable-vars-naming
     // solhint-disable const-name-snakecase
     // solhint-disable ordering
