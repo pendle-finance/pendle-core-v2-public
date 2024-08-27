@@ -222,7 +222,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         }
 
         if (doMarketOrder) {
-            (uint256 netPtOutMarket, ) = _readMarket(market).approxSwapExactSyForPt(
+            (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapExactSyForPt(
                 YT.newIndex(),
                 netSyLeft,
                 block.timestamp,
@@ -305,7 +305,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         }
 
         if (doMarketOrder) {
-            (uint256 netYtOutMarket, ) = _readMarket(market).approxSwapExactSyForYt(
+            (uint256 netYtOutMarket, , ) = _readMarket(market).approxSwapExactSyForYt(
                 YT.newIndex(),
                 netSyLeft,
                 block.timestamp,
