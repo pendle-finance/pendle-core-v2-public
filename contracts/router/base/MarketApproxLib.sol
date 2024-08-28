@@ -766,6 +766,7 @@ library ApproxStateLib {
         if (excludeGuessFromRange) approx.guessMax--;
 
         if (state.stage == ApproxStage.INITIAL) {
+            state.stage = ApproxStage.RANGE_SEARCHING;
             return approx.guessMin;
         } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMin) {
@@ -793,6 +794,7 @@ library ApproxStateLib {
         if (excludeGuessFromRange) approx.guessMin++;
 
         if (state.stage == ApproxStage.INITIAL) {
+            state.stage = ApproxStage.RANGE_SEARCHING;
             return approx.guessMax;
         } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMax) {
