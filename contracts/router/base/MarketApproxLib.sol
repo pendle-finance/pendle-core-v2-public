@@ -91,9 +91,13 @@ library MarketApproxPtInLib {
         ApproxParams memory approx
     ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState state;
+        ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.INITIAL;
+            state = ApproxState({
+                stage: ApproxStage.INITIAL,
+                searchRangeLowerBound: index.syToAsset(exactSyIn),
+                searchRangeUpperBound: calcMaxPtIn(market, comp)
+            });
             uint256 estimatedYtOut = MarketApproxEstimate.estimateAmount(
                 market,
                 index,
@@ -103,16 +107,15 @@ library MarketApproxPtInLib {
                 MarketApproxEstimate.TokenType.YT
             );
             approx.guessOffchain = estimatedYtOut;
-            approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
             approx.guessMin = PMath.max(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
-
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
             // No slip estimatedYtOut for guess max,
             // Because the result should not exceed estimatedYtOut.
             approx.guessMax = PMath.min(approx.guessMax, estimatedYtOut);
+            state.tightenApproxBound(approx);
+
             validateApprox(approx);
         } else {
-            state = ApproxState.RESULT_FINDING;
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
@@ -130,9 +133,9 @@ library MarketApproxPtInLib {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
+                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -171,9 +174,13 @@ library MarketApproxPtInLib {
         ApproxParams memory approx = _approx;
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxState state;
+        ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.INITIAL;
+            state = ApproxState({
+                stage: ApproxStage.INITIAL,
+                searchRangeLowerBound: 0, // no bound for lower
+                searchRangeUpperBound: PMath.min(a.totalPtIn, calcMaxPtIn(a.market, comp))
+            });
             uint256 estimatedPtSwap;
             {
                 (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
@@ -187,13 +194,12 @@ library MarketApproxPtInLib {
             }
             approx.guessOffchain = estimatedPtSwap;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(a.market, comp));
-            approx.guessMax = PMath.min(approx.guessMax, a.totalPtIn);
             approx.guessMax = PMath.min(approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
+            state.tightenApproxBound(approx);
             validateApprox(approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state = ApproxState.RESULT_FINDING;
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
         uint256 guess = approx.guessOffchain;
@@ -213,10 +219,10 @@ library MarketApproxPtInLib {
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
-                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ true);
             } else {
                 // needs less SY --> swap less PT
-                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -376,9 +382,13 @@ library MarketApproxPtOutLib {
         ApproxParams memory approx
     ) internal pure returns (uint256 /*netPtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState state;
+        ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState.INITIAL;
+            state = ApproxState({
+                stage: ApproxStage.INITIAL,
+                searchRangeLowerBound: 0, // no bound for lower
+                searchRangeUpperBound: calcMaxPtOut(comp, market.totalPt)
+            });
             uint256 estimatedPtOut = MarketApproxEstimate.estimateAmount(
                 market,
                 index,
@@ -390,13 +400,13 @@ library MarketApproxPtOutLib {
 
             approx.guessOffchain = estimatedPtOut;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtOut.slipDown(GUESS_RANGE_SLIP));
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
             // No slip estimatedPtOut for guess max,
             // Because the result should not exceed estimatedPtOut.
             approx.guessMax = PMath.min(approx.guessMax, estimatedPtOut);
+            state.tightenApproxBound(approx);
             validateApprox(approx);
         } else {
-            state = ApproxState.RESULT_FINDING;
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
         uint256 guess = approx.guessOffchain;
@@ -408,9 +418,9 @@ library MarketApproxPtOutLib {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                (state, guess) = ApproxStateLib.advanceUp(state, guess, approx, /* excludeGuessFromRange= */ false);
+                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ false);
             } else {
-                (state, guess) = ApproxStateLib.advanceDown(state, guess, approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
             }
         }
 
@@ -491,9 +501,13 @@ library MarketApproxPtOutLib {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
-        ApproxState state;
+        ApproxState memory state;
         if (a.approx.guessOffchain == 0) {
-            state = ApproxState.INITIAL;
+            state = ApproxState({
+                stage: ApproxStage.INITIAL,
+                searchRangeLowerBound: 0,
+                searchRangeUpperBound: calcMaxPtOut(comp, a.market.totalPt)
+            });
             uint256 estimatedPtSwap;
             {
                 (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
@@ -508,12 +522,12 @@ library MarketApproxPtOutLib {
 
             a.approx.guessOffchain = estimatedPtSwap;
             a.approx.guessMin = PMath.max(a.approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
-            a.approx.guessMax = PMath.min(a.approx.guessMax, calcMaxPtOut(comp, a.market.totalPt));
             a.approx.guessMax = PMath.min(a.approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
+            state.tightenApproxBound(a.approx);
             validateApprox(a.approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state = ApproxState.RESULT_FINDING;
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
         uint256 guess = a.approx.guessOffchain;
@@ -547,10 +561,10 @@ library MarketApproxPtOutLib {
 
             if (ptNumerator <= syNumerator) {
                 // needs more PT
-                (state, guess) = ApproxStateLib.advanceUp(state, guess, a.approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceUp(guess, a.approx, /* excludeGuessFromRange= */ true);
             } else {
                 // needs less PT
-                (state, guess) = ApproxStateLib.advanceDown(state, guess, a.approx, /* excludeGuessFromRange= */ true);
+                guess = state.advanceDown(guess, a.approx, /* excludeGuessFromRange= */ true);
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
