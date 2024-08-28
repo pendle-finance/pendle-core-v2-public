@@ -776,9 +776,9 @@ library ApproxStateLib {
                 approx.guessMin = PMath.max(approx.guessMin, state.searchRangeLowerBound);
                 return approx.guessMin;
             }
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
-        state.stage = ApproxStage.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
@@ -803,9 +803,9 @@ library ApproxStateLib {
                 approx.guessMax = PMath.min(approx.guessMax, state.searchRangeUpperBound);
                 return approx.guessMax;
             }
+            state.stage = ApproxStage.RESULT_FINDING;
         }
 
-        state.stage = ApproxStage.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
