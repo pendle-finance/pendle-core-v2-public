@@ -28,6 +28,90 @@ struct ApproxParams {
 /// approximation, it will be used (and save all the guessing). It's expected that this shortcut will be used in most cases
 /// except in cases that there is a trade in the same market right before the tx
 
+enum ApproxStage {
+    INITIAL,
+    RANGE_SEARCHING,
+    RESULT_FINDING
+}
+
+struct ApproxState {
+    ApproxStage stage;
+    uint256 searchRangeLowerBound;
+    uint256 searchRangeUpperBound;
+}
+
+using ApproxStateLib for ApproxState;
+
+/// A small library for determining the next guess from the current
+/// `ApproxParams` state, dynamically adjusting the search range to fit the valid
+/// result range.
+library ApproxStateLib {
+    function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
+        uint256 lower = state.searchRangeLowerBound;
+        uint256 upper = state.searchRangeUpperBound;
+        if (approx.guessMin < lower) approx.guessMin = lower;
+        if (approx.guessMax > upper) approx.guessMax = upper;
+        if (approx.guessOffchain < lower) approx.guessOffchain = lower;
+        if (approx.guessOffchain > upper) approx.guessOffchain = upper;
+    }
+
+    function advanceDown(
+        ApproxState memory state,
+        uint256 guess,
+        ApproxParams memory approx,
+        bool excludeGuessFromRange
+    ) internal pure returns (uint256 nextGuess) {
+        approx.guessMax = guess;
+        if (excludeGuessFromRange) approx.guessMax--;
+
+        if (state.stage == ApproxStage.INITIAL) {
+            state.stage = ApproxStage.RANGE_SEARCHING;
+            return approx.guessMin;
+        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
+            if (guess == approx.guessMin) {
+                if (guess == state.searchRangeLowerBound) revert("Slippage: search range underflow");
+                // change guessMin to double the distance from it to guessOffchain
+                uint256 boundDiff = approx.guessOffchain - approx.guessMin;
+                approx.guessMin -= boundDiff;
+                approx.guessMin = PMath.max(approx.guessMin, state.searchRangeLowerBound);
+                return approx.guessMin;
+            }
+            state.stage = ApproxStage.RESULT_FINDING;
+        }
+
+        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
+        else revert("Slippage: guessMin > guessMax");
+    }
+
+    function advanceUp(
+        ApproxState memory state,
+        uint256 guess,
+        ApproxParams memory approx,
+        bool excludeGuessFromRange
+    ) internal pure returns (uint256 nextGuess) {
+        approx.guessMin = guess;
+        if (excludeGuessFromRange) approx.guessMin++;
+
+        if (state.stage == ApproxStage.INITIAL) {
+            state.stage = ApproxStage.RANGE_SEARCHING;
+            return approx.guessMax;
+        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
+            if (guess == approx.guessMax) {
+                if (guess == state.searchRangeUpperBound) revert("Slippage: search range overflow");
+                // change guessMax to double the distance from guessOffchain to it
+                uint256 boundDiff = approx.guessMax - approx.guessOffchain;
+                approx.guessMax += boundDiff;
+                approx.guessMax = PMath.min(approx.guessMax, state.searchRangeUpperBound);
+                return approx.guessMax;
+            }
+            state.stage = ApproxStage.RESULT_FINDING;
+        }
+
+        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
+        else revert("Slippage: guessMin > guessMax");
+    }
+}
+
 library MarketApproxPtInLib {
     using MarketMathCore for MarketState;
     using PYIndexLib for PYIndex;
@@ -727,89 +811,5 @@ library MarketApproxEstimate {
         uint256 pa = (totalPt * sa) / totalSy;
 
         return (pa, sa);
-    }
-}
-
-enum ApproxStage {
-    INITIAL,
-    RANGE_SEARCHING,
-    RESULT_FINDING
-}
-
-struct ApproxState {
-    ApproxStage stage;
-    uint256 searchRangeLowerBound;
-    uint256 searchRangeUpperBound;
-}
-
-using ApproxStateLib for ApproxState;
-
-/// A small library for determining the next guess from the current
-/// `ApproxParams` state, dynamically adjusting the search range to fit the valid
-/// result range.
-library ApproxStateLib {
-    function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
-        uint256 lower = state.searchRangeLowerBound;
-        uint256 upper = state.searchRangeUpperBound;
-        if (approx.guessMin < lower) approx.guessMin = lower;
-        if (approx.guessMax > upper) approx.guessMax = upper;
-        if (approx.guessOffchain < lower) approx.guessOffchain = lower;
-        if (approx.guessOffchain > upper) approx.guessOffchain = upper;
-    }
-
-    function advanceDown(
-        ApproxState memory state,
-        uint256 guess,
-        ApproxParams memory approx,
-        bool excludeGuessFromRange
-    ) internal pure returns (uint256 nextGuess) {
-        approx.guessMax = guess;
-        if (excludeGuessFromRange) approx.guessMax--;
-
-        if (state.stage == ApproxStage.INITIAL) {
-            state.stage = ApproxStage.RANGE_SEARCHING;
-            return approx.guessMin;
-        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
-            if (guess == approx.guessMin) {
-                if (guess == state.searchRangeLowerBound) revert("Slippage: search range underflow");
-                // change guessMin to double the distance from it to guessOffchain
-                uint256 boundDiff = approx.guessOffchain - approx.guessMin;
-                approx.guessMin -= boundDiff;
-                approx.guessMin = PMath.max(approx.guessMin, state.searchRangeLowerBound);
-                return approx.guessMin;
-            }
-            state.stage = ApproxStage.RESULT_FINDING;
-        }
-
-        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
-        else revert("Slippage: guessMin > guessMax");
-    }
-
-    function advanceUp(
-        ApproxState memory state,
-        uint256 guess,
-        ApproxParams memory approx,
-        bool excludeGuessFromRange
-    ) internal pure returns (uint256 nextGuess) {
-        approx.guessMin = guess;
-        if (excludeGuessFromRange) approx.guessMin++;
-
-        if (state.stage == ApproxStage.INITIAL) {
-            state.stage = ApproxStage.RANGE_SEARCHING;
-            return approx.guessMax;
-        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
-            if (guess == approx.guessMax) {
-                if (guess == state.searchRangeUpperBound) revert("Slippage: search range overflow");
-                // change guessMax to double the distance from guessOffchain to it
-                uint256 boundDiff = approx.guessMax - approx.guessOffchain;
-                approx.guessMax += boundDiff;
-                approx.guessMax = PMath.min(approx.guessMax, state.searchRangeUpperBound);
-                return approx.guessMax;
-            }
-            state.stage = ApproxStage.RESULT_FINDING;
-        }
-
-        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
-        else revert("Slippage: guessMin > guessMax");
     }
 }
