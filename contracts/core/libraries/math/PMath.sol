@@ -75,6 +75,22 @@ library PMath {
         return mulDown(a, ONE - factor);
     }
 
+    /// @return min(a + b, bound)
+    /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
+    function addWithUpperBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256) {
+        if (b > bound) return bound;
+        if (bound - b < a) return bound;
+        return a + b;
+    }
+
+    /// @return max(a - b, bound)
+    /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
+    function subWithLowerBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256) {
+        if (b > a) return bound;
+        if (bound > a - b) return bound;
+        return a - b;
+    }
+
     // @author Uniswap
     function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {

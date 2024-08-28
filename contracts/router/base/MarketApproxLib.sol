@@ -80,8 +80,7 @@ library ApproxStateLib {
                 if (guess == state.searchRangeLowerBound) revert("Slippage: search range underflow");
                 // change guessMin to double the distance from it to guessOffchain
                 uint256 boundDiff = approx.guessOffchain - approx.guessMin;
-                approx.guessMin -= boundDiff;
-                approx.guessMin = PMath.max(approx.guessMin, state.searchRangeLowerBound);
+                approx.guessMin = PMath.subWithLowerBound(approx.guessMin, boundDiff, state.searchRangeLowerBound);
                 return approx.guessMin;
             }
             state.stage = ApproxStage.RESULT_FINDING;
@@ -108,8 +107,7 @@ library ApproxStateLib {
                 if (guess == state.searchRangeUpperBound) revert("Slippage: search range overflow");
                 // change guessMax to double the distance from guessOffchain to it
                 uint256 boundDiff = approx.guessMax - approx.guessOffchain;
-                approx.guessMax += boundDiff;
-                approx.guessMax = PMath.min(approx.guessMax, state.searchRangeUpperBound);
+                approx.guessMax = PMath.addWithUpperBound(approx.guessMax, boundDiff, state.searchRangeUpperBound);
                 return approx.guessMax;
             }
             state.stage = ApproxStage.RESULT_FINDING;
