@@ -753,6 +753,8 @@ library ApproxStateLib {
         uint256 upper = state.searchRangeUpperBound;
         if (approx.guessMin < lower) approx.guessMin = lower;
         if (approx.guessMax > upper) approx.guessMax = upper;
+        if (approx.guessOffchain < lower) approx.guessOffchain = lower;
+        if (approx.guessOffchain > upper) approx.guessOffchain = upper;
     }
 
     function advanceDown(
