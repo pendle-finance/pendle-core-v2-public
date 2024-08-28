@@ -51,8 +51,14 @@ library ApproxStateLib {
         uint256 upper = state.searchRangeUpperBound;
         if (approx.guessMin < lower) approx.guessMin = lower;
         if (approx.guessMax > upper) approx.guessMax = upper;
-        if (approx.guessOffchain < lower) approx.guessOffchain = lower;
-        if (approx.guessOffchain > upper) approx.guessOffchain = upper;
+    }
+
+    function clampEstimation(ApproxState memory state, uint256 estimation) internal pure returns (uint256) {
+        uint256 lower = state.searchRangeLowerBound;
+        uint256 upper = state.searchRangeUpperBound;
+        if (estimation < lower) estimation = lower;
+        if (estimation > upper) estimation = upper;
+        return estimation;
     }
 
     function advanceDown(
@@ -190,6 +196,8 @@ library MarketApproxPtInLib {
                 MarketApproxEstimate.TokenType.SY,
                 MarketApproxEstimate.TokenType.YT
             );
+            estimatedYtOut = state.clampEstimation(estimatedYtOut);
+
             approx.guessOffchain = estimatedYtOut;
             approx.guessMin = PMath.max(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
             // No slip estimatedYtOut for guess max,
@@ -275,6 +283,8 @@ library MarketApproxPtInLib {
                 );
                 estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
             }
+            estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
+
             approx.guessOffchain = estimatedPtSwap;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
             approx.guessMax = PMath.min(approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
@@ -480,6 +490,7 @@ library MarketApproxPtOutLib {
                 MarketApproxEstimate.TokenType.SY,
                 MarketApproxEstimate.TokenType.PT
             );
+            estimatedPtOut = state.clampEstimation(estimatedPtOut);
 
             approx.guessOffchain = estimatedPtOut;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtOut.slipDown(GUESS_RANGE_SLIP));
@@ -602,6 +613,7 @@ library MarketApproxPtOutLib {
                 );
                 estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
             }
+            estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
 
             a.approx.guessOffchain = estimatedPtSwap;
             a.approx.guessMin = PMath.max(a.approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
