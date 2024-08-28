@@ -49,6 +49,8 @@ library ApproxStateLib {
     function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
         uint256 lower = state.searchRangeLowerBound;
         uint256 upper = state.searchRangeUpperBound;
+        if (approx.guessMax < lower || approx.guessMin > upper)
+            revert("Slippage: approx range outside of valid search range");
         if (approx.guessMin < lower) approx.guessMin = lower;
         if (approx.guessMax > upper) approx.guessMax = upper;
     }
