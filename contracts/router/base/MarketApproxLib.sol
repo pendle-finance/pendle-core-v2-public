@@ -717,62 +717,81 @@ library MarketApproxEstimate {
     }
 }
 
-enum ApproxState {
+enum ApproxStage {
     INITIAL,
     RANGE_SEARCHING,
     RESULT_FINDING
 }
 
+struct ApproxState {
+    ApproxStage stage;
+    uint256 searchRangeLowerBound;
+    uint256 searchRangeUpperBound;
+}
+
+using ApproxStateLib for ApproxState;
+
 /// A small library for determining the next guess from the current
 /// `ApproxParams` state, dynamically adjusting the search range to fit the valid
 /// result range.
 library ApproxStateLib {
+    function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
+        uint256 lower = state.searchRangeLowerBound;
+        uint256 upper = state.searchRangeUpperBound;
+        if (approx.guessMin < lower) approx.guessMin = lower;
+        if (approx.guessMax > upper) approx.guessMax = upper;
+    }
+
     function advanceDown(
-        ApproxState curState,
+        ApproxState memory state,
         uint256 guess,
         ApproxParams memory approx,
         bool excludeGuessFromRange
-    ) internal pure returns (ApproxState nextState, uint256 nextGuess) {
+    ) internal pure returns (uint256 nextGuess) {
         approx.guessMax = guess;
         if (excludeGuessFromRange) approx.guessMax--;
 
-        if (curState == ApproxState.INITIAL) {
-            return (ApproxState.RANGE_SEARCHING, approx.guessMin);
-        } else if (curState == ApproxState.RANGE_SEARCHING) {
+        if (state.stage == ApproxStage.INITIAL) {
+            return approx.guessMin;
+        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMin) {
+                if (guess == state.searchRangeLowerBound) revert("Slippage: search range underflow");
                 // change guessMin to double the distance from it to guessOffchain
                 uint256 boundDiff = approx.guessOffchain - approx.guessMin;
                 approx.guessMin -= boundDiff;
-                return (ApproxState.RANGE_SEARCHING, approx.guessMin);
+                approx.guessMin = PMath.max(approx.guessMin, state.searchRangeLowerBound);
+                return approx.guessMin;
             }
         }
 
-        nextState = ApproxState.RESULT_FINDING;
+        state.stage = ApproxStage.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
 
     function advanceUp(
-        ApproxState curState,
+        ApproxState memory state,
         uint256 guess,
         ApproxParams memory approx,
         bool excludeGuessFromRange
-    ) internal pure returns (ApproxState nextState, uint256 nextGuess) {
+    ) internal pure returns (uint256 nextGuess) {
         approx.guessMin = guess;
         if (excludeGuessFromRange) approx.guessMin++;
 
-        if (curState == ApproxState.INITIAL) {
-            return (ApproxState.RANGE_SEARCHING, approx.guessMax);
-        } else if (curState == ApproxState.RANGE_SEARCHING) {
+        if (state.stage == ApproxStage.INITIAL) {
+            return approx.guessMax;
+        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMax) {
+                if (guess == state.searchRangeUpperBound) revert("Slippage: search range overflow");
                 // change guessMax to double the distance from guessOffchain to it
                 uint256 boundDiff = approx.guessMax - approx.guessOffchain;
                 approx.guessMax += boundDiff;
-                return (ApproxState.RANGE_SEARCHING, approx.guessMax);
+                approx.guessMax = PMath.min(approx.guessMax, state.searchRangeUpperBound);
+                return approx.guessMax;
             }
         }
 
-        nextState = ApproxState.RESULT_FINDING;
+        state.stage = ApproxStage.RESULT_FINDING;
         if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
         else revert("Slippage: guessMin > guessMax");
     }
