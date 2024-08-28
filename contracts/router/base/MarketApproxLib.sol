@@ -111,9 +111,8 @@ library MarketApproxPtInLib {
             // No slip estimatedYtOut for guess max,
             // Because the result should not exceed estimatedYtOut.
             approx.guessMax = PMath.min(approx.guessMax, estimatedYtOut);
-            state.tightenApproxBound(approx);
-
             validateApprox(approx);
+            state.tightenApproxBound(approx);
         } else {
             state.stage = ApproxStage.RESULT_FINDING;
         }
@@ -195,8 +194,8 @@ library MarketApproxPtInLib {
             approx.guessOffchain = estimatedPtSwap;
             approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
             approx.guessMax = PMath.min(approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
-            state.tightenApproxBound(approx);
             validateApprox(approx);
+            state.tightenApproxBound(approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
             state.stage = ApproxStage.RESULT_FINDING;
@@ -403,8 +402,8 @@ library MarketApproxPtOutLib {
             // No slip estimatedPtOut for guess max,
             // Because the result should not exceed estimatedPtOut.
             approx.guessMax = PMath.min(approx.guessMax, estimatedPtOut);
-            state.tightenApproxBound(approx);
             validateApprox(approx);
+            state.tightenApproxBound(approx);
         } else {
             state.stage = ApproxStage.RESULT_FINDING;
         }
@@ -523,8 +522,8 @@ library MarketApproxPtOutLib {
             a.approx.guessOffchain = estimatedPtSwap;
             a.approx.guessMin = PMath.max(a.approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
             a.approx.guessMax = PMath.min(a.approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
-            state.tightenApproxBound(a.approx);
             validateApprox(a.approx);
+            state.tightenApproxBound(a.approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
             state.stage = ApproxStage.RESULT_FINDING;
