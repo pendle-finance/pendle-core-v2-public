@@ -78,17 +78,17 @@ library PMath {
     /// @return min(a + b, bound)
     /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
     function addWithUpperBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256) {
-        if (b > bound) return bound;
-        if (bound - b < a) return bound;
-        return a + b;
+        unchecked {
+            return type(uint256).max - b < a ? bound : min(bound, a + b);
+        }
     }
 
     /// @return max(a - b, bound)
     /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
     function subWithLowerBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256) {
-        if (b > a) return bound;
-        if (bound > a - b) return bound;
-        return a - b;
+        unchecked {
+            return b > a ? bound : max(a - b, bound);
+        }
     }
 
     // @author Uniswap
