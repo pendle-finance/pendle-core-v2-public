@@ -551,10 +551,11 @@ library MarketApproxPtOutLib {
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
             uint256 estimatedPtOut = MarketApproxEstimate.estimateSwapExactSyForPt(market, index, blockTime, exactSyIn);
+            uint256 maxPtOut = calcMaxPtOut(comp, market.totalPt);
             state.initWithoutOffchainGuess({
                 estimation: estimatedPtOut,
                 // no bound for lower
-                searchBound: [0, calcMaxPtOut(comp, market.totalPt)],
+                searchBound: [0, maxPtOut],
                 approx: approx
             });
             validateApprox(state.approx);
