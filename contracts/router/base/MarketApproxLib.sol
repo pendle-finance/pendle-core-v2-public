@@ -36,8 +36,7 @@ enum ApproxStage {
 
 struct ApproxState {
     ApproxStage stage;
-    uint256 searchRangeLowerBound;
-    uint256 searchRangeUpperBound;
+    uint256[2] searchBound;
 }
 
 using ApproxStateLib for ApproxState;
@@ -47,8 +46,8 @@ using ApproxStateLib for ApproxState;
 /// result range.
 library ApproxStateLib {
     function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
-        uint256 lower = state.searchRangeLowerBound;
-        uint256 upper = state.searchRangeUpperBound;
+        uint256 lower = state.searchBound[0];
+        uint256 upper = state.searchBound[1];
         if (approx.guessMax < lower || approx.guessMin > upper)
             revert("Slippage: approx range outside of valid search range");
         if (approx.guessMin < lower) approx.guessMin = lower;
@@ -56,8 +55,8 @@ library ApproxStateLib {
     }
 
     function clampEstimation(ApproxState memory state, uint256 estimation) internal pure returns (uint256) {
-        uint256 lower = state.searchRangeLowerBound;
-        uint256 upper = state.searchRangeUpperBound;
+        uint256 lower = state.searchBound[0];
+        uint256 upper = state.searchBound[1];
         if (estimation < lower) estimation = lower;
         if (estimation > upper) estimation = upper;
         return estimation;
@@ -77,10 +76,11 @@ library ApproxStateLib {
             return approx.guessMin;
         } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMin) {
-                if (guess == state.searchRangeLowerBound) revert("Slippage: search range underflow");
+                uint256 LOWER_SEARCH_BOUND = state.searchBound[0];
+                if (guess == LOWER_SEARCH_BOUND) revert("Slippage: search range underflow");
                 // change guessMin to double the distance from it to guessOffchain
                 uint256 boundDiff = approx.guessOffchain - approx.guessMin;
-                approx.guessMin = PMath.subWithLowerBound(approx.guessMin, boundDiff, state.searchRangeLowerBound);
+                approx.guessMin = PMath.subWithLowerBound(approx.guessMin, boundDiff, LOWER_SEARCH_BOUND);
                 return approx.guessMin;
             }
             state.stage = ApproxStage.RESULT_FINDING;
@@ -104,10 +104,11 @@ library ApproxStateLib {
             return approx.guessMax;
         } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
             if (guess == approx.guessMax) {
-                if (guess == state.searchRangeUpperBound) revert("Slippage: search range overflow");
+                uint256 UPPER_SEARCH_BOUND = state.searchBound[1];
+                if (guess == UPPER_SEARCH_BOUND) revert("Slippage: search range overflow");
                 // change guessMax to double the distance from guessOffchain to it
                 uint256 boundDiff = approx.guessMax - approx.guessOffchain;
-                approx.guessMax = PMath.addWithUpperBound(approx.guessMax, boundDiff, state.searchRangeUpperBound);
+                approx.guessMax = PMath.addWithUpperBound(approx.guessMax, boundDiff, UPPER_SEARCH_BOUND);
                 return approx.guessMax;
             }
             state.stage = ApproxStage.RESULT_FINDING;
@@ -185,8 +186,7 @@ library MarketApproxPtInLib {
         if (approx.guessOffchain == 0) {
             state = ApproxState({
                 stage: ApproxStage.INITIAL,
-                searchRangeLowerBound: index.syToAsset(exactSyIn),
-                searchRangeUpperBound: calcMaxPtIn(market, comp)
+                searchBound: [index.syToAsset(exactSyIn), calcMaxPtIn(market, comp)]
             });
             uint256 estimatedYtOut = MarketApproxEstimate.estimateSwapExactSyForYt(market, index, blockTime, exactSyIn);
             estimatedYtOut = state.clampEstimation(estimatedYtOut);
@@ -262,8 +262,8 @@ library MarketApproxPtInLib {
         if (approx.guessOffchain == 0) {
             state = ApproxState({
                 stage: ApproxStage.INITIAL,
-                searchRangeLowerBound: 0, // no bound for lower
-                searchRangeUpperBound: PMath.min(a.totalPtIn, calcMaxPtIn(a.market, comp))
+                // no bound for lower
+                searchBound: [0, PMath.min(a.totalPtIn, calcMaxPtIn(a.market, comp))]
             });
             uint256 estimatedPtSwap = estimateSwapPtToAddLiquidity(a);
             estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
@@ -473,8 +473,8 @@ library MarketApproxPtOutLib {
         if (approx.guessOffchain == 0) {
             state = ApproxState({
                 stage: ApproxStage.INITIAL,
-                searchRangeLowerBound: 0, // no bound for lower
-                searchRangeUpperBound: calcMaxPtOut(comp, market.totalPt)
+                // no bound for lower
+                searchBound: [0, calcMaxPtOut(comp, market.totalPt)]
             });
             uint256 estimatedPtOut = MarketApproxEstimate.estimateSwapExactSyForPt(market, index, blockTime, exactSyIn);
             estimatedPtOut = state.clampEstimation(estimatedPtOut);
@@ -584,11 +584,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxState memory state;
         if (a.approx.guessOffchain == 0) {
-            state = ApproxState({
-                stage: ApproxStage.INITIAL,
-                searchRangeLowerBound: 0,
-                searchRangeUpperBound: calcMaxPtOut(comp, a.market.totalPt)
-            });
+            state = ApproxState({stage: ApproxStage.INITIAL, searchBound: [0, calcMaxPtOut(comp, a.market.totalPt)]});
             uint256 estimatedPtSwap = estimateSwapSyToAddLiquidity(a);
             estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
 
