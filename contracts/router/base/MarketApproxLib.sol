@@ -37,6 +37,8 @@ enum ApproxStage {
 struct ApproxState {
     ApproxStage stage;
     uint256[2] searchBound;
+    ApproxParams approx;
+    uint256 curGuess;
 }
 
 using ApproxStateLib for ApproxState;
@@ -45,6 +47,33 @@ using ApproxStateLib for ApproxState;
 /// `ApproxParams` state, dynamically adjusting the search range to fit the valid
 /// result range.
 library ApproxStateLib {
+    using PMath for uint256;
+
+    uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
+
+    function initWithOffchainGuess(ApproxState memory state, ApproxParams memory approx) internal pure {
+        state.stage = ApproxStage.RESULT_FINDING;
+        state.searchBound = [0, type(uint256).max];
+        state.setApproxParams(approx);
+    }
+
+    function initWithoutOffchainGuess(
+        ApproxState memory state,
+        uint256 estimation,
+        uint256[2] memory searchBound,
+        ApproxParams memory approx
+    ) internal pure {
+        state.stage = ApproxStage.INITIAL;
+        state.searchBound = searchBound;
+
+        estimation = clampEstimation(state, estimation);
+        approx.guessOffchain = estimation;
+        approx.guessMin = PMath.max(approx.guessMin, estimation.slipDown(GUESS_RANGE_SLIP));
+        approx.guessMax = PMath.min(approx.guessMax, estimation.slipUp(GUESS_RANGE_SLIP));
+
+        state.setApproxParams(approx);
+    }
+
     function tightenApproxBound(ApproxState memory state, ApproxParams memory approx) internal pure {
         uint256 lower = state.searchBound[0];
         uint256 upper = state.searchBound[1];
@@ -62,60 +91,124 @@ library ApproxStateLib {
         return estimation;
     }
 
-    function advanceDown(
-        ApproxState memory state,
-        uint256 guess,
-        ApproxParams memory approx,
-        bool excludeGuessFromRange
-    ) internal pure returns (uint256 nextGuess) {
-        approx.guessMax = guess;
-        if (excludeGuessFromRange) approx.guessMax--;
-
-        if (state.stage == ApproxStage.INITIAL) {
-            state.stage = ApproxStage.RANGE_SEARCHING;
-            return approx.guessMin;
-        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
-            if (guess == approx.guessMin) {
-                uint256 LOWER_SEARCH_BOUND = state.searchBound[0];
-                if (guess == LOWER_SEARCH_BOUND) revert("Slippage: search range underflow");
-                // change guessMin to double the distance from it to guessOffchain
-                uint256 boundDiff = approx.guessOffchain - approx.guessMin;
-                approx.guessMin = PMath.subWithLowerBound(approx.guessMin, boundDiff, LOWER_SEARCH_BOUND);
-                return approx.guessMin;
-            }
-            state.stage = ApproxStage.RESULT_FINDING;
-        }
-
-        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
-        else revert("Slippage: guessMin > guessMax");
+    function setApproxParams(ApproxState memory state, ApproxParams memory approx) internal pure {
+        tightenApproxBound(state, approx);
+        state.approx = approx;
+        state.curGuess = state.approx.guessOffchain;
     }
 
-    function advanceUp(
-        ApproxState memory state,
+    function transitionDown(
+        ApproxStage stage,
+        uint256[2] memory searchBound,
         uint256 guess,
-        ApproxParams memory approx,
+        uint256 guessMin,
+        uint256 guessMax,
+        uint256 guessOffchain,
         bool excludeGuessFromRange
-    ) internal pure returns (uint256 nextGuess) {
-        approx.guessMin = guess;
-        if (excludeGuessFromRange) approx.guessMin++;
+    ) internal pure returns (ApproxStage nextStage, uint256 nextGuess, uint256 nextGuessMin, uint256 nextGuessMax) {
+        nextGuessMax = guess;
+        if (excludeGuessFromRange) nextGuessMax--;
 
-        if (state.stage == ApproxStage.INITIAL) {
-            state.stage = ApproxStage.RANGE_SEARCHING;
-            return approx.guessMax;
-        } else if (state.stage == ApproxStage.RANGE_SEARCHING) {
-            if (guess == approx.guessMax) {
-                uint256 UPPER_SEARCH_BOUND = state.searchBound[1];
-                if (guess == UPPER_SEARCH_BOUND) revert("Slippage: search range overflow");
-                // change guessMax to double the distance from guessOffchain to it
-                uint256 boundDiff = approx.guessMax - approx.guessOffchain;
-                approx.guessMax = PMath.addWithUpperBound(approx.guessMax, boundDiff, UPPER_SEARCH_BOUND);
-                return approx.guessMax;
+        if (stage == ApproxStage.INITIAL) {
+            nextStage = ApproxStage.RANGE_SEARCHING;
+            nextGuess = nextGuessMin = guessMin;
+        } else if (stage == ApproxStage.RANGE_SEARCHING) {
+            uint256 LOWER_SEARCH_BOUND = searchBound[0];
+            if (guess == LOWER_SEARCH_BOUND) revert("Slippage: search range underflow");
+
+            bool SHOULD_EXTEND_MORE = guess == guessMin;
+            if (!SHOULD_EXTEND_MORE) {
+                return
+                    transitionDown(
+                        ApproxStage.RESULT_FINDING,
+                        searchBound,
+                        guess,
+                        guessMin,
+                        guessMax,
+                        guessOffchain,
+                        excludeGuessFromRange
+                    );
             }
-            state.stage = ApproxStage.RESULT_FINDING;
+            nextStage = ApproxStage.RANGE_SEARCHING;
+            // change guessMin to double the distance from it to guessOffchain
+            nextGuess = nextGuessMin = PMath.subWithLowerBound(guessMin, guessOffchain - guessMin, LOWER_SEARCH_BOUND);
+        } else if (stage == ApproxStage.RESULT_FINDING) {
+            if (guessMin > guessMax) revert("Slippage: guessMin > guessMax");
+            nextStage = ApproxStage.RESULT_FINDING;
+            nextGuessMin = guessMin;
+            nextGuess = (nextGuessMin + nextGuessMax) / 2;
+        } else {
+            assert(false);
         }
+    }
 
-        if (approx.guessMin <= approx.guessMax) nextGuess = (approx.guessMin + approx.guessMax) / 2;
-        else revert("Slippage: guessMin > guessMax");
+    function transitionUp(
+        ApproxStage stage,
+        uint256[2] memory searchBound,
+        uint256 guess,
+        uint256 guessMin,
+        uint256 guessMax,
+        uint256 guessOffchain,
+        bool excludeGuessFromRange
+    ) internal pure returns (ApproxStage nextStage, uint256 nextGuess, uint256 nextGuessMin, uint256 nextGuessMax) {
+        nextGuessMin = guess;
+        if (excludeGuessFromRange) nextGuessMin++;
+
+        if (stage == ApproxStage.INITIAL) {
+            nextStage = ApproxStage.RANGE_SEARCHING;
+            nextGuess = nextGuessMax = guessMax;
+        } else if (stage == ApproxStage.RANGE_SEARCHING) {
+            uint256 UPPER_SEARCH_BOUND = searchBound[1];
+            if (guess == UPPER_SEARCH_BOUND) revert("Slippage: search range overflow");
+
+            bool SHOULD_EXTEND_MORE = guess == guessMax;
+            if (!SHOULD_EXTEND_MORE) {
+                return
+                    transitionUp(
+                        ApproxStage.RESULT_FINDING,
+                        searchBound,
+                        guess,
+                        guessMin,
+                        guessMax,
+                        guessOffchain,
+                        excludeGuessFromRange
+                    );
+            }
+            nextStage = ApproxStage.RANGE_SEARCHING;
+            // change guessMax to double the distance from guessOffchain to it
+            nextGuess = nextGuessMax = PMath.addWithUpperBound(guessMax, guessMax - guessOffchain, UPPER_SEARCH_BOUND);
+        } else if (stage == ApproxStage.RESULT_FINDING) {
+            if (guessMin > guessMax) revert("Slippage: guessMin > guessMax");
+            nextStage = ApproxStage.RESULT_FINDING;
+            nextGuessMax = guessMax;
+            nextGuess = (nextGuessMin + nextGuessMax) / 2;
+        } else {
+            assert(false);
+        }
+    }
+
+    function advanceDown(ApproxState memory state, bool excludeGuessFromRange) internal pure {
+        (state.stage, state.curGuess, state.approx.guessMin, state.approx.guessMax) = transitionDown(
+            state.stage,
+            state.searchBound,
+            state.curGuess,
+            state.approx.guessMin,
+            state.approx.guessMax,
+            state.approx.guessOffchain,
+            excludeGuessFromRange
+        );
+    }
+
+    function advanceUp(ApproxState memory state, bool excludeGuessFromRange) internal pure {
+        (state.stage, state.curGuess, state.approx.guessMin, state.approx.guessMax) = transitionUp(
+            state.stage,
+            state.searchBound,
+            state.curGuess,
+            state.approx.guessMin,
+            state.approx.guessMax,
+            state.approx.guessOffchain,
+            excludeGuessFromRange
+        );
     }
 }
 
@@ -125,8 +218,6 @@ library MarketApproxPtInLib {
     using PMath for uint256;
     using PMath for int256;
     using LogExpMath for int256;
-
-    uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
 
     /**
      * @dev algorithm:
@@ -184,28 +275,21 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState({
-                stage: ApproxStage.INITIAL,
-                searchBound: [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)]
-            });
             uint256 estimatedYtOut = MarketApproxEstimate.estimateSwapExactSyForYt(market, index, blockTime, exactSyIn);
-            estimatedYtOut = state.clampEstimation(estimatedYtOut);
-
-            approx.guessOffchain = estimatedYtOut;
-            approx.guessMin = PMath.max(approx.guessMin, estimatedYtOut.slipDown(GUESS_RANGE_SLIP));
-            // No slip estimatedYtOut for guess max,
-            // Because the result should not exceed estimatedYtOut.
-            approx.guessMax = PMath.min(approx.guessMax, estimatedYtOut);
-            validateApprox(approx);
-            state.tightenApproxBound(approx);
+            state.initWithoutOffchainGuess({
+                estimation: estimatedYtOut,
+                searchBound: [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)],
+                approx: approx
+            });
+            validateApprox(state.approx);
         } else {
-            state.stage = ApproxStage.RESULT_FINDING;
+            state.initWithOffchainGuess(approx);
         }
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
 
-        uint256 guess = approx.guessOffchain;
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
+            uint256 guess = state.curGuess;
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
 
             uint256 netSyToTokenizePt = index.assetToSyUp(guess);
@@ -217,9 +301,9 @@ library MarketApproxPtInLib {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ false);
+                state.advanceUp({excludeGuessFromRange: false});
             } else {
-                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
+                state.advanceDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -260,26 +344,21 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState({
-                stage: ApproxStage.INITIAL,
-                // no bound for lower
-                searchBound: [0, PMath.min(a.totalPtIn, calcSoftMaxPtIn(a.market, comp))]
-            });
             uint256 estimatedPtSwap = estimateSwapPtToAddLiquidity(a);
-            estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
-
-            approx.guessOffchain = estimatedPtSwap;
-            approx.guessMin = PMath.max(approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
-            approx.guessMax = PMath.min(approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
-            validateApprox(approx);
-            state.tightenApproxBound(approx);
+            state.initWithoutOffchainGuess({
+                estimation: estimatedPtSwap,
+                // no bound for lower
+                searchBound: [0, PMath.min(a.totalPtIn, calcSoftMaxPtIn(a.market, comp))],
+                approx: approx
+            });
+            validateApprox(state.approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state.stage = ApproxStage.RESULT_FINDING;
+            state.initWithOffchainGuess(approx);
         }
 
-        uint256 guess = approx.guessOffchain;
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
+            uint256 guess = state.curGuess;
             (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = calcNumerators(
                 a.market,
                 a.index,
@@ -295,10 +374,10 @@ library MarketApproxPtInLib {
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
-                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ true);
+                state.advanceUp({excludeGuessFromRange: true});
             } else {
                 // needs less SY --> swap less PT
-                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
+                state.advanceDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
@@ -471,37 +550,29 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            state = ApproxState({
-                stage: ApproxStage.INITIAL,
-                // no bound for lower
-                searchBound: [0, calcMaxPtOut(comp, market.totalPt)]
-            });
             uint256 estimatedPtOut = MarketApproxEstimate.estimateSwapExactSyForPt(market, index, blockTime, exactSyIn);
-            estimatedPtOut = state.clampEstimation(estimatedPtOut);
-
-            approx.guessOffchain = estimatedPtOut;
-            approx.guessMin = PMath.max(approx.guessMin, estimatedPtOut.slipDown(GUESS_RANGE_SLIP));
-            // No slip estimatedPtOut for guess max,
-            // Because the result should not exceed estimatedPtOut.
-            approx.guessMax = PMath.min(approx.guessMax, estimatedPtOut);
-            validateApprox(approx);
-            state.tightenApproxBound(approx);
+            state.initWithoutOffchainGuess({
+                estimation: estimatedPtOut,
+                // no bound for lower
+                searchBound: [0, calcMaxPtOut(comp, market.totalPt)],
+                approx: approx
+            });
+            validateApprox(state.approx);
         } else {
-            state.stage = ApproxStage.RESULT_FINDING;
+            state.initWithOffchainGuess(approx);
         }
 
-        uint256 guess = approx.guessOffchain;
-
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
+            uint256 guess = state.curGuess;
             (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                guess = state.advanceUp(guess, approx, /* excludeGuessFromRange= */ false);
+                state.advanceUp({excludeGuessFromRange: false});
             } else {
-                guess = state.advanceDown(guess, approx, /* excludeGuessFromRange= */ true);
+                state.advanceDown({excludeGuessFromRange: true});
             }
         }
 
@@ -584,22 +655,20 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         ApproxState memory state;
         if (a.approx.guessOffchain == 0) {
-            state = ApproxState({stage: ApproxStage.INITIAL, searchBound: [0, calcMaxPtOut(comp, a.market.totalPt)]});
             uint256 estimatedPtSwap = estimateSwapSyToAddLiquidity(a);
-            estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
-
-            a.approx.guessOffchain = estimatedPtSwap;
-            a.approx.guessMin = PMath.max(a.approx.guessMin, estimatedPtSwap.slipDown(GUESS_RANGE_SLIP));
-            a.approx.guessMax = PMath.min(a.approx.guessMax, estimatedPtSwap.slipUp(GUESS_RANGE_SLIP));
-            validateApprox(a.approx);
-            state.tightenApproxBound(a.approx);
+            state.initWithoutOffchainGuess({
+                estimation: estimatedPtSwap,
+                searchBound: [0, calcMaxPtOut(comp, a.market.totalPt)],
+                approx: a.approx
+            });
+            validateApprox(state.approx);
             require(a.market.totalLp != 0, "no existing lp");
         } else {
-            state.stage = ApproxStage.RESULT_FINDING;
+            state.initWithOffchainGuess(a.approx);
         }
 
-        uint256 guess = a.approx.guessOffchain;
         for (uint256 iter = 0; iter < a.approx.maxIteration; ++iter) {
+            uint256 guess = state.curGuess;
             (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) = calcSyIn(a.market, comp, a.index, guess);
 
             if (netSyIn > a.totalSyIn) {
@@ -629,10 +698,10 @@ library MarketApproxPtOutLib {
 
             if (ptNumerator <= syNumerator) {
                 // needs more PT
-                guess = state.advanceUp(guess, a.approx, /* excludeGuessFromRange= */ true);
+                state.advanceUp({excludeGuessFromRange: true});
             } else {
                 // needs less PT
-                guess = state.advanceDown(guess, a.approx, /* excludeGuessFromRange= */ true);
+                state.advanceDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
