@@ -188,14 +188,7 @@ library MarketApproxPtInLib {
                 searchRangeLowerBound: index.syToAsset(exactSyIn),
                 searchRangeUpperBound: calcMaxPtIn(market, comp)
             });
-            uint256 estimatedYtOut = MarketApproxEstimate.estimateAmount(
-                market,
-                index,
-                blockTime,
-                exactSyIn,
-                MarketApproxEstimate.TokenType.SY,
-                MarketApproxEstimate.TokenType.YT
-            );
+            uint256 estimatedYtOut = MarketApproxEstimate.estimateSwapExactSyForYt(market, index, blockTime, exactSyIn);
             estimatedYtOut = state.clampEstimation(estimatedYtOut);
 
             approx.guessOffchain = estimatedYtOut;
@@ -272,17 +265,7 @@ library MarketApproxPtInLib {
                 searchRangeLowerBound: 0, // no bound for lower
                 searchRangeUpperBound: PMath.min(a.totalPtIn, calcMaxPtIn(a.market, comp))
             });
-            uint256 estimatedPtSwap;
-            {
-                (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
-                    a.market,
-                    a.index,
-                    a.blockTime,
-                    a.totalPtIn,
-                    a.netSyHolding
-                );
-                estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
-            }
+            uint256 estimatedPtSwap = estimateSwapPtToAddLiquidity(a);
             estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
 
             approx.guessOffchain = estimatedPtSwap;
@@ -319,6 +302,17 @@ library MarketApproxPtInLib {
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
+    }
+
+    function estimateSwapPtToAddLiquidity(Args5 memory a) internal pure returns (uint256 estimatedPtSwap) {
+        (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
+            a.market,
+            a.index,
+            a.blockTime,
+            a.totalPtIn,
+            a.netSyHolding
+        );
+        estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
     }
 
     function calcNumerators(
@@ -482,14 +476,7 @@ library MarketApproxPtOutLib {
                 searchRangeLowerBound: 0, // no bound for lower
                 searchRangeUpperBound: calcMaxPtOut(comp, market.totalPt)
             });
-            uint256 estimatedPtOut = MarketApproxEstimate.estimateAmount(
-                market,
-                index,
-                blockTime,
-                exactSyIn,
-                MarketApproxEstimate.TokenType.SY,
-                MarketApproxEstimate.TokenType.PT
-            );
+            uint256 estimatedPtOut = MarketApproxEstimate.estimateSwapExactSyForPt(market, index, blockTime, exactSyIn);
             estimatedPtOut = state.clampEstimation(estimatedPtOut);
 
             approx.guessOffchain = estimatedPtOut;
@@ -602,17 +589,7 @@ library MarketApproxPtOutLib {
                 searchRangeLowerBound: 0,
                 searchRangeUpperBound: calcMaxPtOut(comp, a.market.totalPt)
             });
-            uint256 estimatedPtSwap;
-            {
-                (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
-                    a.market,
-                    a.index,
-                    a.blockTime,
-                    a.netPtHolding,
-                    a.totalSyIn
-                );
-                estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
-            }
+            uint256 estimatedPtSwap = estimateSwapSyToAddLiquidity(a);
             estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
 
             a.approx.guessOffchain = estimatedPtSwap;
@@ -663,6 +640,17 @@ library MarketApproxPtOutLib {
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
+    }
+
+    function estimateSwapSyToAddLiquidity(Args6 memory a) internal pure returns (uint256 estimatedPtSwap) {
+        (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
+            a.market,
+            a.index,
+            a.blockTime,
+            a.netPtHolding,
+            a.totalSyIn
+        );
+        estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
     }
 
     /**
@@ -789,6 +777,24 @@ library MarketApproxEstimate {
         }
     }
 
+    function estimateSwapExactSyForPt(
+        MarketState memory market,
+        PYIndex index,
+        uint256 blockTime,
+        uint256 amountSyIn
+    ) internal pure returns (uint256 estimatedPtOut) {
+        return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.PT);
+    }
+
+    function estimateSwapExactSyForYt(
+        MarketState memory market,
+        PYIndex index,
+        uint256 blockTime,
+        uint256 amountSyIn
+    ) internal pure returns (uint256 estimatedYtOut) {
+        return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.YT);
+    }
+
     function estimateAddLiquidity(
         MarketState memory market,
         PYIndex index,
@@ -818,7 +824,7 @@ library MarketApproxEstimate {
 
         uint256 totalSy = market.totalSy.Uint();
         uint256 totalPt = market.totalPt.Uint();
-        uint256 x = estimateAmount(market, index, blockTime, totalSy, TokenType.SY, TokenType.PT);
+        uint256 x = estimateSwapExactSyForPt(market, index, blockTime, totalSy);
         uint256 sa = (netPtOwning * totalSy + netSyOwning * x) / (x + totalPt);
         uint256 pa = (totalPt * sa) / totalSy;
 
