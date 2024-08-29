@@ -145,7 +145,7 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtIn(market, comp));
+            approx.guessMax = PMath.min(approx.guessMax, calcSoftMaxPtIn(market, comp));
             validateApprox(approx);
         }
 
@@ -186,7 +186,7 @@ library MarketApproxPtInLib {
         if (approx.guessOffchain == 0) {
             state = ApproxState({
                 stage: ApproxStage.INITIAL,
-                searchBound: [index.syToAsset(exactSyIn), calcMaxPtIn(market, comp)]
+                searchBound: [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)]
             });
             uint256 estimatedYtOut = MarketApproxEstimate.estimateSwapExactSyForYt(market, index, blockTime, exactSyIn);
             estimatedYtOut = state.clampEstimation(estimatedYtOut);
@@ -263,7 +263,7 @@ library MarketApproxPtInLib {
             state = ApproxState({
                 stage: ApproxStage.INITIAL,
                 // no bound for lower
-                searchBound: [0, PMath.min(a.totalPtIn, calcMaxPtIn(a.market, comp))]
+                searchBound: [0, PMath.min(a.totalPtIn, calcSoftMaxPtIn(a.market, comp))]
             });
             uint256 estimatedPtSwap = estimateSwapPtToAddLiquidity(a);
             estimatedPtSwap = state.clampEstimation(estimatedPtSwap);
@@ -422,12 +422,12 @@ library MarketApproxPtInLib {
             else low = mid;
         }
 
-        low = PMath.min(
-            low,
-            (MarketMathCore.MAX_MARKET_PROPORTION.mulDown(market.totalPt + comp.totalAsset) - market.totalPt).Uint()
-        );
-
+        low = PMath.min(low, calcSoftMaxPtIn(market, comp));
         return low;
+    }
+
+    function calcSoftMaxPtIn(MarketState memory market, MarketPreCompute memory comp) internal pure returns (uint256) {
+        return (MarketMathCore.MAX_MARKET_PROPORTION.mulDown(market.totalPt + comp.totalAsset) - market.totalPt).Uint();
     }
 
     function calcSlope(MarketPreCompute memory comp, int256 totalPt, int256 ptToMarket) internal pure returns (int256) {
