@@ -1,0 +1,14 @@
+{
+    "name": "SY eETH",
+    "SY": "0xa6C895EB332E91c5b3D00B7baeEAae478cc502DA",
+    "YT": "0x7F37674E5c6dc16B30829B7AE1E0b7fE08144B7d",
+    "PT": "0xE2B2D203577c7cb3D043E89cCf90b5E24d19b66f",
+    "market": "0x6b92feB89ED16AA971B096e247Fe234dB4Aaa262",
+    "expiry": 1735171200,
+    "scalarRoot": "45975856837000000000",
+    "initAnchor": "1022058206000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x0ac5730e8fc07dfa0453809f0b589ab395f52af9fb343e50119f3ba9a4d5f5e5",
+    "deployBlockNumber": 248179000,
+    "reversedFee": 0.09999999999164011
+}

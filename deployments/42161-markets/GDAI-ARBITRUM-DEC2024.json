@@ -1,0 +1,14 @@
+{
+    "name": "SY gDAI",
+    "SY": "0xAF699fb0D9F12Bf7B14474aE5c9Bea688888DF73",
+    "YT": "0x879E35e9450AaB46e972b2Bc6288C007331d7185",
+    "PT": "0xC15CB9274cB1F47D6854133A3B822CCF94861642",
+    "market": "0x2fc3432C0E6a325D09D16f1Af14061eC6cf71E98",
+    "expiry": 1735171200,
+    "scalarRoot": "31690201156000000000",
+    "initAnchor": "1038639068000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0x79df513c61bad7cabcbf7ba1a8dabbce9aca3faaa9cf7ac7ecb6d660fb7aa942",
+    "deployBlockNumber": 248180304,
+    "reversedFee": 0.19999999993256523
+}
