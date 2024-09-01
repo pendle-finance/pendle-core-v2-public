@@ -1,0 +1,12 @@
+{
+    "name": "SY gDAI",
+    "SY": "0xAF699fb0D9F12Bf7B14474aE5c9Bea688888DF73",
+    "YT": "0x4ac1Cc1F45b07bB317883eCb7A2a1D95BF617D02",
+    "PT": "0x4d5d8375c39dc91a8aca33ff4a4564de92dcd04c",
+    "market": "0xA9104b8B6698979568852C30231871e28A482b3C",
+    "expiry": 1743033600,
+    "scalarRoot": "30785098468000000000",
+    "initAnchor": "1069532671000000000",
+    "lnFeeRateRoot": "1998102463000000",
+    "reversedFee": 0.20000999999325586
+}
