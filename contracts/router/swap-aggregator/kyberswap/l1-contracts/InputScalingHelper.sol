@@ -124,7 +124,7 @@ library InputScalingHelper {
         desc.amount = newAmount;
 
         uint256 nReceivers = desc.srcReceivers.length;
-        for (uint256 i = 0; i < nReceivers; ) {
+        for (uint256 i; i != nReceivers; ) {
             desc.srcAmounts[i] = (desc.srcAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -142,7 +142,7 @@ library InputScalingHelper {
         SimpleSwapData memory swapData = abi.decode(data, (SimpleSwapData));
 
         uint256 nPools = swapData.firstPools.length;
-        for (uint256 i = 0; i < nPools; ) {
+        for (uint256 i; i != nPools; ) {
             swapData.firstSwapAmounts[i] = (swapData.firstSwapAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -170,7 +170,7 @@ library InputScalingHelper {
         );
 
         uint256 nSequences = executorDesc.swapSequences.length;
-        for (uint256 i = 0; i < nSequences; ) {
+        for (uint256 i; i != nSequences; ) {
             Swap memory swap = executorDesc.swapSequences[i][0];
             bytes4 functionSelector = bytes4(swap.selectorAndFlags);
 

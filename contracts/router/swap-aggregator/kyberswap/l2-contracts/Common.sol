@@ -34,7 +34,7 @@ library Common {
         (ret, startByte) = data._calldataVal(startByte, 1);
         uint256 length = uint256(uint8(bytes1(ret)));
         bytesArray = new bytes32[](length);
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             (bytesArray[i], startByte) = data._readBytes32(startByte);
         }
         return (bytesArray, startByte);

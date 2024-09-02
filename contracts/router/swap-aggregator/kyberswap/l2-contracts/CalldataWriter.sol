@@ -25,7 +25,7 @@ library CalldataWriter {
         // write Swap array
         uint8 lX = uint8(desc.swapSequences.length);
         shortData = bytes.concat(shortData, bytes1(lX));
-        for (uint8 i = 0; i < lX; ++i) {
+        for (uint8 i; i != lX; ++i) {
             uint8 lY = uint8(desc.swapSequences[i].length);
             shortData = bytes.concat(shortData, bytes1(lY));
             for (uint8 j = 0; j < lY; ++j) {
@@ -46,7 +46,7 @@ library CalldataWriter {
         address tokenIn
     ) internal pure returns (bytes[] memory shortData) {
         uint8 len = uint8(swapDatas.length);
-        for (uint8 i = 0; i < len; ++i) {
+        for (uint8 i; i != len; ++i) {
             swapDatas[i] = _writeSwapSingleSequence(swapDatas[i], tokenIn);
         }
         return (swapDatas);
@@ -60,7 +60,7 @@ library CalldataWriter {
 
         uint8 len = uint8(swaps.length);
         shortData = bytes.concat(shortData, bytes1(len));
-        for (uint8 i = 0; i < len; ++i) {
+        for (uint8 i; i != len; ++i) {
             shortData = bytes.concat(shortData, _writeSwap(swaps[i]));
         }
         shortData = bytes.concat(shortData, bytes20(tokenIn));
@@ -69,7 +69,7 @@ library CalldataWriter {
     function _writeAddressArray(address[] memory addrs) internal pure returns (bytes memory data) {
         uint8 length = uint8(addrs.length);
         data = bytes.concat(data, bytes1(length));
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             data = bytes.concat(data, bytes20(addrs[i]));
         }
         return data;
@@ -78,7 +78,7 @@ library CalldataWriter {
     function _writeUint256ArrayAsUint128Array(uint256[] memory us) internal pure returns (bytes memory data) {
         uint8 length = uint8(us.length);
         data = bytes.concat(data, bytes1(length));
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             data = bytes.concat(data, bytes16(uint128(us[i])));
         }
         return data;
@@ -94,7 +94,7 @@ library CalldataWriter {
     function _writeBytesArray(bytes[] memory bytesArray) internal pure returns (bytes memory data) {
         uint8 x = uint8(bytesArray.length);
         data = bytes.concat(data, bytes1(x));
-        for (uint8 i; i < x; ++i) {
+        for (uint8 i; i != x; ++i) {
             uint32 length = uint32(bytesArray[i].length);
             data = bytes.concat(data, bytes4(length));
             data = bytes.concat(data, bytesArray[i]);
@@ -105,7 +105,7 @@ library CalldataWriter {
     function _writeBytes32Array(bytes32[] memory bytesArray) internal pure returns (bytes memory data) {
         uint8 x = uint8(bytesArray.length);
         data = bytes.concat(data, bytes1(x));
-        for (uint8 i; i < x; ++i) {
+        for (uint8 i; i != x; ++i) {
             data = bytes.concat(data, bytesArray[i]);
         }
         return data;
