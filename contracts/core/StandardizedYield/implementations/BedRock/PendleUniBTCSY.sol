@@ -20,7 +20,9 @@ contract PendleUniBTCSY is SYBase {
         uint256 amountDeposited
     ) internal virtual override returns (uint256 /*amountSharesOut*/) {
         if (tokenIn != UNIBTC) {
+            uint256 preBalance = _selfBalance(UNIBTC);
             IBedrockUniBTCVault(VAULT).mint(tokenIn, amountDeposited);
+            return _selfBalance(UNIBTC) - preBalance;
         }
         return amountDeposited; /// (WBTC & FBTC both have 8 decimals)
     }
