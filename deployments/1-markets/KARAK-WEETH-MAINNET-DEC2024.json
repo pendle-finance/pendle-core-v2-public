@@ -1,0 +1,14 @@
+{
+    "name": "KARAK-WEETH-MAINNET-DEC2024",
+    "SY": "0x8db42af6b2de9e8aee47f3423570d8e9c3873796",
+    "YT": "0x6e4FfCcbE83F85CB1A507c581C99eb22b9ed8813",
+    "PT": "0xBAa0886c8Cf48D027D29E60d214C7e5a4d114bEe",
+    "market": "0xFF694CC3f74E080637008B3792a9D7760cB456Ca",
+    "expiry": 1735171200,
+    "scalarRoot": "45975856837000000000",
+    "initAnchor": "1022058206000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x0f5cfac42078237ccbd55d64b68bdcbe4e5cc80251024d554b73f5cc24ccfd51",
+    "deployBlockNumber": 20669679,
+    "reversedFee": 0.09999999999164011
+}
