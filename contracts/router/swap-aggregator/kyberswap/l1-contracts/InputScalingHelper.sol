@@ -174,42 +174,67 @@ library InputScalingHelper {
             Swap memory swap = executorDesc.swapSequences[i][0];
             bytes4 functionSelector = bytes4(swap.selectorAndFlags);
 
-            if (functionSelector == IExecutorHelper.executeUniswap.selector) {
+            if (
+                functionSelector == IExecutorHelper.executeUniswap.selector ||
+                functionSelector == IExecutorHelper.executeFrax.selector ||
+                functionSelector == IExecutorHelper.executeVelodrome.selector ||
+                functionSelector == IExecutorHelper.executeKSClassic.selector
+            ) {
                 swap.data = ScalingDataLib.newUniSwap(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeStableSwap.selector) {
                 swap.data = ScalingDataLib.newStableSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeCurve.selector) {
+            } else if (
+                functionSelector == IExecutorHelper.executeCurve.selector ||
+                functionSelector == IExecutorHelper.executePancakeStableSwap.selector
+            ) {
                 swap.data = ScalingDataLib.newCurveSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeKSClassic.selector) {
-                swap.data = ScalingDataLib.newKyberDMM(swap.data, oldAmount, newAmount);
+            } else if (
+                functionSelector == IExecutorHelper.executeStEth.selector ||
+                functionSelector == IExecutorHelper.executeEtherFieETH.selector ||
+                functionSelector == IExecutorHelper.executeWBETH.selector ||
+                functionSelector == IExecutorHelper.executeMantleETH.selector ||
+                functionSelector == IExecutorHelper.executeSwellETH.selector ||
+                functionSelector == IExecutorHelper.executeRswETH.selector ||
+                functionSelector == IExecutorHelper.executeBedrockUniETH.selector ||
+                functionSelector == IExecutorHelper.executeUsd0PP.selector
+            ) {
+                swap.data = ScalingDataLib.newStETHSwap(swap.data, oldAmount, newAmount);
+            } else if (
+                functionSelector == IExecutorHelper.executeFrxETH.selector ||
+                functionSelector == IExecutorHelper.executeMaiPSM.selector
+            ) {
+                swap.data = ScalingDataLib.newFrxETH(swap.data, oldAmount, newAmount);
+            } else if (
+                functionSelector == IExecutorHelper.executeMantis.selector ||
+                functionSelector == IExecutorHelper.executeWombat.selector ||
+                functionSelector == IExecutorHelper.executeWooFiV2.selector ||
+                functionSelector == IExecutorHelper.executeSmardex.selector ||
+                functionSelector == IExecutorHelper.executeSolidlyV2.selector ||
+                functionSelector == IExecutorHelper.executeNomiswapStable.selector ||
+                functionSelector == IExecutorHelper.executeBancorV3.selector
+            ) {
+                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount);
+            } else if (
+                functionSelector == IExecutorHelper.executeOriginETH.selector ||
+                functionSelector == IExecutorHelper.executePrimeETH.selector
+            ) {
+                swap.data = ScalingDataLib.newOriginETH(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeUniV3KSElastic.selector) {
                 swap.data = ScalingDataLib.newUniV3ProMM(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeRfq.selector) {
-                revert("InputScalingHelper: Can not scale RFQ swap");
             } else if (functionSelector == IExecutorHelper.executeBalV2.selector) {
                 swap.data = ScalingDataLib.newBalancerV2(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeWrappedstETH.selector) {
                 swap.data = ScalingDataLib.newWrappedstETHSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeStEth.selector) {
-                swap.data = ScalingDataLib.newStETHSwap(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeDODO.selector) {
                 swap.data = ScalingDataLib.newDODO(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeVelodrome.selector) {
-                swap.data = ScalingDataLib.newVelodrome(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeGMX.selector) {
                 swap.data = ScalingDataLib.newGMX(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeSynthetix.selector) {
                 swap.data = ScalingDataLib.newSynthetix(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeHashflow.selector) {
-                revert("InputScalingHelper: Can not scale Hasflow swap");
             } else if (functionSelector == IExecutorHelper.executeCamelot.selector) {
                 swap.data = ScalingDataLib.newCamelot(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeKyberLimitOrder.selector) {
-                revert("InputScalingHelper: Can not scale KyberLO swap");
             } else if (functionSelector == IExecutorHelper.executePSM.selector) {
                 swap.data = ScalingDataLib.newPSM(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeFrax.selector) {
-                swap.data = ScalingDataLib.newFrax(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executePlatypus.selector) {
                 swap.data = ScalingDataLib.newPlatypus(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeMaverick.selector) {
@@ -220,18 +245,10 @@ library InputScalingHelper {
                 swap.data = ScalingDataLib.newAlgebraV1(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeBalancerBatch.selector) {
                 swap.data = ScalingDataLib.newBalancerBatch(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeWombat.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev struct Mantis is used for both Wombat and Mantis because of same fields
-            } else if (functionSelector == IExecutorHelper.executeMantis.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeIziSwap.selector) {
                 swap.data = ScalingDataLib.newIziSwap(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeWooFiV2.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because WooFiV2 and Mantis have same fields
             } else if (functionSelector == IExecutorHelper.executeTraderJoeV2.selector) {
                 swap.data = ScalingDataLib.newTraderJoeV2(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executePancakeStableSwap.selector) {
-                swap.data = ScalingDataLib.newCurveSwap(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeLevelFiV2.selector) {
                 swap.data = ScalingDataLib.newLevelFiV2(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeGMXGLP.selector) {
@@ -242,36 +259,20 @@ library InputScalingHelper {
                 swap.data = ScalingDataLib.newVelocoreV2(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeMaticMigrate.selector) {
                 swap.data = ScalingDataLib.newMaticMigrate(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeSmardex.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Smardex and Mantis have same fields
-            } else if (functionSelector == IExecutorHelper.executeSolidlyV2.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Solidly V2 and Mantis have same fields
             } else if (functionSelector == IExecutorHelper.executeKokonut.selector) {
                 swap.data = ScalingDataLib.newKokonut(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeBalancerV1.selector) {
                 swap.data = ScalingDataLib.newBalancerV1(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeSwaapV2.selector) {
-                revert("InputScalingHelper: Can not scale SwaapV2 swap");
-            } else if (functionSelector == IExecutorHelper.executeNomiswapStable.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because NomiswapV2 and Mantis have same fields
             } else if (functionSelector == IExecutorHelper.executeArbswapStable.selector) {
                 swap.data = ScalingDataLib.newArbswapStable(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeBancorV2.selector) {
                 swap.data = ScalingDataLib.newBancorV2(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeBancorV3.selector) {
-                swap.data = ScalingDataLib.newMantis(swap.data, oldAmount, newAmount); // @dev using Mantis struct because Bancor V3 and Mantis have same fields
             } else if (functionSelector == IExecutorHelper.executeAmbient.selector) {
                 swap.data = ScalingDataLib.newAmbient(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeNative.selector) {
-                revert("InputScalingHelper: Can not scale Native swap");
             } else if (functionSelector == IExecutorHelper.executeLighterV2.selector) {
                 swap.data = ScalingDataLib.newLighterV2(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeBebop.selector) {
-                revert("InputScalingHelper: Can not scale Bebop swap");
             } else if (functionSelector == IExecutorHelper.executeUniV1.selector) {
                 swap.data = ScalingDataLib.newUniV1(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeEtherFieETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeEtherFiWeETH.selector) {
                 swap.data = ScalingDataLib.newEtherFiWeETH(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeKelp.selector) {
@@ -284,33 +285,37 @@ library InputScalingHelper {
                 swap.data = ScalingDataLib.newMakersDAI(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeRenzo.selector) {
                 swap.data = ScalingDataLib.newRenzo(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeWBETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
-            } else if (functionSelector == IExecutorHelper.executeMantleETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
-            } else if (functionSelector == IExecutorHelper.executeFrxETH.selector) {
-                swap.data = ScalingDataLib.newFrxETH(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeSfrxETH.selector) {
                 swap.data = ScalingDataLib.newSfrxETH(swap.data, oldAmount, newAmount);
             } else if (functionSelector == IExecutorHelper.executeSfrxETHConvertor.selector) {
                 swap.data = ScalingDataLib.newSfrxETHConvertor(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeSwellETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
-            } else if (functionSelector == IExecutorHelper.executeRswETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
             } else if (functionSelector == IExecutorHelper.executeStaderETHx.selector) {
                 swap.data = ScalingDataLib.newEthenaSusde(swap.data, oldAmount, newAmount); // same ethena susde
-            } else if (functionSelector == IExecutorHelper.executeOriginETH.selector) {
-                swap.data = ScalingDataLib.newOriginETH(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executePrimeETH.selector) {
-                swap.data = ScalingDataLib.newOriginETH(swap.data, oldAmount, newAmount); // same originETH
             } else if (functionSelector == IExecutorHelper.executeMantleUsd.selector) {
                 swap.data = ScalingDataLib.newMantleUsd(swap.data, oldAmount, newAmount);
-            } else if (functionSelector == IExecutorHelper.executeBedrockUniETH.selector) {
-                swap.data = ScalingDataLib.newEtherFieETH(swap.data, oldAmount, newAmount); // same etherfi eETH
-            } else if (functionSelector == IExecutorHelper.executeMaiPSM.selector) {
-                swap.data = ScalingDataLib.newFrxETH(swap.data, oldAmount, newAmount); // same frxeth
+            } else if (functionSelector == IExecutorHelper.executePufferFinance.selector) {
+                swap.data = ScalingDataLib.newPufferFinance(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeRfq.selector) {
+                swap.data = ScalingDataLib.newKyberRfq(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeKyberLimitOrder.selector) {
+                swap.data = ScalingDataLib.newKyberLimitOrder(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeKyberDSLO.selector) {
+                swap.data = ScalingDataLib.newKyberDSLO(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeNative.selector) {
+                swap.data = ScalingDataLib.newNative(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeHashflow.selector) {
+                swap.data = ScalingDataLib.newHashflow(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeBebop.selector) {
+                swap.data = ScalingDataLib.newBebop(swap.data, oldAmount, newAmount);
+            } else if (functionSelector == IExecutorHelper.executeSymbioticLRT.selector) {
+                swap.data = ScalingDataLib.newSymbioticLRT(swap.data, oldAmount, newAmount);
+            } else if (
+                functionSelector == IExecutorHelper.executeMaverickV2.selector ||
+                functionSelector == IExecutorHelper.executeIntegral.selector
+            ) {
+                swap.data = ScalingDataLib.newMaverickV2(swap.data, oldAmount, newAmount);
             } else {
+                // SwaapV2
                 revert("AggregationExecutor: Dex type not supported");
             }
             unchecked {

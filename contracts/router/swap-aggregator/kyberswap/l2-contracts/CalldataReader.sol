@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {IExecutorHelperL2Struct as L2Struct} from "../interfaces/IExecutorHelperL2Struct.sol";
+import {IKyberDSLO} from "../interfaces/pools/IKyberDSLO.sol";
+import {IKyberLO} from "../interfaces/pools/IKyberLO.sol";
+
 library CalldataReader {
     /// @notice read the bytes value of data from a starting position and length
     /// @param data bytes array of data
@@ -29,6 +33,225 @@ library CalldataReader {
             retVal := m
         }
         return (retVal, length + startByte);
+    }
+
+    function _readRFQTQuote(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (L2Struct.RFQTQuote memory rfqQuote, uint256, uint256 ebtaStartByte) {
+        (rfqQuote.pool, startByte) = _readAddress(data, startByte);
+        (rfqQuote.externalAccount, startByte) = _readAddress(data, startByte);
+        (rfqQuote.trader, startByte) = _readAddress(data, startByte);
+        (rfqQuote.effectiveTrader, startByte) = _readAddress(data, startByte);
+        // (rfqQuote.baseToken, startByte) = _readAddress(data, startByte);
+        (rfqQuote.quoteToken, startByte) = _readAddress(data, startByte);
+        ebtaStartByte = startByte;
+        (rfqQuote.effectiveBaseTokenAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (rfqQuote.baseTokenAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (rfqQuote.quoteTokenAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (rfqQuote.quoteExpiry, startByte) = _readUint128AsUint256(data, startByte);
+        (rfqQuote.nonce, startByte) = _readUint128AsUint256(data, startByte);
+        (rfqQuote.txid, startByte) = _readBytes32(data, startByte);
+        (rfqQuote.signature, startByte) = _readBytes(data, startByte);
+        return (rfqQuote, startByte, ebtaStartByte);
+    }
+
+    function _readOrderRFQ(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (L2Struct.OrderRFQ memory orderRfq, uint256) {
+        (orderRfq.info, startByte) = _readUint256(data, startByte);
+
+        (orderRfq.makerAsset, startByte) = _readAddress(data, startByte);
+
+        (orderRfq.takerAsset, startByte) = _readAddress(data, startByte);
+
+        (orderRfq.maker, startByte) = _readAddress(data, startByte);
+
+        (orderRfq.allowedSender, startByte) = _readAddress(data, startByte);
+
+        (orderRfq.makingAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        (orderRfq.takingAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        return (orderRfq, startByte);
+    }
+
+    function _readDSLOFillBatchOrdersParams(
+        bytes memory data,
+        uint256 startByte
+    )
+        internal
+        pure
+        returns (
+            IKyberDSLO.FillBatchOrdersParams memory params,
+            uint256,
+            uint256 takingAmountStartByte,
+            uint256 thresholdStartByte
+        )
+    {
+        (params.orders, startByte) = _readDSLOOrderArray(data, startByte);
+
+        (params.signatures, startByte) = _readDSLOSignatureArray(data, startByte);
+
+        (params.opExpireTimes, startByte) = _readUint32Array(data, startByte);
+
+        // read taking amount and start byte to scale
+        takingAmountStartByte = startByte;
+        (params.takingAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        // read threshold amount and start byte to update if scale dơn
+        thresholdStartByte = startByte;
+        (params.thresholdAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        (params.target, startByte) = _readAddress(data, startByte);
+        return (params, startByte, takingAmountStartByte, thresholdStartByte);
+    }
+
+    function _readLOFillBatchOrdersParams(
+        bytes memory data,
+        uint256 startByte
+    )
+        internal
+        pure
+        returns (
+            IKyberLO.FillBatchOrdersParams memory params,
+            uint256,
+            uint256 takingAmountStartByte,
+            uint256 thresholdStartByte
+        )
+    {
+        (params.orders, startByte) = _readLOOrderArray(data, startByte);
+
+        (params.signatures, startByte) = _readLOSignatureArray(data, startByte);
+
+        takingAmountStartByte = startByte;
+        (params.takingAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        thresholdStartByte = startByte;
+        (params.thresholdAmount, startByte) = _readUint128AsUint256(data, startByte);
+
+        (params.target, startByte) = _readAddress(data, startByte);
+        return (params, startByte, takingAmountStartByte, thresholdStartByte);
+    }
+
+    function _readLOSignatureArray(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (bytes[] memory signatures, uint256) {
+        bytes memory ret;
+
+        (ret, startByte) = _calldataVal(data, startByte, 1);
+        uint256 length = uint256(uint8(bytes1(ret)));
+
+        signatures = new bytes[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            (signatures[i], startByte) = _readBytes(data, startByte);
+        }
+        return (signatures, startByte);
+    }
+
+    function _readDSLOSignatureArray(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberDSLO.Signature[] memory signatures, uint256) {
+        bytes memory ret;
+
+        (ret, startByte) = _calldataVal(data, startByte, 1);
+        uint256 length = uint256(uint8(bytes1(ret)));
+
+        signatures = new IKyberDSLO.Signature[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            (signatures[i], startByte) = _readDSLOSignature(data, startByte);
+        }
+        return (signatures, startByte);
+    }
+
+    function _readDSLOSignature(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberDSLO.Signature memory signature, uint256) {
+        (signature.orderSignature, startByte) = _readBytes(data, startByte);
+        (signature.opSignature, startByte) = _readBytes(data, startByte);
+        return (signature, startByte);
+    }
+
+    function _readLOOrderArray(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberLO.Order[] memory orders, uint256) {
+        bytes memory ret;
+
+        (ret, startByte) = _calldataVal(data, startByte, 1);
+        uint256 length = uint256(uint8(bytes1(ret)));
+
+        orders = new IKyberLO.Order[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            (orders[i], startByte) = _readLOOrder(data, startByte);
+        }
+        return (orders, startByte);
+    }
+
+    function _readDSLOOrderArray(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberDSLO.Order[] memory orders, uint256) {
+        bytes memory ret;
+
+        (ret, startByte) = _calldataVal(data, startByte, 1);
+        uint256 length = uint256(uint8(bytes1(ret)));
+
+        orders = new IKyberDSLO.Order[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            (orders[i], startByte) = _readDSLOOrder(data, startByte);
+        }
+        return (orders, startByte);
+    }
+
+    function _readDSLOOrder(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberDSLO.Order memory orders, uint256) {
+        (orders.salt, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.makerAsset, startByte) = _readAddress(data, startByte);
+        (orders.takerAsset, startByte) = _readAddress(data, startByte);
+        (orders.maker, startByte) = _readAddress(data, startByte);
+        (orders.receiver, startByte) = _readAddress(data, startByte);
+        (orders.allowedSender, startByte) = _readAddress(data, startByte);
+        (orders.makingAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.takingAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.feeConfig, startByte) = _readUint200(data, startByte);
+        (orders.makerAssetData, startByte) = _readBytes(data, startByte);
+        (orders.takerAssetData, startByte) = _readBytes(data, startByte);
+        (orders.getMakerAmount, startByte) = _readBytes(data, startByte);
+        (orders.getTakerAmount, startByte) = _readBytes(data, startByte);
+        (orders.predicate, startByte) = _readBytes(data, startByte);
+        (orders.interaction, startByte) = _readBytes(data, startByte);
+        return (orders, startByte);
+    }
+
+    function _readLOOrder(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (IKyberLO.Order memory orders, uint256) {
+        (orders.salt, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.makerAsset, startByte) = _readAddress(data, startByte);
+        (orders.takerAsset, startByte) = _readAddress(data, startByte);
+        (orders.maker, startByte) = _readAddress(data, startByte);
+        (orders.receiver, startByte) = _readAddress(data, startByte);
+        (orders.allowedSender, startByte) = _readAddress(data, startByte);
+        (orders.makingAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.takingAmount, startByte) = _readUint128AsUint256(data, startByte);
+        (orders.feeRecipient, startByte) = _readAddress(data, startByte);
+        (orders.makerTokenFeePercent, startByte) = _readUint32(data, startByte);
+        (orders.makerAssetData, startByte) = _readBytes(data, startByte);
+        (orders.takerAssetData, startByte) = _readBytes(data, startByte);
+        (orders.getMakerAmount, startByte) = _readBytes(data, startByte);
+        (orders.getTakerAmount, startByte) = _readBytes(data, startByte);
+        (orders.predicate, startByte) = _readBytes(data, startByte);
+        (orders.permit, startByte) = _readBytes(data, startByte);
+        (orders.interaction, startByte) = _readBytes(data, startByte);
+        return (orders, startByte);
     }
 
     function _readBool(bytes memory data, uint256 startByte) internal pure returns (bool, uint256) {
@@ -65,6 +288,18 @@ library CalldataReader {
         bytes memory ret;
         (ret, startByte) = _calldataVal(data, startByte, 20);
         return (uint160(bytes20(ret)), startByte);
+    }
+
+    function _readUint200(bytes memory data, uint256 startByte) internal pure returns (uint200, uint256) {
+        bytes memory ret;
+        (ret, startByte) = _calldataVal(data, startByte, 25);
+        return (uint200(bytes25(ret)), startByte);
+    }
+
+    function _readUint256(bytes memory data, uint256 startByte) internal pure returns (uint256, uint256) {
+        bytes memory ret;
+        (ret, startByte) = _calldataVal(data, startByte, 32);
+        return (uint256(bytes32(ret)), startByte);
     }
 
     /// @dev only when sure that the value of uint256 never exceed uint128
@@ -151,5 +386,19 @@ library CalldataReader {
             (us[i], startByte) = _readUint128AsUint256(data, startByte);
         }
         return (us, startByte);
+    }
+
+    function _readUint32Array(
+        bytes memory data,
+        uint256 startByte
+    ) internal pure returns (uint32[] memory arr, uint256) {
+        bytes memory ret;
+        (ret, startByte) = _calldataVal(data, startByte, 1);
+        uint256 length = uint256(uint8(bytes1(ret)));
+        arr = new uint32[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            (arr[i], startByte) = _readUint32(data, startByte);
+        }
+        return (arr, startByte);
     }
 }

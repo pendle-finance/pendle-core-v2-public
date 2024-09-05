@@ -5,9 +5,8 @@ import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
 import "./kyberswap/l1-contracts/InputScalingHelper.sol";
 import "./kyberswap/l2-contracts/InputScalingHelperL2.sol";
-import "./oneinch/OneInchAggregationRouterHelper.sol";
 
-abstract contract PendleSwapBase is IPSwapAggregator, TokenHelper, OneInchAggregationRouterHelper {
+abstract contract PendleSwapBase is IPSwapAggregator, TokenHelper {
     using Address for address;
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
@@ -25,8 +24,6 @@ abstract contract PendleSwapBase is IPSwapAggregator, TokenHelper, OneInchAggreg
     ) internal pure returns (bytes memory scaledCallData) {
         if (swapType == SwapType.KYBERSWAP) {
             scaledCallData = _getKyberScaledInputData(rawCallData, amountIn);
-        } else if (swapType == SwapType.ONE_INCH) {
-            scaledCallData = _get1inchScaledInputData(rawCallData, amountIn);
         } else {
             assert(false);
         }

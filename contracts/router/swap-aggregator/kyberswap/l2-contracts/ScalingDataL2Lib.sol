@@ -202,4 +202,72 @@ library ScalingDataL2Lib {
     ) internal pure returns (bytes memory) {
         return data.scaleLighterV2(oldAmount, newAmount);
     }
+
+    function newMaiPSM(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleMaiPSM(oldAmount, newAmount);
+    }
+
+    function newNative(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleNative(oldAmount, newAmount);
+    }
+
+    function newKyberDSLO(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleDSLO(oldAmount, newAmount);
+    }
+
+    function newKyberLimitOrder(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleKyberLimitOrder(oldAmount, newAmount);
+    }
+
+    function newHashflow(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleHashflow(oldAmount, newAmount);
+    }
+
+    function newKyberRFQ(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleKyberRFQ(oldAmount, newAmount);
+    }
+
+    function newBebop(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleBebop(oldAmount, newAmount);
+    }
+
+    function newMantleUsd(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleMantleUsd(oldAmount, newAmount);
+    }
+
+    function newKelp(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleKelp(oldAmount, newAmount);
+    }
+
+    function newSymbioticLRT(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleSymbioticLRT(oldAmount, newAmount);
+    }
+
+    function newMaverickV2(
+        bytes memory data,
+        uint256 oldAmount,
+        uint256 newAmount
+    ) internal pure returns (bytes memory) {
+        return data.scaleMaverickV2(oldAmount, newAmount);
+    }
+
+    function newIntegral(bytes memory data, uint256 oldAmount, uint256 newAmount) internal pure returns (bytes memory) {
+        return data.scaleMaverickV2(oldAmount, newAmount); // using kind of same scaling as MaverickV2
+    }
 }

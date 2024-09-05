@@ -1,315 +1,9 @@
-pragma solidity >=0.6.12;
+pragma solidity ^0.8.0;
 
-interface IExecutorHelperL2 {
-    struct Swap {
-        bytes data;
-        bytes4 functionSelector;
-    }
+import {IKyberDSLO} from "./pools/IKyberDSLO.sol";
+import "./IExecutorHelperL2Struct.sol";
 
-    struct SwapExecutorDescription {
-        Swap[][] swapSequences;
-        address tokenIn;
-        address tokenOut;
-        uint256 minTotalAmountOut;
-        address to;
-        uint256 deadline;
-        bytes positiveSlippageData;
-    }
-
-    struct UniSwap {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-        uint256 collectAmount; // amount that should be transferred to the pool
-        uint32 swapFee;
-        uint32 feePrecision;
-        uint32 tokenWeightInput;
-    }
-
-    struct StableSwap {
-        address pool;
-        address tokenFrom;
-        address tokenTo;
-        uint8 tokenIndexFrom;
-        uint8 tokenIndexTo;
-        uint256 dx;
-        uint256 poolLength;
-        address poolLp;
-        bool isSaddle; // true: saddle, false: stable
-    }
-
-    struct CurveSwap {
-        address pool;
-        address tokenFrom;
-        address tokenTo;
-        int128 tokenIndexFrom;
-        int128 tokenIndexTo;
-        uint256 dx;
-        bool usePoolUnderlying;
-        bool useTriCrypto;
-    }
-
-    struct UniswapV3KSElastic {
-        address recipient;
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount;
-        uint160 sqrtPriceLimitX96;
-        bool isUniV3; // true = UniV3, false = KSElastic
-    }
-
-    struct SwapCallbackData {
-        bytes path;
-        address payer;
-    }
-
-    struct SwapCallbackDataPath {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-    }
-
-    struct BalancerV2 {
-        address vault;
-        bytes32 poolId;
-        address assetIn;
-        address assetOut;
-        uint256 amount;
-    }
-
-    struct DODO {
-        address recipient;
-        address pool;
-        address tokenFrom;
-        address tokenTo;
-        uint256 amount;
-        address sellHelper;
-        bool isSellBase;
-        bool isVersion2;
-    }
-
-    struct GMX {
-        address vault;
-        address tokenIn;
-        address tokenOut;
-        uint256 amount;
-        address receiver;
-    }
-
-    struct Synthetix {
-        address synthetixProxy;
-        address tokenIn;
-        address tokenOut;
-        bytes32 sourceCurrencyKey;
-        uint256 sourceAmount;
-        bytes32 destinationCurrencyKey;
-        bool useAtomicExchange;
-    }
-
-    struct WSTETH {
-        address pool;
-        uint256 amount;
-        bool isWrapping;
-    }
-
-    struct Platypus {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-        uint256 collectAmount; // amount that should be transferred to the pool
-    }
-
-    struct PSM {
-        address router;
-        address tokenIn;
-        address tokenOut;
-        uint256 amountIn;
-        address recipient;
-    }
-
-    struct Maverick {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-        uint256 swapAmount;
-        uint256 sqrtPriceLimitD18;
-    }
-
-    /// @notice Struct for Sync Swap
-    /// @param _data encode of (address, address, uint8) : (tokenIn, recipient, withdrawMode)
-    ///  Withdraw with mode.
-    // 0 = DEFAULT
-    // 1 = UNWRAPPED
-    // 2 = WRAPPED
-    /// @param vault vault contract
-    /// @param tokenIn token input to swap
-    /// @param pool pool of SyncSwap
-    /// @param collectAmount amount that should be transferred to the pool
-    struct SyncSwap {
-        bytes _data;
-        address vault;
-        address tokenIn;
-        address pool;
-        uint256 collectAmount;
-    }
-
-    struct AlgebraV1 {
-        address recipient;
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount;
-        uint160 sqrtPriceLimitX96;
-        uint256 senderFeeOnTransfer; // [ FoT_FLAG(1 bit) ... SENDER_ADDRESS(160 bits) ]
-    }
-
-    struct BalancerBatch {
-        address vault;
-        bytes32[] poolIds;
-        address[] path; // swap path from assetIn to assetOut
-        bytes[] userDatas;
-        uint256 amountIn; // assetIn amount
-    }
-
-    struct Mantis {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 amount;
-        address recipient;
-    }
-
-    struct IziSwap {
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-        uint256 swapAmount;
-        int24 limitPoint;
-    }
-
-    struct TraderJoeV2 {
-        address recipient;
-        address pool;
-        address tokenIn;
-        address tokenOut;
-        uint256 collectAmount; // most significant 1 bit is to determine whether pool is v2.0, else v2.1
-    }
-
-    struct LevelFiV2 {
-        address pool;
-        address fromToken;
-        address toToken;
-        uint256 amountIn;
-        uint256 minAmountOut;
-        address recipient; // receive token out
-    }
-
-    struct GMXGLP {
-        address rewardRouter;
-        address stakedGLP;
-        address glpManager;
-        address yearnVault;
-        address tokenIn;
-        address tokenOut;
-        uint256 swapAmount;
-        address recipient;
-    }
-
-    struct Vooi {
-        address pool;
-        address fromToken;
-        address toToken;
-        uint256 fromID;
-        uint256 toID;
-        uint256 fromAmount;
-        address to;
-    }
-
-    struct VelocoreV2 {
-        address vault;
-        uint256 amount;
-        address tokenIn;
-        address tokenOut;
-        address stablePool; // if not empty then use stable pool
-        address wrapToken;
-        bool isConvertFirst;
-    }
-
-    struct MaticMigrate {
-        address pool;
-        address tokenAddress; // should be POL
-        uint256 amount;
-        address recipient; // empty if migrate
-    }
-
-    struct Kokonut {
-        address pool;
-        uint256 dx;
-        uint256 tokenIndexFrom;
-        address fromToken;
-        address toToken;
-    }
-
-    struct BalancerV1 {
-        address pool;
-        uint256 amount;
-        address tokenIn;
-        address tokenOut;
-    }
-
-    struct SwaapV2 {
-        address router;
-        uint256 amount;
-        bytes data;
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-    }
-
-    struct ArbswapStable {
-        address pool;
-        uint256 dx;
-        uint256 tokenIndexFrom;
-        address tokenIn;
-        address tokenOut;
-    }
-
-    struct BancorV2 {
-        address pool;
-        address[] swapPath;
-        uint256 amount;
-        address recipient;
-    }
-
-    struct Ambient {
-        address pool;
-        uint128 qty;
-        address base;
-        address quote;
-        uint256 poolIdx;
-        uint8 settleFlags;
-    }
-
-    struct LighterV2 {
-        address orderBook;
-        uint256 amount;
-        bool isAsk; // isAsk = orderBook.isAskOrder(orderId);
-        address tokenIn;
-        address tokenOut;
-        address recipient;
-    }
-
-    struct FrxETH {
-        address pool;
-        uint256 amount;
-        address tokenOut;
-    }
-
+interface IExecutorHelperL2 is IExecutorHelperL2Struct {
     function executeUniswap(
         uint256 index,
         bytes memory data,
@@ -356,24 +50,6 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeKyberLimitOrder(
-        uint256 index,
-        bytes memory data,
-        uint256 previousAmountOut,
-        address tokenIn,
-        bool getPoolOnly,
-        address nextPool
-    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
-
-    function executeRfq(
-        uint256 index,
-        bytes memory data,
-        uint256 previousAmountOut,
-        address tokenIn,
-        bool getPoolOnly,
-        address nextPool
-    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
-
-    function executeHashflow(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,
@@ -526,6 +202,15 @@ interface IExecutorHelperL2 {
         address nextPool
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
+    function executeWooFiV2(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
     function executeMantis(
         uint256 index,
         bytes memory data,
@@ -563,6 +248,33 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeGMXGLP(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executePancakeStableSwap(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeMantleUsd(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeKelp(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,
@@ -679,15 +391,6 @@ interface IExecutorHelperL2 {
         address nextPool
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
-    function executeNative(
-        uint256 index,
-        bytes memory data,
-        uint256 previousAmountOut,
-        address tokenIn,
-        bool getPoolOnly,
-        address nextPool
-    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
-
     function executeLighterV2(
         uint256 index,
         bytes memory data,
@@ -698,6 +401,78 @@ interface IExecutorHelperL2 {
     ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
 
     function executeMaiPSM(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeNative(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeHashflow(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeRfq(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeKyberDSLO(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeBebop(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeSymbioticLRT(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeMaverickV2(
+        uint256 index,
+        bytes memory data,
+        uint256 previousAmountOut,
+        address tokenIn,
+        bool getPoolOnly,
+        address nextPool
+    ) external payable returns (address tokenOut, uint256 tokenAmountOut, address pool);
+
+    function executeIntegral(
         uint256 index,
         bytes memory data,
         uint256 previousAmountOut,
