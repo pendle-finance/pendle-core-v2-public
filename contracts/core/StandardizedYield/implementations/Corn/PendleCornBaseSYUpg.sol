@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../../SYBase.sol";
+import "../../SYBaseUpg.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
 import "../../../../interfaces/Corn/ICornSilo.sol";
 
-abstract contract PendleCornBaseSY is SYBase {
+abstract contract PendleCornBaseSYUpg is SYBaseUpg {
     event SetNewExchangeRateOracle(address oracle);
 
     // solhint-disable immutable-vars-naming
@@ -17,22 +17,29 @@ abstract contract PendleCornBaseSY is SYBase {
     address public immutable assetToken;
     address public exchangeRateOracle;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _depositToken,
-        address _assetToken,
-        address _initialExchangeRateOracle
-    ) SYBase(_name, _symbol, _depositToken) {
+    uint256[48] private __gap;
+
+    constructor(address _depositToken, address _assetToken) SYBaseUpg(_depositToken) {
         depositToken = _depositToken;
         assetToken = _assetToken;
-        _setExchangeRateOracle(_initialExchangeRateOracle);
-        _safeApproveInf(_depositToken, CORN_SILO);
     }
 
     /*///////////////////////////////////////////////////////////////
                     DEPOSIT/REDEEM USING BASE TOKENS
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev calling __SYBaseUpg_init, no onlyInitializing modifier needed
+     */
+    function __CornBaseSY_init_(
+        string memory _name,
+        string memory _symbol,
+        address _initialExchangeRateOracle
+    ) internal {
+        __SYBaseUpg_init(_name, _symbol);
+        _setExchangeRateOracle(_initialExchangeRateOracle);
+        _safeApproveInf(depositToken, CORN_SILO);
+    }
 
     function _deposit(address /*tokenIn*/, uint256 amountDeposited) internal virtual override returns (uint256) {
         return ICornSilo(CORN_SILO).deposit(depositToken, amountDeposited);

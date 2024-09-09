@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "./PendleCornBaseSYUpg.sol";
+import "../../../../interfaces/Bedrock/IBedrockUniBTCVault.sol";
+
+contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
+    // solhint-disable immutable-vars-naming
+    // solhint-disable const-name-snakecase
+    address public constant VAULT = 0x047D41F2544B7F63A8e991aF2068a363d210d6Da;
+    address public constant UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
+    address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address public constant FBTC = 0xC96dE26018A54D51c097160568752c4E3BD6C364;
+
+    // end contract, no gaps needed
+
+    constructor() PendleCornBaseSYUpg(UNIBTC, WBTC) {
+        _safeApproveInf(WBTC, VAULT);
+        _safeApproveInf(FBTC, VAULT);
+        _disableInitializers();
+    }
+
+    function initialize(address _initialExchangeRateOracle) external initializer {
+        __CornBaseSY_init_("SY Corn Bedrock uniBTC", "SY-corn-uniBTC", _initialExchangeRateOracle);
+    }
+
+    function _deposit(
+        address tokenIn,
+        uint256 amountDeposited
+    ) internal virtual override returns (uint256 /*amountSharesOut*/) {
+        if (tokenIn != UNIBTC) {
+            uint256 preBalance = _selfBalance(UNIBTC);
+            IBedrockUniBTCVault(VAULT).mint(tokenIn, amountDeposited);
+            amountDeposited = _selfBalance(UNIBTC) - preBalance;
+        }
+        return ICornSilo(CORN_SILO).deposit(depositToken, amountDeposited);
+    }
+}
