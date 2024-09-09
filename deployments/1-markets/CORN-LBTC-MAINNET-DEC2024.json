@@ -1,0 +1,14 @@
+{
+    "name": "SY Corn LBTC",
+    "SY": "0x9d6Ec7a7B051B32205F74B140A0fa6f09D7F223E",
+    "YT": "0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344",
+    "PT": "0x332A8ee60EdFf0a11CF3994b1b846BBC27d3DcD6",
+    "market": "0xCaE62858DB831272A03768f5844cbe1B40bB381f",
+    "expiry": 1735171200,
+    "scalarRoot": "16084248220000000000",
+    "initAnchor": "1041917834000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x317f54b060e78eb9d2973dce74f2ff58f87f5569e49ee50bc66b944fd3e4c2fa",
+    "deployBlockNumber": 20712332,
+    "reversedFee": 0.09999999999164011
+}
