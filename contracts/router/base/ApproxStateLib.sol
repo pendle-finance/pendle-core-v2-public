@@ -12,12 +12,16 @@ enum ApproxStage {
 
 struct ApproxState {
     ApproxStage stage;
-    uint256 curGuess;
-    uint256 startingGuess;
-    uint256[2] ranges;
-    uint256[2] hardBounds;
     uint256 maxIteration;
     uint256 eps;
+    uint256 startingGuess;
+    uint256 curGuess;
+    /// Defines the range that constrains the result.
+    /// This range will be dynamically adjusted if the result falls outside of it.
+    uint256[2] ranges;
+    /// Specifies the range within which the result must fall.
+    /// Any value outside this range is considered invalid.
+    uint256[2] hardBounds;
 }
 
 using ApproxStateLib for ApproxState global;
