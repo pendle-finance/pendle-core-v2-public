@@ -26,9 +26,15 @@ struct ApproxState {
 
 using ApproxStateLib for ApproxState global;
 
-/// A small library for determining the next guess from the current
-/// `ApproxParams` state, dynamically adjusting the search range to fit the valid
-/// result range.
+/// A library for determining the next guess from the current / `ApproxState`
+/// state, dynamically adjusting the search range to fit the valid / result
+/// range.
+///
+/// @dev Invariant to maintains:
+/// - state.hardBounds should always include state.ranges
+/// - state.ranges should always include state.curGuess
+/// That is:
+///     state.hardBounds[0] <= state.ranges[0] <= state.curGuess <= state.ranges[1] <= state.hardBounds[1]
 library ApproxStateLib {
     using PMath for uint256;
     using ApproxStateLib for ApproxState;
@@ -40,6 +46,8 @@ library ApproxStateLib {
     uint256 internal constant DEFAULT_EPS = 1e14;
 
     function initWithOffchain(ApproxParams memory approx) internal pure returns (ApproxState memory) {
+        if (approx.guessMin > approx.guessOffchain || approx.guessOffchain > approx.guessMax || approx.eps > PMath.ONE)
+            revert("Internal: INVALID_APPROX_PARAMS");
         return
             ApproxState({
                 stage: ApproxStage.RESULT_FINDING,
@@ -59,10 +67,12 @@ library ApproxStateLib {
         assert(hardBounds[0] <= hardBounds[1]);
 
         uint256 startingGuess = PMath.clamp(estimation, hardBounds[0], hardBounds[1]);
+        uint256 rangesLower = PMath.max(estimation.slipDown(GUESS_RANGE_SLIP), hardBounds[0]);
+        uint256 rangesUpper = PMath.min(estimation.slipUp(GUESS_RANGE_SLIP), hardBounds[1]);
         return
             ApproxState({
                 stage: ApproxStage.INITIAL,
-                ranges: [estimation.slipDown(GUESS_RANGE_SLIP), estimation.slipUp(GUESS_RANGE_SLIP)],
+                ranges: [rangesLower, rangesUpper],
                 hardBounds: hardBounds,
                 curGuess: startingGuess,
                 startingGuess: startingGuess,
