@@ -93,6 +93,12 @@ library PMath {
         }
     }
 
+    function clamp(uint256 x, uint256 lower, uint256 upper) internal pure returns (uint256 res) {
+        res = x;
+        if (x < lower) res = lower;
+        else if (x > upper) res = upper;
+    }
+
     // @author Uniswap
     function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {
