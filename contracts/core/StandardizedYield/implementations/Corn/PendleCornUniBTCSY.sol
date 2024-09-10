@@ -35,4 +35,15 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
         }
         return ICornSilo(CORN_SILO).deposit(depositToken, amountDeposited);
     }
+
+    // preview deposit should still work as amountDeposited = amountSharesOut for all tokens
+
+    function getTokensIn() public view virtual override returns (address[] memory) {
+        return ArrayLib.create(WBTC, FBTC, depositToken);
+    }
+
+
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
+        return token == WBTC || token == FBTC || token == depositToken;
+    }
 }
