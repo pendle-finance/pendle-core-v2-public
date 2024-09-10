@@ -10,6 +10,7 @@ import "./IPActionCallbackV3.sol";
 import "./IPActionStorageV4.sol";
 import "./IPActionAddRemoveLiqSimple.sol";
 import "./IPActionSwapPTSimple.sol";
+import "./IPActionSwapYTSimple.sol";
 
 interface IPAllActionV3 is
     IPActionAddRemoveLiqV3,
@@ -19,5 +20,6 @@ interface IPAllActionV3 is
     IPActionCallbackV3,
     IPActionStorageV4,
     IPActionAddRemoveLiqSimple,
-    IPActionSwapPTSimple
+    IPActionSwapPTSimple,
+    IPActionSwapYTSimple
 {}
