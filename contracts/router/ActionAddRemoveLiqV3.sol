@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionAddRemoveLiqV3.sol";
+import {IPActionAddRemoveLiqSimple} from "../interfaces/IPActionAddRemoveLiqSimple.sol";
 
 contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
     using PMath for uint256;
@@ -85,13 +86,26 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtSwapToSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessPtSwapToSy.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(
+                    IPActionAddRemoveLiqSimple.addLiquiditySinglePtSimple,
+                    (receiver, market, netPtIn, minLpOut)
+                ),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256));
+        }
+
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(PT, msg.sender, _entry_addLiquiditySinglePt(market, limit), netPtIn);
 
         uint256 netPtLeft = netPtIn;
         uint256 netSyReceived;
 
-        if (!_isEmptyLimit(limit)) {
+        if (!isEmptyLimit) {
             (netPtLeft, netSyReceived, netSyFee, ) = _fillLimit(market, PT, netPtLeft, limit);
             _transferOut(address(PT), market, netPtLeft);
         }
@@ -137,6 +151,18 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netLpOut, uint256 netSyFee, uint256 netSyInterm) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(
+                    IPActionAddRemoveLiqSimple.addLiquiditySingleTokenSimple,
+                    (receiver, market, minLpOut, input)
+                ),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256, uint256));
+        }
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_addLiquiditySingleSy(market, limit), address(SY), 1, input);
@@ -171,6 +197,18 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(
+                    IPActionAddRemoveLiqSimple.addLiquiditySingleSySimple,
+                    (receiver, market, netSyIn, minLpOut)
+                ),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256));
+        }
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         _transferFrom(SY, msg.sender, _entry_addLiquiditySingleSy(market, limit), netSyIn);
@@ -385,6 +423,18 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(
+                    IPActionAddRemoveLiqSimple.removeLiquiditySinglePtSimple,
+                    (receiver, market, netLpToRemove, minPtOut)
+                ),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256));
+        }
         uint256 netSyLeft;
 
         // execute the burn
