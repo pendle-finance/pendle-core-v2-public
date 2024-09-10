@@ -125,10 +125,8 @@ library ApproxStateLib {
                 return;
             }
             uint256 distFromStartingGuess = state.ranges[1] - state.startingGuess;
-            uint256 extendedUpper = PMath.addWithUpperBound(
-                state.ranges[1],
-                distFromStartingGuess,
-                state.hardBounds[1]
+            uint256 extendedUpper = (
+                PMath.addWithUpperBound(state.ranges[1], distFromStartingGuess, state.hardBounds[1])
             );
             state.ranges[1] = extendedUpper;
             state.curGuess = extendedUpper;
