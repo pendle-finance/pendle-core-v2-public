@@ -137,13 +137,8 @@ library MarketApproxPtInLib {
 
         for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
-            (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = calcNumerators(
-                market,
-                index,
-                totalPtIn,
-                netSyHolding,
-                comp,
-                guess
+            (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = (
+                calcNumerators(market, index, totalPtIn, netSyHolding, comp, guess)
             );
 
             if (PMath.isAApproxB(syNumerator, ptNumerator, state.eps)) {
