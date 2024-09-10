@@ -5,6 +5,7 @@ import "../../core/libraries/math/PMath.sol";
 import "../../core/Market/MarketMathCore.sol";
 import {ApproxParams} from "./ApproxParams.sol";
 import {ApproxState} from "./ApproxStateLib.sol";
+import {ApproxState, ApproxStateLib} from "./ApproxStateLib.sol";
 import {MarketApproxEstimateLib} from "./MarketApproxEstimateLib.sol";
 
 library MarketApproxPtInLib {
@@ -72,14 +73,10 @@ library MarketApproxPtInLib {
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
             uint256 estimatedYtOut = market.estimateSwapExactSyForYt(index, blockTime, exactSyIn);
-            state.initWithoutOffchainGuess({
-                estimation: estimatedYtOut,
-                searchBound: [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)],
-                approx: approx
-            });
-            validateApprox(state.approx);
+            uint256[2] memory hardBounds = [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)];
+            state = ApproxStateLib.initNoOffChain(estimatedYtOut, hardBounds);
         } else {
-            state.initWithOffchainGuess(approx);
+            state = ApproxStateLib.initWithOffchain(approx);
         }
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
@@ -97,21 +94,12 @@ library MarketApproxPtInLib {
                 if (PMath.isASmallerApproxB(netSyToPull, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                state.advanceUp({excludeGuessFromRange: false});
+                state.transitionUp({excludeGuessFromRange: false});
             } else {
-                state.advanceDown({excludeGuessFromRange: true});
+                state.transitionDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
-    }
-
-    struct Args5 {
-        MarketState market;
-        PYIndex index;
-        uint256 totalPtIn;
-        uint256 netSyHolding;
-        uint256 blockTime;
-        ApproxParams approx;
     }
 
     /**
@@ -123,65 +111,54 @@ library MarketApproxPtInLib {
      *     - guess & approx is for netPtSwap
      */
     function approxSwapPtToAddLiquidity(
-        MarketState memory _market,
-        PYIndex _index,
-        uint256 _totalPtIn,
-        uint256 _netSyHolding,
-        uint256 _blockTime,
-        ApproxParams memory _approx
+        MarketState memory market,
+        PYIndex index,
+        uint256 totalPtIn,
+        uint256 netSyHolding,
+        uint256 blockTime,
+        ApproxParams memory approx
     )
         internal
         pure
         returns (uint256 /*netPtSwap*/, uint256 /*netSyFromSwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
-        // hoist approx params here to avoid stack too deep
-        ApproxParams memory approx = _approx;
-        Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
-        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            uint256 estimatedPtSwap = estimateSwapPtToAddLiquidity(a);
-            state.initWithoutOffchainGuess({
-                estimation: estimatedPtSwap,
-                // no bound for lower
-                searchBound: [0, PMath.min(a.totalPtIn, calcSoftMaxPtIn(a.market, comp))],
-                approx: approx
-            });
-            validateApprox(state.approx);
-            require(a.market.totalLp != 0, "no existing lp");
+            require(market.totalLp != 0, "no existing lp");
+
+            (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, totalPtIn, netSyHolding);
+            uint256 estimatedPtSwap = totalPtIn.subMax0(estimatedPtAdd);
+            uint256[2] memory hardBounds = [0, PMath.min(totalPtIn, calcSoftMaxPtIn(market, comp))];
+            state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
         } else {
-            state.initWithOffchainGuess(approx);
+            state = ApproxStateLib.initWithOffchain(approx);
         }
 
-        for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
+        for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
             (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = calcNumerators(
-                a.market,
-                a.index,
-                a.totalPtIn,
-                a.netSyHolding,
+                market,
+                index,
+                totalPtIn,
+                netSyHolding,
                 comp,
                 guess
             );
 
-            if (PMath.isAApproxB(syNumerator, ptNumerator, approx.eps)) {
+            if (PMath.isAApproxB(syNumerator, ptNumerator, state.eps)) {
                 return (guess, netSyOut, netSyFee, iter);
             }
 
             if (syNumerator <= ptNumerator) {
                 // needs more SY --> swap more PT
-                state.advanceUp({excludeGuessFromRange: true});
+                state.transitionUp({excludeGuessFromRange: true});
             } else {
                 // needs less SY --> swap less PT
-                state.advanceDown({excludeGuessFromRange: true});
+                state.transitionDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
-    }
-
-    function estimateSwapPtToAddLiquidity(Args5 memory a) internal pure returns (uint256 estimatedPtSwap) {
-        (uint256 estimatedPtAdd, ) = a.market.estimateAddLiquidity(a.index, a.blockTime, a.totalPtIn, a.netSyHolding);
-        estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
     }
 
     function calcNumerators(
@@ -342,16 +319,10 @@ library MarketApproxPtOutLib {
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
             uint256 estimatedPtOut = market.estimateSwapExactSyForPt(index, blockTime, exactSyIn);
-            uint256 maxPtOut = calcMaxPtOut(comp, market.totalPt);
-            state.initWithoutOffchainGuess({
-                estimation: estimatedPtOut,
-                // no bound for lower
-                searchBound: [0, maxPtOut],
-                approx: approx
-            });
-            validateApprox(state.approx);
+            uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
+            state = ApproxStateLib.initNoOffChain(estimatedPtOut, hardBounds);
         } else {
-            state.initWithOffchainGuess(approx);
+            state = ApproxStateLib.initWithOffchain(approx);
         }
 
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
@@ -362,9 +333,9 @@ library MarketApproxPtOutLib {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
                     return (guess, netSyFee, iter);
                 }
-                state.advanceUp({excludeGuessFromRange: false});
+                state.transitionUp({excludeGuessFromRange: false});
             } else {
-                state.advanceDown({excludeGuessFromRange: true});
+                state.transitionDown({excludeGuessFromRange: true});
             }
         }
 
@@ -413,15 +384,6 @@ library MarketApproxPtOutLib {
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
-    struct Args6 {
-        MarketState market;
-        PYIndex index;
-        uint256 totalSyIn;
-        uint256 netPtHolding;
-        uint256 blockTime;
-        ApproxParams approx;
-    }
-
     /**
      * @dev algorithm:
      *     - Bin search the amount of PT to swapExactOut
@@ -431,40 +393,36 @@ library MarketApproxPtOutLib {
      *     - guess & approx is for netPtFromSwap
      */
     function approxSwapSyToAddLiquidity(
-        MarketState memory _market,
-        PYIndex _index,
-        uint256 _totalSyIn,
-        uint256 _netPtHolding,
-        uint256 _blockTime,
-        ApproxParams memory _approx
+        MarketState memory market,
+        PYIndex index,
+        uint256 totalSyIn,
+        uint256 netPtHolding,
+        uint256 blockTime,
+        ApproxParams memory approx
     )
         internal
         pure
         returns (uint256 /*netPtFromSwap*/, uint256 /*netSySwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
-        Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
-
-        MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
-        if (a.approx.guessOffchain == 0) {
-            uint256 estimatedPtSwap = estimateSwapSyToAddLiquidity(a);
-            state.initWithoutOffchainGuess({
-                estimation: estimatedPtSwap,
-                searchBound: [0, calcMaxPtOut(comp, a.market.totalPt)],
-                approx: a.approx
-            });
-            validateApprox(state.approx);
-            require(a.market.totalLp != 0, "no existing lp");
+        if (approx.guessOffchain == 0) {
+            require(market.totalLp != 0, "no existing lp");
+
+            (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, netPtHolding, totalSyIn);
+            uint256 estimatedPtSwap = estimatedPtAdd.subMax0(netPtHolding);
+            uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
+            state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
         } else {
-            state.initWithOffchainGuess(a.approx);
+            state = ApproxStateLib.initWithOffchain(approx);
         }
 
-        for (uint256 iter = 0; iter < a.approx.maxIteration; ++iter) {
+        for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
-            (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) = calcSyIn(a.market, comp, a.index, guess);
+            (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) = calcSyIn(market, comp, index, guess);
 
-            if (netSyIn > a.totalSyIn) {
-                a.approx.guessMax = guess - 1;
+            if (netSyIn > totalSyIn) {
+                approx.guessMax = guess - 1;
                 continue;
             }
 
@@ -472,36 +430,31 @@ library MarketApproxPtOutLib {
             uint256 ptNumerator;
 
             {
-                uint256 newTotalPt = uint256(a.market.totalPt) - guess;
-                uint256 netTotalSy = uint256(a.market.totalSy) + netSyIn - netSyToReserve;
+                uint256 newTotalPt = uint256(market.totalPt) - guess;
+                uint256 netTotalSy = uint256(market.totalSy) + netSyIn - netSyToReserve;
 
                 // it is desired that
                 // (netPtFromSwap + netPtHolding) / newTotalPt = netSyRemaining / netTotalSy
                 // which is equivalent to
                 // (netPtFromSwap + netPtHolding) * netTotalSy = netSyRemaining * newTotalPt
 
-                ptNumerator = (guess + a.netPtHolding) * netTotalSy;
-                syNumerator = (a.totalSyIn - netSyIn) * newTotalPt;
+                ptNumerator = (guess + netPtHolding) * netTotalSy;
+                syNumerator = (totalSyIn - netSyIn) * newTotalPt;
             }
 
-            if (PMath.isAApproxB(ptNumerator, syNumerator, a.approx.eps)) {
+            if (PMath.isAApproxB(ptNumerator, syNumerator, state.eps)) {
                 return (guess, netSyIn, netSyFee, iter);
             }
 
             if (ptNumerator <= syNumerator) {
                 // needs more PT
-                state.advanceUp({excludeGuessFromRange: true});
+                state.transitionUp({excludeGuessFromRange: true});
             } else {
                 // needs less PT
-                state.advanceDown({excludeGuessFromRange: true});
+                state.transitionDown({excludeGuessFromRange: true});
             }
         }
         revert("Slippage: APPROX_EXHAUSTED");
-    }
-
-    function estimateSwapSyToAddLiquidity(Args6 memory a) internal pure returns (uint256 estimatedPtSwap) {
-        (uint256 estimatedPtAdd, ) = a.market.estimateAddLiquidity(a.index, a.blockTime, a.netPtHolding, a.totalSyIn);
-        estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
     }
 
     /**
