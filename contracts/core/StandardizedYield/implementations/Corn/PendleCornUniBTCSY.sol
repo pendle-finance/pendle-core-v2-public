@@ -15,12 +15,12 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
     // end contract, no gaps needed
 
     constructor() PendleCornBaseSYUpg(UNIBTC, WBTC) {
-        _safeApproveInf(WBTC, VAULT);
-        _safeApproveInf(FBTC, VAULT);
         _disableInitializers();
     }
 
     function initialize(address _initialExchangeRateOracle) external initializer {
+        _safeApproveInf(WBTC, VAULT);
+        _safeApproveInf(FBTC, VAULT);
         __CornBaseSY_init_("SY Corn Bedrock uniBTC", "SY-corn-uniBTC", _initialExchangeRateOracle);
     }
 
