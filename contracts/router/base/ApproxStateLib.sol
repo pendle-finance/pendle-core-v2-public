@@ -67,8 +67,8 @@ library ApproxStateLib {
         assert(hardBounds[0] <= hardBounds[1]);
 
         uint256 startingGuess = PMath.clamp(estimation, hardBounds[0], hardBounds[1]);
-        uint256 rangesLower = PMath.max(estimation.slipDown(GUESS_RANGE_SLIP), hardBounds[0]);
-        uint256 rangesUpper = PMath.min(estimation.slipUp(GUESS_RANGE_SLIP), hardBounds[1]);
+        uint256 rangesLower = PMath.max(startingGuess.slipDown(GUESS_RANGE_SLIP), hardBounds[0]);
+        uint256 rangesUpper = PMath.min(startingGuess.slipUp(GUESS_RANGE_SLIP), hardBounds[1]);
         return
             ApproxState({
                 stage: ApproxStage.INITIAL,
