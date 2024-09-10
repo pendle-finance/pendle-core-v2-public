@@ -19,43 +19,6 @@ library MarketApproxPtInLibV2 {
     /**
      * @dev algorithm:
      *     - Bin search the amount of PT to swap in
-     *     - Try swapping & get netSyOut
-     *     - Stop when netSyOut greater & approx minSyOut
-     *     - guess & approx is for netPtIn
-     */
-    function approxSwapPtForExactSy(
-        MarketState memory market,
-        PYIndex index,
-        uint256 minSyOut,
-        uint256 blockTime,
-        ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtIn*/ uint256, /*netSyOut*/ uint256 /*netSyFee*/) {
-        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        if (approx.guessOffchain == 0) {
-            // no limit on min
-            approx.guessMax = PMath.min(approx.guessMax, calcSoftMaxPtIn(market, comp));
-            validateApprox(approx);
-        }
-
-        for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
-            uint256 guess = nextGuess(approx, iter);
-            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
-
-            if (netSyOut >= minSyOut) {
-                if (PMath.isAGreaterApproxB(netSyOut, minSyOut, approx.eps)) {
-                    return (guess, netSyOut, netSyFee);
-                }
-                approx.guessMax = guess;
-            } else {
-                approx.guessMin = guess;
-            }
-        }
-        revert("Slippage: APPROX_EXHAUSTED");
-    }
-
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swap in
      *     - Flashswap the corresponding amount of SY out
      *     - Pair those amount with exactSyIn SY to tokenize into PT & YT
      *     - PT to repay the flashswap, YT transferred to user
@@ -334,48 +297,6 @@ library MarketApproxPtOutLibV2 {
             }
         }
 
-        revert("Slippage: APPROX_EXHAUSTED");
-    }
-
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swapExactOut
-     *     - Flashswap that amount of PT & pair with YT to redeem SY
-     *     - Use the SY to repay the flashswap debt and the remaining is transferred to user
-     *     - Stop when the netSyOut is greater approx the minSyOut
-     *     - guess & approx is for netSyOut
-     */
-    function approxSwapYtForExactSy(
-        MarketState memory market,
-        PYIndex index,
-        uint256 minSyOut,
-        uint256 blockTime,
-        ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtIn*/ uint256, /*netSyOut*/ uint256 /*netSyFee*/) {
-        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        if (approx.guessOffchain == 0) {
-            // no limit on min
-            approx.guessMax = PMath.min(approx.guessMax, calcMaxPtOut(comp, market.totalPt));
-            validateApprox(approx);
-        }
-
-        for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
-            uint256 guess = nextGuess(approx, iter);
-
-            (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
-
-            uint256 netAssetToRepay = index.syToAssetUp(netSyOwed);
-            uint256 netSyOut = index.assetToSy(guess - netAssetToRepay);
-
-            if (netSyOut >= minSyOut) {
-                if (PMath.isAGreaterApproxB(netSyOut, minSyOut, approx.eps)) {
-                    return (guess, netSyOut, netSyFee);
-                }
-                approx.guessMax = guess;
-            } else {
-                approx.guessMin = guess + 1;
-            }
-        }
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
