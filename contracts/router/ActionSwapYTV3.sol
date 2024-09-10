@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "./base/ActionBase.sol";
 import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYTV3.sol";
+import {IPActionSwapYTSimple} from "../interfaces/IPActionSwapYTSimple.sol";
 
 contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
     using PMath for uint256;
@@ -21,6 +22,15 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessYtOut.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(IPActionSwapYTSimple.swapExactTokenForYtSimple, (receiver, market, minYtOut, input)),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256, uint256));
+        }
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForYt(YT, limit), address(SY), 1, input);
@@ -45,6 +55,15 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         ApproxParams calldata guessYtOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
+        bool isEmptyLimit = _isEmptyLimit(limit);
+        if (isEmptyLimit && guessYtOut.guessOffchain == 0) {
+            (bool success, bytes memory res) = _delegateToSelf(
+                abi.encodeCall(IPActionSwapYTSimple.swapExactSyForYtSimple, (receiver, market, exactSyIn, minYtOut)),
+                /* allowFailure= */ false
+            );
+            assert(success);
+            return abi.decode(res, (uint256, uint256));
+        }
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForYt(YT, limit), exactSyIn);
 
