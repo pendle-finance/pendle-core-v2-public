@@ -290,20 +290,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         revert Errors.SimulationResults(success, result);
     }
 
-    function _delegateToSelf(
-        bytes memory data,
-        bool allowFailure
-    ) internal returns (bool success, bytes memory result) {
-        (success, result) = address(this).delegatecall(data);
-
-        if (!success && !allowFailure) {
-            assembly {
-                // We use Yul's revert() to bubble up errors from the target contract.
-                revert(add(32, result), mload(result))
-            }
-        }
-    }
-
     function _callToReflector(address payable reflector, bytes memory data) internal returns (bytes memory) {
         return IPReflector(reflector).reflect(data);
     }

@@ -373,4 +373,20 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     function _isEmptyLimit(LimitOrderData calldata a) internal pure returns (bool) {
         return a.normalFills.length == 0 && a.flashFills.length == 0;
     }
+
+    // ----------------- MISC HELPER -----------------
+
+    function _delegateToSelf(
+        bytes memory data,
+        bool allowFailure
+    ) internal returns (bool success, bytes memory result) {
+        (success, result) = address(this).delegatecall(data);
+
+        if (!success && !allowFailure) {
+            assembly {
+                // We use Yul's revert() to bubble up errors from the target contract.
+                revert(add(32, result), mload(result))
+            }
+        }
+    }
 }
