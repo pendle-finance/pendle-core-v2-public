@@ -30,7 +30,7 @@ using ApproxStateLib for ApproxState global;
 /// state, dynamically adjusting the search range to fit the valid / result
 /// range.
 ///
-/// @dev Invariant to maintains:
+/// @dev Invariants to maintain:
 /// - state.hardBounds should always include state.ranges
 /// - state.ranges should always include state.curGuess
 /// That is:
