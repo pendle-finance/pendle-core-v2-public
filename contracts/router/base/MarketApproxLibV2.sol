@@ -8,7 +8,7 @@ import {ApproxState} from "./ApproxStateLib.sol";
 import {ApproxState, ApproxStateLib} from "./ApproxStateLib.sol";
 import {MarketApproxEstimateLib} from "./MarketApproxEstimateLib.sol";
 
-library MarketApproxPtInLib {
+library MarketApproxPtInLibV2 {
     using MarketMathCore for MarketState;
     using PYIndexLib for PYIndex;
     using PMath for uint256;
@@ -286,7 +286,7 @@ library MarketApproxPtInLib {
     }
 }
 
-library MarketApproxPtOutLib {
+library MarketApproxPtOutLibV2 {
     using MarketMathCore for MarketState;
     using PYIndexLib for PYIndex;
     using PMath for uint256;
