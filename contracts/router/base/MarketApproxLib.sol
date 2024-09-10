@@ -5,6 +5,7 @@ import "../../core/libraries/math/PMath.sol";
 import "../../core/Market/MarketMathCore.sol";
 import {ApproxParams} from "./ApproxParams.sol";
 import {ApproxState} from "./ApproxStateLib.sol";
+import {MarketApproxEstimateLib} from "./MarketApproxEstimateLib.sol";
 
 library MarketApproxPtInLib {
     using MarketMathCore for MarketState;
@@ -12,6 +13,7 @@ library MarketApproxPtInLib {
     using PMath for uint256;
     using PMath for int256;
     using LogExpMath for int256;
+    using MarketApproxEstimateLib for MarketState;
 
     /**
      * @dev algorithm:
@@ -69,7 +71,7 @@ library MarketApproxPtInLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            uint256 estimatedYtOut = MarketApproxEstimate.estimateSwapExactSyForYt(market, index, blockTime, exactSyIn);
+            uint256 estimatedYtOut = market.estimateSwapExactSyForYt(index, blockTime, exactSyIn);
             state.initWithoutOffchainGuess({
                 estimation: estimatedYtOut,
                 searchBound: [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)],
@@ -178,13 +180,7 @@ library MarketApproxPtInLib {
     }
 
     function estimateSwapPtToAddLiquidity(Args5 memory a) internal pure returns (uint256 estimatedPtSwap) {
-        (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
-            a.market,
-            a.index,
-            a.blockTime,
-            a.totalPtIn,
-            a.netSyHolding
-        );
+        (uint256 estimatedPtAdd, ) = a.market.estimateAddLiquidity(a.index, a.blockTime, a.totalPtIn, a.netSyHolding);
         estimatedPtSwap = a.totalPtIn.subMax0(estimatedPtAdd);
     }
 
@@ -324,6 +320,7 @@ library MarketApproxPtOutLib {
     using PMath for uint256;
     using PMath for int256;
     using LogExpMath for int256;
+    using MarketApproxEstimateLib for MarketState;
 
     uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
 
@@ -344,7 +341,7 @@ library MarketApproxPtOutLib {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         ApproxState memory state;
         if (approx.guessOffchain == 0) {
-            uint256 estimatedPtOut = MarketApproxEstimate.estimateSwapExactSyForPt(market, index, blockTime, exactSyIn);
+            uint256 estimatedPtOut = market.estimateSwapExactSyForPt(index, blockTime, exactSyIn);
             uint256 maxPtOut = calcMaxPtOut(comp, market.totalPt);
             state.initWithoutOffchainGuess({
                 estimation: estimatedPtOut,
@@ -503,13 +500,7 @@ library MarketApproxPtOutLib {
     }
 
     function estimateSwapSyToAddLiquidity(Args6 memory a) internal pure returns (uint256 estimatedPtSwap) {
-        (uint256 estimatedPtAdd, ) = MarketApproxEstimate.estimateAddLiquidity(
-            a.market,
-            a.index,
-            a.blockTime,
-            a.netPtHolding,
-            a.totalSyIn
-        );
+        (uint256 estimatedPtAdd, ) = a.market.estimateAddLiquidity(a.index, a.blockTime, a.netPtHolding, a.totalSyIn);
         estimatedPtSwap = estimatedPtAdd.subMax0(a.netPtHolding);
     }
 
@@ -588,106 +579,5 @@ library MarketApproxPtOutLib {
 
     function validateApprox(ApproxParams memory approx) internal pure {
         if (approx.guessMin > approx.guessMax || approx.eps > PMath.ONE) revert("Internal: INVALID_APPROX_PARAMS");
-    }
-}
-
-library MarketApproxEstimate {
-    using MarketMathCore for MarketState;
-    using PYIndexLib for PYIndex;
-    using PMath for uint256;
-    using PMath for int256;
-
-    enum TokenType {
-        PT,
-        YT,
-        SY
-    }
-
-    function estimateAmount(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 amountIn,
-        TokenType tokenIn,
-        TokenType tokenOut
-    ) internal pure returns (uint256 estimatedAmountOut) {
-        uint256 assetToPtRate = uint256(
-            MarketMathCore._getExchangeRateFromImpliedRate(market.lastLnImpliedRate, market.expiry - blockTime)
-        );
-
-        uint256 ptToAssetRate = PMath.ONE.divDown(assetToPtRate);
-        uint256 ytToAssetRate = PMath.ONE - ptToAssetRate;
-
-        uint256 exactAssetIn;
-
-        if (tokenIn == TokenType.SY) {
-            exactAssetIn = index.syToAsset(amountIn);
-        } else if (tokenIn == TokenType.PT) {
-            exactAssetIn = amountIn.mulDown(ptToAssetRate);
-        } else {
-            exactAssetIn = amountIn.mulDown(ytToAssetRate);
-        }
-
-        if (tokenOut == TokenType.SY) {
-            estimatedAmountOut = index.assetToSy(exactAssetIn);
-        } else if (tokenOut == TokenType.PT) {
-            estimatedAmountOut = exactAssetIn.divDown(ptToAssetRate);
-        } else {
-            estimatedAmountOut = exactAssetIn.divDown(ytToAssetRate);
-        }
-    }
-
-    function estimateSwapExactSyForPt(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 amountSyIn
-    ) internal pure returns (uint256 estimatedPtOut) {
-        return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.PT);
-    }
-
-    function estimateSwapExactSyForYt(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 amountSyIn
-    ) internal pure returns (uint256 estimatedYtOut) {
-        return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.YT);
-    }
-
-    function estimateAddLiquidity(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 netPtOwning,
-        uint256 netSyOwning
-    ) internal pure returns (uint256 estimatedPtToAdd, uint256 estimatedSyToAdd) {
-        // Let `pa` be `estimatedPtToAdd`, `sa` be `estimatedSyToAdd`.
-
-        // Conditions to satisfy:
-        // +) Add liquidity amounts need to be proportional to the existing
-        //    liquidity:
-        //      pa / sa = totalPt / totalSy
-        //   => pa = totalPt / totalSy * sa
-        //
-        // +) Let `syToPtRate` be the spot price between the PT and SY amount.
-        //    Conversion between exessive/missing parts need to respect the
-        //    current price:
-        //      (sa - netSyOwning) * syToPtRate = netPtOwning - pa
-        //  <=> (sa - netSyOwning) * syToPtRate = netPtOwning - totalPt / totalSy * sa
-        //  <=> (sa - netSyOwning) * syToPtRate * totalSy = netPtOwning * totalSy - totalPt * sa
-        //
-        //  Let x = syToPtRate * totalSy (x can be calculated with the function `estimateAmount` above).
-        //      (sa - netSyOwning) * x = netPtOwning * totalSy - totalPt * sa
-        //  <=> sa * x - netSyOwning * x = netPtOwning * totalSy - totalPt * sa
-        //  <=> sa * (x + totalPt) = netPtOwning * totalSy + netSyOwning * x
-
-        uint256 totalSy = market.totalSy.Uint();
-        uint256 totalPt = market.totalPt.Uint();
-        uint256 x = estimateSwapExactSyForPt(market, index, blockTime, totalSy);
-        uint256 sa = (netPtOwning * totalSy + netSyOwning * x) / (x + totalPt);
-        uint256 pa = (totalPt * sa) / totalSy;
-
-        return (pa, sa);
     }
 }
