@@ -16,3 +16,5 @@ struct ApproxParams {
     uint256 maxIteration;
     uint256 eps;
 }
+
+function emptyApproxParams() pure returns (ApproxParams memory) {}
