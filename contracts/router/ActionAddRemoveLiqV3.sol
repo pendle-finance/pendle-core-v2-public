@@ -96,7 +96,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
             _transferOut(address(PT), market, netPtLeft);
         }
 
-        (uint256 netPtSwapMarket, , , ) = _readMarket(market).approxSwapPtToAddLiquidity(
+        (uint256 netPtSwapMarket, , ) = _readMarket(market).approxSwapPtToAddLiquidity(
             YT.newIndex(),
             netPtLeft,
             netSyReceived,
@@ -211,7 +211,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
             _transferOut(address(SY), market, netSyLeft);
         }
 
-        (uint256 netPtOutMarket, , , ) = _readMarket(market).approxSwapSyToAddLiquidity(
+        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapSyToAddLiquidity(
             YT.newIndex(),
             netSyLeft,
             netPtReceived,
