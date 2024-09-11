@@ -78,7 +78,7 @@ abstract contract PendleCornBaseSYUpg is SYBaseUpg {
     function _previewDeposit(
         address /*tokenIn*/,
         uint256 amountTokenToDeposit
-    ) internal pure override returns (uint256 /*amountSharesOut*/) {
+    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
         // For regular token (not Corn BTC), 1 share = 1 token
         return amountTokenToDeposit;
     }
@@ -86,7 +86,7 @@ abstract contract PendleCornBaseSYUpg is SYBaseUpg {
     function _previewRedeem(
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    ) internal pure override returns (uint256 amountTokenOut) {
+    ) internal view virtual override returns (uint256 amountTokenOut) {
         return amountSharesToRedeem;
     }
 

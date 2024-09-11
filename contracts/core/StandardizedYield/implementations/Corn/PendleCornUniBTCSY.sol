@@ -42,7 +42,6 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
         return ArrayLib.create(WBTC, FBTC, depositToken);
     }
 
-
     function isValidTokenIn(address token) public view virtual override returns (bool) {
         return token == WBTC || token == FBTC || token == depositToken;
     }

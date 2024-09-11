@@ -5,7 +5,6 @@ import "./PendleCornBaseSYUpg.sol";
 import "../Solv/PendleSolvHelper.sol";
 
 contract PendleCornSolvBTCBBNSYUpg is PendleCornBaseSYUpg {
-
     address public constant WBTC = PendleSolvHelper.WBTC;
     address public constant SOLV_BTC = PendleSolvHelper.SOLV_BTC_TOKEN;
     address public constant SOLV_BTCBBN = PendleSolvHelper.SOLV_BTCBBN_TOKEN;
@@ -26,5 +25,23 @@ contract PendleCornSolvBTCBBNSYUpg is PendleCornBaseSYUpg {
             amountDeposited = PendleSolvHelper._mintBTCBBN(tokenIn, amountDeposited);
         }
         return ICornSilo(CORN_SILO).deposit(depositToken, amountDeposited);
+    }
+
+    function _previewDeposit(
+        address tokenIn,
+        uint256 amountTokenToDeposit
+    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
+        if (tokenIn == depositToken) {
+            return amountTokenToDeposit;
+        }
+        return PendleSolvHelper._convertToShare(tokenIn, amountTokenToDeposit);
+    }
+
+    function getTokensIn() public view virtual override returns (address[] memory) {
+        return ArrayLib.create(WBTC, SOLV_BTC, depositToken);
+    }
+
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
+        return token == WBTC || token == SOLV_BTC || token == depositToken;
     }
 }
