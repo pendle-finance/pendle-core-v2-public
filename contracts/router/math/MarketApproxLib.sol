@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../core/libraries/math/PMath.sol";
 import "../../core/Market/MarketMathCore.sol";
-import {ApproxParams} from "./ApproxParams.sol";
+import {ApproxParams} from "../../interfaces/IPAllActionTypeV3.sol";
 
 library MarketApproxPtInLib {
     using MarketMathCore for MarketState;
