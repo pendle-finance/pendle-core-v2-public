@@ -3,9 +3,9 @@ pragma solidity ^0.8.17;
 
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionSwapPTV3.sol";
-import {IPActionSimple} from "../interfaces/IPActionSimple.sol";
+import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 
-contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
+contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
 
     // ------------------ SWAP TOKEN FOR PT ------------------
@@ -17,15 +17,12 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netPtOut, uint256 netSyFee, uint256 netSyInterm) {
-        bool isEmptyLimit = _isEmptyLimit(limit);
-        if (isEmptyLimit && guessPtOut.guessOffchain == 0) {
-            (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSimple.swapExactTokenForPtSimple, (receiver, market, minPtOut, input)),
-                /* allowFailure= */ false
-            );
-            assert(success);
-            return abi.decode(res, (uint256, uint256, uint256));
-        }
+        bool delegatedToSimple;
+        (delegatedToSimple, netPtOut, netSyFee, netSyInterm) = (
+            tryDelegateToSwapExactTokenForPtSimple(receiver, market, minPtOut, guessPtOut, input, limit)
+        );
+        if (delegatedToSimple) return (netPtOut, netSyFee, netSyInterm);
+
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForPt(market, limit), address(SY), 1, input);
 
@@ -49,15 +46,11 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         ApproxParams calldata guessPtOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
-        bool isEmptyLimit = _isEmptyLimit(limit);
-        if (isEmptyLimit && guessPtOut.guessOffchain == 0) {
-            (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSimple.swapExactSyForPtSimple, (receiver, market, exactSyIn, minPtOut)),
-                /* allowFailure= */ false
-            );
-            assert(success);
-            return abi.decode(res, (uint256, uint256));
-        }
+        bool delegatedToSimple;
+        (delegatedToSimple, netPtOut, netSyFee) = (
+            tryDelegateToSwapExactSyForPtSimple(receiver, market, exactSyIn, minPtOut, guessPtOut, limit)
+        );
+        if (delegatedToSimple) return (netPtOut, netSyFee);
 
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForPt(market, limit), exactSyIn);
