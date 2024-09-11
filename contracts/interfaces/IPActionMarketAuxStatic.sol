@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "./IPMarket.sol";
-import {ApproxParams} from "../router/base/MarketApproxLib.sol";
+import {ApproxParams} from "../router/math/MarketApproxLib.sol";
 
 interface IPActionMarketAuxStatic {
     function calcPriceImpactPY(address market, int256 netPtOut) external view returns (uint256);

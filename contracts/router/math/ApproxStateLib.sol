@@ -41,7 +41,6 @@ library ApproxStateLib {
 
     uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
 
-    // TODO: the default stuff should be chain-specific
     uint256 internal constant DEFAULT_MAX_ITERATION = 30;
     uint256 internal constant DEFAULT_EPS = 1e14;
 

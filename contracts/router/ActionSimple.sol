@@ -12,9 +12,9 @@ import {PYIndexLib, IPYieldToken, PYIndex} from "../core/StandardizedYield/PYInd
 import {MarketState} from "../core/Market/MarketMathCore.sol";
 import {PMath} from "../core/libraries/math/PMath.sol";
 
-import {emptyApproxParams} from "./base/ApproxParams.sol";
+import {emptyApproxParams} from "./math/ApproxParams.sol";
 import {CallbackHelper} from "./base/CallbackHelper.sol";
-import {MarketApproxPtInLibV2, MarketApproxPtOutLibV2} from "./base/MarketApproxLibV2.sol";
+import {MarketApproxPtInLibV2, MarketApproxPtOutLibV2} from "./math/MarketApproxLibV2.sol";
 import {TokenInput, TokenOutput} from "../interfaces/IPAllActionTypeV3.sol";
 import {ActionBase} from "./base/ActionBase.sol";
 

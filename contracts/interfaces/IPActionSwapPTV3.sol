@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../router/base/MarketApproxLib.sol";
+import "../router/math/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
 import {IPActionSwapPTV3Events} from "./IPActionSwapPTV3Events.sol";
 

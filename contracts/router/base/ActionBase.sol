@@ -6,7 +6,7 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPAllActionTypeV3.sol";
 import "../../interfaces/IPMarket.sol";
-import "../../router/base/MarketApproxLib.sol";
+import "../../router/math/MarketApproxLib.sol";
 
 import "../../core/libraries/Errors.sol";
 import "../swap-aggregator/IPSwapAggregator.sol";
