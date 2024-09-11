@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "./base/ActionBase.sol";
 import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYTV3.sol";
-import {IPActionSwapYTSimple} from "../interfaces/IPActionSwapYTSimple.sol";
+import {IPActionSimple} from "../interfaces/IPActionSimple.sol";
 
 contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
     using PMath for uint256;
@@ -25,7 +25,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessYtOut.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSwapYTSimple.swapExactTokenForYtSimple, (receiver, market, minYtOut, input)),
+                abi.encodeCall(IPActionSimple.swapExactTokenForYtSimple, (receiver, market, minYtOut, input)),
                 /* allowFailure= */ false
             );
             assert(success);
@@ -58,7 +58,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessYtOut.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSwapYTSimple.swapExactSyForYtSimple, (receiver, market, exactSyIn, minYtOut)),
+                abi.encodeCall(IPActionSimple.swapExactSyForYtSimple, (receiver, market, exactSyIn, minYtOut)),
                 /* allowFailure= */ false
             );
             assert(success);

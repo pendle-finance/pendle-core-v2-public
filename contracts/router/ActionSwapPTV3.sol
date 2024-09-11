@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionSwapPTV3.sol";
-import {IPActionSwapPTSimple} from "../interfaces/IPActionSwapPTSimple.sol";
+import {IPActionSimple} from "../interfaces/IPActionSimple.sol";
 
 contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
     using PMath for uint256;
@@ -20,7 +20,7 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessPtOut.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSwapPTSimple.swapExactTokenForPtSimple, (receiver, market, minPtOut, input)),
+                abi.encodeCall(IPActionSimple.swapExactTokenForPtSimple, (receiver, market, minPtOut, input)),
                 /* allowFailure= */ false
             );
             assert(success);
@@ -52,12 +52,13 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessPtOut.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(IPActionSwapPTSimple.swapExactSyForPtSimple, (receiver, market, exactSyIn, minPtOut)),
+                abi.encodeCall(IPActionSimple.swapExactSyForPtSimple, (receiver, market, exactSyIn, minPtOut)),
                 /* allowFailure= */ false
             );
             assert(success);
             return abi.decode(res, (uint256, uint256));
         }
+
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForPt(market, limit), exactSyIn);
 

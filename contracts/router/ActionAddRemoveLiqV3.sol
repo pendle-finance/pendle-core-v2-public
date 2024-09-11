@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionAddRemoveLiqV3.sol";
-import {IPActionAddRemoveLiqSimple} from "../interfaces/IPActionAddRemoveLiqSimple.sol";
+import {IPActionSimple} from "../interfaces/IPActionSimple.sol";
 
 contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
     using PMath for uint256;
@@ -89,10 +89,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessPtSwapToSy.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(
-                    IPActionAddRemoveLiqSimple.addLiquiditySinglePtSimple,
-                    (receiver, market, netPtIn, minLpOut)
-                ),
+                abi.encodeCall(IPActionSimple.addLiquiditySinglePtSimple, (receiver, market, netPtIn, minLpOut)),
                 /* allowFailure= */ false
             );
             assert(success);
@@ -154,10 +151,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(
-                    IPActionAddRemoveLiqSimple.addLiquiditySingleTokenSimple,
-                    (receiver, market, minLpOut, input)
-                ),
+                abi.encodeCall(IPActionSimple.addLiquiditySingleTokenSimple, (receiver, market, minLpOut, input)),
                 /* allowFailure= */ false
             );
             assert(success);
@@ -200,10 +194,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         bool isEmptyLimit = _isEmptyLimit(limit);
         if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
-                abi.encodeCall(
-                    IPActionAddRemoveLiqSimple.addLiquiditySingleSySimple,
-                    (receiver, market, netSyIn, minLpOut)
-                ),
+                abi.encodeCall(IPActionSimple.addLiquiditySingleSySimple, (receiver, market, netSyIn, minLpOut)),
                 /* allowFailure= */ false
             );
             assert(success);
@@ -427,7 +418,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         if (isEmptyLimit && guessPtReceivedFromSy.guessOffchain == 0) {
             (bool success, bytes memory res) = _delegateToSelf(
                 abi.encodeCall(
-                    IPActionAddRemoveLiqSimple.removeLiquiditySinglePtSimple,
+                    IPActionSimple.removeLiquiditySinglePtSimple,
                     (receiver, market, netLpToRemove, minPtOut)
                 ),
                 /* allowFailure= */ false

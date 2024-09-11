@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../router/base/MarketApproxLib.sol";
-import "./IPAllActionTypeV3.sol";
+import {TokenInput} from "./IPAllActionTypeV3.sol";
+import {IPActionSwapPTV3Events} from "./IPActionSwapPTV3Events.sol";
+import {IPActionSwapYTV3Events} from "./IPActionSwapYTV3Events.sol";
 import {IPActionAddRemoveLiqV3Events} from "./IPActionAddRemoveLiqV3Events.sol";
+import "./IPAllActionTypeV3.sol";
 
-interface IPActionAddRemoveLiqSimple is IPActionAddRemoveLiqV3Events {
+interface IPActionSimple is IPActionSwapPTV3Events, IPActionSwapYTV3Events, IPActionAddRemoveLiqV3Events {
     function addLiquiditySinglePtSimple(
         address receiver,
         address market,
@@ -47,4 +49,32 @@ interface IPActionAddRemoveLiqSimple is IPActionAddRemoveLiqV3Events {
         uint256 netLpToRemove,
         uint256 minSyOut
     ) external returns (uint256 netSyOut, uint256 netSyFee);
+
+    function swapExactTokenForPtSimple(
+        address receiver,
+        address market,
+        uint256 minPtOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netPtOut, uint256 netSyFee, uint256 netSyInterm);
+
+    function swapExactSyForPtSimple(
+        address receiver,
+        address market,
+        uint256 exactSyIn,
+        uint256 minPtOut
+    ) external returns (uint256 netPtOut, uint256 netSyFee);
+
+    function swapExactTokenForYtSimple(
+        address receiver,
+        address market,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm);
+
+    function swapExactSyForYtSimple(
+        address receiver,
+        address market,
+        uint256 exactSyIn,
+        uint256 minYtOut
+    ) external returns (uint256 netYtOut, uint256 netSyFee);
 }

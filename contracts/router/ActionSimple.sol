@@ -1,34 +1,99 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.24;
-
-import {IPActionAddRemoveLiqSimple} from "../interfaces/IPActionAddRemoveLiqSimple.sol";
+pragma solidity ^0.8.0;
 
 import {IPMarket} from "../interfaces/IPMarket.sol";
-import {IPPrincipalToken} from "../interfaces/IPPrincipalToken.sol";
 import {IStandardizedYield} from "../interfaces/IStandardizedYield.sol";
+import {IPPrincipalToken} from "../interfaces/IPPrincipalToken.sol";
+import {IPActionSimple} from "../interfaces/IPActionSimple.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {TokenInput, TokenOutput} from "../interfaces/IPAllActionTypeV3.sol";
-
-import {MarketState, MarketMathCore} from "../core/Market/MarketMathCore.sol";
-import {PMath} from "../core/libraries/math/PMath.sol";
+import {TokenHelper} from "../core/libraries/TokenHelper.sol";
 import {PYIndexLib, IPYieldToken, PYIndex} from "../core/StandardizedYield/PYIndex.sol";
+import {MarketState} from "../core/Market/MarketMathCore.sol";
+import {PMath} from "../core/libraries/math/PMath.sol";
 
-import {ActionBase} from "./base/ActionBase.sol";
-import {ActionBaseSimple} from "./base/ActionBaseSimple.sol";
-import {ApproxParams, emptyApproxParams} from "./base/ApproxParams.sol";
+import {emptyApproxParams} from "./base/ApproxParams.sol";
+import {CallbackHelper} from "./base/CallbackHelper.sol";
 import {MarketApproxPtInLibV2, MarketApproxPtOutLibV2} from "./base/MarketApproxLibV2.sol";
+import {TokenInput, TokenOutput} from "../interfaces/IPAllActionTypeV3.sol";
+import {ActionBase} from "./base/ActionBase.sol";
 
-contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqSimple, ActionBase, ActionBaseSimple {
-    using PMath for uint256;
-    using PMath for int256;
-    using MarketMathCore for MarketState;
+contract ActionSimple is ActionBase, IPActionSimple {
     using MarketApproxPtInLibV2 for MarketState;
     using MarketApproxPtOutLibV2 for MarketState;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
+    using PMath for uint256;
 
-    // ------------------ ADD LIQUIDITY SINGLE PT ------------------
+    // ------------------ SWAP TOKEN FOR PT ------------------
+    function swapExactTokenForPtSimple(
+        address receiver,
+        address market,
+        uint256 minPtOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netPtOut, uint256 netSyFee, uint256 netSyInterm) {
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
+
+        (netPtOut, netSyFee) = _swapExactSyForPtSimple(receiver, market, netSyInterm, minPtOut);
+        emit SwapPtAndToken(
+            msg.sender,
+            market,
+            input.tokenIn,
+            receiver,
+            netPtOut.Int(),
+            input.netTokenIn.neg(),
+            netSyInterm
+        );
+    }
+
+    function swapExactSyForPtSimple(
+        address receiver,
+        address market,
+        uint256 exactSyIn,
+        uint256 minPtOut
+    ) external returns (uint256 netPtOut, uint256 netSyFee) {
+        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        _transferFrom(SY, msg.sender, address(this), exactSyIn);
+
+        (netPtOut, netSyFee) = _swapExactSyForPtSimple(receiver, market, exactSyIn, minPtOut);
+        emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
+    }
+
+    function swapExactTokenForYtSimple(
+        address receiver,
+        address market,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+
+        netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
+        (netYtOut, netSyFee) = _swapExactSyForYtSimple(receiver, market, SY, YT, netSyInterm, minYtOut);
+
+        emit SwapYtAndToken(
+            msg.sender,
+            market,
+            input.tokenIn,
+            receiver,
+            netYtOut.Int(),
+            input.netTokenIn.neg(),
+            netSyInterm
+        );
+    }
+
+    function swapExactSyForYtSimple(
+        address receiver,
+        address market,
+        uint256 exactSyIn,
+        uint256 minYtOut
+    ) external returns (uint256 netYtOut, uint256 netSyFee) {
+        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        _transferFrom(SY, msg.sender, address(this), exactSyIn);
+
+        (netYtOut, netSyFee) = _swapExactSyForYtSimple(receiver, market, SY, YT, exactSyIn, minYtOut);
+        emit SwapYtAndSy(msg.sender, market, receiver, netYtOut.Int(), exactSyIn.neg());
+    }
 
     function addLiquiditySinglePtSimple(
         address receiver,
@@ -246,5 +311,74 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqSimple, ActionBase, ActionB
         (uint256 netSyOutSwap, uint256 netSyFeeSwap) = _swapExactPtForSySimple(receiver, market, netPtLeft, 0);
         netSyOut += netSyOutSwap;
         netSyFee += netSyFeeSwap;
+    }
+
+    function _swapExactSyForPtSimple(
+        address receiver,
+        address market,
+        uint256 exactSyIn,
+        uint256 minPtOut
+    ) internal returns (uint256 netPtOut, uint256 netSyFee) {
+        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        uint256 netSyLeft = exactSyIn;
+
+        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapExactSyForPt(
+            YT.newIndex(),
+            netSyLeft,
+            block.timestamp,
+            emptyApproxParams()
+        );
+
+        (, uint256 netSyFeeMarket) = IPMarket(market).swapSyForExactPt(receiver, netPtOutMarket, "");
+
+        netPtOut += netPtOutMarket;
+        netSyFee += netSyFeeMarket;
+
+        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
+    }
+
+    function _swapExactSyForYtSimple(
+        address receiver,
+        address market,
+        IStandardizedYield /* SY */,
+        IPYieldToken YT,
+        uint256 exactSyIn,
+        uint256 minYtOut
+    ) internal returns (uint256 netYtOut, uint256 netSyFee) {
+        uint256 netSyLeft = exactSyIn;
+
+        (uint256 netYtOutMarket, , ) = _readMarket(market).approxSwapExactSyForYt(
+            YT.newIndex(),
+            netSyLeft,
+            block.timestamp,
+            emptyApproxParams()
+        );
+
+        (, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(
+            address(YT),
+            netYtOutMarket, // exactPtIn = netYtOut
+            _encodeSwapExactSyForYt(receiver, YT)
+        );
+
+        netYtOut += netYtOutMarket;
+        netSyFee += netSyFeeMarket;
+
+        if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
+    }
+
+    function _swapExactPtForSySimple(
+        address receiver,
+        address market,
+        uint256 exactPtIn,
+        uint256 minSyOut
+    ) internal returns (uint256 netSyOut, uint256 netSyFee) {
+        uint256 netPtLeft = exactPtIn;
+
+        (uint256 netSyOutMarket, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(receiver, netPtLeft, "");
+
+        netSyOut += netSyOutMarket;
+        netSyFee += netSyFeeMarket;
+
+        if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 }
