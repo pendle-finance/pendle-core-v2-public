@@ -297,8 +297,8 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         uint256 MIN_EPS_CAP = PMath.ONE / 10 ** 5;
         uint256 eps = PMath.min(slippage / 2, MIN_EPS_CAP);
 
-        uint256 guessMin = PMath.max(guessLowerBound, netPtOut.slipDown(slippage));
-        uint256 guessMax = PMath.min(guessUpperBound, netPtOut.slipUp(5 * slippage));
+        uint256 guessMin = PMath.max(guessLowerBound, netPtOut.tweakDown(slippage));
+        uint256 guessMax = PMath.min(guessUpperBound, netPtOut.tweakUp(5 * slippage));
 
         return
             ApproxParams({
