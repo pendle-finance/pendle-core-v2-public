@@ -14,7 +14,7 @@ import {PMath} from "../core/libraries/math/PMath.sol";
 
 import {CallbackHelper} from "./base/CallbackHelper.sol";
 import {MarketApproxPtInLibOnchain, MarketApproxPtOutLibOnchain} from "./math/MarketApproxLibOnchain.sol";
-import {TokenInput, TokenOutput, emptyApproxParams} from "../interfaces/IPAllActionTypeV3.sol";
+import {TokenInput, TokenOutput} from "../interfaces/IPAllActionTypeV3.sol";
 import {ActionBase} from "./base/ActionBase.sol";
 
 contract ActionSimple is ActionBase, IPActionSimple {
@@ -110,8 +110,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
             YT.newIndex(),
             netPtLeft,
             netSyReceived,
-            block.timestamp,
-            emptyApproxParams()
+            block.timestamp
         );
 
         // execute the swap
@@ -188,8 +187,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
             YT.newIndex(),
             netSyLeft,
             netPtReceived,
-            block.timestamp,
-            emptyApproxParams()
+            block.timestamp
         );
 
         (uint256 netSySwapMarket, uint256 netSyFeeMarket) = IPMarket(market).swapSyForExactPt(
@@ -324,8 +322,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapExactSyForPt(
             YT.newIndex(),
             netSyLeft,
-            block.timestamp,
-            emptyApproxParams()
+            block.timestamp
         );
 
         (, uint256 netSyFeeMarket) = IPMarket(market).swapSyForExactPt(receiver, netPtOutMarket, "");
@@ -349,8 +346,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         (uint256 netYtOutMarket, , ) = _readMarket(market).approxSwapExactSyForYt(
             YT.newIndex(),
             netSyLeft,
-            block.timestamp,
-            emptyApproxParams()
+            block.timestamp
         );
 
         (, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(

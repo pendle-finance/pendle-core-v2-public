@@ -29,18 +29,12 @@ library MarketApproxPtInLibOnchain {
         MarketState memory market,
         PYIndex index,
         uint256 exactSyIn,
-        uint256 blockTime,
-        ApproxParams memory _approx
+        uint256 blockTime
     ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState memory state;
-        if (_approx.guessOffchain == 0) {
-            uint256 estimatedYtOut = market.estimateSwapExactSyForYt(index, blockTime, exactSyIn);
-            uint256[2] memory hardBounds = [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)];
-            state = ApproxStateLib.initNoOffChain(estimatedYtOut, hardBounds);
-        } else {
-            state = ApproxStateLib.initWithOffchain(_approx);
-        }
+        uint256 estimatedYtOut = market.estimateSwapExactSyForYt(index, blockTime, exactSyIn);
+        uint256[2] memory hardBounds = [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)];
+        ApproxState memory state = ApproxStateLib.initNoOffChain(estimatedYtOut, hardBounds);
 
         // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
 
@@ -78,25 +72,19 @@ library MarketApproxPtInLibOnchain {
         PYIndex index,
         uint256 totalPtIn,
         uint256 netSyHolding,
-        uint256 blockTime,
-        ApproxParams memory _approx
+        uint256 blockTime
     )
         internal
         pure
         returns (uint256 /*netPtSwap*/, uint256 /*netSyFromSwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
-        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState memory state;
-        if (_approx.guessOffchain == 0) {
-            require(market.totalLp != 0, "no existing lp");
+        require(market.totalLp != 0, "no existing lp");
 
-            (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, totalPtIn, netSyHolding);
-            uint256 estimatedPtSwap = totalPtIn.subMax0(estimatedPtAdd);
-            uint256[2] memory hardBounds = [0, PMath.min(totalPtIn, calcSoftMaxPtIn(market, comp))];
-            state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
-        } else {
-            state = ApproxStateLib.initWithOffchain(_approx);
-        }
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, totalPtIn, netSyHolding);
+        uint256 estimatedPtSwap = totalPtIn.subMax0(estimatedPtAdd);
+        uint256[2] memory hardBounds = [0, PMath.min(totalPtIn, calcSoftMaxPtIn(market, comp))];
+        ApproxState memory state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
 
         for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
@@ -270,25 +258,19 @@ library MarketApproxPtOutLibOnchain {
         MarketState memory market,
         PYIndex index,
         uint256 exactSyIn,
-        uint256 blockTime,
-        ApproxParams memory _approx
+        uint256 blockTime
     ) internal pure returns (uint256 /*netPtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState memory state;
-        if (_approx.guessOffchain == 0) {
-            uint256 estimatedPtOut = market.estimateSwapExactSyForPt(index, blockTime, exactSyIn);
-            uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
-            state = ApproxStateLib.initNoOffChain(estimatedPtOut, hardBounds);
-        } else {
-            state = ApproxStateLib.initWithOffchain(_approx);
-        }
+        uint256 estimatedPtOut = market.estimateSwapExactSyForPt(index, blockTime, exactSyIn);
+        uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
+        ApproxState memory state = ApproxStateLib.initNoOffChain(estimatedPtOut, hardBounds);
 
-        for (uint256 iter = 0; iter < _approx.maxIteration; ++iter) {
+        for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
             (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
-                if (PMath.isASmallerApproxB(netSyIn, exactSyIn, _approx.eps)) {
+                if (PMath.isASmallerApproxB(netSyIn, exactSyIn, state.eps)) {
                     return (guess, netSyFee, iter);
                 }
                 state.transitionUp({excludeGuessFromRange: false});
@@ -313,25 +295,19 @@ library MarketApproxPtOutLibOnchain {
         PYIndex index,
         uint256 totalSyIn,
         uint256 netPtHolding,
-        uint256 blockTime,
-        ApproxParams memory _approx
+        uint256 blockTime
     )
         internal
         pure
         returns (uint256 /*netPtFromSwap*/, uint256 /*netSySwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
     {
-        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
-        ApproxState memory state;
-        if (_approx.guessOffchain == 0) {
-            require(market.totalLp != 0, "no existing lp");
+        require(market.totalLp != 0, "no existing lp");
 
-            (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, netPtHolding, totalSyIn);
-            uint256 estimatedPtSwap = estimatedPtAdd.subMax0(netPtHolding);
-            uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
-            state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
-        } else {
-            state = ApproxStateLib.initWithOffchain(_approx);
-        }
+        MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
+        (uint256 estimatedPtAdd, ) = market.estimateAddLiquidity(index, blockTime, netPtHolding, totalSyIn);
+        uint256 estimatedPtSwap = estimatedPtAdd.subMax0(netPtHolding);
+        uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
+        ApproxState memory state = ApproxStateLib.initNoOffChain(estimatedPtSwap, hardBounds);
 
         for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
