@@ -13,13 +13,13 @@ import {MarketState} from "../core/Market/MarketMathCore.sol";
 import {PMath} from "../core/libraries/math/PMath.sol";
 
 import {CallbackHelper} from "./base/CallbackHelper.sol";
-import {MarketApproxPtInLibV2, MarketApproxPtOutLibV2} from "./math/MarketApproxLibV2.sol";
+import {MarketApproxPtInLibOnchain, MarketApproxPtOutLibOnchain} from "./math/MarketApproxLibOnchain.sol";
 import {TokenInput, TokenOutput, emptyApproxParams} from "../interfaces/IPAllActionTypeV3.sol";
 import {ActionBase} from "./base/ActionBase.sol";
 
 contract ActionSimple is ActionBase, IPActionSimple {
-    using MarketApproxPtInLibV2 for MarketState;
-    using MarketApproxPtOutLibV2 for MarketState;
+    using MarketApproxPtInLibOnchain for MarketState;
+    using MarketApproxPtOutLibOnchain for MarketState;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
     using PMath for uint256;
