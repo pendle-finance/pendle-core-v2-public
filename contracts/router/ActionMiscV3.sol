@@ -6,6 +6,16 @@ import "../interfaces/IPActionMiscV3.sol";
 import "../interfaces/IPReflector.sol";
 
 contract ActionMiscV3 is IPActionMiscV3, ActionBase {
+    /// @param input - Parameters containing the details needed to swap and wrap
+    ///   tokens into the corresponding SY of the specified `market`, including
+    ///   information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   which will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function mintSyFromToken(
         address receiver,
         address SY,
@@ -16,6 +26,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit MintSyFromToken(msg.sender, input.tokenIn, SY, receiver, input.netTokenIn, netSyOut);
     }
 
+    /// @param output - Parameters containing the details needed to unwrap and
+    ///   swap from the corresponding SY of the specified `market` into a token,
+    ///   including information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   as it will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function redeemSyToToken(
         address receiver,
         address SY,
@@ -26,6 +46,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit RedeemSyToToken(msg.sender, output.tokenOut, SY, receiver, netSyIn, netTokenOut);
     }
 
+    /// @param input - Parameters containing the details needed to swap and wrap
+    ///   tokens into the corresponding SY of the specified `market`, including
+    ///   information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   which will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function mintPyFromToken(
         address receiver,
         address YT,
@@ -40,6 +70,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit MintPyFromToken(msg.sender, input.tokenIn, YT, receiver, input.netTokenIn, netPyOut, netSyInterm);
     }
 
+    /// @param output - Parameters containing the details needed to unwrap and
+    ///   swap from the corresponding SY of the specified `market` into a token,
+    ///   including information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   as it will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function redeemPyToToken(
         address receiver,
         address YT,
@@ -93,6 +133,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         }
     }
 
+    /// @param inp - Parameters containing the details needed to swap and wrap
+    ///   tokens into the corresponding SY of the specified `market`, including
+    ///   information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   which will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function swapTokenToToken(
         address receiver,
         uint256 minTokenOut,
@@ -106,6 +156,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         _transferOut(inp.tokenMintSy, receiver, netTokenOut);
     }
 
+    /// @param input - Parameters containing the details needed to swap and wrap
+    ///   tokens into the corresponding SY of the specified `market`, including
+    ///   information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   which will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function swapTokenToTokenViaSy(
         address receiver,
         address SY,
@@ -118,6 +178,26 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @dev The interface might change in the future, check with Pendle team before use
+    /// @param output - Parameters containing the details needed to unwrap and
+    ///   swap from the corresponding SY of the specified `market` into a token,
+    ///   including information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   as it will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
+    ///
+    /// @param limit - Parmeter containing all limit order information that
+    ///   can be used in Pendle limit order.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
+    ///   to have liquidity from limit orders.
+    ///
+    ///   To not use Pendle limit order, use the helper function in
+    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
+    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
     function exitPreExpToToken(
         address receiver,
         address market,
@@ -136,6 +216,15 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @dev The interface might change in the future, check with Pendle team before use
+    /// @param limit - Parmeter containing all limit order information that
+    ///   can be used in Pendle limit order.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
+    ///   to have liquidity from limit orders.
+    ///
+    ///   To not use Pendle limit order, use the helper function in
+    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
+    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
     function exitPreExpToSy(
         address receiver,
         address market,
@@ -199,6 +288,16 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @dev The interface might change in the future, check with Pendle team before use
+    /// @param output - Parameters containing the details needed to unwrap and
+    ///   swap from the corresponding SY of the specified `market` into a token,
+    ///   including information for performing swaps via an external aggregator.
+    ///
+    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
+    ///   as it will also handle swaps via the external aggregator.
+    ///
+    ///   If a swap via an external aggregator is not required, use the helper
+    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
+    ///   this parameter.
     function exitPostExpToToken(
         address receiver,
         address market,
