@@ -2,12 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {TokenInput} from "./IPAllActionTypeV3.sol";
-import {IPActionSwapPTV3Events} from "./IPActionSwapPTV3Events.sol";
-import {IPActionSwapYTV3Events} from "./IPActionSwapYTV3Events.sol";
-import {IPActionAddRemoveLiqV3Events} from "./IPActionAddRemoveLiqV3Events.sol";
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 import "./IPAllActionTypeV3.sol";
 
-interface IPActionSimple is IPActionSwapPTV3Events, IPActionSwapYTV3Events, IPActionAddRemoveLiqV3Events {
+interface IPActionSimple is IPAllEventsV3 {
     function addLiquiditySinglePtSimple(
         address receiver,
         address market,

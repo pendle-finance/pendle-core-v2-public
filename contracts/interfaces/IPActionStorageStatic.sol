@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../router/math/MarketApproxLib.sol";
 
-interface IPActionStorageStatic {
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 
+interface IPActionStorageStatic is IPAllEventsV3 {
     function setDefaultApproxParams(ApproxParams memory params) external;
 
     function getDefaultApproxParams() external view returns (ApproxParams memory);

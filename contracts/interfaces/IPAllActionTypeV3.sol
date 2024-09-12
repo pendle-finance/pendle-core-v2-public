@@ -61,3 +61,23 @@ struct ApproxParams {
 }
 
 function emptyApproxParams() pure returns (ApproxParams memory) {}
+
+struct ExitPreExpReturnParams {
+    uint256 netPtFromRemove;
+    uint256 netSyFromRemove;
+    uint256 netPyRedeem;
+    uint256 netSyFromRedeem;
+    uint256 netPtSwap;
+    uint256 netYtSwap;
+    uint256 netSyFromSwap;
+    uint256 netSyFee;
+    uint256 totalSyOut;
+}
+
+struct ExitPostExpReturnParams {
+    uint256 netPtFromRemove;
+    uint256 netSyFromRemove;
+    uint256 netPtRedeem;
+    uint256 netSyFromRedeem;
+    uint256 totalSyOut;
+}

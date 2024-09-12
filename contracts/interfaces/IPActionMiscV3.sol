@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../router/math/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 
 /*
  *******************************************************************************************************************
@@ -15,7 +16,7 @@ import "./IPAllActionTypeV3.sol";
  *******************************************************************************************************************
  */
 
-interface IPActionMiscV3 {
+interface IPActionMiscV3 is IPAllEventsV3 {
     struct Call3 {
         bool allowFailure;
         bytes callData;
@@ -25,116 +26,6 @@ interface IPActionMiscV3 {
         bool success;
         bytes returnData;
     }
-
-    struct ExitPreExpReturnParams {
-        uint256 netPtFromRemove;
-        uint256 netSyFromRemove;
-        uint256 netPyRedeem;
-        uint256 netSyFromRedeem;
-        uint256 netPtSwap;
-        uint256 netYtSwap;
-        uint256 netSyFromSwap;
-        uint256 netSyFee;
-        uint256 totalSyOut;
-    }
-
-    struct ExitPostExpReturnParams {
-        uint256 netPtFromRemove;
-        uint256 netSyFromRemove;
-        uint256 netPtRedeem;
-        uint256 netSyFromRedeem;
-        uint256 totalSyOut;
-    }
-
-    event MintSyFromToken(
-        address indexed caller,
-        address indexed tokenIn,
-        address indexed SY,
-        address receiver,
-        uint256 netTokenIn,
-        uint256 netSyOut
-    );
-
-    event RedeemSyToToken(
-        address indexed caller,
-        address indexed tokenOut,
-        address indexed SY,
-        address receiver,
-        uint256 netSyIn,
-        uint256 netTokenOut
-    );
-
-    event MintPyFromSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netSyIn,
-        uint256 netPyOut
-    );
-
-    event RedeemPyToSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netPyIn,
-        uint256 netSyOut
-    );
-
-    event MintPyFromToken(
-        address indexed caller,
-        address indexed tokenIn,
-        address indexed YT,
-        address receiver,
-        uint256 netTokenIn,
-        uint256 netPyOut,
-        uint256 netSyInterm
-    );
-
-    event RedeemPyToToken(
-        address indexed caller,
-        address indexed tokenOut,
-        address indexed YT,
-        address receiver,
-        uint256 netPyIn,
-        uint256 netTokenOut,
-        uint256 netSyInterm
-    );
-
-    event ExitPreExpToToken(
-        address indexed caller,
-        address indexed market,
-        address indexed token,
-        address receiver,
-        uint256 netLpIn,
-        uint256 totalTokenOut,
-        ExitPreExpReturnParams params
-    );
-
-    event ExitPreExpToSy(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netLpIn,
-        ExitPreExpReturnParams params
-    );
-
-    event ExitPostExpToToken(
-        address indexed caller,
-        address indexed market,
-        address indexed token,
-        address receiver,
-        uint256 netLpIn,
-        uint256 totalTokenOut,
-        ExitPostExpReturnParams params
-    );
-
-    event ExitPostExpToSy(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netLpIn,
-        ExitPostExpReturnParams params
-    );
 
     function mintSyFromToken(
         address receiver,

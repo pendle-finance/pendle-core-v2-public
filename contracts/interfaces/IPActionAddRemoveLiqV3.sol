@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../router/math/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
-import {IPActionAddRemoveLiqV3Events} from "./IPActionAddRemoveLiqV3Events.sol";
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 
 /*
  *******************************************************************************************************************
@@ -16,7 +16,7 @@ import {IPActionAddRemoveLiqV3Events} from "./IPActionAddRemoveLiqV3Events.sol";
  *******************************************************************************************************************
  */
 
-interface IPActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3Events {
+interface IPActionAddRemoveLiqV3 is IPAllEventsV3 {
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../router/math/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
-import {IPActionSwapYTV3Events} from "./IPActionSwapYTV3Events.sol";
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 
 /*
  *******************************************************************************************************************
@@ -16,7 +16,7 @@ import {IPActionSwapYTV3Events} from "./IPActionSwapYTV3Events.sol";
  *******************************************************************************************************************
  */
 
-interface IPActionSwapYTV3 is IPActionSwapYTV3Events {
+interface IPActionSwapYTV3 is IPAllEventsV3 {
     function swapExactTokenForYt(
         address receiver,
         address market,
