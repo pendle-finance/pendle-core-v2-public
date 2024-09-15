@@ -5,7 +5,7 @@ import {TokenInput} from "./IPAllActionTypeV3.sol";
 import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 import "./IPAllActionTypeV3.sol";
 
-/// @notice This interface constains a set of functions that similar to
+/// @notice This interface contains a set of functions that similar to
 /// functions defined in
 /// `./IPActionAddRemoveLiqV3.sol`, `./IPActionSwapPTV3.sol`, `./IPActionSwapYTV3.sol`.
 /// These functions have stripped down parameters compared to their counterparts.
