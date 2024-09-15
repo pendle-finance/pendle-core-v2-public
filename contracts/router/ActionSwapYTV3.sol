@@ -14,36 +14,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
 
     // ------------------ SWAP TOKEN FOR YT ------------------
 
-    /// @param guessYtOut - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
-    ///
-    /// @param input - Parameters containing the details needed to swap and wrap
-    ///   tokens into the corresponding SY of the specified `market`, including
-    ///   information for performing swaps via an external aggregator.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
-    ///   which will also handle swaps via the external aggregator.
-    ///
-    ///   If a swap via an external aggregator is not required, use the helper
-    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
-    ///   this parameter.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactTokenForYt(
         address receiver,
         address market,
@@ -73,25 +45,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         );
     }
 
-    /// @param guessYtOut - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactSyForYt(
         address receiver,
         address market,
@@ -114,26 +69,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
 
     // ------------------ SWAP TOKEN FOR TOKEN ------------------
 
-    /// @param output - Parameters containing the details needed to unwrap and
-    ///   swap from the corresponding SY of the specified `market` into a token,
-    ///   including information for performing swaps via an external aggregator.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
-    ///   as it will also handle swaps via the external aggregator.
-    ///
-    ///   If a swap via an external aggregator is not required, use the helper
-    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
-    ///   this parameter.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForToken(
         address receiver,
         address market,
@@ -159,15 +96,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         );
     }
 
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForSy(
         address receiver,
         address market,
@@ -184,15 +114,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
 
     // ------------------ SWAP PT FOR YT ------------------
 
-    /// @param guessTotalPtToSwap - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForYt(
         address receiver,
         address market,
@@ -223,15 +146,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
 
     // ------------------ SWAP YT FOR PT ------------------
 
-    /// @param guessTotalPtFromSwap - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForPt(
         address receiver,
         address market,

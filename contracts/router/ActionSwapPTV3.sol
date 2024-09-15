@@ -9,36 +9,8 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
 
     // ------------------ SWAP TOKEN FOR PT ------------------
-    /// @param guessPtOut - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
-    ///
-    /// @param input - Parameters containing the details needed to swap and wrap
-    ///   tokens into the corresponding SY of the specified `market`, including
-    ///   information for performing swaps via an external aggregator.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
-    ///   which will also handle swaps via the external aggregator.
-    ///
-    ///   If a swap via an external aggregator is not required, use the helper
-    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
-    ///   this parameter.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactTokenForPt(
         address receiver,
         address market,
@@ -68,25 +40,8 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
         );
     }
 
-    /// @param guessPtOut - Parameter for the approximation if an
-    ///   off-chain result is available beforehand.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   for optimal gas usage.
-    ///
-    ///   To enable on-chain approximation, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactSyForPt(
         address receiver,
         address market,
@@ -108,26 +63,8 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
         emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
     }
 
-    /// @param output - Parameters containing the details needed to unwrap and
-    ///   swap from the corresponding SY of the specified `market` into a token,
-    ///   including information for performing swaps via an external aggregator.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter,
-    ///   as it will also handle swaps via the external aggregator.
-    ///
-    ///   If a swap via an external aggregator is not required, use the helper
-    ///   function in `/contracts/interfaces/IPAllActionTypeV3.sol` to generate
-    ///   this parameter.
-    ///
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForToken(
         address receiver,
         address market,
@@ -153,15 +90,8 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
         );
     }
 
-    /// @param limit - Parmeter containing all limit order information that
-    ///   can be used in Pendle limit order.
-    ///
-    ///   It is recommended to use Pendle's Hosted SDK to generate this parameter
-    ///   to have liquidity from limit orders.
-    ///
-    ///   To not use Pendle limit order, use the helper function in
-    ///   `/contracts/interfaces/IPAllActionTypeV3.sol` to generate this parameter,
-    ///   or the router's simple function in `/contracts/interfaces/IPActionSimple.sol`.
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
+    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForSy(
         address receiver,
         address market,
