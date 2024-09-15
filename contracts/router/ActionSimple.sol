@@ -25,6 +25,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
     using PMath for uint256;
 
     // ------------------ SWAP TOKEN FOR PT ------------------
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use swapExactTokenForPt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function swapExactTokenForPtSimple(
         address receiver,
         address market,
@@ -46,6 +49,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         );
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use swapExactSyForPt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function swapExactSyForPtSimple(
         address receiver,
         address market,
@@ -59,6 +65,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use swapExactTokenForYt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function swapExactTokenForYtSimple(
         address receiver,
         address market,
@@ -81,6 +90,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         );
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use swapExactSyForYt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function swapExactSyForYtSimple(
         address receiver,
         address market,
@@ -94,6 +106,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         emit SwapYtAndSy(msg.sender, market, receiver, netYtOut.Int(), exactSyIn.neg());
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use addLiquiditySinglePt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function addLiquiditySinglePtSimple(
         address receiver,
         address market,
@@ -134,6 +149,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
 
     // ------------------ ADD LIQUIDITY SINGLE TOKEN ------------------
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use addLiquiditySingleToken from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function addLiquiditySingleTokenSimple(
         address receiver,
         address market,
@@ -157,6 +175,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         );
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use addLiquiditySingleSy from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function addLiquiditySingleSySimple(
         address receiver,
         address market,
@@ -206,6 +227,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
     }
 
     // ------------------ REMOVE LIQUIDITY SINGLE PT ------------------
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use removeLiquiditySinglePt from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function removeLiquiditySinglePtSimple(
         address receiver,
         address market,
@@ -231,6 +255,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
 
     // ------------------ REMOVE LIQUIDITY SINGLE TOKEN ------------------
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use removeLiquiditySingleToken from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function removeLiquiditySingleTokenSimple(
         address receiver,
         address market,
@@ -256,6 +283,9 @@ contract ActionSimple is ActionBase, IPActionSimple {
         );
     }
 
+    /// @notice This function is for internal router use only and should not be called directly.
+    /// @dev Use removeLiquiditySingleSy from the main router instead.
+    /// @dev The interface of this simple function is subject to change without notice.
     function removeLiquiditySingleSySimple(
         address receiver,
         address market,
