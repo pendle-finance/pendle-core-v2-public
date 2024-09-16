@@ -20,6 +20,8 @@ library PendleSolvHelper {
     address public constant SOLV_OPEN_FUND_MARKET = 0x57bB6a8563a8e8478391C79F3F433C6BA077c567;
 
     function _mintBTCBBN(address tokenIn, uint256 amountIn) internal returns (uint256) {
+        assert(tokenIn == WBTC || tokenIn == SOLV_BTC_TOKEN);
+
         if (tokenIn == WBTC) {
             amountIn = ISolvRouter(SOLV_BTC_ROUTER).createSubscription(SOLV_BTC_POOLID, amountIn);
         }
@@ -27,6 +29,8 @@ library PendleSolvHelper {
     }
 
     function _previewMintBTCBBN(address tokenIn, uint256 amountIn) internal view returns (uint256) {
+        assert(tokenIn == WBTC || tokenIn == SOLV_BTC_TOKEN);
+
         if (tokenIn == WBTC) {
             amountIn = _convertToShare(WBTC, amountIn);
         }

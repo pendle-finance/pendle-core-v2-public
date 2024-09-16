@@ -34,7 +34,7 @@ contract PendleCornSolvBTCBBNSYUpg is PendleCornBaseSYUpg {
         if (tokenIn == depositToken) {
             return amountTokenToDeposit;
         }
-        return PendleSolvHelper._convertToShare(tokenIn, amountTokenToDeposit);
+        return PendleSolvHelper._previewMintBTCBBN(tokenIn, amountTokenToDeposit);
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
