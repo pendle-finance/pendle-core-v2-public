@@ -14,7 +14,7 @@ contract PendleCornSolvBTCBBNSYUpg is PendleCornBaseSYUpg {
     function initialize(address _initialExchangeRateOracle) external initializer {
         _safeApproveInf(WBTC, PendleSolvHelper.SOLV_BTC_ROUTER);
         _safeApproveInf(SOLV_BTC, PendleSolvHelper.SOLV_BTCBBN_ROUTER);
-        __CornBaseSY_init_("SY Corn Solv BTC-BBN", "SY-corn-solvBTCBBN", _initialExchangeRateOracle);
+        __CornBaseSY_init_("SY Corn SolvBTC Babylon", "SY-corn-SolvBTC.BBN", _initialExchangeRateOracle);
     }
 
     function _deposit(
