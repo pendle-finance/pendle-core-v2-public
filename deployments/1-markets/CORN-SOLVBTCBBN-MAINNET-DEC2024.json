@@ -1,0 +1,14 @@
+{
+    "name": "SY Corn SolvBTC.BBN",
+    "SY": "0xEC30E55B51D9518cfcf5e870BCF89c73F5708f72",
+    "YT": "0x91f4C6bE78E0Feefc87a9a6adC3369B895196f06",
+    "PT": "0x23e479ddcda990E8523494895759bD98cD2fDBF6",
+    "market": "0xEb4d3057738b9Ed930F451Be473C1CCC42988384",
+    "expiry": 1735171200,
+    "scalarRoot": "23476187131000000000",
+    "initAnchor": "1026924231000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x261eea94e1c27afbc3335d15a5e4c48826263b6a46f716eb2d9af28d932c016d",
+    "deployBlockNumber": 20760573,
+    "reversedFee": 0.09999999999164011
+}

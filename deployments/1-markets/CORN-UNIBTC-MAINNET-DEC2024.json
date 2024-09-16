@@ -1,0 +1,14 @@
+{
+    "name": "SY Corn uniBTC",
+    "SY": "0xAE754a3B4553EA2EA4794d0171a56Ac12Fdb2782",
+    "YT": "0x64a43f21f905F420Ce17b26a0bF1FC032C6481DB",
+    "PT": "0x2C131770eE1F943f1Fb261784C41Bb6aBE57E2C9",
+    "market": "0x40dEAE18c3CE932Fdd5Df1f44b54D8Cf3902787B",
+    "expiry": 1735171200,
+    "scalarRoot": "23476187131000000000",
+    "initAnchor": "1026924231000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xbbeb01a05f072d5468213ea4f36d058bfb32e36db1d438ebe80b9524ee6b061e",
+    "deployBlockNumber": 20760474,
+    "reversedFee": 0.09999999999164011
+}
