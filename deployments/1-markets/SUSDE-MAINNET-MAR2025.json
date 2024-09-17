@@ -1,0 +1,14 @@
+{
+    "name": "SY sUSDe",
+    "SY": "0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185",
+    "YT": "0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F",
+    "PT": "0xE00bd3Df25fb187d6ABBB620b3dfd19839947b81",
+    "market": "0xcDd26Eb5EB2Ce0f203a84553853667aE69Ca29Ce",
+    "expiry": 1743033600,
+    "scalarRoot": "27168075311000000000",
+    "initAnchor": "1059428207000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x47ee3079858d10905b764f755019e9af1c9b323ca72a1c5b1790bc16e70a4656",
+    "deployBlockNumber": 20768225,
+    "reversedFee": 0.09999999999164011
+}
