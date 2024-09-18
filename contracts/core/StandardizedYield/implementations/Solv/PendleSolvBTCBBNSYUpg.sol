@@ -5,7 +5,7 @@ import "../../SYBaseUpg.sol";
 import "./PendleSolvHelper.sol";
 import "../../../../interfaces/IPExchangeRateOracle.sol";
 
-contract PendleSolvBTCBBNSY is SYBaseUpg {
+contract PendleSolvBTCBBNSYUpg is SYBaseUpg {
     event SetNewExchangeRateOracle(address oracle);
 
     address public constant WBTC = PendleSolvHelper.WBTC;
