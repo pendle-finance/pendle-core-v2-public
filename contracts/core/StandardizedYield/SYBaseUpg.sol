@@ -27,6 +27,7 @@ abstract contract SYBaseUpg is
 
     constructor(address _yieldToken) PendleERC20Upg(IERC20Metadata(_yieldToken).decimals()) {
         yieldToken = _yieldToken;
+        _disableInitializers();
     }
 
     function __SYBaseUpg_init(string memory name_, string memory symbol_) internal onlyInitializing {
