@@ -1,0 +1,14 @@
+{
+    "name": "SY Mellow rsENA",
+    "SY": "0x64046776c9C856fDc5c39c6EBa101adC8E18291f",
+    "YT": "0x7d128742816aa09AF2e9F0Ca8C96450cEEC17d7a",
+    "PT": "0xB930dD4EA22cd4404C30D68B72E18453adcf93a2",
+    "market": "0x7e0209ab6Fa3c7730603B68799BbE9327DAb7E88",
+    "expiry": 1743033600,
+    "scalarRoot": "8258182182000000000",
+    "initAnchor": "1137771354000000000",
+    "lnFeeRateRoot": "4987541511000000",
+    "deployTxHash": "0x9a0ef9d0f393ed7885b3cf4b383a34d1bff73e00380659f1256f141e6d58b706",
+    "deployBlockNumber": 20818696,
+    "reversedFee": 0.49999999999608136
+}
