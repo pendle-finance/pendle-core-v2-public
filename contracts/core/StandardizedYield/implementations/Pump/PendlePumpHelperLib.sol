@@ -18,11 +18,11 @@ library PendlePumpHelperLib {
     }
 
     function _previewInstantUnstake(uint256 amount) internal view returns (uint256) {
-        bool onlystakeAllowed = IPumpStaking(PUMP_STAKING).onlyAllowStake();
+        bool onlyStakeAllowed = IPumpStaking(PUMP_STAKING).onlyAllowStake();
         uint256 maxAmountRedeemable = IPumpStaking(PUMP_STAKING).pendingStakeAmount();
 
         require(
-            !onlystakeAllowed && amount <= maxAmountRedeemable,
+            !onlyStakeAllowed && amount <= maxAmountRedeemable,
             "PumpStaking: redeem not allowed"
         );
 
