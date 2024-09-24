@@ -8,7 +8,7 @@ contract PendleCornPumpBTCSY is PendleCornBaseSY {
     address public constant WBTC = PendlePumpHelperLib.WBTC;
     address public constant PUMP_BTC = PendlePumpHelperLib.PUMP_BTC;
 
-    constructor() PendleCornBaseSY("SY Corn PumpBTC", "SY-corn-PumpBTC", PUMP_BTC, WBTC, address(0)) {
+    constructor() PendleCornBaseSY("SY Corn pumpBTC", "SY-corn-pumpBTC", PUMP_BTC, WBTC, address(0)) {
         _safeApproveInf(WBTC, PendlePumpHelperLib.PUMP_STAKING);
     }
 
@@ -36,6 +36,7 @@ contract PendleCornPumpBTCSY is PendleCornBaseSY {
             // must be WBTC
             PendlePumpHelperLib._instantUnstake(amountTokenOut);
             amountTokenOut = _selfBalance(WBTC);
+            _transferOut(WBTC, receiver, amountTokenOut);
         }
     }
 

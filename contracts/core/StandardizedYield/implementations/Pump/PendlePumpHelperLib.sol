@@ -22,11 +22,11 @@ library PendlePumpHelperLib {
         uint256 maxAmountRedeemable = IPumpStaking(PUMP_STAKING).pendingStakeAmount();
 
         require(
-            unstakeAllowed && amount <= maxAmountRedeemable,
+            !unstakeAllowed && amount <= maxAmountRedeemable,
             "PumpStaking: redeem not allowed"
         );
 
         uint256 feeRate = IPumpStaking(PUMP_STAKING).instantUnstakeFee();
-        return amount * (FEE_DENOM - feeRate) / FEE_DENOM;
+        return amount - amount * feeRate / FEE_DENOM;
     }
 }
