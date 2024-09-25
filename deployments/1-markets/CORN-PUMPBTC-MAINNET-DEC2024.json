@@ -1,0 +1,14 @@
+{
+    "name": "Corn pumpBTC",
+    "SY": "0x56bb34A12b70046b0a03EE63392C09cdDDAaA430",
+    "YT": "0xABb4F186F67c6517A9caFc54a5B93cFF2Aa4c5Eb",
+    "PT": "0xa76f0C6e5f286bFF151b891d2A0245077F1Ad74c",
+    "market": "0xf8208fB52BA80075aF09840A683143C22DC5B4dd",
+    "expiry": 1735171200,
+    "scalarRoot": "30856137291000000000",
+    "initAnchor": "1019119040000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xbb9e913006fe76901e1fdd9ac288c2d5a0ad11b0a4fb38c5ff095c0907f34626",
+    "deployBlockNumber": 20824952,
+    "reversedFee": 0.09999999999164011
+}
