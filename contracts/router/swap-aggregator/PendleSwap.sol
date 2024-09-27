@@ -6,8 +6,10 @@ import "./IPSwapAggregator.sol";
 import "./kyberswap/l1-contracts/InputScalingHelper.sol";
 import "./kyberswap/l2-contracts/InputScalingHelperL2.sol";
 
-abstract contract PendleSwapBase is IPSwapAggregator, TokenHelper {
+contract PendleSwap is IPSwapAggregator, TokenHelper {
     using Address for address;
+
+    address public immutable KYBER_SCALING_HELPER = 0x2f577A41BeC1BE1152AeEA12e73b7391d15f655D;
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
         _safeApproveInf(tokenIn, data.extRouter);
@@ -21,36 +23,26 @@ abstract contract PendleSwapBase is IPSwapAggregator, TokenHelper {
         SwapType swapType,
         bytes calldata rawCallData,
         uint256 amountIn
-    ) internal pure returns (bytes memory scaledCallData) {
+    ) internal view returns (bytes memory scaledCallData) {
         if (swapType == SwapType.KYBERSWAP) {
-            scaledCallData = _getKyberScaledInputData(rawCallData, amountIn);
+            bool isSuccess;
+            (isSuccess, scaledCallData) = IKyberScalingHelper(KYBER_SCALING_HELPER).getScaledInputData(
+                rawCallData,
+                amountIn
+            );
+
+            require(isSuccess, "PendleSwap: Kyber scaling failed");
         } else {
             assert(false);
         }
     }
 
-    function _getKyberScaledInputData(
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal pure virtual returns (bytes memory scaledCallData);
-
     receive() external payable {}
 }
 
-contract PendleSwapL1 is PendleSwapBase {
-    function _getKyberScaledInputData(
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal pure override returns (bytes memory) {
-        return InputScalingHelper._getScaledInputData(rawCallData, amountIn);
-    }
-}
-
-contract PendleSwapL2 is PendleSwapBase {
-    function _getKyberScaledInputData(
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal pure override returns (bytes memory) {
-        return InputScalingHelperL2._getScaledInputData(rawCallData, amountIn);
-    }
+interface IKyberScalingHelper {
+    function getScaledInputData(
+        bytes calldata inputData,
+        uint256 newAmount
+    ) external view returns (bool isSuccess, bytes memory data);
 }
