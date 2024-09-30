@@ -1,0 +1,14 @@
+{
+    "name": "SY SolvBTC",
+    "SY": "0x141EC2D606F12fF959D7D07CDe6811e5FDff2831",
+    "YT": "0x7914d72c9e9ca7F6bfdD09fC7e3f20d7bC3fB8a0",
+    "PT": "0x541B5eEAC7D4434C8f87e2d32019d67611179606",
+    "market": "0x9dAA2878A8739E66e08e7ad35316C5143c0ea7C7",
+    "expiry": 1743033600,
+    "scalarRoot": "30359509445000000000",
+    "initAnchor": "1036087618000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x3d2177c2602c1e3dab47e1f1924df4c09a00a96761c131886e219ae23bd8cfe0",
+    "deployBlockNumber": 42702462,
+    "reversedFee": 0.09999999999164011
+}
