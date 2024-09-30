@@ -162,7 +162,11 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     // ----------------- PT SWAP -----------------
 
     function _entry_swapExactPtForSy(address market, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : market;
+        return _entry_swapExactPtForSy(market, !_isEmptyLimit(limit));
+    }
+
+    function _entry_swapExactPtForSy(address market, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : market;
     }
 
     function _swapExactPtForSy(
@@ -199,7 +203,11 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     }
 
     function _entry_swapExactSyForPt(address market, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : market;
+        return _entry_swapExactSyForPt(market, !_isEmptyLimit(limit));
+    }
+
+    function _entry_swapExactSyForPt(address market, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : market;
     }
 
     function _swapExactSyForPt(
@@ -241,7 +249,11 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     // ----------------- YT SWAP -----------------
 
     function _entry_swapExactYtForSy(IPYieldToken YT, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : address(YT);
+        return _entry_swapExactYtForSy(YT, !_isEmptyLimit(limit));
+    }
+
+    function _entry_swapExactYtForSy(IPYieldToken YT, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : address(YT);
     }
 
     function _swapExactYtForSy(
@@ -281,7 +293,11 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     }
 
     function _entry_swapExactSyForYt(IPYieldToken YT, LimitOrderData calldata limit) internal view returns (address) {
-        return !_isEmptyLimit(limit) ? address(this) : address(YT);
+        return _entry_swapExactSyForYt(YT, !_isEmptyLimit(limit));
+    }
+
+    function _entry_swapExactSyForYt(IPYieldToken YT, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : address(YT);
     }
 
     function _swapExactSyForYt(
@@ -377,11 +393,19 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     // ----------------- ADD & REMOVE LIQUIDITY -----------------
 
     function _entry_addLiquiditySinglePt(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
+        return _entry_addLiquiditySinglePt(market, !_isEmptyLimit(lim));
+    }
+
+    function _entry_addLiquiditySinglePt(address market, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : market;
     }
 
     function _entry_addLiquiditySingleSy(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
+        return _entry_addLiquiditySingleSy(market, !_isEmptyLimit(lim));
+    }
+
+    function _entry_addLiquiditySingleSy(address market, bool hasLimitOrder) internal view returns (address) {
+        return hasLimitOrder ? address(this) : market;
     }
 
     // ----------------- MISC HELPER -----------------
