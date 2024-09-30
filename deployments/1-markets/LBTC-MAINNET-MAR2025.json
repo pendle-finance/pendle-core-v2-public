@@ -1,0 +1,14 @@
+{
+    "name": "SY LBTC",
+    "SY": "0xC781c0cC527CB8C351bE3A64c690216c535C6F36",
+    "YT": "0x1e30afeB27C0544F335f8aa21e0A9599c273823A",
+    "PT": "0xEc5a52C685CC3Ad79a6a347aBACe330d69e0b1eD",
+    "market": "0x70B70Ac0445C3eF04E314DFdA6caafd825428221",
+    "expiry": 1743033600,
+    "scalarRoot": "30359509445000000000",
+    "initAnchor": "1036087618000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xb7c7c2706865a4c28674c96edcc4d3772960f5727c5de5a37d54ff6f7b470afd",
+    "deployBlockNumber": 20861085,
+    "reversedFee": 0.09999999999164011
+}
