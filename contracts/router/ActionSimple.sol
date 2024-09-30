@@ -35,7 +35,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         TokenInput calldata input
     ) external payable returns (uint256 netPtOut, uint256 netSyFee, uint256 netSyInterm) {
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-        netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
+        netSyInterm = _mintSyFromToken(_entry_swapExactSyForPt(market, false), address(SY), 1, input);
 
         (netPtOut, netSyFee) = _swapExactSyForPtSimple(receiver, market, netSyInterm, minPtOut);
         emit SwapPtAndToken(
@@ -59,7 +59,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         uint256 minPtOut
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
-        _transferFrom(SY, msg.sender, address(this), exactSyIn);
+        _transferFrom(SY, msg.sender, _entry_swapExactSyForPt(market, false), exactSyIn);
 
         (netPtOut, netSyFee) = _swapExactSyForPtSimple(receiver, market, exactSyIn, minPtOut);
         emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
@@ -76,7 +76,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
     ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
+        netSyInterm = _mintSyFromToken(_entry_swapExactSyForYt(YT, false), address(SY), 1, input);
         (netYtOut, netSyFee) = _swapExactSyForYtSimple(receiver, market, SY, YT, netSyInterm, minYtOut);
 
         emit SwapYtAndToken(
@@ -100,7 +100,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         uint256 minYtOut
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
-        _transferFrom(SY, msg.sender, address(this), exactSyIn);
+        _transferFrom(SY, msg.sender, _entry_swapExactSyForYt(YT, false), exactSyIn);
 
         (netYtOut, netSyFee) = _swapExactSyForYtSimple(receiver, market, SY, YT, exactSyIn, minYtOut);
         emit SwapYtAndSy(msg.sender, market, receiver, netYtOut.Int(), exactSyIn.neg());
@@ -116,7 +116,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         uint256 minLpOut
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
-        _transferFrom(PT, msg.sender, address(this), netPtIn);
+        _transferFrom(PT, msg.sender, _entry_addLiquiditySinglePt(market, false), netPtIn);
 
         uint256 netPtLeft = netPtIn;
         uint256 netSyReceived;
@@ -160,7 +160,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
     ) external payable returns (uint256 netLpOut, uint256 netSyFee, uint256 netSyInterm) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
+        netSyInterm = _mintSyFromToken(_entry_addLiquiditySingleSy(market, false), address(SY), 1, input);
 
         (netLpOut, netSyFee) = _addLiquiditySingleSySimple(receiver, market, SY, YT, netSyInterm, minLpOut);
 
@@ -186,7 +186,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
-        _transferFrom(SY, msg.sender, address(this), netSyIn);
+        _transferFrom(SY, msg.sender, _entry_addLiquiditySingleSy(market, false), netSyIn);
 
         (netLpOut, netSyFee) = _addLiquiditySingleSySimple(receiver, market, SY, YT, netSyIn, minLpOut);
 
@@ -240,7 +240,11 @@ contract ActionSimple is ActionBase, IPActionSimple {
 
         // execute the burn
         _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
-        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(address(this), receiver, netLpToRemove);
+        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(
+            _entry_swapExactSyForPt(market, false),
+            receiver,
+            netLpToRemove
+        );
         netSyLeft += netSyOutBurn;
         netPtOut += netPtOutBurn;
 
@@ -331,7 +335,11 @@ contract ActionSimple is ActionBase, IPActionSimple {
     ) internal returns (uint256 netSyOut, uint256 netSyFee) {
         uint256 netPtLeft;
 
-        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(receiver, address(this), netLpToRemove);
+        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(
+            receiver,
+            _entry_swapExactPtForSy(market, false),
+            netLpToRemove
+        );
         netSyOut += netSyOutBurn;
         netPtLeft += netPtOutBurn;
 
