@@ -374,6 +374,16 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         return a.normalFills.length == 0 && a.flashFills.length == 0;
     }
 
+    // ----------------- ADD & REMOVE LIQUIDITY -----------------
+
+    function _entry_addLiquiditySinglePt(address market, LimitOrderData calldata lim) internal view returns (address) {
+        return !_isEmptyLimit(lim) ? address(this) : market;
+    }
+
+    function _entry_addLiquiditySingleSy(address market, LimitOrderData calldata lim) internal view returns (address) {
+        return !_isEmptyLimit(lim) ? address(this) : market;
+    }
+
     // ----------------- MISC HELPER -----------------
 
     function _delegateToSelf(

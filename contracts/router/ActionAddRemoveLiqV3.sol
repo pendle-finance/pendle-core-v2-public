@@ -136,10 +136,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
 
-    function _entry_addLiquiditySinglePt(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
-    }
-
     // ------------------ ADD LIQUIDITY SINGLE TOKEN ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
@@ -216,10 +212,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         );
 
         emit AddLiquiditySingleSy(msg.sender, market, receiver, netSyIn, netLpOut);
-    }
-
-    function _entry_addLiquiditySingleSy(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
     }
 
     function _addLiquiditySingleSy(
