@@ -21,12 +21,9 @@ library PendlePumpHelperLib {
         bool onlyStakeAllowed = IPumpStaking(PUMP_STAKING).onlyAllowStake();
         uint256 maxAmountRedeemable = IPumpStaking(PUMP_STAKING).pendingStakeAmount();
 
-        require(
-            !onlyStakeAllowed && amount <= maxAmountRedeemable,
-            "PumpStaking: redeem not allowed"
-        );
+        require(!onlyStakeAllowed && amount <= maxAmountRedeemable, "PumpStaking: redeem not allowed");
 
         uint256 feeRate = IPumpStaking(PUMP_STAKING).instantUnstakeFee();
-        return amount - amount * feeRate / FEE_DENOM;
+        return amount - (amount * feeRate) / FEE_DENOM;
     }
 }
