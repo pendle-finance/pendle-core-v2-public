@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 contract PendleSparkLinearDiscountOracle {
     uint256 private constant SECONDS_PER_YEAR = 31_536_000; // 60 * 60 * 24 * 365
+    uint256 private constant ONE = 1e18;
 
     address public immutable PT;
     uint256 public immutable maturity;
@@ -23,7 +24,10 @@ contract PendleSparkLinearDiscountOracle {
     {
         uint256 timeLeft = (maturity > block.timestamp) ? maturity - block.timestamp : 0;
         uint256 discount = getDiscount(timeLeft);
-        return (0, int256(1e18 - discount), 0, 0, 0);
+
+        require(discount <= ONE, "discount overflow");
+
+        return (0, int256(ONE - discount), 0, 0, 0);
     }
 
     function decimals() external pure returns (uint8) {
