@@ -62,7 +62,7 @@ contract PendleERC4626NotRedeemableToAssetSY is SYBase {
 
     function getTokensOut() public view virtual override returns (address[] memory res) {
         res = new address[](1);
-        res[0] = asset;
+        res[0] = yieldToken;
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
