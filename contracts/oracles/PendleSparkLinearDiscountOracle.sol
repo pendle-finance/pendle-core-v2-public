@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 contract PendleSparkLinearDiscountOracle {
-    uint256 private constant SECONDS_PER_YEAR = 31_536_000; // 60 * 60 * 24 * 365
+    uint256 private constant SECONDS_PER_YEAR = 365 days;
     uint256 private constant ONE = 1e18;
 
     address public immutable PT;
@@ -11,6 +11,7 @@ contract PendleSparkLinearDiscountOracle {
 
     constructor(address _pt, uint256 _baseDiscountPerYear) {
         require(_baseDiscountPerYear <= 1e18, "invalid discount");
+        require(_pt != address(0), "zero address");
 
         PT = _pt;
         maturity = PTExpiry(PT).expiry();
