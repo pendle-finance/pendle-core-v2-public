@@ -11,6 +11,7 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
     address public constant UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
     address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant FBTC = 0xC96dE26018A54D51c097160568752c4E3BD6C364;
+    address public constant CBBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
 
     // end contract, no gaps needed
 
@@ -21,7 +22,12 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
     function initialize(address _initialExchangeRateOracle) external initializer {
         _safeApproveInf(WBTC, VAULT);
         _safeApproveInf(FBTC, VAULT);
+        _safeApproveInf(CBBTC, VAULT);
         __CornBaseSY_init_("SY Corn Bedrock uniBTC", "SY-corn-uniBTC", _initialExchangeRateOracle);
+    }
+
+    function approveForVault(address token) external onlyOwner {
+        _safeApproveInf(token, VAULT);
     }
 
     function _deposit(
@@ -39,10 +45,10 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
     // preview deposit should still work as amountDeposited = amountSharesOut for all tokens
 
     function getTokensIn() public view virtual override returns (address[] memory) {
-        return ArrayLib.create(WBTC, FBTC, depositToken);
+        return ArrayLib.create(WBTC, FBTC, CBBTC, depositToken);
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == WBTC || token == FBTC || token == depositToken;
+        return token == WBTC || token == FBTC || token == CBBTC || token == depositToken;
     }
 }
