@@ -50,7 +50,7 @@ contract PendleERC4626NotRedeemableToAssetSY is SYBase {
     function _previewRedeem(
         address /*tokenOut*/,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal pure override returns (uint256 /*amountTokenOut*/) {
         return amountSharesToRedeem;
     }
 
