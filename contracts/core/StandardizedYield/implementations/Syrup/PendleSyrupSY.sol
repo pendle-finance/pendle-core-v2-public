@@ -9,6 +9,7 @@ contract PendleSyrupSY is PendleERC4626NotRedeemableToAssetSY {
     // solhint-disable immutable-vars-naming
     address public immutable syrupToken;
     address public immutable syrupRouter;
+    bytes32 public constant PENDLE_DEPOSIT_DATA = 0x303a70656e646c65000000000000000000000000000000000000000000000000;
 
     constructor(
         string memory _name,
@@ -26,7 +27,7 @@ contract PendleSyrupSY is PendleERC4626NotRedeemableToAssetSY {
         if (tokenIn == yieldToken) {
             return amountDeposited;
         } else {
-            return ISyrupRouter(syrupRouter).deposit(amountDeposited, bytes32(0));
+            return ISyrupRouter(syrupRouter).deposit(amountDeposited, PENDLE_DEPOSIT_DATA);
         }
     }
 }
