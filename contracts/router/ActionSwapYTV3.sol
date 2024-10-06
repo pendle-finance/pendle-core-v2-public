@@ -24,11 +24,10 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netYtOut, netSyFee, netSyInterm) = (
-            tryDelegateToSwapExactTokenForYtSimple(receiver, market, minYtOut, guessYtOut, input, limit)
-        );
-        if (delegatedToSimple) return (netYtOut, netSyFee, netSyInterm);
+        if (canUseOnchainApproximation(guessYtOut, limit)) {
+            return delegateToSwapExactTokenForYtSimple(receiver, market, minYtOut, input);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForYt(YT, limit), address(SY), 1, input);
@@ -55,11 +54,10 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         ApproxParams calldata guessYtOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netYtOut, netSyFee) = (
-            tryDelegateToSwapExactSyForYtSimple(receiver, market, exactSyIn, minYtOut, guessYtOut, limit)
-        );
-        if (delegatedToSimple) return (netYtOut, netSyFee);
+        if (canUseOnchainApproximation(guessYtOut, limit)) {
+            return delegateToSwapExactSyForYtSimple(receiver, market, exactSyIn, minYtOut);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForYt(YT, limit), exactSyIn);
 

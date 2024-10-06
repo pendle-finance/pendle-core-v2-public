@@ -92,11 +92,9 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         ApproxParams calldata guessPtSwapToSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netLpOut, netSyFee) = (
-            tryDelegateToAddLiquiditySinglePtSimple(receiver, market, netPtIn, minLpOut, guessPtSwapToSy, limit)
-        );
-        if (delegatedToSimple) return (netLpOut, netSyFee);
+        if (canUseOnchainApproximation(guessPtSwapToSy, limit)) {
+            return delegateToAddLiquiditySinglePtSimple(receiver, market, netPtIn, minLpOut);
+        }
 
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(PT, msg.sender, _entry_addLiquiditySinglePt(market, limit), netPtIn);
@@ -148,11 +146,9 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netLpOut, uint256 netSyFee, uint256 netSyInterm) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netLpOut, netSyFee, netSyInterm) = (
-            tryDelegateToAddLiquiditySingleTokenSimple(receiver, market, minLpOut, guessPtReceivedFromSy, input, limit)
-        );
-        if (delegatedToSimple) return (netLpOut, netSyFee, netSyInterm);
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToAddLiquiditySingleTokenSimple(receiver, market, minLpOut, input);
+        }
 
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -190,11 +186,9 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netLpOut, netSyFee) = (
-            tryDelegateToAddLiquiditySingleSySimple(receiver, market, netSyIn, minLpOut, guessPtReceivedFromSy, limit)
-        );
-        if (delegatedToSimple) return (netLpOut, netSyFee);
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToAddLiquiditySingleSySimple(receiver, market, netSyIn, minLpOut);
+        }
 
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
@@ -413,16 +407,10 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
-        bool delegatedToSimple;
-        (delegatedToSimple, netPtOut, netSyFee) = tryDelegateToRemoveLiquiditySinglePtSimple(
-            receiver,
-            market,
-            netLpToRemove,
-            minPtOut,
-            guessPtReceivedFromSy,
-            limit
-        );
-        if (delegatedToSimple) return (netPtOut, netSyFee);
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToRemoveLiquiditySinglePtSimple(receiver, market, netLpToRemove, minPtOut);
+        }
+
         uint256 netSyLeft;
 
         // execute the burn
