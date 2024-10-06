@@ -42,20 +42,6 @@ interface IPActionSimple is IPAllEventsV3 {
         uint256 minPtOut
     ) external returns (uint256 netPtOut, uint256 netSyFee);
 
-    function removeLiquiditySingleTokenSimple(
-        address receiver,
-        address market,
-        uint256 netLpToRemove,
-        TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netSyFee, uint256 netSyInterm);
-
-    function removeLiquiditySingleSySimple(
-        address receiver,
-        address market,
-        uint256 netLpToRemove,
-        uint256 minSyOut
-    ) external returns (uint256 netSyOut, uint256 netSyFee);
-
     function swapExactTokenForPtSimple(
         address receiver,
         address market,
