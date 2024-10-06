@@ -18,7 +18,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ ADD LIQUIDITY DUAL ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
@@ -83,7 +82,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ ADD LIQUIDITY SINGLE PT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function addLiquiditySinglePt(
         address receiver,
         address market,
@@ -95,7 +93,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         if (canUseOnchainApproximation(guessPtSwapToSy, limit)) {
             return delegateToAddLiquiditySinglePtSimple(receiver, market, netPtIn, minLpOut);
         }
-
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(PT, msg.sender, _entry_addLiquiditySinglePt(market, limit), netPtIn);
 
@@ -137,7 +134,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ ADD LIQUIDITY SINGLE TOKEN ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function addLiquiditySingleToken(
         address receiver,
         address market,
@@ -177,7 +173,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function addLiquiditySingleSy(
         address receiver,
         address market,
@@ -252,7 +247,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ ADD LIQUIDITY SINGLE TOKEN KEEP YT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function addLiquiditySingleTokenKeepYt(
         address receiver,
         address market,
@@ -348,7 +342,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ REMOVE LIQUIDITY DUAL ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
@@ -398,7 +391,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ REMOVE LIQUIDITY SINGLE PT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function removeLiquiditySinglePt(
         address receiver,
         address market,
@@ -442,7 +434,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     // ------------------ REMOVE LIQUIDITY SINGLE TOKEN ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function removeLiquiditySingleToken(
         address receiver,
         address market,
@@ -470,7 +461,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function removeLiquiditySingleSy(
         address receiver,
         address market,

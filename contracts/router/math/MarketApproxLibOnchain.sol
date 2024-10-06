@@ -15,15 +15,6 @@ library MarketApproxPtInLibOnchain {
     using LogExpMath for int256;
     using MarketApproxEstimateLib for MarketState;
 
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swap in
-     *     - Flashswap the corresponding amount of SY out
-     *     - Pair those amount with exactSyIn SY to tokenize into PT & YT
-     *     - PT to repay the flashswap, YT transferred to user
-     *     - Stop when the amount of SY to be pulled to tokenize PT to repay loan approx the exactSyIn
-     *     - guess & approx is for netYtOut (also netPtIn)
-     */
     function approxSwapExactSyForYt(
         MarketState memory market,
         PYIndex index,
@@ -35,15 +26,12 @@ library MarketApproxPtInLibOnchain {
         uint256[2] memory hardBounds = [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)];
         ApproxState memory state = ApproxStateLib.initNoOffChain(estimatedYtOut, hardBounds);
 
-        // at minimum we will flashswap exactSyIn since we have enough SY to payback the PT loan
-
         for (uint256 iter = 0; iter < state.maxIteration; ++iter) {
             uint256 guess = state.curGuess;
             (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
 
             uint256 netSyToTokenizePt = index.assetToSyUp(guess);
 
-            // for sure netSyToTokenizePt >= netSyOut since we are swapping PT to SY
             uint256 netSyToPull = netSyToTokenizePt - netSyOut;
 
             if (netSyToPull <= exactSyIn) {
@@ -58,14 +46,6 @@ library MarketApproxPtInLibOnchain {
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swap to SY
-     *     - Swap PT to SY
-     *     - Pair the remaining PT with the SY to add liquidity
-     *     - Stop when the ratio of PT / totalPt & SY / totalSy is approx
-     *     - guess & approx is for netPtSwap
-     */
     function approxSwapPtToAddLiquidity(
         MarketState memory market,
         PYIndex index,
@@ -123,11 +103,6 @@ library MarketApproxPtInLibOnchain {
         uint256 newTotalPt = uint256(market.totalPt) + guess;
         uint256 newTotalSy = (uint256(market.totalSy) - netSyOut - netSyToReserve);
 
-        // it is desired that
-        // (netSyOut + netSyHolding) / newTotalSy = netPtRemaining / newTotalPt
-        // which is equivalent to
-        // (netSyOut + netSyHolding) * newTotalPt = netPtRemaining * newTotalSy
-
         syNumerator = (netSyOut + netSyHolding) * newTotalPt;
         ptNumerator = (totalPtIn - guess) * newTotalSy;
     }
@@ -161,13 +136,6 @@ library MarketApproxPtOutLibOnchain {
 
     uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
 
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swapExactOut
-     *     - Calculate the amount of SY needed
-     *     - Stop when the netSyIn is smaller approx exactSyIn
-     *     - guess & approx is for netSyIn
-     */
     function approxSwapExactSyForPt(
         MarketState memory market,
         PYIndex index,
@@ -196,14 +164,6 @@ library MarketApproxPtOutLibOnchain {
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
-    /**
-     * @dev algorithm:
-     *     - Bin search the amount of PT to swapExactOut
-     *     - Swap that amount of PT out
-     *     - Pair the remaining PT with the SY to add liquidity
-     *     - Stop when the ratio of PT / totalPt & SY / totalSy is approx
-     *     - guess & approx is for netPtFromSwap
-     */
     function approxSwapSyToAddLiquidity(
         MarketState memory market,
         PYIndex index,
@@ -239,11 +199,6 @@ library MarketApproxPtOutLibOnchain {
                 uint256 newTotalPt = uint256(market.totalPt) - guess;
                 uint256 netTotalSy = uint256(market.totalSy) + netSyIn - netSyToReserve;
 
-                // it is desired that
-                // (netPtFromSwap + netPtHolding) / newTotalPt = netSyRemaining / netTotalSy
-                // which is equivalent to
-                // (netPtFromSwap + netPtHolding) * netTotalSy = netSyRemaining * newTotalPt
-
                 ptNumerator = (guess + netPtHolding) * netTotalSy;
                 syNumerator = (totalSyIn - netSyIn) * newTotalPt;
             }
@@ -273,7 +228,6 @@ library MarketApproxPtOutLibOnchain {
     ) internal pure returns (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) {
         (int256 _netSyIn, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(comp, index, int256(netPtOut));
 
-        // all safe since totalPt and totalSy is int128
         netSyIn = uint256(-_netSyIn);
         netSyFee = uint256(_netSyFee);
         netSyToReserve = uint256(_netSyToReserve);
@@ -284,7 +238,6 @@ library MarketApproxPtOutLibOnchain {
         int256 proportion = logitP.divDown(logitP + PMath.IONE);
         int256 numerator = proportion.mulDown(totalPt + comp.totalAsset);
         int256 maxPtOut = totalPt - numerator;
-        // only get 99.9% of the theoretical max to accommodate some precision issues
         return (uint256(maxPtOut) * 999) / 1000;
     }
 }

@@ -15,7 +15,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     // ------------------ SWAP TOKEN FOR YT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactTokenForYt(
         address receiver,
         address market,
@@ -45,7 +44,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactSyForYt(
         address receiver,
         address market,
@@ -68,7 +66,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     // ------------------ SWAP TOKEN FOR TOKEN ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForToken(
         address receiver,
         address market,
@@ -95,7 +92,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForSy(
         address receiver,
         address market,
@@ -113,7 +109,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     // ------------------ SWAP PT FOR YT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForYt(
         address receiver,
         address market,
@@ -145,7 +140,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     // ------------------ SWAP YT FOR PT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactYtForPt(
         address receiver,
         address market,

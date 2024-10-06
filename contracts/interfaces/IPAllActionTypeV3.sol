@@ -9,26 +9,76 @@ import "./IPLimitRouter.sol";
  * For detailed information on TokenInput, TokenOutput, ApproxParams, and LimitOrderData,
  * refer to https://docs.pendle.finance/Developers/Contracts/PendleRouter
  *
- * It's highly recommended to use Pendle's Hosted SDK to generate these parameters for:
+ * It's recommended to use Pendle's Hosted SDK to generate these parameters for:
  * 1. Optimal liquidity and gas efficiency
  * 2. Access to deeper liquidity via limit orders
  * 3. Zapping in/out using any ERC20 token
  *
- * On-chain alternatives (less optimal) are available in this file:
- * - For TokenInput: Use createTokenInputSimple(address tokenIn, uint256 netTokenIn)
- *   Example: TokenInput memory input = createTokenInputSimple(USDC_ADDRESS, 1000e6);
- *
- * - For TokenOutput: Use createTokenOutputSimple(address tokenOut, uint256 minTokenOut)
- *   Example: TokenOutput memory output = createTokenOutputSimple(USDC_ADDRESS, 990e6);
- *
- * - For ApproxParams: Use createDefaultApproxParams()
- *   Example: ApproxParams memory approx = createDefaultApproxParams();
- *
- * - For LimitOrderData: Use createEmptyLimitOrderData()
- *   Example: LimitOrderData memory limit = createEmptyLimitOrderData();
+ * Else, to generate these parameters fully onchain, use the following functions:
+ * - For TokenInput: Use createTokenInputSimple
+ * - For TokenOutput: Use createTokenOutputSimple
+ * - For ApproxParams: Use createDefaultApproxParams
+ * - For LimitOrderData: Use createEmptyLimitOrderData
  *
  * These generated parameters can be directly passed into the respective function calls.
+ *
+ * Examples:
+ *
+ * addLiquiditySingleToken(
+ *     msg.sender,
+ *     MARKET_ADDRESS,
+ *     minLpOut,
+ *     createDefaultApproxParams(),
+ *     createTokenInputSimple(USDC_ADDRESS, 1000e6),
+ *     createEmptyLimitOrderData()
+ * )
+ *
+ * swapExactTokenForPt(
+ *     msg.sender,
+ *     MARKET_ADDRESS,
+ *     minPtOut,
+ *     createDefaultApproxParams(),
+ *     createTokenInputSimple(USDC_ADDRESS, 1000e6),
+ *     createEmptyLimitOrderData()
+ * )
  */
+
+/// @dev Creates a TokenInput struct without using any swap aggregator
+/// @param tokenIn must be one of the SY's tokens in (obtain via `IStandardizedYield#getTokensIn`)
+/// @param netTokenIn amount of token in
+function createTokenInputSimple(address tokenIn, uint256 netTokenIn) pure returns (TokenInput memory) {
+    return
+        TokenInput({
+            tokenIn: tokenIn,
+            netTokenIn: netTokenIn,
+            tokenMintSy: tokenIn,
+            pendleSwap: address(0),
+            swapData: createSwapTypeNoAggregator()
+        });
+}
+
+/// @dev Creates a TokenOutput struct without using any swap aggregator
+/// @param tokenOut must be one of the SY's tokens out (obtain via `IStandardizedYield#getTokensOut`)
+/// @param minTokenOut minimum amount of token out
+function createTokenOutputSimple(address tokenOut, uint256 minTokenOut) pure returns (TokenOutput memory) {
+    return
+        TokenOutput({
+            tokenOut: tokenOut,
+            minTokenOut: minTokenOut,
+            tokenRedeemSy: tokenOut,
+            pendleSwap: address(0),
+            swapData: createSwapTypeNoAggregator()
+        });
+}
+
+function createEmptyLimitOrderData() pure returns (LimitOrderData memory) {}
+
+/// @dev Creates default ApproxParams for on-chain approximation
+function createDefaultApproxParams() pure returns (ApproxParams memory) {
+    return ApproxParams({guessMin: 0, guessMax: type(uint256).max, guessOffchain: 0, maxIteration: 256, eps: 1e14});
+}
+
+function createSwapTypeNoAggregator() pure returns (SwapData memory) {}
 
 struct TokenInput {
     address tokenIn;
@@ -81,43 +131,3 @@ struct ExitPostExpReturnParams {
     uint256 netSyFromRedeem;
     uint256 totalSyOut;
 }
-
-/// @dev Creates a TokenInput struct for simple swapping from one of the SY's tokens
-/// @param tokenIn SY token in (obtain via `IStandardizedYield#getTokensIn`)
-/// @param netTokenIn Amount of token in
-function createTokenInputSimple(address tokenIn, uint256 netTokenIn) pure returns (TokenInput memory) {
-    return
-        TokenInput({
-            tokenIn: tokenIn,
-            netTokenIn: netTokenIn,
-            tokenMintSy: tokenIn,
-            pendleSwap: address(0),
-            swapData: createSwapTypeNoAggregator()
-        });
-}
-
-/// @dev Creates a TokenOutput struct for simple swapping to one of the SY's tokens
-/// @param tokenOut SY token out (obtain via `IStandardizedYield#getTokensOut`)
-/// @param minTokenOut Minimum amount of token out
-function createTokenOutputSimple(address tokenOut, uint256 minTokenOut) pure returns (TokenOutput memory) {
-    return
-        TokenOutput({
-            tokenOut: tokenOut,
-            minTokenOut: minTokenOut,
-            tokenRedeemSy: tokenOut,
-            pendleSwap: address(0),
-            swapData: createSwapTypeNoAggregator()
-        });
-}
-
-/// @dev Creates an empty LimitOrderData struct (no Pendle limit order)
-function createEmptyLimitOrderData() pure returns (LimitOrderData memory) {}
-
-/// @dev Creates default ApproxParams for on-chain approximation
-/// @notice For simpler functions with built-in on-chain approximation, see `./IPActionSimple.sol`
-function createDefaultApproxParams() pure returns (ApproxParams memory) {
-    return ApproxParams({guessMin: 0, guessMax: type(uint256).max, guessOffchain: 0, maxIteration: 256, eps: 1e14});
-}
-
-/// @dev Creates a SwapData struct for no aggregator scenario
-function createSwapTypeNoAggregator() pure returns (SwapData memory) {}

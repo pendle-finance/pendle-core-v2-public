@@ -7,7 +7,6 @@ import "../interfaces/IPReflector.sol";
 
 contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function mintSyFromToken(
         address receiver,
         address SY,
@@ -19,7 +18,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function redeemSyToToken(
         address receiver,
         address SY,
@@ -31,7 +29,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function mintPyFromToken(
         address receiver,
         address YT,
@@ -47,7 +44,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function redeemPyToToken(
         address receiver,
         address YT,
@@ -102,7 +98,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapTokenToToken(
         address receiver,
         uint256 minTokenOut,
@@ -117,7 +112,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapTokenToTokenViaSy(
         address receiver,
         address SY,
@@ -130,7 +124,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function exitPreExpToToken(
         address receiver,
         address market,
@@ -149,7 +142,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function exitPreExpToSy(
         address receiver,
         address market,
@@ -213,7 +205,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function exitPostExpToToken(
         address receiver,
         address market,

@@ -10,7 +10,6 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
 
     // ------------------ SWAP TOKEN FOR PT ------------------
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactTokenForPt(
         address receiver,
         address market,
@@ -39,7 +38,6 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactSyForPt(
         address receiver,
         address market,
@@ -60,7 +58,6 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForToken(
         address receiver,
         address market,
@@ -87,7 +84,6 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    /// It's recommended to use Pendle's Hosted SDK to generate these parameters for optimal results.
     function swapExactPtForSy(
         address receiver,
         address market,
