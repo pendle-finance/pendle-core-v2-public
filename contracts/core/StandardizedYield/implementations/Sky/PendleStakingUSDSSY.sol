@@ -10,7 +10,7 @@ contract PendleStakingUSDSSY is SYBaseWithRewards {
     address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant USDS = 0xdC035D45d973E3EC169d2276DDab16f1e407384F;
     address public constant SKY = 0x56072C95FAA701256059aa122697B133aDEd9279;
-    address public constant STAKING_CONTRACT = 0x0650CAF159C5A49f711e8169D4336ECB9b950275;
+    address public immutable STAKING_CONTRACT = 0x0650CAF159C5A49f711e8169D4336ECB9b950275;
 
     constructor() SYBaseWithRewards("SY Staking USDS", "SY-staking-USDS", USDS) {
         _safeApproveInf(DAI, CONVERTER);

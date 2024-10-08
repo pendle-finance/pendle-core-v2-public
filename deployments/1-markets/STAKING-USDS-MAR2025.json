@@ -1,0 +1,14 @@
+{
+    "name": "SY USDS",
+    "SY": "0xDb01707567Cf99C2E2215f1BD8Ca567D998415dE",
+    "YT": "0x0e7e6Cb2eDA4F298E5b4Ef675405bD0dD37A1933",
+    "PT": "0x276dc1714bDB1beB869BAbC6e84c0b102E75bf32",
+    "market": "0x977ebf77581f94De969349549Ab2108a681E8f4C",
+    "expiry": 1743033600,
+    "scalarRoot": "46167127815000000000",
+    "initAnchor": "1046486779000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x3bfa3a5ea478847aafa0ea344023370ad850721a5a20908e16dba85f4343bfb0",
+    "deployBlockNumber": 20920258,
+    "reversedFee": 0.09999999999164011
+}
