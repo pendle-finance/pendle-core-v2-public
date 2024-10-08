@@ -26,8 +26,8 @@ contract PendleCornUniBTCSYUpg is PendleCornBaseSYUpg {
         __CornBaseSY_init_("SY Corn Bedrock uniBTC", "SY-corn-uniBTC", _initialExchangeRateOracle);
     }
 
-    function approveForVault(address token) external onlyOwner {
-        _safeApproveInf(token, VAULT);
+    function approveForVault() external onlyOwner {
+        _safeApproveInf(CBBTC, VAULT);
     }
 
     function _deposit(
