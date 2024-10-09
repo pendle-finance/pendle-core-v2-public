@@ -1,0 +1,14 @@
+{
+    "name": "SY sENA",
+    "SY": "0xf6193C65Cf3d1CeDDe0FF9d8Cb9781Ad21Ec980f",
+    "YT": "0xaEF93396096dAC384F34c5300FaFB6f16Ef79351",
+    "PT": "0x8AC5Fc4085f6baeAbAd8f4A6bb1dd7d18a320230",
+    "market": "0xc64056237C8107ECB9860CBd4519644E9ba2aeD4",
+    "expiry": 1745452800,
+    "scalarRoot": "8180980143000000000",
+    "initAnchor": "1149373061000000000",
+    "lnFeeRateRoot": "4987541511000000",
+    "deployTxHash": "0xadea3da7f67f0f4d332d2d5dfe677b281875ec83444a9f908f483afeb7c5b05a",
+    "deployBlockNumber": 20927813,
+    "reversedFee": 0.49999999999608136
+}
