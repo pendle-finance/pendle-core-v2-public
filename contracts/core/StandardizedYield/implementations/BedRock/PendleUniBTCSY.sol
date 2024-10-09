@@ -1,18 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../SYBase.sol";
+import "../../SYBaseUpg.sol";
 import "../../../../interfaces/Bedrock/IBedrockUniBTCVault.sol";
 
-contract PendleUniBTCSY is SYBase {
+contract PendleUniBTCSY is SYBaseUpg {
     address public constant VAULT = 0x047D41F2544B7F63A8e991aF2068a363d210d6Da;
     address public constant UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
     address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant FBTC = 0xC96dE26018A54D51c097160568752c4E3BD6C364;
+    address public constant CBBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
 
-    constructor() SYBase("SY Bedrock uniBTC", "SY-uniBTC", UNIBTC) {
+    constructor() SYBaseUpg(UNIBTC) {
+        _disableInitializers();
+    }
+
+    function initialize() external initializer {
         _safeApproveInf(WBTC, VAULT);
         _safeApproveInf(FBTC, VAULT);
+        _safeApproveInf(CBBTC, VAULT);
+        __SYBaseUpg_init("SY Bedrock uniBTC", "SY-uniBTC");
     }
 
     function _deposit(
@@ -55,7 +62,7 @@ contract PendleUniBTCSY is SYBase {
     }
 
     function getTokensIn() public pure override returns (address[] memory res) {
-        return ArrayLib.create(WBTC, FBTC, UNIBTC);
+        return ArrayLib.create(WBTC, FBTC, UNIBTC, CBBTC);
     }
 
     function getTokensOut() public pure override returns (address[] memory res) {
@@ -63,7 +70,7 @@ contract PendleUniBTCSY is SYBase {
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {
-        return token == WBTC || token == FBTC || token == UNIBTC;
+        return token == WBTC || token == FBTC || token == UNIBTC || token == CBBTC;
     }
 
     function isValidTokenOut(address token) public pure override returns (bool) {
