@@ -1,14 +1,14 @@
 {
     "name": "SY sENA",
-    "SY": "0xf6193C65Cf3d1CeDDe0FF9d8Cb9781Ad21Ec980f",
-    "YT": "0xaEF93396096dAC384F34c5300FaFB6f16Ef79351",
-    "PT": "0x8AC5Fc4085f6baeAbAd8f4A6bb1dd7d18a320230",
-    "market": "0xc64056237C8107ECB9860CBd4519644E9ba2aeD4",
+    "SY": "0xA36ECCA8B7624D224F01CD6649C8afAd3Da12C3D",
+    "YT": "0x65265595B87D4206D0dE02819d82bd33fAca8648",
+    "PT": "0xe0e4d07e90508a53aD03155e86ECDd09D24cE98a",
+    "market": "0x487E1cEF7805CF0225deC3dD0f3044fe0fB70611",
     "expiry": 1745452800,
     "scalarRoot": "8180980143000000000",
     "initAnchor": "1149373061000000000",
     "lnFeeRateRoot": "4987541511000000",
-    "deployTxHash": "0xadea3da7f67f0f4d332d2d5dfe677b281875ec83444a9f908f483afeb7c5b05a",
-    "deployBlockNumber": 20927813,
+    "deployTxHash": "0x2fc9a329393bc80b94a4a295d574d6eae59069dfd1f0080df1717d977f8a9d39",
+    "deployBlockNumber": 20928739,
     "reversedFee": 0.49999999999608136
 }
