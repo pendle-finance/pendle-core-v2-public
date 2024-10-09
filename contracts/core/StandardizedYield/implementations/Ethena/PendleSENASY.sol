@@ -14,7 +14,9 @@ contract PendleSENASY is PendleERC4626NotRedeemableToAssetSY, IPTokenWithSupplyC
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
 
 
-    constructor() PendleERC4626NotRedeemableToAssetSY("SY Staked ENA", "SY-sENA", SENA) {}
+    constructor(uint256 _initialSupplyCap) PendleERC4626NotRedeemableToAssetSY("SY Staked ENA", "SY-sENA", SENA) {
+        _updateSupplyCap(_initialSupplyCap);
+    }
 
     /*///////////////////////////////////////////////////////////////
                             SUPPLY CAP UPDATE
