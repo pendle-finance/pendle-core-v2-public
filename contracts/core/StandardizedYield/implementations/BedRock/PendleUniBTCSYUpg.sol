@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../../SYBaseUpg.sol";
 import "../../../../interfaces/Bedrock/IBedrockUniBTCVault.sol";
 
-contract PendleUniBTCSY is SYBaseUpg {
+contract PendleUniBTCSYUpg is SYBaseUpg {
     address public constant VAULT = 0x047D41F2544B7F63A8e991aF2068a363d210d6Da;
     address public constant UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
     address public constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
