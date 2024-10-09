@@ -15,7 +15,7 @@ contract PendleArbitrumEPendleSY is SYBaseWithRewards {
     address public constant EQB = 0xBfbCFe8873fE28Dfa25f1099282b088D52bbAD9C;
     address public constant MAXEQB = 0x96C4A48Abdf781e9c931cfA92EC0167Ba219ad8E;
 
-    constructor() SYBaseWithRewards("SY Auto Compounding ePENDLE", "SY-autoEPendle", VAULT) {
+    constructor() SYBaseWithRewards("SY Staked ePENDLE", "SY-stk-EPendle", VAULT) {
         _safeApproveInf(PENDLE, CONVERTER);
         _safeApproveInf(EPENDLE, VAULT);
     }
