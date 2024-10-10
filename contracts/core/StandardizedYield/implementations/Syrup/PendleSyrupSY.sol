@@ -4,10 +4,7 @@ import "../PendleERC4626NotRedeemableToAssetSY.sol";
 import "../../../../interfaces/Syrup/ISyrupRouter.sol";
 
 contract PendleSyrupSY is PendleERC4626NotRedeemableToAssetSY {
-    using PMath for uint256;
-
     // solhint-disable immutable-vars-naming
-    address public immutable syrupToken;
     address public immutable syrupRouter;
     bytes32 public constant PENDLE_DEPOSIT_DATA = 0x303a70656e646c65000000000000000000000000000000000000000000000000;
 
