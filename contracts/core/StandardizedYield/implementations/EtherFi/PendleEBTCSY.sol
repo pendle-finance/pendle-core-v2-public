@@ -11,12 +11,13 @@ contract PendleEBTCSY is PendleERC20SYUpg {
     // solhint-disable ordering
 
     address public constant eBTC = 0x657e8C867D8B37dCC18fA4Caead9C45EB088C642;
-    address public constant tBTC = 0x18084fbA666a33d37592fA2633fD49a74DD93a88;
+    address public constant cbBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
     address public constant wBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant LBTC = 0x8236a87084f8B84306f72007F36F2618A5634494;
     address public constant vedaTeller = 0x458797A320e6313c980C2bC7D270466A6288A8bB;
 
     uint256 public constant ONE_SHARE = 10 ** 8;
+    uint256 public constant PREMIUM_SHARE_BPS = 10 ** 4;
 
     address public immutable vedaAccountant;
 
@@ -25,7 +26,7 @@ contract PendleEBTCSY is PendleERC20SYUpg {
     }
 
     function approveAllForTeller() external {
-        _safeApproveInf(tBTC, eBTC);
+        _safeApproveInf(cbBTC, eBTC);
         _safeApproveInf(wBTC, eBTC);
         _safeApproveInf(LBTC, eBTC);
     }
@@ -49,13 +50,16 @@ contract PendleEBTCSY is PendleERC20SYUpg {
         }
         uint256 rate = IVedaAccountant(vedaAccountant).getRateInQuoteSafe(tokenIn);
         amountSharesOut = (amountTokenToDeposit * ONE_SHARE) / rate;
+
+        IVedaTeller.Asset memory data = IVedaTeller(vedaTeller).assetData(tokenIn);
+        amountSharesOut = amountSharesOut * (PREMIUM_SHARE_BPS - data.sharePremium) / PREMIUM_SHARE_BPS;
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {
-        return token == eBTC || token == wBTC || token == tBTC || token == LBTC;
+        return token == eBTC || token == wBTC || token == cbBTC || token == LBTC;
     }
 
     function getTokensIn() public pure override returns (address[] memory res) {
-        return ArrayLib.create(wBTC, tBTC, eBTC, LBTC);
+        return ArrayLib.create(wBTC, cbBTC, eBTC, LBTC);
     }
 }

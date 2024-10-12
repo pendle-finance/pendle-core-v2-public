@@ -2,6 +2,12 @@
 pragma solidity ^0.8.23;
 
 interface IVedaTeller {
+    struct Asset {
+        bool allowDeposits;
+        bool allowWithdraws;
+        uint16 sharePremium;
+    }
+
     function deposit(
         address depositAsset,
         uint256 depositAmount,
@@ -16,4 +22,6 @@ interface IVedaTeller {
         uint256 minimumMint,
         address to
     ) external returns (uint256 shares);
+
+    function assetData(address) external view returns (Asset memory);
 }
