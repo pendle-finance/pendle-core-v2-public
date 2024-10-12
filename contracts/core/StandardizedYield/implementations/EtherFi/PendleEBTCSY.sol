@@ -14,7 +14,7 @@ contract PendleEBTCSY is PendleERC20SYUpg {
     address public constant tBTC = 0x18084fbA666a33d37592fA2633fD49a74DD93a88;
     address public constant wBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
     address public constant LBTC = 0x8236a87084f8B84306f72007F36F2618A5634494;
-    address public constant vedaTeller = 0xe19a43B1b8af6CeE71749Af2332627338B3242D1;
+    address public constant vedaTeller = 0x458797A320e6313c980C2bC7D270466A6288A8bB;
 
     uint256 public constant ONE_SHARE = 10 ** 8;
 
