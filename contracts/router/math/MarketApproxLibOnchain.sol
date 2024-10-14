@@ -134,8 +134,6 @@ library MarketApproxPtOutLibOnchain {
     using LogExpMath for int256;
     using MarketApproxEstimateLib for MarketState;
 
-    uint256 internal constant GUESS_RANGE_SLIP = (5 * PMath.ONE) / 100;
-
     function approxSwapExactSyForPt(
         MarketState memory market,
         PYIndex index,
