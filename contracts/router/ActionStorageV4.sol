@@ -21,9 +21,11 @@ contract ActionStorageV4 is RouterStorage, IPActionStorageV4 {
     function setSelectorToFacets(SelectorsToFacet[] calldata arr) external onlyOwner {
         CoreStorage storage $ = _getCoreStorage();
 
-        for (uint256 i = 0; i < arr.length; i++) {
+        uint256 length = arr.length;
+        for (uint256 i; i != length; ++i) {
             SelectorsToFacet memory s = arr[i];
-            for (uint256 j = 0; j < s.selectors.length; j++) {
+            uint256 selectorsLength = s.selectors.length;
+            for (uint256 j; j != selectorsLength; ++j) {
                 $.selectorToFacet[s.selectors[j]] = s.facet;
                 emit SelectorToFacetSet(s.selectors[j], s.facet);
             }

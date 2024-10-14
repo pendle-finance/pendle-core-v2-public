@@ -149,7 +149,7 @@ library InputScalingHelperL2 {
         desc.amount = (desc.amount * newAmount) / oldAmount;
 
         uint256 nReceivers = desc.srcReceivers.length;
-        for (uint256 i = 0; i < nReceivers; ) {
+        for (uint256 i; i != nReceivers; ) {
             desc.srcAmounts[i] = (desc.srcAmounts[i] * newAmount) / oldAmount;
             unchecked {
                 ++i;
@@ -171,7 +171,7 @@ library InputScalingHelperL2 {
         uint256 nPools = simpleSwapData.firstPools.length;
         address tokenIn;
 
-        for (uint256 i = 0; i < nPools; ) {
+        for (uint256 i; i != nPools; ) {
             simpleSwapData.firstSwapAmounts[i] = (simpleSwapData.firstSwapAmounts[i] * newAmount) / oldAmount;
 
             IExecutorHelperL2.Swap[] memory dexData;
@@ -217,7 +217,7 @@ library InputScalingHelperL2 {
         );
 
         uint256 nSequences = executorDesc.swapSequences.length;
-        for (uint256 i = 0; i < nSequences; ) {
+        for (uint256 i; i != nSequences; ) {
             // only need to scale the first dex in each sequence
             IExecutorHelperL2.Swap memory swap = executorDesc.swapSequences[i][0];
             executorDesc.swapSequences[i][0] = _scaleDexData(swap, oldAmount, newAmount);
