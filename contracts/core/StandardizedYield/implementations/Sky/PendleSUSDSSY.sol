@@ -9,9 +9,8 @@ contract PendleSUSDSSY is PendleERC4626SY {
     address public constant CONVERTER = 0x3225737a9Bbb6473CB4a45b7244ACa2BeFdB276A;
     address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant USDS = 0xdC035D45d973E3EC169d2276DDab16f1e407384F;
-    address public constant SKY = 0x56072C95FAA701256059aa122697B133aDEd9279;
 
-    constructor() PendleERC4626SY("SY Saving USDS", "SY-sUSDS", SUSDS) {
+    constructor() PendleERC4626SY("SY Savings USDS", "SY-sUSDS", SUSDS) {
         _safeApproveInf(DAI, CONVERTER);
         _safeApproveInf(USDS, CONVERTER);
     }
