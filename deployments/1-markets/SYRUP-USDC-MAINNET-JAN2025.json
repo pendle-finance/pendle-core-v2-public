@@ -1,0 +1,14 @@
+{
+    "name": "SY Syrup USDC",
+    "SY": "0xc9e9C85B33E87fde85c44DBf72b4B842A071551D",
+    "YT": "0x261fce0Ad922bfDA890760EEe49042E43Bbe2c82",
+    "PT": "0x57f6bddF2e015FEB13e8F86cB7BB5a6a62723Ffe",
+    "market": "0x373DC7bE84FAdeBc2e879C98289fc662C6985946",
+    "expiry": 1738195200,
+    "scalarRoot": "30047540914000000000",
+    "initAnchor": "1040478911000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0x9fffca047031d9648acf268a5afec3c375090fea8165c5997aa568219a5c9712",
+    "deployBlockNumber": 20967606,
+    "reversedFee": 0.19999999993256523
+}
