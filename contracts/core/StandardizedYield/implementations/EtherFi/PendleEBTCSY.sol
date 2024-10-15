@@ -52,7 +52,7 @@ contract PendleEBTCSY is PendleERC20SYUpg {
         amountSharesOut = (amountTokenToDeposit * ONE_SHARE) / rate;
 
         IVedaTeller.Asset memory data = IVedaTeller(vedaTeller).assetData(tokenIn);
-        amountSharesOut = amountSharesOut * (PREMIUM_SHARE_BPS - data.sharePremium) / PREMIUM_SHARE_BPS;
+        amountSharesOut = (amountSharesOut * (PREMIUM_SHARE_BPS - data.sharePremium)) / PREMIUM_SHARE_BPS;
     }
 
     function isValidTokenIn(address token) public pure override returns (bool) {

@@ -5,14 +5,12 @@ import "../PendleERC4626NotRedeemableToAssetSY.sol";
 import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 
 contract PendleSENASY is PendleERC4626NotRedeemableToAssetSY, IPTokenWithSupplyCap {
-
     address public constant SENA = 0x8bE3460A480c80728a8C4D7a5D5303c85ba7B3b9;
 
     uint256 public supplyCap;
 
     event SupplyCapUpdated(uint256 newSupplyCap);
     error SupplyCapExceeded(uint256 totalSupply, uint256 supplyCap);
-
 
     constructor(uint256 _initialSupplyCap) PendleERC4626NotRedeemableToAssetSY("SY Staked ENA", "SY-sENA", SENA) {
         _updateSupplyCap(_initialSupplyCap);

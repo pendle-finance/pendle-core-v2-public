@@ -28,7 +28,7 @@ contract PendleERC4626SY is SYBase {
         address receiver,
         address tokenOut,
         uint256 amountSharesToRedeem
-    ) internal override returns (uint256 amountTokenOut) {
+    ) internal virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == yieldToken) {
             amountTokenOut = amountSharesToRedeem;
             _transferOut(yieldToken, receiver, amountTokenOut);

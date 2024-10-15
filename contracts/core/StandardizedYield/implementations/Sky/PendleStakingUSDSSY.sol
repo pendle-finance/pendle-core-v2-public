@@ -18,10 +18,7 @@ contract PendleStakingUSDSSY is SYBaseWithRewards {
         _safeApproveInf(USDS, STAKING_CONTRACT);
     }
 
-    function _deposit(
-        address tokenIn,
-        uint256 amountDeposited
-    ) internal virtual override returns (uint256) {
+    function _deposit(address tokenIn, uint256 amountDeposited) internal virtual override returns (uint256) {
         if (tokenIn == DAI) {
             ISkyConverter(CONVERTER).daiToUsds(address(this), amountDeposited);
         }
