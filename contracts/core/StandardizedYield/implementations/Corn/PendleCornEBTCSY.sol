@@ -29,7 +29,7 @@ contract PendleCornEBTCSY is PendleCornBaseSYUpg {
         _safeApproveInf(cbBTC, eBTC);
         _safeApproveInf(wBTC, eBTC);
         _safeApproveInf(LBTC, eBTC);
-        __CornBaseSY_init_("SY ether.fi eBTC", "SY-corn-eBTC", ONERACLE);
+        __CornBaseSY_init_("SY Corn ether.fi eBTC", "SY-corn-eBTC", ONERACLE);
     }
 
     /*///////////////////////////////////////////////////////////////
