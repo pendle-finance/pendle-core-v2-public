@@ -1,0 +1,14 @@
+{
+    "name": "SY eBTC",
+    "SY": "0xc86cc613aa22ca1d476aeba2c3c437bac63ebfe7",
+    "YT": "0x72D120B9C47dA21eD704e843B2C970ca743DB175",
+    "PT": "0x44A7876cA99460ef3218bf08b5f52E2dbE199566",
+    "market": "0x2C71Ead7ac9AE53D05F8664e77031d4F9ebA064B",
+    "expiry": 1743033600,
+    "scalarRoot": "50246102259000000000",
+    "initAnchor": "1024717819000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xf319abb200780a92af01c5b15848cbb72d70856afdb3b71dfb2cf3d281212759",
+    "deployBlockNumber": 20976979,
+    "reversedFee": 0.09999999999164011
+}
