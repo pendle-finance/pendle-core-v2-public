@@ -1,0 +1,14 @@
+{
+    "name": "SY PumpBTC",
+    "SY": "0x78F9AFeC0afD297bea08098ED01719b0b0f19aB2",
+    "YT": "0x69A7ae08F16eA2e6771675DA2b39bB745886600e",
+    "PT": "0x997Ec6Bf18a30Ef01ed8D9c90718C7726a213527",
+    "market": "0x8098B48a1c4e4080b30A43a7eBc0c87b52F17222",
+    "expiry": 1743033600,
+    "scalarRoot": "45102887177000000000",
+    "initAnchor": "1022422628000000000",
+    "lnFeeRateRoot": "1498876123000000",
+    "deployTxHash": "0x32d67c408f9d9bdeeb95002d2737f329ee47449f0ad3e75d86dbd580604ae0e9",
+    "deployBlockNumber": 20976358,
+    "reversedFee": 0.15
+}
