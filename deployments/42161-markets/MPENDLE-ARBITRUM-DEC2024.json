@@ -1,0 +1,14 @@
+{
+    "name": "SY mPENDLE",
+    "SY": "0xd90E7b9fF165Dc10033896ea86194B4BBce070Bb",
+    "YT": "0x4902F38BB8dd0d3eaF77C4212F1Fdb7E2d34d39a",
+    "PT": "0x733c9399bb4c550CcfF63fcCcc645BbC22f73c40",
+    "market": "0xAcEEe1AE91bc2F9244d699aA11B8a591F88b3778",
+    "expiry": 1735171200,
+    "scalarRoot": "33321085501000000000",
+    "initAnchor": "1016012149000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xb9e4bd5739b8940f2bd4bdbb9d7fcd718468265c34a2b35b5253d68c777e6428",
+    "deployBlockNumber": 264299434,
+    "reversedFee": 0.09999999999164011
+}
