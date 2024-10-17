@@ -2,5 +2,5 @@
 pragma solidity ^0.8.0;
 
 interface IVenusComptroller {
-    function claimVenus(address) external;
+    function claimVenus(address holder, address[] memory vTokens) external;
 }

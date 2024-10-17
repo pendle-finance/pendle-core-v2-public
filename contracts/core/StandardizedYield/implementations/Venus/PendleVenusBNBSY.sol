@@ -7,6 +7,8 @@ import "../../../../interfaces/Venus/IVenusBNB.sol";
 import "../../../../interfaces/Venus/IVenusComptroller.sol";
 
 contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
+    using PMath for uint256;
+
     error VenusError(uint256 errorCode);
 
     address public constant VBNB = 0xA07c5b74C9B40447a954e1466938b865b6BBea36;
@@ -39,7 +41,7 @@ contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256 amountTokenOut) {
         if (tokenOut == VBNB) {
-            _transferOut(NATIVE, receiver, amountTokenOut = amountSharesToRedeem);
+            _transferOut(VBNB, receiver, amountTokenOut = amountSharesToRedeem);
         } else {
             uint256 err = IVenusBNB(VBNB).redeem(amountSharesToRedeem);
             if (err != 0) {
@@ -66,7 +68,7 @@ contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
     }
 
     function _redeemExternalReward() internal override {
-        IVenusComptroller(COMPTROLLER).claimVenus(address(this));
+        IVenusComptroller(COMPTROLLER).claimVenus(address(this), ArrayLib.create(VBNB));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -76,12 +78,25 @@ contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit
-    ) internal view override returns (uint256 amountSharesOut) {}
+    ) internal view override returns (uint256) {
+        if (tokenIn == VBNB) {
+            return amountTokenToDeposit;
+        }
+        uint256 rate = _exchangeRateCurrentView();
+        return amountTokenToDeposit.divDown(rate);
+        
+    }
 
     function _previewRedeem(
         address tokenOut,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 amountTokenOut) {}
+    ) internal view override returns (uint256 amountTokenOut) {
+        if (tokenOut == VBNB) {
+            return amountSharesToRedeem;
+        }
+        uint256 rate = _exchangeRateCurrentView();
+        return amountSharesToRedeem.mulDown(rate);
+    }
 
     function getTokensIn() public view virtual override returns (address[] memory res) {
         return ArrayLib.create(NATIVE, VBNB);
