@@ -1,0 +1,14 @@
+{
+    "name": "SY ePENDLE",
+    "SY": "0xD302d7fD2c9375a433018fDfA5613Be6Ad3f18E3",
+    "YT": "0x836997Ae68e92F59Da33e8F4A0Ad9f3943193820",
+    "PT": "0xf93e88b07dfC860Abf72D13A088a7092CE213190",
+    "market": "0xC0Cda2d5d4d75544Cdf01EF69B1E5e56EA366d17",
+    "expiry": 1735171200,
+    "scalarRoot": "33369136469000000000",
+    "initAnchor": "1014538106000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x4b33b12f854da96959cc992683fd36518a9831e9852999478b6e4a82659b96ea",
+    "deployBlockNumber": 264997381,
+    "reversedFee": 0.09999999999164011
+}
