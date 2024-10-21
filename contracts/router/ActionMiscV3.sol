@@ -6,6 +6,8 @@ import "../interfaces/IPActionMiscV3.sol";
 import "../interfaces/IPReflector.sol";
 
 contract ActionMiscV3 is IPActionMiscV3, ActionBase {
+    uint256 private constant NOT_FOUND = type(uint256).max;
+
     function mintSyFromToken(
         address receiver,
         address SY,
@@ -93,6 +95,114 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         }
     }
 
+    /// @dev The interface might change in the future, check with Pendle team before use
+    function redeemDueInterestAndRewardsV2(
+        IStandardizedYield[] calldata SYs,
+        RedeemYtIncomeToTokenStruct[] calldata YTs,
+        IPMarket[] calldata markets,
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps
+    ) external returns (uint256[] memory netOutFromSwaps, uint256[] memory netInterests) {
+        if (swaps.length == 0) {
+            return (netOutFromSwaps, __redeemDueInterestAndRewardsV2NoSwap(SYs, YTs, markets));
+        } else {
+            return __redeemDueInterestAndRewardsV2AndSwap(SYs, YTs, markets, pendleSwap, swaps);
+        }
+    }
+
+    function __redeemDueInterestAndRewardsV2NoSwap(
+        IStandardizedYield[] calldata SYs,
+        RedeemYtIncomeToTokenStruct[] calldata YTs,
+        IPMarket[] calldata markets
+    ) private returns (uint256[] memory netInterests) {
+        netInterests = new uint256[](YTs.length);
+        for (uint256 i = 0; i < SYs.length; ++i) SYs[i].claimRewards(msg.sender);
+
+        for (uint256 i = 0; i < YTs.length; ++i) {
+            (uint256 netSyInt, ) = YTs[i].yt.redeemDueInterestAndRewards(
+                msg.sender,
+                YTs[i].doRedeemInterest,
+                YTs[i].doRedeemRewards
+            );
+
+            if (netSyInt == 0) continue;
+
+            IStandardizedYield SY = IStandardizedYield(YTs[i].yt.SY());
+            _transferFrom(SY, msg.sender, address(SY), netSyInt);
+            netInterests[i] = SY.redeem(msg.sender, netSyInt, YTs[i].tokenRedeemSy, YTs[i].minTokenRedeemOut, true);
+        }
+
+        for (uint256 i = 0; i < markets.length; ++i) markets[i].redeemRewards(msg.sender);
+    }
+
+    function __redeemDueInterestAndRewardsV2AndSwap(
+        IStandardizedYield[] calldata SYs,
+        RedeemYtIncomeToTokenStruct[] calldata YTs,
+        IPMarket[] calldata markets,
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps
+    ) private returns (uint256[] memory netOutFromSwaps, uint256[] memory netInterests) {
+        netOutFromSwaps = new uint256[](swaps.length);
+        uint256[] memory netSwaps = new uint256[](swaps.length);
+
+        for (uint256 i = 0; i < SYs.length; ++i) {
+            _add(swaps, netSwaps, SYs[i].getRewardTokens(), SYs[i].claimRewards(msg.sender));
+        }
+
+        netInterests = new uint256[](YTs.length);
+        for (uint256 i = 0; i < YTs.length; ++i) {
+            uint256[] memory netRewards;
+            (netInterests[i], netRewards) = YTs[i].yt.redeemDueInterestAndRewards(
+                msg.sender,
+                YTs[i].doRedeemInterest,
+                YTs[i].doRedeemRewards
+            );
+
+            if (YTs[i].doRedeemRewards) _add(swaps, netSwaps, YTs[i].yt.getRewardTokens(), netRewards);
+        }
+
+        for (uint256 i = 0; i < markets.length; ++i) {
+            _add(swaps, netSwaps, markets[i].getRewardTokens(), markets[i].redeemRewards(msg.sender));
+        }
+
+        for (uint256 i = 0; i < swaps.length; ++i) {
+            _transferIn(swaps[i].tokenIn, msg.sender, netSwaps[i]);
+        }
+
+        for (uint256 i = 0; i < YTs.length; ++i) {
+            if (netInterests[i] == 0) continue;
+            IStandardizedYield SY = IStandardizedYield(YTs[i].yt.SY());
+            netInterests[i] = _redeemSyAndAdd(
+                swaps,
+                netSwaps,
+                SY,
+                netInterests[i],
+                YTs[i].tokenRedeemSy,
+                YTs[i].minTokenRedeemOut
+            );
+        }
+
+        for (uint256 i = 0; i < swaps.length; ++i) netOutFromSwaps[i] = _swap(swaps[i], netSwaps[i], pendleSwap, true);
+    }
+
+    /// @dev The interface might change in the future, check with Pendle team before use
+    function swapTokensToTokens(
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps,
+        uint256[] calldata netSwaps
+    ) external payable returns (uint256[] memory netOutFromSwaps) {
+        netOutFromSwaps = new uint256[](swaps.length);
+
+        for (uint256 i = 0; i < swaps.length; ++i) {
+            _transferIn(swaps[i].tokenIn, msg.sender, netSwaps[i]);
+        }
+
+        for (uint256 i = 0; i < swaps.length; ++i) {
+            netOutFromSwaps[i] = _swap(swaps[i], netSwaps[i], pendleSwap, false);
+        }
+    }
+
+    /// @dev Deprecated, please use swapTokensToTokens which support unwrapping ETH too
     function swapTokenToToken(
         address receiver,
         uint256 minTokenOut,
@@ -106,6 +216,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         _transferOut(inp.tokenMintSy, receiver, netTokenOut);
     }
 
+    /// @dev The interface might change in the future, check with Pendle team before use
     function swapTokenToTokenViaSy(
         address receiver,
         address SY,
@@ -226,6 +337,73 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         require(params.totalSyOut >= minSyOut, "Slippage: INSUFFICIENT_SY_OUT");
 
         emit ExitPostExpToSy(msg.sender, market, receiver, netLpIn, params);
+    }
+
+    function _redeemSyAndAdd(
+        SwapDataExtra[] calldata swaps,
+        uint256[] memory netSwaps,
+        IStandardizedYield SY,
+        uint256 netSyToRedeem,
+        address tokenRedeemSy,
+        uint256 minTokenRedeemSy
+    ) internal returns (uint256 netTokenOut) {
+        _transferFrom(SY, msg.sender, address(SY), netSyToRedeem);
+
+        uint256 index = _find(swaps, tokenRedeemSy);
+        if (index == NOT_FOUND) {
+            return SY.redeem(msg.sender, netSyToRedeem, tokenRedeemSy, minTokenRedeemSy, true);
+        }
+
+        netTokenOut = SY.redeem(address(this), netSyToRedeem, tokenRedeemSy, minTokenRedeemSy, true);
+        netSwaps[index] += netTokenOut;
+    }
+
+    function _add(
+        SwapDataExtra[] calldata swaps,
+        uint256[] memory netSwaps,
+        address[] memory tokens,
+        uint256[] memory amounts
+    ) internal pure {
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            uint256 index = _find(swaps, tokens[i]);
+            if (index == NOT_FOUND) continue;
+
+            netSwaps[index] += amounts[i];
+        }
+    }
+
+    function _swap(
+        SwapDataExtra calldata $,
+        uint256 netSwap,
+        IPSwapAggregator pendleSwap,
+        bool needScale
+    ) internal returns (uint256 netTokenOut) {
+        SwapType swapType = $.swapData.swapType;
+        assert(swapType != SwapType.NONE);
+
+        if (swapType == SwapType.ETH_WETH) {
+            _wrap_unwrap_ETH($.tokenIn, $.tokenOut, netSwap);
+
+            netTokenOut = netSwap;
+        } else {
+            assert($.swapData.needScale == needScale);
+
+            _transferOut($.tokenIn, address(pendleSwap), netSwap);
+
+            uint256 preBalance = _selfBalance($.tokenOut);
+            IPSwapAggregator(pendleSwap).swap($.tokenIn, netSwap, $.swapData);
+            netTokenOut = _selfBalance($.tokenOut) - preBalance;
+        }
+
+        require(netTokenOut >= $.minOut, "Slippage: INSUFFICIENT_TOKEN_OUT");
+        _transferOut($.tokenOut, msg.sender, netTokenOut);
+    }
+
+    function _find(SwapDataExtra[] calldata swaps, address token) internal pure returns (uint256 index) {
+        for (uint256 i = 0; i < swaps.length; ++i) {
+            if (swaps[i].tokenIn == token) return i;
+        }
+        return NOT_FOUND;
     }
 
     function _exitPostExpToSy(

@@ -8,6 +8,13 @@ struct SwapData {
     bool needScale;
 }
 
+struct SwapDataExtra {
+    address tokenIn;
+    address tokenOut;
+    uint256 minOut;
+    SwapData swapData;
+}
+
 enum SwapType {
     NONE,
     KYBERSWAP,

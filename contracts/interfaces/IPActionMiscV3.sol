@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "../router/base/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
+import "./IStandardizedYield.sol";
+import "./IPMarket.sol";
 
 /*
  *******************************************************************************************************************
@@ -24,6 +26,14 @@ interface IPActionMiscV3 {
     struct Result {
         bool success;
         bytes returnData;
+    }
+
+    struct RedeemYtIncomeToTokenStruct {
+        IPYieldToken yt;
+        bool doRedeemInterest;
+        bool doRedeemRewards;
+        address tokenRedeemSy;
+        uint256 minTokenRedeemOut;
     }
 
     struct ExitPreExpReturnParams {
@@ -184,6 +194,20 @@ interface IPActionMiscV3 {
         address[] calldata yts,
         address[] calldata markets
     ) external;
+
+    function redeemDueInterestAndRewardsV2(
+        IStandardizedYield[] calldata SYs,
+        RedeemYtIncomeToTokenStruct[] calldata YTs,
+        IPMarket[] calldata markets,
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps
+    ) external returns (uint256[] memory netOutFromSwaps, uint256[] memory netInterests);
+
+    function swapTokensToTokens(
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps,
+        uint256[] calldata netSwaps
+    ) external payable returns (uint256[] memory netOutFromSwaps);
 
     function swapTokenToToken(
         address receiver,
