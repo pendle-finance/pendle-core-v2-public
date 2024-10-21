@@ -21,7 +21,7 @@ contract PendleEEigenSYUpg is PendleERC20SYUpg {
     }
 
     function initialize() external initializer {
-        __SYBaseUpg_init("SY ether.fi EiGEN", "SY-eEIGEN");
+        __SYBaseUpg_init("SY ether.fi EIGEN", "SY-eEIGEN");
         _safeApproveInf(EIGEN, EEIGEN);
     }
 

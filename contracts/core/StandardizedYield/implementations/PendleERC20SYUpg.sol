@@ -8,9 +8,7 @@ contract PendleERC20SYUpg is SYBaseUpg {
 
     uint256[100] private __gap;
 
-    constructor(address _erc20) SYBaseUpg(_erc20) {
-        _disableInitializers();
-    }
+    constructor(address _erc20) SYBaseUpg(_erc20) {}
 
     function initialize(string memory _name, string memory _symbol) external virtual initializer {
         __SYBaseUpg_init(_name, _symbol);
