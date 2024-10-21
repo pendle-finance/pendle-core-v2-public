@@ -42,8 +42,6 @@ contract PendleOffchainStorage is IPOffchainStorage, UUPSUpgradeable, AccessCont
         emit SetStorage(key, value);
     }
 
-    // TODO: update more getSomething functions later when theres a need
-
     /*///////////////////////////////////////////////////////////////
                             UPGRADABLE RELATED
     //////////////////////////////////////////////////////////////*/

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../router/base/MarketApproxLib.sol";
+import "../router/math/MarketApproxLib.sol";
 import "./IPAllActionTypeV3.sol";
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 import "./IStandardizedYield.sol";
 import "./IPMarket.sol";
 
@@ -13,11 +14,19 @@ import "./IPMarket.sol";
  * Refer to https://docs.pendle.finance/Developers/Contracts/PendleRouter for more information on
  * TokenInput, TokenOutput, ApproxParams, LimitOrderData
  * It's recommended to use Pendle's Hosted SDK to generate the params
+ *
+ * For simple operation that does not involve aggregator and/or Pendle limit order,
+ * please:
+ * - refer to `./IPActionSimple.sol` for simpler functions with stripped down paramteres, or
+ * - use `./IPAllActionTypeV3.sol` for helper functions to generate necessary parameters.
+ *
+ * Passing in the generated parameters and using functions in `./IPActionSimple.sol` have the
+ * exact same effects.
  *******************************************************************************************************************
  *******************************************************************************************************************
  */
 
-interface IPActionMiscV3 {
+interface IPActionMiscV3 is IPAllEventsV3 {
     struct Call3 {
         bool allowFailure;
         bytes callData;
@@ -27,124 +36,6 @@ interface IPActionMiscV3 {
         bool success;
         bytes returnData;
     }
-
-    struct RedeemYtIncomeToTokenStruct {
-        IPYieldToken yt;
-        bool doRedeemInterest;
-        bool doRedeemRewards;
-        address tokenRedeemSy;
-        uint256 minTokenRedeemOut;
-    }
-
-    struct ExitPreExpReturnParams {
-        uint256 netPtFromRemove;
-        uint256 netSyFromRemove;
-        uint256 netPyRedeem;
-        uint256 netSyFromRedeem;
-        uint256 netPtSwap;
-        uint256 netYtSwap;
-        uint256 netSyFromSwap;
-        uint256 netSyFee;
-        uint256 totalSyOut;
-    }
-
-    struct ExitPostExpReturnParams {
-        uint256 netPtFromRemove;
-        uint256 netSyFromRemove;
-        uint256 netPtRedeem;
-        uint256 netSyFromRedeem;
-        uint256 totalSyOut;
-    }
-
-    event MintSyFromToken(
-        address indexed caller,
-        address indexed tokenIn,
-        address indexed SY,
-        address receiver,
-        uint256 netTokenIn,
-        uint256 netSyOut
-    );
-
-    event RedeemSyToToken(
-        address indexed caller,
-        address indexed tokenOut,
-        address indexed SY,
-        address receiver,
-        uint256 netSyIn,
-        uint256 netTokenOut
-    );
-
-    event MintPyFromSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netSyIn,
-        uint256 netPyOut
-    );
-
-    event RedeemPyToSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netPyIn,
-        uint256 netSyOut
-    );
-
-    event MintPyFromToken(
-        address indexed caller,
-        address indexed tokenIn,
-        address indexed YT,
-        address receiver,
-        uint256 netTokenIn,
-        uint256 netPyOut,
-        uint256 netSyInterm
-    );
-
-    event RedeemPyToToken(
-        address indexed caller,
-        address indexed tokenOut,
-        address indexed YT,
-        address receiver,
-        uint256 netPyIn,
-        uint256 netTokenOut,
-        uint256 netSyInterm
-    );
-
-    event ExitPreExpToToken(
-        address indexed caller,
-        address indexed market,
-        address indexed token,
-        address receiver,
-        uint256 netLpIn,
-        uint256 totalTokenOut,
-        ExitPreExpReturnParams params
-    );
-
-    event ExitPreExpToSy(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netLpIn,
-        ExitPreExpReturnParams params
-    );
-
-    event ExitPostExpToToken(
-        address indexed caller,
-        address indexed market,
-        address indexed token,
-        address receiver,
-        uint256 netLpIn,
-        uint256 totalTokenOut,
-        ExitPostExpReturnParams params
-    );
-
-    event ExitPostExpToSy(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netLpIn,
-        ExitPostExpReturnParams params
-    );
 
     function mintSyFromToken(
         address receiver,

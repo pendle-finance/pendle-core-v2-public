@@ -3,11 +3,13 @@ pragma solidity ^0.8.17;
 
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionSwapPTV3.sol";
+import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 
-contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
+contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
 
     // ------------------ SWAP TOKEN FOR PT ------------------
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactTokenForPt(
         address receiver,
         address market,
@@ -16,6 +18,10 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netPtOut, uint256 netSyFee, uint256 netSyInterm) {
+        if (canUseOnchainApproximation(guessPtOut, limit)) {
+            return delegateToSwapExactTokenForPtSimple(receiver, market, minPtOut, input);
+        }
+
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForPt(market, limit), address(SY), 1, input);
 
@@ -31,6 +37,7 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactSyForPt(
         address receiver,
         address market,
@@ -39,6 +46,10 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         ApproxParams calldata guessPtOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
+        if (canUseOnchainApproximation(guessPtOut, limit)) {
+            return delegateToSwapExactSyForPtSimple(receiver, market, exactSyIn, minPtOut);
+        }
+
         (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForPt(market, limit), exactSyIn);
 
@@ -46,6 +57,7 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         emit SwapPtAndSy(msg.sender, market, receiver, netPtOut.Int(), exactSyIn.neg());
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactPtForToken(
         address receiver,
         address market,
@@ -71,6 +83,7 @@ contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactPtForSy(
         address receiver,
         address market,

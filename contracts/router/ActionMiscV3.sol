@@ -18,6 +18,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit MintSyFromToken(msg.sender, input.tokenIn, SY, receiver, input.netTokenIn, netSyOut);
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function redeemSyToToken(
         address receiver,
         address SY,
@@ -28,6 +29,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit RedeemSyToToken(msg.sender, output.tokenOut, SY, receiver, netSyIn, netTokenOut);
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function mintPyFromToken(
         address receiver,
         address YT,
@@ -42,6 +44,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit MintPyFromToken(msg.sender, input.tokenIn, YT, receiver, input.netTokenIn, netPyOut, netSyInterm);
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function redeemPyToToken(
         address receiver,
         address YT,
@@ -228,7 +231,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         netTokenOut = IStandardizedYield(SY).redeem(receiver, netSyInterm, tokenRedeemSy, minTokenOut, true);
     }
 
-    /// @dev The interface might change in the future, check with Pendle team before use
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function exitPreExpToToken(
         address receiver,
         address market,
@@ -246,7 +249,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit ExitPreExpToToken(msg.sender, market, output.tokenOut, receiver, netLpIn, totalTokenOut, params);
     }
 
-    /// @dev The interface might change in the future, check with Pendle team before use
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function exitPreExpToSy(
         address receiver,
         address market,
@@ -309,7 +312,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         p.totalSyOut = p.netSyFromRemove + p.netSyFromRedeem + p.netSyFromSwap;
     }
 
-    /// @dev The interface might change in the future, check with Pendle team before use
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function exitPostExpToToken(
         address receiver,
         address market,
@@ -466,20 +469,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     function simulate(address target, bytes calldata data) external payable {
         (bool success, bytes memory result) = target.delegatecall(data);
         revert Errors.SimulationResults(success, result);
-    }
-
-    function _delegateToSelf(
-        bytes memory data,
-        bool allowFailure
-    ) internal returns (bool success, bytes memory result) {
-        (success, result) = address(this).delegatecall(data);
-
-        if (!success && !allowFailure) {
-            assembly {
-                // We use Yul's revert() to bubble up errors from the target contract.
-                revert(add(32, result), mload(result))
-            }
-        }
     }
 
     function _callToReflector(address payable reflector, bytes memory data) internal returns (bytes memory) {

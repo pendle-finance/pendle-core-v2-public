@@ -3,15 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../core/libraries/math/PMath.sol";
 import "../../core/Market/MarketMathCore.sol";
-
-struct ApproxParams {
-    uint256 guessMin;
-    uint256 guessMax;
-    uint256 guessOffchain; // pass 0 in to skip this variable
-    uint256 maxIteration; // every iteration, the diff between guessMin and guessMax will be divided by 2
-    uint256 eps; // the max eps between the returned result & the correct result, base 1e18. Normally this number will be set
-    // to 1e15 (1e18/1000 = 0.1%)
-}
+import {ApproxParams} from "../../interfaces/IPAllActionTypeV3.sol";
 
 /// Further explanation of the eps. Take swapExactSyForPt for example. To calc the corresponding amount of Pt to swap out,
 /// it's necessary to run an approximation algorithm, because by default there only exists the Pt to Sy formula

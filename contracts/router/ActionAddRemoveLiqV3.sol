@@ -4,7 +4,9 @@ pragma solidity ^0.8.17;
 import "./base/ActionBase.sol";
 import "../interfaces/IPActionAddRemoveLiqV3.sol";
 
-contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
+import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
+
+contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
@@ -14,6 +16,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
     using PYIndexLib for PYIndex;
 
     // ------------------ ADD LIQUIDITY DUAL ------------------
+
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function addLiquidityDualTokenAndPt(
         address receiver,
         address market,
@@ -77,6 +81,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
     // ------------------ ADD LIQUIDITY SINGLE PT ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function addLiquiditySinglePt(
         address receiver,
         address market,
@@ -85,6 +90,9 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtSwapToSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
+        if (canUseOnchainApproximation(guessPtSwapToSy, limit)) {
+            return delegateToAddLiquiditySinglePtSimple(receiver, market, netPtIn, minLpOut);
+        }
         (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(PT, msg.sender, _entry_addLiquiditySinglePt(market, limit), netPtIn);
 
@@ -123,12 +131,9 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         emit AddLiquiditySinglePt(msg.sender, market, receiver, netPtIn, netLpOut);
     }
 
-    function _entry_addLiquiditySinglePt(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
-    }
-
     // ------------------ ADD LIQUIDITY SINGLE TOKEN ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function addLiquiditySingleToken(
         address receiver,
         address market,
@@ -137,6 +142,10 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netLpOut, uint256 netSyFee, uint256 netSyInterm) {
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToAddLiquiditySingleTokenSimple(receiver, market, minLpOut, input);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_addLiquiditySingleSy(market, limit), address(SY), 1, input);
@@ -163,6 +172,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function addLiquiditySingleSy(
         address receiver,
         address market,
@@ -171,6 +181,10 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netLpOut, uint256 netSyFee) {
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToAddLiquiditySingleSySimple(receiver, market, netSyIn, minLpOut);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         _transferFrom(SY, msg.sender, _entry_addLiquiditySingleSy(market, limit), netSyIn);
@@ -187,10 +201,6 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         );
 
         emit AddLiquiditySingleSy(msg.sender, market, receiver, netSyIn, netLpOut);
-    }
-
-    function _entry_addLiquiditySingleSy(address market, LimitOrderData calldata lim) internal view returns (address) {
-        return !_isEmptyLimit(lim) ? address(this) : market;
     }
 
     function _addLiquiditySingleSy(
@@ -236,6 +246,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
     // ------------------ ADD LIQUIDITY SINGLE TOKEN KEEP YT ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function addLiquiditySingleTokenKeepYt(
         address receiver,
         address market,
@@ -330,6 +341,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
     // ------------------ REMOVE LIQUIDITY DUAL ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function removeLiquidityDualTokenAndPt(
         address receiver,
         address market,
@@ -377,6 +389,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
     }
 
     // ------------------ REMOVE LIQUIDITY SINGLE PT ------------------
+
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function removeLiquiditySinglePt(
         address receiver,
         address market,
@@ -385,6 +399,10 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         ApproxParams calldata guessPtReceivedFromSy,
         LimitOrderData calldata limit
     ) external returns (uint256 netPtOut, uint256 netSyFee) {
+        if (canUseOnchainApproximation(guessPtReceivedFromSy, limit)) {
+            return delegateToRemoveLiquiditySinglePtSimple(receiver, market, netLpToRemove, minPtOut);
+        }
+
         uint256 netSyLeft;
 
         // execute the burn
@@ -415,6 +433,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
 
     // ------------------ REMOVE LIQUIDITY SINGLE TOKEN ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function removeLiquiditySingleToken(
         address receiver,
         address market,
@@ -441,6 +460,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function removeLiquiditySingleSy(
         address receiver,
         address market,

@@ -4,8 +4,9 @@ pragma solidity ^0.8.17;
 import "./base/ActionBase.sol";
 import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYTV3.sol";
+import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 
-contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
+contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
     using MarketApproxPtInLib for MarketState;
     using MarketApproxPtOutLib for MarketState;
@@ -13,6 +14,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
 
     // ------------------ SWAP TOKEN FOR YT ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactTokenForYt(
         address receiver,
         address market,
@@ -21,6 +23,10 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         TokenInput calldata input,
         LimitOrderData calldata limit
     ) external payable returns (uint256 netYtOut, uint256 netSyFee, uint256 netSyInterm) {
+        if (canUseOnchainApproximation(guessYtOut, limit)) {
+            return delegateToSwapExactTokenForYtSimple(receiver, market, minYtOut, input);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForYt(YT, limit), address(SY), 1, input);
@@ -37,6 +43,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactSyForYt(
         address receiver,
         address market,
@@ -45,6 +52,10 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         ApproxParams calldata guessYtOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netYtOut, uint256 netSyFee) {
+        if (canUseOnchainApproximation(guessYtOut, limit)) {
+            return delegateToSwapExactSyForYtSimple(receiver, market, exactSyIn, minYtOut);
+        }
+
         (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForYt(YT, limit), exactSyIn);
 
@@ -54,6 +65,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
 
     // ------------------ SWAP TOKEN FOR TOKEN ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactYtForToken(
         address receiver,
         address market,
@@ -79,6 +91,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
         );
     }
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactYtForSy(
         address receiver,
         address market,
@@ -95,6 +108,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
 
     // ------------------ SWAP PT FOR YT ------------------
 
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactPtForYt(
         address receiver,
         address market,
@@ -124,6 +138,8 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase {
     }
 
     // ------------------ SWAP YT FOR PT ------------------
+
+    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactYtForPt(
         address receiver,
         address market,

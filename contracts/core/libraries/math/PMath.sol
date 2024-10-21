@@ -67,12 +67,36 @@ library PMath {
         return (a + b - 1) / b;
     }
 
-    function slipUp(uint256 a, uint256 factor) internal pure returns (uint256) {
+    function tweakUp(uint256 a, uint256 factor) internal pure returns (uint256) {
         return mulDown(a, ONE + factor);
     }
 
-    function slipDown(uint256 a, uint256 factor) internal pure returns (uint256) {
+    function tweakDown(uint256 a, uint256 factor) internal pure returns (uint256) {
         return mulDown(a, ONE - factor);
+    }
+
+    /// @return res = min(a + b, bound)
+    /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
+    function addWithUpperBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256 res) {
+        unchecked {
+            if (type(uint256).max - b < a) res = bound;
+            else res = min(bound, a + b);
+        }
+    }
+
+    /// @return res = max(a - b, bound)
+    /// @dev This function should handle arithmetic operation and bound check without overflow/underflow
+    function subWithLowerBound(uint256 a, uint256 b, uint256 bound) internal pure returns (uint256 res) {
+        unchecked {
+            if (b > a) res = bound;
+            else res = max(a - b, bound);
+        }
+    }
+
+    function clamp(uint256 x, uint256 lower, uint256 upper) internal pure returns (uint256 res) {
+        res = x;
+        if (x < lower) res = lower;
+        else if (x > upper) res = upper;
     }
 
     // @author Uniswap

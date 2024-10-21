@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-interface IPActionStorageV4 {
+import {IPAllEventsV3} from "./IPAllEventsV3.sol";
+
+interface IPActionStorageV4 is IPAllEventsV3 {
     struct SelectorsToFacet {
         address facet;
         bytes4[] selectors;
     }
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    event SelectorToFacetSet(bytes4 indexed selector, address indexed facet);
 
     function owner() external view returns (address);
 
