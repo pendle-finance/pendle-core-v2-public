@@ -7,25 +7,7 @@ import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 import "./IStandardizedYield.sol";
 import "./IPMarket.sol";
 
-/*
- *******************************************************************************************************************
- *******************************************************************************************************************
- * NOTICE *
- * Refer to https://docs.pendle.finance/Developers/Contracts/PendleRouter for more information on
- * TokenInput, TokenOutput, ApproxParams, LimitOrderData
- * It's recommended to use Pendle's Hosted SDK to generate the params
- *
- * For simple operation that does not involve aggregator and/or Pendle limit order,
- * please:
- * - refer to `./IPActionSimple.sol` for simpler functions with stripped down paramteres, or
- * - use `./IPAllActionTypeV3.sol` for helper functions to generate necessary parameters.
- *
- * Passing in the generated parameters and using functions in `./IPActionSimple.sol` have the
- * exact same effects.
- *******************************************************************************************************************
- *******************************************************************************************************************
- */
-
+/// Refer to IPAllActionTypeV3.sol for details on the parameters
 interface IPActionMiscV3 is IPAllEventsV3 {
     struct Call3 {
         bool allowFailure;
