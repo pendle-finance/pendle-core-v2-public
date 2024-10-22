@@ -15,12 +15,12 @@ library MarketApproxPtInLibOnchain {
     using LogExpMath for int256;
     using MarketApproxEstimateLib for MarketState;
 
-    function approxSwapExactSyForYt(
+    function approxSwapExactSyForYtOnchain(
         MarketState memory market,
         PYIndex index,
         uint256 exactSyIn,
         uint256 blockTime
-    ) internal pure returns (uint256 /*netYtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
+    ) internal pure returns (uint256, /*netYtOut*/ uint256, /*netSyFee*/ uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         uint256 estimatedYtOut = market.estimateSwapExactSyForYt(index, blockTime, exactSyIn);
         uint256[2] memory hardBounds = [index.syToAsset(exactSyIn), calcSoftMaxPtIn(market, comp)];
@@ -46,7 +46,7 @@ library MarketApproxPtInLibOnchain {
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
-    function approxSwapPtToAddLiquidity(
+    function approxSwapPtToAddLiquidityOnchain(
         MarketState memory market,
         PYIndex index,
         uint256 totalPtIn,
@@ -55,7 +55,7 @@ library MarketApproxPtInLibOnchain {
     )
         internal
         pure
-        returns (uint256 /*netPtSwap*/, uint256 /*netSyFromSwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
+        returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256, /*netSyFee*/ uint256 /* iteration */)
     {
         require(market.totalLp != 0, "no existing lp");
 
@@ -134,12 +134,12 @@ library MarketApproxPtOutLibOnchain {
     using LogExpMath for int256;
     using MarketApproxEstimateLib for MarketState;
 
-    function approxSwapExactSyForPt(
+    function approxSwapExactSyForPtOnchain(
         MarketState memory market,
         PYIndex index,
         uint256 exactSyIn,
         uint256 blockTime
-    ) internal pure returns (uint256 /*netPtOut*/, uint256 /*netSyFee*/, uint256 /* iteration */) {
+    ) internal pure returns (uint256, /*netPtOut*/ uint256, /*netSyFee*/ uint256 /* iteration */) {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         uint256 estimatedPtOut = market.estimateSwapExactSyForPt(index, blockTime, exactSyIn);
         uint256[2] memory hardBounds = [0, calcMaxPtOut(comp, market.totalPt)];
@@ -162,7 +162,7 @@ library MarketApproxPtOutLibOnchain {
         revert("Slippage: APPROX_EXHAUSTED");
     }
 
-    function approxSwapSyToAddLiquidity(
+    function approxSwapSyToAddLiquidityOnchain(
         MarketState memory market,
         PYIndex index,
         uint256 totalSyIn,
@@ -171,7 +171,7 @@ library MarketApproxPtOutLibOnchain {
     )
         internal
         pure
-        returns (uint256 /*netPtFromSwap*/, uint256 /*netSySwap*/, uint256 /*netSyFee*/, uint256 /* iteration */)
+        returns (uint256, /*netPtFromSwap*/ uint256, /*netSySwap*/ uint256, /*netSyFee*/ uint256 /* iteration */)
     {
         require(market.totalLp != 0, "no existing lp");
 

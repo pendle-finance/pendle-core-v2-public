@@ -121,7 +121,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         uint256 netPtLeft = netPtIn;
         uint256 netSyReceived;
 
-        (uint256 netPtSwapMarket, , , ) = _readMarket(market).approxSwapPtToAddLiquidity(
+        (uint256 netPtSwapMarket, , , ) = _readMarket(market).approxSwapPtToAddLiquidityOnchain(
             YT.newIndex(),
             netPtLeft,
             netSyReceived,
@@ -204,7 +204,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         uint256 netSyLeft = netSyIn;
         uint256 netPtReceived;
 
-        (uint256 netPtOutMarket, , , ) = _readMarket(market).approxSwapSyToAddLiquidity(
+        (uint256 netPtOutMarket, , , ) = _readMarket(market).approxSwapSyToAddLiquidityOnchain(
             YT.newIndex(),
             netSyLeft,
             netPtReceived,
@@ -266,7 +266,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
         (, , IPYieldToken YT) = IPMarket(market).readTokens();
         uint256 netSyLeft = exactSyIn;
 
-        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapExactSyForPt(
+        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapExactSyForPtOnchain(
             YT.newIndex(),
             netSyLeft,
             block.timestamp
@@ -290,7 +290,7 @@ contract ActionSimple is ActionBase, IPActionSimple {
     ) internal returns (uint256 netYtOut, uint256 netSyFee) {
         uint256 netSyLeft = exactSyIn;
 
-        (uint256 netYtOutMarket, , ) = _readMarket(market).approxSwapExactSyForYt(
+        (uint256 netYtOutMarket, , ) = _readMarket(market).approxSwapExactSyForYtOnchain(
             YT.newIndex(),
             netSyLeft,
             block.timestamp
