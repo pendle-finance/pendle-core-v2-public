@@ -42,7 +42,7 @@ library ApproxStateLib {
     uint256 internal constant GUESS_RANGE_TWEAK = (5 * PMath.ONE) / 100;
 
     uint256 internal constant DEFAULT_MAX_ITERATION = 30;
-    uint256 internal constant DEFAULT_EPS = 1e14;
+    uint256 internal constant DEFAULT_EPS = 5e13;
 
     function initWithOffchain(ApproxParams memory approx) internal pure returns (ApproxState memory) {
         if (approx.guessMin > approx.guessOffchain || approx.guessOffchain > approx.guessMax || approx.eps > PMath.ONE)
