@@ -39,6 +39,7 @@ const config: HardhatUserConfig = {
         overrides: {
             'contracts/router/ActionAddRemoveLiqV3.sol': viaIR('0.8.23', 10000),
             'contracts/router/ActionMiscV3.sol': viaIR('0.8.23', 1000000),
+            'contracts/router/ActionSimple.sol': viaIR('0.8.23', 1000000),
             'contracts/router/ActionSwapPTV3.sol': viaIR('0.8.23', 1000000),
             'contracts/router/ActionSwapYTV3.sol': viaIR('0.8.23', 1000000),
             'contracts/router/ActionCallbackV3.sol': viaIR('0.8.23', 1000000),
