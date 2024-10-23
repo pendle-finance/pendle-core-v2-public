@@ -30,7 +30,7 @@
         "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
     },
     "routerStatic": "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8",
-    "pendleSwap": "0x2E6ffA05cd6920dcc0d169efce2F4C96E774eCd2",
+    "pendleSwap": "0x02E8Bc3e1143241E83b7Dce2eefE8c5a8fBA2BCc",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
     "yieldContractFactoryV3": "0xEb38531db128EcA928aea1B1CE9E5609B15ba146",
     "marketFactoryV3": "0x2FCb47B58350cD377f94d3821e7373Df60bD9Ced",

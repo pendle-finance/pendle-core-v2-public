@@ -19,6 +19,13 @@ contract PendleSwap is IPSwapAggregator, TokenHelper {
         );
     }
 
+    function swapMultiOdos(address[] calldata tokensIn, SwapData calldata data) external payable {
+        for (uint256 i = 0; i < tokensIn.length; ++i) {
+            _safeApproveInf(tokensIn[i], data.extRouter);
+        }
+        data.extRouter.functionCallWithValue(data.extCalldata, msg.value);
+    }
+
     function _getScaledInputData(
         SwapType swapType,
         bytes calldata rawCallData,
@@ -32,9 +39,33 @@ contract PendleSwap is IPSwapAggregator, TokenHelper {
             );
 
             require(isSuccess, "PendleSwap: Kyber scaling failed");
+        } else if (swapType == SwapType.ODOS) {
+            scaledCallData = _odosScaling(rawCallData, amountIn);
         } else {
             assert(false);
         }
+    }
+
+    function _odosScaling(
+        bytes calldata rawCallData,
+        uint256 amountIn
+    ) internal pure returns (bytes memory scaledCallData) {
+        bytes4 selector = bytes4(rawCallData[:4]);
+        bytes calldata dataToDecode = rawCallData[4:];
+
+        assert(selector == IOdosRouterV2.swap.selector);
+        (
+            IOdosRouterV2.swapTokenInfo memory tokenInfo,
+            bytes memory pathDefinition,
+            address executor,
+            uint32 referralCode
+        ) = abi.decode(dataToDecode, (IOdosRouterV2.swapTokenInfo, bytes, address, uint32));
+
+        tokenInfo.outputQuote = (tokenInfo.outputQuote * amountIn) / tokenInfo.inputAmount;
+        tokenInfo.outputMin = (tokenInfo.outputMin * amountIn) / tokenInfo.inputAmount;
+        tokenInfo.inputAmount = amountIn;
+
+        return abi.encodeWithSelector(selector, tokenInfo, pathDefinition, executor, referralCode);
     }
 
     receive() external payable {}
@@ -45,4 +76,23 @@ interface IKyberScalingHelper {
         bytes calldata inputData,
         uint256 newAmount
     ) external view returns (bool isSuccess, bytes memory data);
+}
+
+interface IOdosRouterV2 {
+    struct swapTokenInfo {
+        address inputToken;
+        uint256 inputAmount;
+        address inputReceiver;
+        address outputToken;
+        uint256 outputQuote;
+        uint256 outputMin;
+        address outputReceiver;
+    }
+
+    function swap(
+        swapTokenInfo memory tokenInfo,
+        bytes calldata pathDefinition,
+        address executor,
+        uint32 referralCode
+    ) external payable returns (uint256 amountOut);
 }

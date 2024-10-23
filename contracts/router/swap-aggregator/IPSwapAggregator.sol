@@ -18,11 +18,13 @@ struct SwapDataExtra {
 enum SwapType {
     NONE,
     KYBERSWAP,
-    ONE_INCH,
+    ODOS,
     // ETH_WETH not used in Aggregator
     ETH_WETH
 }
 
 interface IPSwapAggregator {
     function swap(address tokenIn, uint256 amountIn, SwapData calldata swapData) external payable;
+
+    function swapMultiOdos(address[] calldata tokensIn, SwapData calldata swapData) external payable;
 }
