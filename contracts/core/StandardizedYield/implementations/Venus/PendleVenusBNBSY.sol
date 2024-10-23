@@ -12,7 +12,7 @@ contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
     error VenusError(uint256 errorCode);
 
     address public constant VBNB = 0xA07c5b74C9B40447a954e1466938b865b6BBea36;
-    address public constant XVS = 0x151B1e2635A717bcDc836ECd6FbB62B674FE3E1D;
+    address public constant XVS = 0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63;
     address public constant COMPTROLLER = 0xfD36E2c2a6789Db23113685031d7F16329158384;
     uint256 public constant INITIAL_EXCHANGE_RATE = 2 * 10 ** 26;
 
