@@ -21,10 +21,11 @@
     "marketFactory": "0x17F100fB4bE2707675c6439468d38249DD993d58",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
     "routerFacets": {
-        "ActionAddRemoveLiqV3": "0xb7631b93189900745Db51d960Ba64b8E6C658843",
-        "ActionSwapPTV3": "0xbFA3aAD535e1b996396698f89FFeC7ada0df17E8",
-        "ActionSwapYTV3": "0x8903dBFFcA66b3Fbc027aC81912ea64Fa61A5219",
-        "ActionMiscV3": "0x9afd337e41f59e5c2e6f2be05f32e958a4dbcd9a",
+        "ActionAddRemoveLiqV3": "0x07d16A6D334133039A84271d30b7317DCbd1170D",
+        "ActionSwapPTV3": "0xC3B17AbC54d6Ef30500630A776392b9aF1c5e0c0",
+        "ActionSwapYTV3": "0x9b1Fe315614C2888b5151B4C2efc53878f01652b",
+        "ActionMiscV3": "0x294965CEa8FECd76a910338D2CB2b75245BE5203",
+        "ActionSimple": "0x5eBD8cfDc82Fb95488eB16881a6dBc1feD598a7a",
         "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
         "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
     },
