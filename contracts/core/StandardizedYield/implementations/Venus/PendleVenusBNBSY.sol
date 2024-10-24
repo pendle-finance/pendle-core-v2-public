@@ -75,16 +75,12 @@ contract PendleVenusBNBSY is SYBaseWithRewards, PendleVTokenRateHelper {
                 MISC FUNCTIONS FOR METADATA
     //////////////////////////////////////////////////////////////*/
 
-    function _previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) internal view override returns (uint256) {
+    function _previewDeposit(address tokenIn, uint256 amountTokenToDeposit) internal view override returns (uint256) {
         if (tokenIn == VBNB) {
             return amountTokenToDeposit;
         }
         uint256 rate = _exchangeRateCurrentView();
         return amountTokenToDeposit.divDown(rate);
-        
     }
 
     function _previewRedeem(
