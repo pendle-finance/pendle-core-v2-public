@@ -1,0 +1,14 @@
+{
+    "name": "SY VenusBNB",
+    "SY": "0x7b5a43070Bd97c2814f0D8b3b31ed53450375c19",
+    "YT": "0xFbEBe2d163ADD17Dc718fFC7b08880cA765a0Fab",
+    "PT": "0x5d1735B8E33BAe069708cEA245066dE1A12Cd38D",
+    "market": "0x0921CcC98956B1599003Fd9739d5e66BF319A161",
+    "expiry": 1750896000,
+    "scalarRoot": "29990594739000000000",
+    "initAnchor": "1049177063000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x8e272926dbc80fd59608051afa6420fc1cd3a1499188b1c67a8c79e136a19ae6",
+    "deployBlockNumber": 43398243,
+    "reversedFee": 0.09999999999164011
+}
