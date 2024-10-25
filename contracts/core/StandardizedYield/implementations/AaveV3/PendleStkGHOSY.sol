@@ -6,19 +6,19 @@ import "../../../../interfaces/AaveV3/IAaveStkGHO.sol";
 import "../../../../interfaces/Angle/IAngleDistributor.sol";
 
 contract PendleStkGHOSY is SYBaseWithRewardsUpg {
-
     event ClaimedOffchainGHO(uint256 amountClaimed);
 
     address public constant ANGLE_DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
     address public constant STKGHO = 0x1a88Df1cFe15Af22B3c4c783D4e6F7F9e0C1885d;
     address public constant GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
     address public constant AAVE = 0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9;
+    bytes32 public constant ZERO_REWARD_ERROR = 0x33d2eb294587ef7b32eb48e48695ebfec45a9c8922ec7d1c444cfad1fb208e8d;
 
     constructor() SYBaseUpg(STKGHO) {}
 
-    function initialize() initializer external {
+    function initialize() external initializer {
         __SYBaseUpg_init("SY stk GHO", "SY-stk-GHO");
-        _safeApproveInf(GHO, STKGHO);        
+        _safeApproveInf(GHO, STKGHO);
     }
 
     function _deposit(address tokenIn, uint256 amountDeposited) internal virtual override returns (uint256) {
@@ -66,7 +66,13 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     }
 
     function _redeemExternalReward() internal override {
-        IAaveStkGHO(STKGHO).claimRewards(address(this), type(uint256).max);
+        try IAaveStkGHO(STKGHO).claimRewards(address(this), type(uint256).max) {} catch Error(
+            string memory errorString
+        ) {
+            if (keccak256(abi.encodePacked(errorString)) != ZERO_REWARD_ERROR) {
+                revert(errorString);
+            }
+        }
     }
 
     function claimOffchainGHORewards(
@@ -110,7 +116,7 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     }
 
     function getTokensOut() public view virtual override returns (address[] memory) {
-        return ArrayLib.create(GHO, STKGHO);
+        return ArrayLib.create(STKGHO);
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
@@ -118,7 +124,7 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
-        return token == GHO || token == STKGHO;
+        return token == STKGHO;
     }
 
     function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
