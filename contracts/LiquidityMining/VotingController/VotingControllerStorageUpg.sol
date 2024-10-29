@@ -76,7 +76,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     address public addPoolHelper;
     address public removePoolHelper;
 
-    uint256[99] private __gap;
+    uint256[98] private __gap;
 
     constructor(address _vePendle) {
         vePendle = IPVeToken(_vePendle);
