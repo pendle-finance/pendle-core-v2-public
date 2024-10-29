@@ -6,6 +6,8 @@ import "../../../../interfaces/AaveV3/IAaveStkGHO.sol";
 import "../../../../interfaces/Angle/IAngleDistributor.sol";
 
 contract PendleStkGHOSY is SYBaseWithRewardsUpg {
+    using PMath for uint256;
+
     event ClaimedOffchainGHO(uint256 amountClaimed);
 
     address public constant ANGLE_DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
@@ -17,7 +19,7 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     constructor() SYBaseUpg(STKGHO) {}
 
     function initialize() external initializer {
-        __SYBaseUpg_init("SY stk GHO", "SY-stk-GHO");
+        __SYBaseUpg_init("SY stk GHO", "SY-stkGHO");
         _safeApproveInf(GHO, STKGHO);
     }
 
@@ -33,17 +35,11 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
 
     function _redeem(
         address receiver,
-        address tokenOut,
+        address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal virtual override returns (uint256) {
-        if (tokenOut == STKGHO) {
-            _transferOut(STKGHO, receiver, amountSharesToRedeem);
-            return amountSharesToRedeem;
-        }
-
-        uint256 amountOut = IAaveStkGHO(STKGHO).previewRedeem(amountSharesToRedeem);
-        IAaveStkGHO(STKGHO).redeem(receiver, amountSharesToRedeem);
-        return amountOut;
+        _transferOut(STKGHO, receiver, amountSharesToRedeem);
+        return amountSharesToRedeem;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -51,7 +47,7 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     //////////////////////////////////////////////////////////////*/
 
     function exchangeRate() public view virtual override returns (uint256) {
-        return IAaveStkGHO(STKGHO).getExchangeRate();
+        return PMath.ONE.divDown(IAaveStkGHO(STKGHO).getExchangeRate());
     }
 
     /*///////////////////////////////////////////////////////////////
