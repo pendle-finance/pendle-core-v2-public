@@ -102,11 +102,10 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
     }
 
     function _previewRedeem(
-        address tokenOut,
+        address /*tokenOut*/,
         uint256 amountSharesToRedeem
     ) internal view override returns (uint256 amountTokenOut) {
-        if (tokenOut == STKGHO) return amountSharesToRedeem;
-        return IAaveStkGHO(STKGHO).previewRedeem(amountSharesToRedeem);
+        return amountSharesToRedeem;
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
