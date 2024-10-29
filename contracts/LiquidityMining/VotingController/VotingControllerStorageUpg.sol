@@ -73,7 +73,8 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     // [user][pool] => checkpoint
     mapping(address => mapping(address => Checkpoints.History)) internal __dep_userPoolHistory;
 
-    address public ownerHelper;
+    address public addPoolHelper;
+    address public removePoolHelper;
 
     uint256[99] private __gap;
 

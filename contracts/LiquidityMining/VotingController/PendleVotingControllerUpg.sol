@@ -150,8 +150,13 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
                     GOVERNANCE-ONLY FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    modifier onlyHelperAndOwner() {
-        require(msg.sender == ownerHelper || msg.sender == owner, "not allowed");
+    modifier onlyAddPoolHelperAndOwner() {
+        require(msg.sender == addPoolHelper || msg.sender == owner, "add pool not allowed");
+        _;
+    }
+
+    modifier onlyRemovePoolHelperAndOwner() {
+        require(msg.sender == removePoolHelper || msg.sender == owner, "remove pool not allowed");
         _;
     }
 
@@ -162,7 +167,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * - `pool` must not have been added before (even if has been removed).
      * - `chainId` must be valid.
      */
-    function addPool(uint64 chainId, address pool) external onlyHelperAndOwner {
+    function addPool(uint64 chainId, address pool) external onlyAddPoolHelperAndOwner {
         if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
         if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
 
@@ -176,7 +181,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * - Previous week's results should have been broadcasted prior to calling this function.
      * - `pool` must be currently active.
      */
-    function removePool(address pool) external onlyOwner {
+    function removePool(address pool) external onlyRemovePoolHelperAndOwner {
         if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
         uint64 chainId = poolData[pool].chainId;
@@ -263,8 +268,13 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         }
     }
 
-    function setOwnerHelper(address _helper) public onlyOwner {
-        ownerHelper = _helper;
+    function setAddPoolHelper(address _helper) public onlyOwner {
+        addPoolHelper = _helper;
+    }
+
+
+    function setRemovePoolHelper(address _helper) public onlyOwner {
+        removePoolHelper = _helper;
     }
 
     //solhint-disable-next-line
