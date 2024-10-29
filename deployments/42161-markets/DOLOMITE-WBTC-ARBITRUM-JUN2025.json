@@ -1,0 +1,14 @@
+{
+    "name": "SY Dolomite WBTC",
+    "SY": "0x3055A746e040bd05AD1806840cA0114d632Bc7e2",
+    "YT": "0x458DB433B74B1094c8282152500F6D5bdF062Eb0",
+    "PT": "0x98510Fbe752A97F97Abd7D971a1B3290DD62Ec4A",
+    "market": "0x8cAB5Fd029ae2FBF28c53E965E4194C7260aDF0C",
+    "expiry": 1750896000,
+    "scalarRoot": "80739473419000000000",
+    "initAnchor": "1021620181000000000",
+    "lnFeeRateRoot": "499875041000000",
+    "deployTxHash": "0xca5bf1b73e433e97f87479c7bbb0c6aa00d7baf8a218dcc78fd103835507192a",
+    "deployBlockNumber": 268953118,
+    "reversedFee": 0.04999999993486881
+}
