@@ -1,0 +1,14 @@
+{
+    "name": "SY stkGHO",
+    "SY": "0xCC9eFBf580120676bFB3420FbD2cfc34019A1967",
+    "YT": "0xc5e62a939d2E85F9ebB6aEffc03B053DACF90140",
+    "PT": "0xf05312A0D01E5a0F9EBa87A539c37100fABf9B5e",
+    "market": "0xff81180a7f949ba1F940EAE6aA3B3CeB890b1912",
+    "expiry": 1745452800,
+    "scalarRoot": "31061108921000000000",
+    "initAnchor": "1059899074000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0xa5b637f1b904930fab6f91f8a7cc6dac7383613cbc1ace46d747a53a2d1e6e99",
+    "deployBlockNumber": 21071107,
+    "reversedFee": 0.19999999993256523
+}

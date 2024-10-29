@@ -1,0 +1,14 @@
+{
+    "name": "SY cmETH",
+    "SY": "0x2aB88aC7458faeC2E952Bb79CC1be6577bF63E70",
+    "YT": "0x22bDbbeC06611cFca7bfe3a53e9e574771851176",
+    "PT": "0xEbf4ff21459fEcf96e36CF1dd00db01367254Bcd",
+    "market": "0x0B923F8039ae827E963fcC1b48aB5b903d01925B",
+    "expiry": 1739404800,
+    "scalarRoot": "83317216866000000000",
+    "initAnchor": "1018704133000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0x51ae41db1f61b1b986865b5accbf24fccf65c2e848f8f6bd75a40b9a66571b85",
+    "deployBlockNumber": 71035214,
+    "reversedFee": 0.09999999999164011
+}

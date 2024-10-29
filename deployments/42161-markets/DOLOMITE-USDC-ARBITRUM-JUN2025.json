@@ -1,0 +1,14 @@
+{
+    "name": "SY dUSDC",
+    "SY": "0x84e0efc0633041aac9d0196b7ac8af3505e8cc32",
+    "YT": "0xc617dAeE26F67edBEd5Bd978f4f8E02A1f8C9a6C",
+    "PT": "0x137f793505e7884CB70Ee5933c83447E85B1BD17",
+    "market": "0x0bD6890b3Bb15f16430546147734b254d0B03059",
+    "expiry": 1750896000,
+    "scalarRoot": "30443157640000000000",
+    "initAnchor": "1081737736000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0x0151cdad7c724b4a3afa0e59453de655def51308842d4f18c882b0f21797f875",
+    "deployBlockNumber": 268865973,
+    "reversedFee": 0.19999999993256523
+}
