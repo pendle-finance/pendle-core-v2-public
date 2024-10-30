@@ -15,7 +15,7 @@ contract PendleGlpSY is SYBaseWithRewardsUpg, GLPPreviewHelper {
     address public immutable stakedGlp;
     address public immutable rewardRouter;
     address public immutable glpRouter;
-    address public immutable glpManager;
+    address public immutable glpManager = 0x3963FfC9dff443c2A94f21b129D429891E32ec18;
     address public immutable weth;
 
     constructor(
@@ -31,7 +31,6 @@ contract PendleGlpSY is SYBaseWithRewardsUpg, GLPPreviewHelper {
         stakedGlp = _stakedGlp;
         rewardRouter = _rewardRouter;
         glpRouter = _glpRouter;
-        glpManager = IRewardRouterV2(glpRouter).glpManager();
         weth = IRewardRouterV2(glpRouter).weth();
     }
 
