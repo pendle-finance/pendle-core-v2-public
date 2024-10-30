@@ -160,6 +160,17 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         _;
     }
 
+    function addMultiPools(uint64[] memory chainIds, address[] memory pools) external onlyAddPoolHelperAndOwner {
+        for(uint256 i = 0; i < chainIds.length; ++i) {
+            (uint64 chainId, address pool) = (chainIds[i], pools[i]);
+            if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
+            if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
+
+            _addPool(chainId, pool);
+            emit AddPool(chainId, pool);
+        }
+    }
+
     /**
      * @notice add a pool to allow users to vote. Can only be done by [governance/owner helper]
      * @custom:gov NOTE TO GOV:
