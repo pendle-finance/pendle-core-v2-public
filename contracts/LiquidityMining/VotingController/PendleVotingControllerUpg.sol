@@ -160,17 +160,6 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         _;
     }
 
-    function addMultiPools(uint64[] memory chainIds, address[] memory pools) external onlyAddPoolHelperAndOwner {
-        for(uint256 i = 0; i < chainIds.length; ++i) {
-            (uint64 chainId, address pool) = (chainIds[i], pools[i]);
-            if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
-            if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
-
-            _addPool(chainId, pool);
-            emit AddPool(chainId, pool);
-        }
-    }
-
     /**
      * @notice add a pool to allow users to vote. Can only be done by [governance/owner helper]
      * @custom:gov NOTE TO GOV:
@@ -184,6 +173,18 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
 
         _addPool(chainId, pool);
         emit AddPool(chainId, pool);
+    }
+
+    function addMultiPools(uint64[] memory chainIds, address[] memory pools) external onlyAddPoolHelperAndOwner {
+        if (chainIds.length != pools.length) revert Errors.ArrayLengthMismatch();
+        for (uint256 i = 0; i < chainIds.length; ++i) {
+            (uint64 chainId, address pool) = (chainIds[i], pools[i]);
+            if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
+            if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
+
+            _addPool(chainId, pool);
+            emit AddPool(chainId, pool);
+        }
     }
 
     /**
@@ -282,7 +283,6 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     function setAddPoolHelper(address _helper) public onlyOwner {
         addPoolHelper = _helper;
     }
-
 
     function setRemovePoolHelper(address _helper) public onlyOwner {
         removePoolHelper = _helper;
