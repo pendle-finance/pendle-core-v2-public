@@ -56,12 +56,16 @@ contract PendleEEigenSYUpg is PendleERC20SYUpg {
 
     /// =================================================================
 
-
     function exchangeRate() public view virtual override returns (uint256) {
         return IVedaAccountant(vedaAccountant).getRateInQuoteSafe(EIGEN);
     }
 
-    function assetInfo() external override view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
+    function assetInfo()
+        external
+        view
+        override
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
+    {
         return (AssetType.TOKEN, EIGEN, IERC20Metadata(EIGEN).decimals());
     }
 }
