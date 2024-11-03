@@ -3,23 +3,23 @@ pragma solidity ^0.8.17;
 
 import "./PendleChainlinkOracle.sol";
 import "./PendleChainlinkOracleWithQuote.sol";
-import "@openzeppelin/contracts/utils/Create2.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../interfaces/IPChainlinkOracleFactory.sol";
+import "../../interfaces/IPPYLpOracle.sol";
 
-contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory, BoringOwnableUpgradeable {
+contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     error OracleAlreadyExists();
+    error OracleNotReady();
 
-    // [market, uint256(duration, pricingType, pricingToken)]
-    mapping(address => mapping(uint256 => address)) public oracles;
+    // [keccak256(market, duration, pricingType, pricingToken)]
+    mapping(bytes32 oracleId => address oracleAddr) public oracles;
 
-    // [market, uint256(duration, pricingType, pricingToken), quoteOracle]
-    mapping(address => mapping(uint256 => mapping(address => address))) public oraclesWithQuote;
+    // [keccak256(market, duration, pricingType, pricingToken, quoteOracle)]
+    mapping(bytes32 oracleId => address oracleAddr) public oraclesWithQuote;
 
-    address public pyLpOracle;
+    address public immutable pyLpOracle;
 
-    constructor(address _pyLpOracle) initializer {
-        _setPyLpOracle(_pyLpOracle);
-        __BoringOwnable_init();
+    constructor(address _pyLpOracle) {
+        pyLpOracle = _pyLpOracle;
     }
 
     function createOracle(
@@ -28,19 +28,14 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory, BoringOwnable
         PendleOraclePricingType pricingType,
         PendleOracleTokenType tokenType
     ) external returns (address oracle) {
-        uint256 oracleType = _encodeOracleType(twapDuration, pricingType, tokenType);
-        if (oracles[market][oracleType] != address(0)) revert OracleAlreadyExists();
+        bytes32 oracleId = getOracleId(market, twapDuration, pricingType, tokenType);
+        if (oracles[oracleId] != address(0)) revert OracleAlreadyExists();
 
-        oracle = Create2.deploy(
-            0,
-            bytes32(0),
-            abi.encodePacked(
-                type(PendleChainlinkOracle).creationCode,
-                abi.encode(market, twapDuration, pricingType, tokenType)
-            )
-        );
-        oracles[market][oracleType] = oracle;
-        emit OracleCreated(market, twapDuration, pricingType, tokenType, oracle);
+        _checkOracleState(market, twapDuration);
+
+        oracle = address(new PendleChainlinkOracle(market, twapDuration, pricingType, tokenType));
+        oracles[oracleId] = oracle;
+        emit OracleCreated(market, twapDuration, pricingType, tokenType, oracle, oracleId);
     }
 
     function createOracleWithQuote(
@@ -50,73 +45,42 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory, BoringOwnable
         PendleOracleTokenType tokenType,
         address quoteOracle
     ) external returns (address oracle) {
-        uint256 oracleType = _encodeOracleType(twapDuration, pricingType, tokenType);
-        if (oraclesWithQuote[market][oracleType][quoteOracle] != address(0)) revert OracleAlreadyExists();
+        bytes32 oracleId = getOracleWithQuoteId(market, twapDuration, pricingType, tokenType, quoteOracle);
+        if (oraclesWithQuote[oracleId] != address(0)) revert OracleAlreadyExists();
 
-        oracle = Create2.deploy(
-            0,
-            bytes32(0),
-            abi.encodePacked(
-                type(PendleChainlinkOracleWithQuote).creationCode,
-                abi.encode(market, twapDuration, pricingType, tokenType, quoteOracle)
-            )
-        );
-        oraclesWithQuote[market][oracleType][quoteOracle] = oracle;
-        emit OracleWithQuoteCreated(market, twapDuration, pricingType, tokenType, quoteOracle, oracle);
+        _checkOracleState(market, twapDuration);
+
+        oracle = address(new PendleChainlinkOracleWithQuote(market, twapDuration, pricingType, tokenType, quoteOracle));
+        oraclesWithQuote[oracleId] = oracle;
+        emit OracleWithQuoteCreated(market, twapDuration, pricingType, tokenType, quoteOracle, oracle, oracleId);
     }
 
-    function getOracle(
+    function getOracleId(
         address market,
         uint16 twapDuration,
         PendleOraclePricingType pricingType,
         PendleOracleTokenType tokenType
-    ) public view returns (address) {
-        return oracles[market][_encodeOracleType(twapDuration, pricingType, tokenType)];
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(market, twapDuration, pricingType, tokenType));
     }
 
-    function getOracleWithQuote(
+    function getOracleWithQuoteId(
         address market,
         uint16 twapDuration,
         PendleOraclePricingType pricingType,
         PendleOracleTokenType tokenType,
         address quoteOracle
-    ) public view returns (address) {
-        return oraclesWithQuote[market][_encodeOracleType(twapDuration, pricingType, tokenType)][quoteOracle];
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encode(market, twapDuration, pricingType, tokenType, quoteOracle));
     }
 
-    function _encodeOracleType(
-        uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType
-    ) internal pure returns (uint256 oracleType) {
-        oracleType = twapDuration;
-        oracleType = (oracleType << 1) | uint256(pricingType);
-        oracleType = (oracleType << 2) | uint256(tokenType);
+    function _checkOracleState(address market, uint16 twapDuration) internal view {
+        (bool increaseCardinalityRequired, , bool oldestObservationSatisfied) = IPPYLpOracle(pyLpOracle).getOracleState(
+            market,
+            twapDuration
+        );
+        if (!increaseCardinalityRequired && oldestObservationSatisfied) {
+            revert OracleNotReady();
+        }
     }
-
-    function _decodeOracleType(
-        uint256 oracleType
-    )
-        internal
-        pure
-        returns (uint16 twapDuration, PendleOraclePricingType pricingType, PendleOracleTokenType tokenType)
-    {
-        tokenType = PendleOracleTokenType(oracleType & 3);
-        pricingType = PendleOraclePricingType((oracleType >> 2) & 1);
-        twapDuration = uint16(oracleType >> 3);
-    }
-
-    // =================================================================
-    //                          ADMIN-FUNCTIONS
-    // =================================================================
-
-    function setPyLpOracle(address _pyLpOracle) external onlyOwner {
-        _setPyLpOracle(_pyLpOracle);
-    }
-
-    function _setPyLpOracle(address _pyLpOracle) internal {
-        pyLpOracle = _pyLpOracle;
-        emit SetPyLpOracle(_pyLpOracle);
-    }
-
 }
