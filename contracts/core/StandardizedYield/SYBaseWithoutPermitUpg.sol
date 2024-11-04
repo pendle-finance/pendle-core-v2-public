@@ -12,7 +12,13 @@ import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-abstract contract SYBaseWithoutPermitUpg is IStandardizedYield, PendleERC20Upg, TokenHelper, BoringOwnableUpgradeable, Pausable {
+abstract contract SYBaseWithoutPermitUpg is
+    IStandardizedYield,
+    PendleERC20Upg,
+    TokenHelper,
+    BoringOwnableUpgradeable,
+    Pausable
+{
     using PMath for uint256;
 
     address public immutable yieldToken;

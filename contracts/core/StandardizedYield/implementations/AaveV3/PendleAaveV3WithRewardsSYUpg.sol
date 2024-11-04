@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.23;
 
-import "../../SYBaseWithRewards.sol";
+import "../../SYBaseWithRewardsUpg.sol";
 import "./libraries/AaveAdapterLib.sol";
 import "../../../../interfaces/AaveV3/IAaveV3AToken.sol";
 import "../../../../interfaces/AaveV3/IAaveV3Pool.sol";
@@ -11,7 +11,7 @@ import "../../../../interfaces/AaveV3/IAaveV3IncentiveController.sol";
 
 // [NEW] @NOTE: As for the getRewardTokens function, it will check for different incentive controller
 // so this implementation should only be used in L2s. L1 would require more gas optimization
-contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
+contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
     using PMath for uint256;
 
     event NewIncentiveController(address incentiveController);
@@ -26,21 +26,23 @@ contract PendleAaveV3WithRewardsSY is SYBaseWithRewards {
     address public incentiveController;
     address[] public rewardTokens;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _aavePool,
-        address _aToken,
-        address _incentiveController
-    ) SYBaseWithRewards(_name, _symbol, _aToken) {
+    constructor(address _aavePool, address _aToken) SYBaseUpg(_aToken) initializer {
         aToken = _aToken;
         aavePool = _aavePool;
         underlying = IAaveV3AToken(aToken).UNDERLYING_ASSET_ADDRESS();
 
-        if (_incentiveController != address(0)) {
-            _updateIncentiveController(_incentiveController);
-        }
         _safeApproveInf(underlying, _aavePool);
+    }
+
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address _initialIncentiveController
+    ) external initializer {
+        __SYBaseUpg_init(_name, _symbol);
+        if (_initialIncentiveController != address(0)) {
+            _updateIncentiveController(_initialIncentiveController);
+        }
     }
 
     function _deposit(

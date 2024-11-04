@@ -66,7 +66,7 @@ contract PendleStkGHOSY is SYBaseWithRewardsUpg {
             string memory errorString
         ) {
             // StkGHO claim reverts when claimable amount = 0, meaning two sy transfers in diff block/same timestamp would revert.
-            // This is expected to not happen at all on ETH mainnet but just to be sure. 
+            // This is expected to not happen at all on ETH mainnet but just to be sure.
             if (keccak256(abi.encodePacked(errorString)) != ZERO_REWARD_ERROR) {
                 revert(errorString);
             }
