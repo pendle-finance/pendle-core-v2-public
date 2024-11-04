@@ -22,27 +22,25 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
     address public immutable aToken;
     address public immutable aavePool;
     address public immutable underlying;
+    address public immutable incentiveController;
+    address public immutable defaultRewardToken;
 
-    address public incentiveController;
-    address[] public rewardTokens;
-
-    constructor(address _aavePool, address _aToken) SYBaseUpg(_aToken) initializer {
+    constructor(
+        address _aavePool,
+        address _aToken,
+        address _initialIncentiveController,
+        address _defaultRewardToken
+    ) SYBaseUpg(_aToken) initializer {
         aToken = _aToken;
         aavePool = _aavePool;
         underlying = IAaveV3AToken(aToken).UNDERLYING_ASSET_ADDRESS();
-
+        incentiveController = _initialIncentiveController;
+        defaultRewardToken = _defaultRewardToken;
         _safeApproveInf(underlying, _aavePool);
     }
 
-    function initialize(
-        string memory _name,
-        string memory _symbol,
-        address _initialIncentiveController
-    ) external initializer {
+    function initialize(string memory _name, string memory _symbol) external initializer {
         __SYBaseUpg_init(_name, _symbol);
-        if (_initialIncentiveController != address(0)) {
-            _updateIncentiveController(_initialIncentiveController);
-        }
     }
 
     function _deposit(
@@ -106,7 +104,12 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
         return token == aToken || token == underlying;
     }
 
-    function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
+    function assetInfo()
+        external
+        view
+        virtual
+        returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
+    {
         return (AssetType.TOKEN, underlying, IERC20Metadata(underlying).decimals());
     }
 
@@ -114,41 +117,16 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
                             REWARDS-RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function updateIncentiveController(address _incentiveController) external onlyOwner {
-        _updateIncentiveController(_incentiveController);
-    }
-
-    function updateRewardTokenList() external onlyOwner {
-        _updateRewardTokenList();
-    }
-
     /**
      * @dev See {IStandardizedYield-getRewardTokens}
      */
     function _getRewardTokens() internal view override returns (address[] memory res) {
-        return rewardTokens;
+        return ArrayLib.create(defaultRewardToken);
     }
 
     function _redeemExternalReward() internal override {
         if (incentiveController != address(0)) {
             IAaveV3IncentiveController(incentiveController).claimAllRewardsToSelf(ArrayLib.create(aToken));
         }
-    }
-
-    function _updateIncentiveController(address _incentiveController) internal {
-        if (_incentiveController == incentiveController) {
-            revert SameIncentiveController();
-        }
-        _redeemExternalReward();
-
-        incentiveController = _incentiveController;
-        if (_incentiveController != address(0)) {
-            _updateRewardTokenList();
-        }
-        emit NewIncentiveController(_incentiveController);
-    }
-
-    function _updateRewardTokenList() internal {
-        rewardTokens = ArrayLib.merge(rewardTokens, IAaveV3IncentiveController(incentiveController).getRewardsList());
     }
 }
