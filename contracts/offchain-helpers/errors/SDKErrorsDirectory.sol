@@ -254,4 +254,9 @@ library SDKErrorsDirectory {
     error InvalidTimestamp();
     error InvalidWithdrawalFee();
     error InvalidTotalSupply();
+    error OperationNotAllowed();
+    error WOMBAT_COV_RATIO_LIMIT_EXCEEDED();
+    error NotEnoughLiquidity();
+    error InvalidAmountToDeposit();
+    error TellerWithMultiAssetSupport__AssetNotSupported();
 }
