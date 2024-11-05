@@ -30,17 +30,17 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
         address _aToken,
         address _initialIncentiveController,
         address _defaultRewardToken
-    ) SYBaseUpg(_aToken) initializer {
+    ) SYBaseUpg(_aToken) {
         aToken = _aToken;
         aavePool = _aavePool;
         underlying = IAaveV3AToken(aToken).UNDERLYING_ASSET_ADDRESS();
         incentiveController = _initialIncentiveController;
         defaultRewardToken = _defaultRewardToken;
-        _safeApproveInf(underlying, _aavePool);
     }
 
     function initialize(string memory _name, string memory _symbol) external initializer {
         __SYBaseUpg_init(_name, _symbol);
+        _safeApproveInf(underlying, aavePool);
     }
 
     function _deposit(

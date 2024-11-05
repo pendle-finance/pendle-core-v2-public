@@ -9,12 +9,12 @@ contract PendleZerolendLBTCSYUpg is PendleAaveV3WithRewardsSYUpg {
 
     address public constant Z0LBTC = 0xcABB8fa209CcdF98a7A0DC30b1979fC855Cb3Eb3;
     address public constant ZEROLEND_POOL = 0xCD2b31071119D7eA449a9D211AC8eBF7Ee97F987;
-    address public constant ZEROLEND_INCENTIVE_CONTROLLER = 0x938e23c10C501CE5D42Bc516eCFDf5AbD9C51d2b;
+    
+    address public constant ZEROLEND_INCENTIVE_CONTROLLER = address(0); // no reward currently, leave as address(0) for gas saving
     address public constant ZERO = 0x2Da17fAf782ae884faf7dB2208BBC66b6E085C22;
-
     address public constant LBTC_ORACLE = 0x1F0318B5Ab2c4084692986A2C25916Cec1195cD9;
 
-    constructor() PendleAaveV3WithRewardsSYUpg(Z0LBTC, ZEROLEND_POOL, ZEROLEND_INCENTIVE_CONTROLLER, ZERO) {}
+    constructor() PendleAaveV3WithRewardsSYUpg(ZEROLEND_POOL, Z0LBTC, ZEROLEND_INCENTIVE_CONTROLLER, ZERO) {}
 
     function exchangeRate() public view virtual override returns (uint256) {
         return PMath.mulDown(super.exchangeRate(), IPExchangeRateOracle(LBTC_ORACLE).getExchangeRate());
