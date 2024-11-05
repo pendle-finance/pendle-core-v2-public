@@ -342,7 +342,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     }
 
     function _readState(address market) internal view returns (MarketState memory) {
-        return IPMarket(market).readState(address(this));
+        return IPRouterStatic(address(this)).readMarketState(market);
     }
 
     function _readTokens(

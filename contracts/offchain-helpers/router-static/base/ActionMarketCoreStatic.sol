@@ -18,6 +18,8 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
 
     // ============ ADD REMOVE LIQUIDITY ============
 
+    address internal constant ROUTER_V4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
+
     function addLiquidityDualSyAndPtStatic(
         address market,
         uint256 netSyDesired,
@@ -625,6 +627,14 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         exchangeRateAfter = _getTradeExchangeRateExcludeFee(market, state);
     }
 
+    function readMarketState(address market) public view returns (MarketState memory) {
+        return _readState(market);
+    }
+
+    function _readState(address market) internal view returns (MarketState memory) {
+        return IPMarket(market).readState(ROUTER_V4);
+    }
+
     function _calcPriceImpactPY(address market, int256 netPtOut) internal view returns (uint256) {
         return IPRouterStatic(address(this)).calcPriceImpactPY(market, netPtOut);
     }
@@ -655,10 +665,6 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
 
     function _getTradeExchangeRateExcludeFee(address market, MarketState memory state) internal view returns (uint256) {
         return IPRouterStatic(address(this)).getTradeExchangeRateExcludeFee(market, state);
-    }
-
-    function _readState(address market) internal view returns (MarketState memory) {
-        return IPMarket(market).readState(address(this));
     }
 
     function _pyIndex(address market) private view returns (PYIndex) {

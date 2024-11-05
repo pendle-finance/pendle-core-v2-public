@@ -70,7 +70,7 @@ contract ActionInfoStatic is IPActionInfoStatic {
 
     function getUserMarketInfo(address market, address user) external returns (UserMarketInfo memory res) {
         IPMarket _market = IPMarket(market);
-        MarketState memory state = _market.readState(address(this));
+        MarketState memory state = IPRouterStatic(address(this)).readMarketState(market);
 
         if (uint256(state.totalLp) == 0) return res; // market not initialized
 

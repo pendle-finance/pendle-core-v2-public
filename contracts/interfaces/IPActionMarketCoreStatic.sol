@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
+import "./IPMarket.sol";
+
 interface IPActionMarketCoreStatic {
     function addLiquidityDualSyAndPtStatic(
         address market,
@@ -288,4 +290,6 @@ interface IPActionMarketCoreStatic {
         address market,
         uint256 exactSyOut
     ) external view returns (uint256 netYtIn, uint256 netSyFee, uint256 priceImpact, uint256 exchangeRateAfter);
+
+    function readMarketState(address market) external view returns (MarketState memory);
 }
