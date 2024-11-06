@@ -1,0 +1,14 @@
+{
+    "name": "SY ETH",
+    "SY": "0xf176fB51F4eB826136a54FDc71C50fCd2202E272",
+    "YT": "0x8fEDCa9DE6c792275335B41D0ef74D3A03361733",
+    "PT": "0x8Db96f2FcCf7Cdd74a60e8eFf5801df043cd11dE",
+    "market": "0x816F59FfA2239Fd7106F94eAbdC0a9547a892F2f",
+    "expiry": 1750896000,
+    "scalarRoot": "89241410861000000000",
+    "initAnchor": "1029050450000000000",
+    "lnFeeRateRoot": "499875041000000",
+    "deployTxHash": "0x649b34fdb1b9340268445324873c2b8cf65101dd53fb709b6ba503931f59e88b",
+    "deployBlockNumber": 271511094,
+    "reversedFee": 0.04999999993486881
+}
