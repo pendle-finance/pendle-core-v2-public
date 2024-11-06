@@ -73,14 +73,14 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
     function _previewDeposit(
         address,
         uint256 amountTokenToDeposit
-    ) internal view override returns (uint256 /*amountSharesOut*/) {
+    ) internal view virtual override returns (uint256 /*amountSharesOut*/) {
         return AaveAdapterLib.calcSharesFromAssetUp(amountTokenToDeposit, _getNormalizedIncome());
     }
 
     function _previewRedeem(
         address,
         uint256 amountSharesToRedeem
-    ) internal view override returns (uint256 /*amountTokenOut*/) {
+    ) internal view virtual override returns (uint256 /*amountTokenOut*/) {
         return AaveAdapterLib.calcSharesToAssetDown(amountSharesToRedeem, _getNormalizedIncome());
     }
 
@@ -88,19 +88,19 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
         return IAaveV3Pool(aavePool).getReserveNormalizedIncome(underlying);
     }
 
-    function getTokensIn() public view override returns (address[] memory res) {
+    function getTokensIn() public view virtual override returns (address[] memory res) {
         return ArrayLib.create(underlying, aToken);
     }
 
-    function getTokensOut() public view override returns (address[] memory res) {
+    function getTokensOut() public view virtual override returns (address[] memory res) {
         return ArrayLib.create(underlying, aToken);
     }
 
-    function isValidTokenIn(address token) public view override returns (bool) {
+    function isValidTokenIn(address token) public view virtual override returns (bool) {
         return token == aToken || token == underlying;
     }
 
-    function isValidTokenOut(address token) public view override returns (bool) {
+    function isValidTokenOut(address token) public view virtual override returns (bool) {
         return token == aToken || token == underlying;
     }
 
