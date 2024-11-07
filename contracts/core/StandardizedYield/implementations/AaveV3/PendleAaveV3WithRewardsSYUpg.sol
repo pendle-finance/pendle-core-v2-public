@@ -25,6 +25,8 @@ contract PendleAaveV3WithRewardsSYUpg is SYBaseWithRewardsUpg {
     address public immutable incentiveController;
     address public immutable defaultRewardToken;
 
+    uint256[100] private __gap;
+
     constructor(
         address _aavePool,
         address _aToken,
