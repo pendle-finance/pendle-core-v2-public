@@ -79,7 +79,7 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
             market,
             twapDuration
         );
-        if (!increaseCardinalityRequired && oldestObservationSatisfied) {
+        if (increaseCardinalityRequired || !oldestObservationSatisfied) {
             revert OracleNotReady();
         }
     }
