@@ -28,7 +28,15 @@ contract PendleZerolendEBTCSYUpg is PendleAaveV3WithRewardsSYUpg {
 
     address public immutable vedaAccountant;
 
-    constructor() PendleAaveV3WithRewardsSYUpg(ZEROLEND_POOL, Z0EBTC, ZEROLEND_INCENTIVE_CONTROLLER, ZERO) {}
+    constructor() PendleAaveV3WithRewardsSYUpg(ZEROLEND_POOL, Z0EBTC, ZEROLEND_INCENTIVE_CONTROLLER, ZERO) {
+        vedaAccountant = IVedaTeller(vedaTeller).accountant();
+    }
+
+    function approveAllForTeller() external {
+        _safeApproveInf(cbBTC, eBTC);
+        _safeApproveInf(wBTC, eBTC);
+        _safeApproveInf(LBTC, eBTC);
+    }
 
     function _deposit(
         address tokenIn,
