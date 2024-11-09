@@ -16,10 +16,9 @@ contract PendleChainlinkOracleWithQuote is PendleChainlinkOracleBase {
     constructor(
         address _market,
         uint16 _twapDuration,
-        PendleOraclePricingType _pricingType,
-        PendleOracleTokenType _pricingToken,
+        PendleOracleType _baseOracleType,
         address _quoteOracle
-    ) PendleChainlinkOracleBase(_market, _twapDuration, _pricingType, _pricingToken) {
+    ) PendleChainlinkOracleBase(_market, _twapDuration, _baseOracleType) {
         quoteOracle = _quoteOracle;
         quoteScale = int256(10 ** AggregatorV3Interface(quoteOracle).decimals());
     }

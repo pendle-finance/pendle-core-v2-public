@@ -3,15 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-enum PendleOraclePricingType {
-    TO_SY,
-    TO_UNDERLYING
-}
-
-enum PendleOracleTokenType {
-    PT,
-    YT,
-    LP
+enum PendleOracleType {
+    PT_TO_SY,
+    PT_TO_ASSET,
+    YT_TO_SY,
+    YT_TO_ASSET,
+    LP_TO_SY,
+    LP_TO_ASSET
 }
 
 interface IPChainlinkOracle is AggregatorV3Interface {}

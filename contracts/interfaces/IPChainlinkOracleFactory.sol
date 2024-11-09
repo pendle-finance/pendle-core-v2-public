@@ -7,16 +7,14 @@ interface IPChainlinkOracleFactory {
     event OracleCreated(
         address indexed market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType,
+        PendleOracleType baseOracleType,
         address indexed oracle,
         bytes32 oracleId
     );
     event OracleWithQuoteCreated(
         address indexed market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType,
+        PendleOracleType baseOracleType,
         address indexed quoteOracle,
         address indexed oracle,
         bytes32 oracleId

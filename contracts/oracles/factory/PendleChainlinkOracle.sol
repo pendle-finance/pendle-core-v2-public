@@ -12,9 +12,8 @@ contract PendleChainlinkOracle is PendleChainlinkOracleBase {
     constructor(
         address _market,
         uint16 _twapDuration,
-        PendleOraclePricingType _pricingType,
-        PendleOracleTokenType _pricingToken
-    ) PendleChainlinkOracleBase(_market, _twapDuration, _pricingType, _pricingToken) {}
+        PendleOracleType _baseOracleType
+    ) PendleChainlinkOracleBase(_market, _twapDuration, _baseOracleType) {}
 
     function _getFinalPrice() internal view override returns (int256) {
         return _getPendleTokenPrice();

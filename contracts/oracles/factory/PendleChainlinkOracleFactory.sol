@@ -10,10 +10,10 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     error OracleAlreadyExists();
     error OracleNotReady();
 
-    // [keccak256(market, duration, pricingType, pricingToken)]
+    // [keccak256(market, duration, baseOracleType)]
     mapping(bytes32 oracleId => address oracleAddr) public oracles;
 
-    // [keccak256(market, duration, pricingType, pricingToken, quoteOracle)]
+    // [keccak256(market, duration, baseOracleType, quoteOracle)]
     mapping(bytes32 oracleId => address oracleAddr) public oraclesWithQuote;
 
     address public immutable pyLpOracle;
@@ -25,53 +25,49 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     function createOracle(
         address market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType
+        PendleOracleType baseOracleType
     ) external returns (address oracle) {
-        bytes32 oracleId = getOracleId(market, twapDuration, pricingType, tokenType);
+        bytes32 oracleId = getOracleId(market, twapDuration, baseOracleType);
         if (oracles[oracleId] != address(0)) revert OracleAlreadyExists();
 
         _checkOracleState(market, twapDuration);
 
-        oracle = address(new PendleChainlinkOracle(market, twapDuration, pricingType, tokenType));
+        oracle = address(new PendleChainlinkOracle(market, twapDuration, baseOracleType));
         oracles[oracleId] = oracle;
-        emit OracleCreated(market, twapDuration, pricingType, tokenType, oracle, oracleId);
+        emit OracleCreated(market, twapDuration, baseOracleType, oracle, oracleId);
     }
 
     function createOracleWithQuote(
         address market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType,
+        PendleOracleType baseOracleType,
         address quoteOracle
     ) external returns (address oracle) {
-        bytes32 oracleId = getOracleWithQuoteId(market, twapDuration, pricingType, tokenType, quoteOracle);
+        bytes32 oracleId = getOracleWithQuoteId(market, twapDuration, baseOracleType, quoteOracle);
         if (oraclesWithQuote[oracleId] != address(0)) revert OracleAlreadyExists();
 
         _checkOracleState(market, twapDuration);
 
-        oracle = address(new PendleChainlinkOracleWithQuote(market, twapDuration, pricingType, tokenType, quoteOracle));
+        oracle = address(new PendleChainlinkOracleWithQuote(market, twapDuration, baseOracleType, quoteOracle));
         oraclesWithQuote[oracleId] = oracle;
-        emit OracleWithQuoteCreated(market, twapDuration, pricingType, tokenType, quoteOracle, oracle, oracleId);
+        emit OracleWithQuoteCreated(market, twapDuration, baseOracleType, quoteOracle, oracle, oracleId);
     }
 
     function getOracleId(
         address market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType
+        PendleOracleType baseOracleType
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(market, twapDuration, pricingType, tokenType));
+        return keccak256(abi.encode(market, twapDuration, baseOracleType));
     }
 
     function getOracleWithQuoteId(
         address market,
         uint16 twapDuration,
-        PendleOraclePricingType pricingType,
-        PendleOracleTokenType tokenType,
+        PendleOracleType baseOracleType,
         address quoteOracle
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(market, twapDuration, pricingType, tokenType, quoteOracle));
+        return keccak256(abi.encode(market, twapDuration, baseOracleType, quoteOracle));
     }
 
     function _checkOracleState(address market, uint16 twapDuration) internal view {

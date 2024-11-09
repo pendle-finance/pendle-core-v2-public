@@ -20,8 +20,7 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     address public immutable market;
     uint16 public immutable twapDuration;
 
-    PendleOraclePricingType public immutable pricingType;
-    PendleOracleTokenType public immutable pricingToken;
+    PendleOracleType public immutable baseOracleType;
 
     modifier validateRoundId(uint80 roundId) {
         if (roundId != 0) {
@@ -30,17 +29,11 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
         _;
     }
 
-    constructor(
-        address _market,
-        uint16 _twapDuration,
-        PendleOraclePricingType _pricingType,
-        PendleOracleTokenType _pricingToken
-    ) {
+    constructor(address _market, uint16 _twapDuration, PendleOracleType _baseOracleType) {
         factory = msg.sender;
         market = _market;
         twapDuration = _twapDuration;
-        pricingType = _pricingType;
-        pricingToken = _pricingToken;
+        baseOracleType = _baseOracleType;
     }
 
     // =================================================================
@@ -84,26 +77,20 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     function _getFinalPrice() internal view virtual returns (int256);
 
     function _getPendleTokenPrice() internal view returns (int256) {
-        uint256 price;
-        if (pricingToken == PendleOracleTokenType.PT) {
-            if (pricingType == PendleOraclePricingType.TO_SY) {
-                price = IPMarket(market).getPtToSyRate(twapDuration);
-            } else {
-                price = IPMarket(market).getPtToAssetRate(twapDuration);
-            }
-        } else if (pricingToken == PendleOracleTokenType.YT) {
-            if (pricingType == PendleOraclePricingType.TO_SY) {
-                price = IPMarket(market).getYtToSyRate(twapDuration);
-            } else {
-                price = IPMarket(market).getYtToAssetRate(twapDuration);
-            }
+        if (baseOracleType == PendleOracleType.PT_TO_SY) {
+            return int256(IPMarket(market).getPtToSyRate(twapDuration));
+        } else if (baseOracleType == PendleOracleType.PT_TO_ASSET) {
+            return int256(IPMarket(market).getPtToAssetRate(twapDuration));
+        } else if (baseOracleType == PendleOracleType.YT_TO_SY) {
+            return int256(IPMarket(market).getYtToSyRate(twapDuration));
+        } else if (baseOracleType == PendleOracleType.YT_TO_ASSET) {
+            return int256(IPMarket(market).getYtToAssetRate(twapDuration));
+        } else if (baseOracleType == PendleOracleType.LP_TO_SY) {
+            return int256(IPMarket(market).getLpToSyRate(twapDuration));
+        } else if (baseOracleType == PendleOracleType.LP_TO_ASSET) {
+            return int256(IPMarket(market).getLpToAssetRate(twapDuration));
         } else {
-            if (pricingType == PendleOraclePricingType.TO_SY) {
-                price = IPMarket(market).getLpToSyRate(twapDuration);
-            } else {
-                price = IPMarket(market).getLpToAssetRate(twapDuration);
-            }
+            revert("not supported");
         }
-        return int256(price);
     }
 }
