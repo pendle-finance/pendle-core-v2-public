@@ -27,7 +27,7 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
         uint16 twapDuration,
         PendleOracleType baseOracleType
     ) external returns (address oracle) {
-        bytes32 oracleId = getOracleId(market, twapDuration, baseOracleType);
+        bytes32 oracleId = _getOracleId(market, twapDuration, baseOracleType);
         if (oracles[oracleId] != address(0)) revert OracleAlreadyExists();
 
         _checkOracleState(market, twapDuration);
@@ -43,7 +43,7 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
         PendleOracleType baseOracleType,
         address quoteOracle
     ) external returns (address oracle) {
-        bytes32 oracleId = getOracleWithQuoteId(market, twapDuration, baseOracleType, quoteOracle);
+        bytes32 oracleId = _getOracleWithQuoteId(market, twapDuration, baseOracleType, quoteOracle);
         if (oraclesWithQuote[oracleId] != address(0)) revert OracleAlreadyExists();
 
         _checkOracleState(market, twapDuration);
@@ -53,20 +53,37 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
         emit OracleWithQuoteCreated(market, twapDuration, baseOracleType, quoteOracle, oracle, oracleId);
     }
 
-    function getOracleId(
+    function getOracle(
         address market,
         uint16 twapDuration,
         PendleOracleType baseOracleType
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encode(market, twapDuration, baseOracleType));
+    ) public view returns (address) {
+        return oracles[_getOracleId(market, twapDuration, baseOracleType)];
     }
 
-    function getOracleWithQuoteId(
+    function getOracleWithQuote(
         address market,
         uint16 twapDuration,
         PendleOracleType baseOracleType,
         address quoteOracle
-    ) public pure returns (bytes32) {
+    ) public view returns (address) {
+        return oraclesWithQuote[_getOracleWithQuoteId(market, twapDuration, baseOracleType, quoteOracle)];
+    }
+
+    function _getOracleId(
+        address market,
+        uint16 twapDuration,
+        PendleOracleType baseOracleType
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(market, twapDuration, baseOracleType));
+    }
+
+    function _getOracleWithQuoteId(
+        address market,
+        uint16 twapDuration,
+        PendleOracleType baseOracleType,
+        address quoteOracle
+    ) internal pure returns (bytes32) {
         return keccak256(abi.encode(market, twapDuration, baseOracleType, quoteOracle));
     }
 
