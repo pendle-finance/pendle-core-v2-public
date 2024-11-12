@@ -6,6 +6,9 @@ import "../../../../interfaces/IPExchangeRateOracle.sol";
 import "../PendleERC20SYUpg.sol";
 import "../../../../interfaces/EtherFi/IVedaTeller.sol";
 import "../../../../interfaces/EtherFi/IVedaAccountant.sol";
+import "../../../../interfaces/Zerolend/IZerolendPool.sol";
+import "../../../../interfaces/Zerolend/IZerolendZ0Token.sol";
+import "../../../../interfaces/IPTokenWithSupplyCap.sol";
 
 contract PendleZerolendEBTCSYUpg is PendleAaveV3WithRewardsSYUpg {
     // solhint-disable immutable-vars-naming
@@ -84,5 +87,15 @@ contract PendleZerolendEBTCSYUpg is PendleAaveV3WithRewardsSYUpg {
         returns (AssetType assetType, address assetAddress, uint8 assetDecimals)
     {
         return (AssetType.TOKEN, eBTC, IERC20Metadata(eBTC).decimals());
+    }
+
+    function getAbsoluteSupplyCap() external view returns (uint256) {
+        return IZerolendZ0Token(Z0EBTC).scaledTotalSupply();
+    }
+
+    function getAbsoluteTotalSupply() external view returns (uint256) {
+        uint256 data = (IZerolendPool(ZEROLEND_POOL).getConfiguration(eBTC)).data;
+        uint256 unscaledSupplyCap = (data & (~uint256(0xFFFFFFFFFFFFFFFFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF))) >> 116;
+        return unscaledSupplyCap * (10 ** IERC20Metadata(eBTC).decimals());
     }
 }
