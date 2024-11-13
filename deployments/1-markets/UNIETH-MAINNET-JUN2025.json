@@ -1,0 +1,14 @@
+{
+    "name": "SY uniETH",
+    "SY": "0xc430dB19339A3051192233B4c49f9aB3DC6D16b7",
+    "YT": "0x999A3847707511E06E6Df03029D7EDB04F9099C8",
+    "PT": "0x302091967C09323815594Ad8dB2D8dE35c3A1985",
+    "market": "0xbbA9BAaa6b3107182147A12177e0F1Ec46B8b072",
+    "expiry": 1750896000,
+    "scalarRoot": "89629413589000000000",
+    "initAnchor": "1034397837000000000",
+    "lnFeeRateRoot": "499875041000000",
+    "deployTxHash": "0x818def640818b4d13b3ffd1c2a0b3b48e1fc1b8df0adefd232cfed31f818bb45",
+    "deployBlockNumber": 21177323,
+    "reversedFee": 0.04999999993486881
+}

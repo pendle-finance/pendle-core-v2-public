@@ -1,0 +1,14 @@
+{
+    "name": "SY pufETH",
+    "SY": "0x253008ba4aE2f3E6488DC998a5321D4EB1a0c905",
+    "YT": "0x784A0bb8208C70290cac6bcBC3650cEb9227813E",
+    "PT": "0x9cFc9917C171A384c7168D3529Fc7e851a2E0d6D",
+    "market": "0x58612beB0e8a126735b19BB222cbC7fC2C162D2a",
+    "expiry": 1750896000,
+    "scalarRoot": "89629413589000000000",
+    "initAnchor": "1034397837000000000",
+    "lnFeeRateRoot": "499875041000000",
+    "deployTxHash": "0x07bb6832305177cceba7fefb17799b067cda4f7d7bac25e4ef8f3fe16e3583b1",
+    "deployBlockNumber": 21177325,
+    "reversedFee": 0.04999999993486881
+}
