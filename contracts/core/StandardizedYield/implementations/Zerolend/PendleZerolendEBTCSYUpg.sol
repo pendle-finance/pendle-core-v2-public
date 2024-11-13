@@ -90,12 +90,12 @@ contract PendleZerolendEBTCSYUpg is PendleAaveV3WithRewardsSYUpg {
     }
 
     function getAbsoluteSupplyCap() external view returns (uint256) {
-        return IZerolendZ0Token(Z0EBTC).scaledTotalSupply();
-    }
-
-    function getAbsoluteTotalSupply() external view returns (uint256) {
         uint256 data = (IZerolendPool(ZEROLEND_POOL).getConfiguration(eBTC)).data;
         uint256 unscaledSupplyCap = (data & (~uint256(0xFFFFFFFFFFFFFFFFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF))) >> 116;
         return unscaledSupplyCap * (10 ** IERC20Metadata(eBTC).decimals());
+    }
+
+    function getAbsoluteTotalSupply() external view returns (uint256) {
+        return IZerolendZ0Token(Z0EBTC).scaledTotalSupply();
     }
 }
