@@ -1,0 +1,25 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 8453,
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0x3c0f8F070E6400C1C4eD10CfF85dE4c643b66bd3",
+        "pendle": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
+        "lzEndpoint": "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "initialRewardFee": "30000000000000000",
+        "initialInterestFee": "30000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "baseCodeSplitter": "0xf3f560164979fe7F8f3eb2b64669Eac00E7043A6",
+    "PENDLE": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
+    "pendleSwap": "0xFeE31A6eC6eBefa0b5A594Bf5b1139e3c6fAA0fB",
+    "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
+    "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
+    "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",
+    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58"
+}
