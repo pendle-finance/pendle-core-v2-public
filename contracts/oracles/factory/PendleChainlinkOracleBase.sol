@@ -15,6 +15,8 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
 
     error InvalidRoundId();
 
+    uint8 internal constant LP_DECIMALS = 18;
+
     // solhint-disable immutable-vars-naming
     address public immutable factory;
     address public immutable market;
@@ -24,6 +26,8 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     uint8 public immutable toTokenDecimals;
 
     PendleOracleType public immutable baseOracleType;
+
+    function(IPMarket, uint32) internal view returns (uint256) internal immutable getRate;
 
     modifier validateRoundId(uint80 roundId) {
         if (roundId != 0) {
@@ -38,6 +42,7 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
         twapDuration = _twapDuration;
         baseOracleType = _baseOracleType;
         (fromTokenDecimals, toTokenDecimals) = _readDecimals(_market, _baseOracleType);
+        getRate = getMethod();
     }
 
     // =================================================================
@@ -82,25 +87,33 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     function _getFinalPrice() internal view virtual returns (int256);
 
     function _getPendleTokenPrice() internal view returns (int256) {
+        return _descalePrice(getRate(IPMarket(market), twapDuration));
+    }
+
+    function _descalePrice(uint256 price) internal view returns (int256 unwrappedPrice) {
+        unwrappedPrice = PMath.Int((price * (10 ** fromTokenDecimals)) / (10 ** toTokenDecimals));
+    }
+
+    // =================================================================
+    //                          USE ONLY AT INITIALIZATION
+    // =================================================================
+
+    function getMethod() internal view returns (function(IPMarket, uint32) internal view returns (uint256)) {
         if (baseOracleType == PendleOracleType.PT_TO_SY) {
-            return _unscalePrice(IPMarket(market).getPtToSyRate(twapDuration));
+            return PendlePYOracleLib.getPtToSyRate;
         } else if (baseOracleType == PendleOracleType.PT_TO_ASSET) {
-            return _unscalePrice(IPMarket(market).getPtToAssetRate(twapDuration));
+            return PendlePYOracleLib.getPtToAssetRate;
         } else if (baseOracleType == PendleOracleType.YT_TO_SY) {
-            return _unscalePrice(IPMarket(market).getYtToSyRate(twapDuration));
+            return PendlePYOracleLib.getYtToSyRate;
         } else if (baseOracleType == PendleOracleType.YT_TO_ASSET) {
-            return _unscalePrice(IPMarket(market).getYtToAssetRate(twapDuration));
+            return PendlePYOracleLib.getYtToAssetRate;
         } else if (baseOracleType == PendleOracleType.LP_TO_SY) {
-            return _unscalePrice(IPMarket(market).getLpToSyRate(twapDuration));
+            return PendleLpOracleLib.getLpToSyRate;
         } else if (baseOracleType == PendleOracleType.LP_TO_ASSET) {
-            return _unscalePrice(IPMarket(market).getLpToAssetRate(twapDuration));
+            return PendleLpOracleLib.getLpToAssetRate;
         } else {
             revert("not supported");
         }
-    }
-
-    function _unscalePrice(uint256 price) internal view returns (int256 unwrappedPrice) {
-        unwrappedPrice = PMath.Int((price * (10 ** fromTokenDecimals)) / (10 ** toTokenDecimals));
     }
 
     function _readDecimals(
@@ -109,22 +122,17 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     ) internal view returns (uint8 _fromDecimals, uint8 _toDecimals) {
         (IStandardizedYield SY, , ) = IPMarket(_market).readTokens();
 
-        uint8 lpDecimals = 18;
         uint8 syDecimals = SY.decimals();
         (, , uint8 assetDecimals) = SY.assetInfo();
 
         if (_oracleType == PendleOracleType.LP_TO_ASSET) {
-            _fromDecimals = lpDecimals;
-            _toDecimals = assetDecimals;
+            return (LP_DECIMALS, assetDecimals);
         } else if (_oracleType == PendleOracleType.LP_TO_SY) {
-            _fromDecimals = lpDecimals;
-            _toDecimals = syDecimals;
+            return (LP_DECIMALS, syDecimals);
         } else if (_oracleType == PendleOracleType.PT_TO_ASSET || _oracleType == PendleOracleType.YT_TO_ASSET) {
-            _fromDecimals = assetDecimals;
-            _toDecimals = assetDecimals;
+            return (assetDecimals, assetDecimals);
         } else if (_oracleType == PendleOracleType.PT_TO_SY || _oracleType == PendleOracleType.YT_TO_SY) {
-            _fromDecimals = assetDecimals;
-            _toDecimals = syDecimals;
+            return (assetDecimals, syDecimals);
         }
     }
 }
