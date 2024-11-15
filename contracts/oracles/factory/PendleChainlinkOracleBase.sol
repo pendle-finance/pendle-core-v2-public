@@ -20,7 +20,7 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
     // solhint-disable immutable-vars-naming
     address public immutable factory;
     address public immutable market;
-    uint16 public immutable twapDuration;
+    uint32 public immutable twapDuration;
 
     uint8 public immutable fromTokenDecimals;
     uint8 public immutable toTokenDecimals;
@@ -36,7 +36,7 @@ abstract contract PendleChainlinkOracleBase is IPChainlinkOracle {
         _;
     }
 
-    constructor(address _market, uint16 _twapDuration, PendleOracleType _baseOracleType) {
+    constructor(address _market, uint32 _twapDuration, PendleOracleType _baseOracleType) {
         factory = msg.sender;
         market = _market;
         twapDuration = _twapDuration;

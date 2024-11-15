@@ -11,7 +11,7 @@ import "./PendleChainlinkOracleBase.sol";
 contract PendleChainlinkOracle is PendleChainlinkOracleBase {
     constructor(
         address _market,
-        uint16 _twapDuration,
+        uint32 _twapDuration,
         PendleOracleType _baseOracleType
     ) PendleChainlinkOracleBase(_market, _twapDuration, _baseOracleType) {}
 

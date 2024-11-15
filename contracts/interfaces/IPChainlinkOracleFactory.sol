@@ -6,14 +6,14 @@ import "./IPChainlinkOracle.sol";
 interface IPChainlinkOracleFactory {
     event OracleCreated(
         address indexed market,
-        uint16 twapDuration,
+        uint32 twapDuration,
         PendleOracleType baseOracleType,
         address indexed oracle,
         bytes32 oracleId
     );
     event OracleWithQuoteCreated(
         address indexed market,
-        uint16 twapDuration,
+        uint32 twapDuration,
         PendleOracleType baseOracleType,
         address indexed quoteOracle,
         address indexed oracle,
