@@ -1,0 +1,14 @@
+{
+    "name": "SY USD0++",
+    "SY": "0x52453825c287dDef62D647ce51C0979D27c461f7",
+    "YT": "0xEAD01319c2aB0dC2C690EfF5DfC5f465Cd38FC87",
+    "PT": "0xf696FE29Ef85E892b5926313897D178288faA07e",
+    "market": "0x048680F64d6DFf1748ba6D9a01F578433787e24B",
+    "expiry": 1750896000,
+    "scalarRoot": "25840344753000000000",
+    "initAnchor": "1094579386000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0x84d55092d8c0a23fb5ee3801d2ed904685eb2cc289338a58aed49accac686ab9",
+    "deployBlockNumber": 21220847,
+    "reversedFee": 0.19999999993256523
+}
