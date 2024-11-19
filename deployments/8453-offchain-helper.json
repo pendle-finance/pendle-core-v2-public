@@ -1,0 +1,6 @@
+{
+    "multicall": "0xfd6Df9EFACfEfdF4E610d687A9c9b941D1b1Bf75",
+    "pendleMulticallV2": "0x539fd510fE352CC81822a222F821c340133Ed41C",
+    "simulateHelper": "0x2b3EC64160F658fFe7061769415Ff080fca80BbA",
+    "supplyCapReader": "0x438C7dBA7d355aA0c77459AF38B2E62f9f9EccBf"
+}

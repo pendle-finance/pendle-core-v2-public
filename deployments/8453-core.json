@@ -16,10 +16,25 @@
     },
     "baseCodeSplitter": "0xf3f560164979fe7F8f3eb2b64669Eac00E7043A6",
     "PENDLE": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
-    "pendleSwap": "0xFeE31A6eC6eBefa0b5A594Bf5b1139e3c6fAA0fB",
     "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
     "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
+    "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0x07d16A6D334133039A84271d30b7317DCbd1170D",
+        "ActionSwapPTV3": "0xC3B17AbC54d6Ef30500630A776392b9aF1c5e0c0",
+        "ActionSwapYTV3": "0x9b1Fe315614C2888b5151B4C2efc53878f01652b",
+        "ActionMiscV3": "0x294965CEa8FECd76a910338D2CB2b75245BE5203",
+        "ActionSimple": "0x5eBD8cfDc82Fb95488eB16881a6dBc1feD598a7a",
+        "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
+        "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
+    },
+    "routerStatic": "0xB4205a645c7e920BD8504181B1D7f2c5C955C3e7",
+    "pendleSwap": "0x2E6ffA05cd6920dcc0d169efce2F4C96E774eCd2",
+    "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
+    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
     "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",
     "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58"
 }
