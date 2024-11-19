@@ -1,0 +1,14 @@
+{
+    "name": "SY MUX",
+    "SY": "0x5220E1Ef8CE83Aa9fE0CCE1b8395cD698d04bc7E",
+    "YT": "0xa661223676633a701B3D1E51bd8c47e2Da07C1f6",
+    "PT": "0x9D8eADeb4e7311e340A5EE39DbF62d7694F1aa85",
+    "market": "0xF1De71573Ee482f13AE4DcF980e83bFAba8b233d",
+    "expiry": 1750896000,
+    "scalarRoot": "23175451492000000000",
+    "initAnchor": "1088578948000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0x3500a5b6f2145e7172c6fe3a814a455b512be2b5822df332b0f4e90b2564168e",
+    "deployBlockNumber": 276038060,
+    "reversedFee": 0.19999999993256523
+}

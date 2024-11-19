@@ -1,0 +1,14 @@
+{
+    "name": "SY gUSDC",
+    "SY": "0x0a9eD458E6c283D1E84237e3347333Aa08221d09",
+    "YT": "0xeb044f64aE0dFD5433726fC5418d6643897cbb6B",
+    "PT": "0x0b6121b4c00ca4FbBb6516C11eB4BF61722E0f8d",
+    "market": "0x22e0F26320aCE985e3CB2434095F18Bfe114E28e",
+    "expiry": 1750896000,
+    "scalarRoot": "21136461043000000000",
+    "initAnchor": "1094191809000000000",
+    "lnFeeRateRoot": "1998002662000000",
+    "deployTxHash": "0xab4a74917f0c839df3b13f6eb81e4286f2c3dcbf268ef51be4cf3a85f658c7ac",
+    "deployBlockNumber": 276038148,
+    "reversedFee": 0.19999999993256523
+}
