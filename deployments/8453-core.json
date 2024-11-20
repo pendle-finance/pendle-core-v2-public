@@ -16,6 +16,7 @@
     },
     "baseCodeSplitter": "0xf3f560164979fe7F8f3eb2b64669Eac00E7043A6",
     "PENDLE": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
     "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
     "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
