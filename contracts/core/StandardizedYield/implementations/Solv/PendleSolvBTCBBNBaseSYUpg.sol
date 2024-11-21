@@ -8,7 +8,7 @@ import "../../../../interfaces/IPExchangeRateOracle.sol";
 contract PendleSolvBTCBBNBaseSYUpg is SYBaseUpg {
     event SetNewExchangeRateOracle(address oracle);
 
-    address public constant WBTC = PendleSolvHelperBase.CBBTC;
+    address public constant CBBTC = PendleSolvHelperBase.CBBTC;
     address public constant SOLV_BTC = PendleSolvHelperBase.SOLV_BTC_TOKEN;
     address public constant SOLV_BTCBBN = PendleSolvHelperBase.SOLV_BTCBBN_TOKEN;
 
@@ -19,7 +19,7 @@ contract PendleSolvBTCBBNBaseSYUpg is SYBaseUpg {
     function initialize(address _initialExchangeRateOracle) external initializer {
         __SYBaseUpg_init("SY SolvBTC Babylon", "SY-SolvBTC.BBN");
         _setExchangeRateOracle(_initialExchangeRateOracle);
-        _safeApproveInf(WBTC, PendleSolvHelperBase.SOLV_BTC_ROUTER);
+        _safeApproveInf(CBBTC, PendleSolvHelperBase.SOLV_BTC_ROUTER);
         _safeApproveInf(SOLV_BTC, PendleSolvHelperBase.SOLV_BTCBBN_ROUTER);
     }
 
@@ -82,7 +82,7 @@ contract PendleSolvBTCBBNBaseSYUpg is SYBaseUpg {
     }
 
     function getTokensIn() public view virtual override returns (address[] memory) {
-        return ArrayLib.create(WBTC, SOLV_BTC, SOLV_BTCBBN);
+        return ArrayLib.create(CBBTC, SOLV_BTC, SOLV_BTCBBN);
     }
 
     function getTokensOut() public view virtual override returns (address[] memory) {
@@ -90,7 +90,7 @@ contract PendleSolvBTCBBNBaseSYUpg is SYBaseUpg {
     }
 
     function isValidTokenIn(address token) public view virtual override returns (bool) {
-        return token == WBTC || token == SOLV_BTC || token == SOLV_BTCBBN;
+        return token == CBBTC || token == SOLV_BTC || token == SOLV_BTCBBN;
     }
 
     function isValidTokenOut(address token) public view virtual override returns (bool) {
@@ -98,6 +98,6 @@ contract PendleSolvBTCBBNBaseSYUpg is SYBaseUpg {
     }
 
     function assetInfo() external view returns (AssetType assetType, address assetAddress, uint8 assetDecimals) {
-        return (AssetType.TOKEN, WBTC, IERC20Metadata(WBTC).decimals());
+        return (AssetType.TOKEN, CBBTC, IERC20Metadata(CBBTC).decimals());
     }
 }
