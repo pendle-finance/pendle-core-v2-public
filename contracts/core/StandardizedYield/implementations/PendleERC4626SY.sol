@@ -38,9 +38,7 @@ contract PendleERC4626SY is SYBase {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        uint256 totalAssets = IERC4626(yieldToken).totalAssets();
-        uint256 totalSupply = IERC4626(yieldToken).totalSupply();
-        return totalAssets.divDown(totalSupply);
+        return IERC4626(yieldToken).convertToAssets(PMath.ONE);
     }
 
     function _previewDeposit(
