@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../SYBase.sol";
 import "../../../interfaces/IERC4626.sol";
 
-contract PendleERC4626SY is SYBase {
+contract PendleERC4626SYV2 is SYBase {
     using PMath for uint256;
     address public immutable asset;
 
@@ -38,10 +38,9 @@ contract PendleERC4626SY is SYBase {
     }
 
     function exchangeRate() public view virtual override returns (uint256) {
-        uint256 totalAssets = IERC4626(yieldToken).totalAssets();
-        uint256 totalSupply = IERC4626(yieldToken).totalSupply();
-        return totalAssets.divDown(totalSupply);
+        return IERC4626(yieldToken).convertToAssets(PMath.ONE);
     }
+
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit
