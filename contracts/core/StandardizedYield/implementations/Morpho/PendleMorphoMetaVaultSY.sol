@@ -12,10 +12,10 @@ contract PendleMorphoMetaVaultSY is PendleERC4626SY, IPTokenWithSupplyCap {
     ) PendleERC4626SY(_name, _symbol, _erc4626) {}
 
     function getAbsoluteSupplyCap() external view returns (uint256) {
-        return totalSupply() + IERC4626(yieldToken).maxMint(address(this));
+        return IERC4626(yieldToken).totalSupply() + IERC4626(yieldToken).maxMint(address(this));
     }
 
     function getAbsoluteTotalSupply() external view returns (uint256) {
-        return totalSupply();
+        return IERC4626(yieldToken).totalSupply();
     }
 }
