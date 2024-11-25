@@ -17,6 +17,8 @@ contract PendleSwap is IPSwapAggregator, TokenHelper {
             data.needScale ? _getScaledInputData(data.swapType, data.extCalldata, amountIn) : data.extCalldata,
             tokenIn == NATIVE ? amountIn : 0
         );
+
+        emit SwapSingle(data.swapType, tokenIn, amountIn);
     }
 
     function swapMultiOdos(address[] calldata tokensIn, SwapData calldata data) external payable {
