@@ -1,0 +1,14 @@
+{
+    "name": "SY WBTC",
+    "SY": "0x59E5a339701797a55465c590b2fE484855Be1a7B",
+    "YT": "0x31a7308A2308CC2bCa8E1e701c53A8d8D0B55254",
+    "PT": "0x6E96041a7F6A3a974a90016f277fb7457a64Ef9B",
+    "market": "0x461CD9222e130D1dc0Bd79DAb4643952430937c1",
+    "expiry": 1750896000,
+    "scalarRoot": "64394909743000000000",
+    "initAnchor": "1038014324000000000",
+    "lnFeeRateRoot": "999500333000000",
+    "deployTxHash": "0xd5ab3f4625f4e33814372a52428e67364a5e0db365def81749dc903d62f444f2",
+    "deployBlockNumber": 21269402,
+    "reversedFee": 0.09999999999164011
+}
