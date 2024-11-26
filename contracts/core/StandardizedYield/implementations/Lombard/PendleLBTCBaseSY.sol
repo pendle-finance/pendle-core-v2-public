@@ -21,7 +21,7 @@ contract PendleLBTCBaseSY is SYBaseUpg, IPTokenWithSupplyCap {
     constructor() SYBaseUpg(LBTC) {}
 
     function initialize(address _initialOracle) external initializer {
-        __SYBaseUpg_init("SY Lombard LBTC", "SY LBTC");
+        __SYBaseUpg_init("SY Lombard LBTC", "SY-LBTC");
         _safeApproveInf(CBBTC, MINTER);
         _setExchangeRateOracle(_initialOracle);
     }
