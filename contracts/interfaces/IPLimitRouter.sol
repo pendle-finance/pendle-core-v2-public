@@ -60,12 +60,9 @@ struct FillOrderParams {
 }
 
 interface IPLimitRouterCallback is IPLimitOrderType {
-    function limitRouterCallback(
-        uint256 actualMaking,
-        uint256 actualTaking,
-        uint256 totalFee,
-        bytes memory data
-    ) external returns (bytes memory);
+    function limitRouterCallback(uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory data)
+        external
+        returns (bytes memory);
 }
 
 interface IPLimitRouter is IPLimitOrderType {
@@ -106,17 +103,30 @@ interface IPLimitRouter is IPLimitOrderType {
 
     function cancelBatch(Order[] calldata orders) external;
 
-    function orderStatusesRaw(
-        bytes32[] memory orderHashes
-    ) external view returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts);
+    function orderStatusesRaw(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts);
 
-    function orderStatuses(
-        bytes32[] memory orderHashes
-    ) external view returns (uint256[] memory remainings, uint256[] memory filledAmounts);
+    function orderStatuses(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainings, uint256[] memory filledAmounts);
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 
     function simulate(address target, bytes calldata data) external payable;
+
+    function _checkSig(Order memory order, bytes memory signature)
+        external
+        view
+        returns (
+            bytes32,
+            /*orderHash*/
+            uint256,
+            /*remainingMakerAmount*/
+            uint256
+        ); /*filledMakerAmount*/
 
     /* --- Deprecated events --- */
 
