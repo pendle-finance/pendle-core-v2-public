@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../interfaces/IPMarket.sol";
-import "../core/libraries/math/PMath.sol";
+import "../../interfaces/IPMarket.sol";
+import "../../core/libraries/math/PMath.sol";
 
 // This library can & should be integrated directly for optimal gas usage.
 // If you prefer not to integrate it directly, the PendlePtOracle contract (a pre-deployed version of this contract) can be used.

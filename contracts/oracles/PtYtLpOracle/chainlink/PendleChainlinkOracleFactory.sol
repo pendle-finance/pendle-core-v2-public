@@ -3,8 +3,8 @@ pragma solidity ^0.8.17;
 
 import "./PendleChainlinkOracle.sol";
 import "./PendleChainlinkOracleWithQuote.sol";
-import "../../interfaces/IPChainlinkOracleFactory.sol";
-import "../../interfaces/IPPYLpOracle.sol";
+import "../../../interfaces/IPChainlinkOracleFactory.sol";
+import "../../../interfaces/IPPYLpOracle.sol";
 
 contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     error OracleAlreadyExists();

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../core/libraries/math/PMath.sol";
-import "../interfaces/IPExchangeRateOracle.sol";
-import "../interfaces/IRedstonePriceFeed.sol";
+import "../../core/libraries/math/PMath.sol";
+import "../../interfaces/IPExchangeRateOracle.sol";
+import "../../interfaces/IRedstonePriceFeed.sol";
 
 contract PendleRedStoneRateOracleAdapter is IPExchangeRateOracle {
     using PMath for int256;

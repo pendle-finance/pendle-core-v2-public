@@ -3,8 +3,8 @@ pragma solidity ^0.8.17;
 
 import "./PendlePYOracleLib.sol";
 import "./PendleLpOracleLib.sol";
-import "../interfaces/IPPYLpOracle.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../interfaces/IPPYLpOracle.sol";
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
