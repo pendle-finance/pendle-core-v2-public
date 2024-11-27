@@ -10,8 +10,6 @@ import "../PendleLpOracleLib.sol";
  * - startedAt=0, updatedAt=block.timestamp
  */
 contract PendleChainlinkOracle is IPChainlinkOracle {
-    using PendlePYOracleLib for IPMarket;
-
     error InvalidRoundId();
 
     // solhint-disable immutable-vars-naming
