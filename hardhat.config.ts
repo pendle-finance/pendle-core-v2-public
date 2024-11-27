@@ -45,6 +45,7 @@ const config: HardhatUserConfig = {
             'contracts/router/ActionCallbackV3.sol': viaIR('0.8.23', 1000000),
             'contracts/router/PendleRouterV3.sol': viaIR('0.8.23', 1000000),
             'contracts/limit/PendleLimitRouter.sol': viaIR('0.8.23', 1000000),
+            'contracts/oracles/factory/PendleChainlinkOracleFactory.sol': viaIR('0.8.23', 35000),
         },
     },
     contractSizer: {
