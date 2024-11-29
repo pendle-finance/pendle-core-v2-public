@@ -1,6 +1,18 @@
 pragma solidity ^0.8.0;
 
 library SDKErrorsDirectory {
+    enum RateRejectReason {
+        RATE_TOO_SMALL,
+        RATE_TOO_LARGE
+    }
+
+    struct ExchangeRateData {
+        uint128 rate;
+        uint64 dataBlock; // the pin block which the data is sampled at
+        uint32 dataTimestamp; // block(dataBlock).timestamp
+        uint32 updatedAt;
+    }
+
     error ApproxBinarySearchInputInvalid(
         uint256 approxGuessMin,
         uint256 approxGuessMax,
@@ -259,4 +271,27 @@ library SDKErrorsDirectory {
     error NotEnoughLiquidity();
     error InvalidAmountToDeposit();
     error TellerWithMultiAssetSupport__AssetNotSupported();
+
+    error SameIncentiveController();
+
+    error KarakVaultAssetLimitExceeded(uint256 assetLimit, uint256 totalAsset, uint256 amountAssetToDeposit);
+    error MellowVaultHasInvalidAssets();
+
+    error ApxETHNotEnoughBuffer();
+    error MaxStTAOSupplyExceeded(uint256 amountTaoToWrap, uint256 maxTaoForWrap);
+    error VenusError(uint256 errorCode);
+    error AMOUNT_NULL();
+    error ADDRESS_NULL();
+    error INSUFFICIENT_BALANCE();
+    error TOKEN_NOT_ALLOWED(address token);
+    error RateRejected(uint256 oldRate, uint256 newRate, RateRejectReason reason);
+    error InvalidMetadata(ExchangeRateData data);
+    error InvalidRoundId();
+    error OracleAlreadyExists();
+    error OracleIncreaseCardinalityRequired(uint32 cardinalityRequired);
+    error OracleOldestObservationNotSatisfied();
+    error IncreaseCardinalityRequired(uint16 cardinalityRequired);
+    error AdditionalWaitRequired(uint32 duration);
+
+    error LombardStakeLimitExceed(uint256 remainingStake, uint256 amountStaking);
 }
