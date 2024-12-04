@@ -46,5 +46,8 @@
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "gaugeController": "0x1e56299ebc8a1010cec26005d12e3e5c5cc2db00",
     "arbMerkleDistribution": "0x23a102e78D1FF1645a3666691495174764a5FCAF",
-    "linearDistributor": "0x83d85AEDD308261d847C3eb8d7146457bD8F38E8"
+    "linearDistributor": "0x83d85AEDD308261d847C3eb8d7146457bD8F38E8",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+    }
 }

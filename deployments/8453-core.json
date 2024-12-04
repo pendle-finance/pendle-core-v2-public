@@ -37,5 +37,8 @@
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",
-    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58"
+    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+    }
 }

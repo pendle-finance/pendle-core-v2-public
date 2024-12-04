@@ -42,5 +42,8 @@
     "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
     "receiverEndpoint": "0xf799E4c029d14f41Dc1918C9A4C67242F565710e",
     "vePendle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
-    "gaugeController": "0x428f2f93afAc3F96B0DE59854038c585e06165C8"
+    "gaugeController": "0x428f2f93afAc3F96B0DE59854038c585e06165C8",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+    }
 }
