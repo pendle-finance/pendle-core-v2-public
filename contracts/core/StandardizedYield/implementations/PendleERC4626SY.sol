@@ -42,6 +42,7 @@ contract PendleERC4626SY is SYBase {
         uint256 totalSupply = IERC4626(yieldToken).totalSupply();
         return totalAssets.divDown(totalSupply);
     }
+
     function _previewDeposit(
         address tokenIn,
         uint256 amountTokenToDeposit

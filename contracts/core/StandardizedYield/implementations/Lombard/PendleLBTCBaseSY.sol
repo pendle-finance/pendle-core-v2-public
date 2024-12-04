@@ -114,7 +114,7 @@ contract PendleLBTCBaseSY is SYBaseUpg, IPTokenWithSupplyCap {
         // this function fails/be inaccurate when stakeLimit is lowered to be smaller than remaining stake
         return ILBTCMinterBase(MINTER).stakeLimit() - ILBTCMinterBase(MINTER).remainingStake();
     }
-    
+
     function getAbsoluteSupplyCap() external view returns (uint256) {
         return ILBTCMinterBase(MINTER).stakeLimit();
     }
