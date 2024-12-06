@@ -3,8 +3,6 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
-import "./kyberswap/l1-contracts/InputScalingHelper.sol";
-import "./kyberswap/l2-contracts/InputScalingHelperL2.sol";
 
 contract PendleSwap is IPSwapAggregator, TokenHelper {
     using Address for address;
