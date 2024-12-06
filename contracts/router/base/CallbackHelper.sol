@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
-import "../../interfaces/IStandardizedYield.sol";
 
 abstract contract CallbackHelper {
     enum ActionType {
