@@ -351,7 +351,7 @@ library CalldataReader {
         (ret, startByte) = _calldataVal(data, startByte, 1);
         uint256 length = uint256(uint8(bytes1(ret)));
         bytesArray = new bytes[](length);
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             (bytesArray[i], startByte) = _readBytes(data, startByte);
         }
         return (bytesArray, startByte);
@@ -366,7 +366,7 @@ library CalldataReader {
         (ret, startByte) = _calldataVal(data, startByte, 1);
         uint256 length = uint256(uint8(bytes1(ret)));
         addrs = new address[](length);
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             (addrs[i], startByte) = _readAddress(data, startByte);
         }
         return (addrs, startByte);
@@ -382,7 +382,7 @@ library CalldataReader {
         (ret, startByte) = _calldataVal(data, startByte, 1);
         uint256 length = uint256(uint8(bytes1(ret)));
         uint256[] memory us = new uint256[](length);
-        for (uint8 i = 0; i < length; ++i) {
+        for (uint8 i; i != length; ++i) {
             (us[i], startByte) = _readUint128AsUint256(data, startByte);
         }
         return (us, startByte);

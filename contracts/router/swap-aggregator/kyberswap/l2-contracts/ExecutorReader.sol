@@ -15,7 +15,7 @@ library ExecutorReader {
         (ret, startByte) = CalldataReader._calldataVal(data, startByte, 1);
         uint256 lX = uint256(uint8(bytes1(ret)));
         desc.swapSequences = new IAggregationExecutorOptimistic.Swap[][](lX);
-        for (uint8 i = 0; i < lX; ++i) {
+        for (uint8 i; i != lX; ++i) {
             (ret, startByte) = CalldataReader._calldataVal(data, startByte, 1);
             uint256 lY = uint256(uint8(bytes1(ret)));
             desc.swapSequences[i] = new IAggregationExecutorOptimistic.Swap[](lY);
@@ -42,7 +42,7 @@ library ExecutorReader {
         (ret, startByte) = CalldataReader._calldataVal(data, startByte, 1);
         uint256 len = uint256(uint8(bytes1(ret)));
         swaps = new IAggregationExecutorOptimistic.Swap[](len);
-        for (uint8 i = 0; i < len; ++i) {
+        for (uint8 i; i != len; ++i) {
             (swaps[i], startByte) = _readSwap(data, startByte);
         }
         (tokenIn, startByte) = CalldataReader._readAddress(data, startByte);

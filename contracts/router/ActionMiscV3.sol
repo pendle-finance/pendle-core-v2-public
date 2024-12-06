@@ -85,15 +85,18 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         address[] calldata yts,
         address[] calldata markets
     ) external {
-        for (uint256 i = 0; i < sys.length; ++i) {
+        uint256 length = sys.length;
+        for (uint256 i; i != length; ++i) {
             IStandardizedYield(sys[i]).claimRewards(user);
         }
 
-        for (uint256 i = 0; i < yts.length; ++i) {
+        length = yts.length;
+        for (uint256 i; i != length; ++i) {
             IPYieldToken(yts[i]).redeemDueInterestAndRewards(user, true, true);
         }
 
-        for (uint256 i = 0; i < markets.length; ++i) {
+        length = markets.length;
+        for (uint256 i; i != length; ++i) {
             IPMarket(markets[i]).redeemRewards(user);
         }
     }
@@ -440,7 +443,8 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     // ----------------- MISC FUNCTIONS -----------------
 
     function boostMarkets(address[] memory markets) external {
-        for (uint256 i = 0; i < markets.length; i++) {
+        uint256 length = markets.length;
+        for (uint256 i; i != length; ++i) {
             IPMarket(markets[i]).transferFrom(msg.sender, markets[i], 0);
         }
     }
@@ -448,7 +452,7 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     function multicall(Call3[] calldata calls) external payable returns (Result[] memory res) {
         uint256 length = calls.length;
         res = new Result[](length);
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i != length; ++i) {
             (bool success, bytes memory result) = _delegateToSelf(calls[i].callData, calls[i].allowFailure);
             res[i] = Result(success, result);
         }
