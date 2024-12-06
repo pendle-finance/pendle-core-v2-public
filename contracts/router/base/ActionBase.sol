@@ -185,6 +185,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netPtLeft, netSyOut, netSyFee, doMarketOrder) = _fillLimit(receiver, PT, netPtLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(PT), market, netPtLeft);
+            } else {
+                _transferOut(address(PT), receiver, netPtLeft);
             }
         }
 
@@ -226,6 +228,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netSyLeft, netPtOut, netSyFee, doMarketOrder) = _fillLimit(receiver, SY, netSyLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(SY), market, netSyLeft);
+            } else {
+                _transferOut(address(SY), receiver, netSyLeft);
             }
         }
 
@@ -272,6 +276,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netYtLeft, netSyOut, netSyFee, doMarketOrder) = _fillLimit(receiver, YT, netYtLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(YT), address(YT), netYtLeft);
+            } else {
+                _transferOut(address(YT), receiver, netYtLeft);
             }
         }
 
@@ -317,6 +323,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netSyLeft, netYtOut, netSyFee, doMarketOrder) = _fillLimit(receiver, SY, netSyLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(SY), address(YT), netSyLeft);
+            } else {
+                _transferOut(address(SY), receiver, netSyLeft);
             }
         }
 
