@@ -49,6 +49,7 @@
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
     "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
+    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
     }

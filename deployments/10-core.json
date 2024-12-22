@@ -45,6 +45,7 @@
     "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
+    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
     }
