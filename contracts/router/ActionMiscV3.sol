@@ -205,20 +205,6 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         }
     }
 
-    /// @dev Deprecated, please use swapTokensToTokens which support unwrapping ETH too
-    function swapTokenToToken(
-        address receiver,
-        uint256 minTokenOut,
-        TokenInput calldata inp
-    ) external payable returns (uint256 netTokenOut) {
-        _swapTokenInput(inp);
-
-        netTokenOut = _selfBalance(inp.tokenMintSy);
-        if (netTokenOut < minTokenOut) revert("Slippage: INSUFFICIENT_TOKEN_OUT");
-
-        _transferOut(inp.tokenMintSy, receiver, netTokenOut);
-    }
-
     /// @dev The interface might change in the future, check with Pendle team before use
     function swapTokenToTokenViaSy(
         address receiver,

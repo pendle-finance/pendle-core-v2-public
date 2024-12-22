@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../router/math/MarketApproxLib.sol";
+import "../router/math/MarketApproxLibV2.sol";
 import "./IPAllActionTypeV3.sol";
 import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 
@@ -40,20 +40,4 @@ interface IPActionSwapYTV3 is IPAllEventsV3 {
         uint256 minSyOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netSyOut, uint256 netSyFee);
-
-    function swapExactPtForYt(
-        address receiver,
-        address market,
-        uint256 exactPtIn,
-        uint256 minYtOut,
-        ApproxParams calldata guessTotalPtToSwap
-    ) external returns (uint256 netYtOut, uint256 netSyFee);
-
-    function swapExactYtForPt(
-        address receiver,
-        address market,
-        uint256 exactYtIn,
-        uint256 minPtOut,
-        ApproxParams calldata guessTotalPtFromSwap
-    ) external returns (uint256 netPtOut, uint256 netSyFee);
 }

@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPRouterStatic.sol";
 import "./StorageLayout.sol";
+import "./MarketApproxLibV1.sol";
 
 contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     using PMath for uint256;
@@ -12,8 +13,8 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     using LogExpMath for int256;
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
-    using MarketApproxPtInLib for MarketState;
-    using MarketApproxPtOutLib for MarketState;
+    using MarketApproxPtInLibV1 for MarketState;
+    using MarketApproxPtOutLibV1 for MarketState;
     using MarketMathCore for MarketState;
 
     // ============ ADD REMOVE LIQUIDITY ============
@@ -74,7 +75,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     {
         MarketState memory state = _readState(market);
 
-        (netPtToSwap, , ) = state.approxSwapPtToAddLiquidity(
+        (netPtToSwap, , , ) = state.approxSwapPtToAddLiquidity(
             _pyIndex(market),
             netPtIn,
             0,
@@ -110,7 +111,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
     {
         MarketState memory state = _readState(market);
 
-        (netPtFromSwap, , ) = state.approxSwapSyToAddLiquidity(
+        (netPtFromSwap, , , ) = state.approxSwapSyToAddLiquidity(
             _pyIndex(market),
             netSyIn,
             0,
@@ -233,7 +234,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         MarketState memory state = _readState(market);
 
         (netSyFromBurn, netPtFromBurn) = state.removeLiquidity(netLpToRemove);
-        (netPtFromSwap, netSyFee) = state.approxSwapExactSyForPt(
+        (netPtFromSwap, netSyFee, ) = state.approxSwapExactSyForPt(
             _pyIndex(market),
             netSyFromBurn,
             block.timestamp,
@@ -343,7 +344,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         uint256 exactSyIn
     ) public view returns (uint256 netPtOut, uint256 netSyFee, uint256 priceImpact, uint256 exchangeRateAfter) {
         MarketState memory state = _readState(market);
-        (netPtOut, netSyFee) = state.approxSwapExactSyForPt(
+        (netPtOut, netSyFee, ) = state.approxSwapExactSyForPt(
             _pyIndex(market),
             exactSyIn,
             block.timestamp,
@@ -455,7 +456,7 @@ contract ActionMarketCoreStatic is StorageLayout, IPActionMarketCoreStatic {
         MarketState memory state = _readState(market);
         PYIndex index = _pyIndex(market);
 
-        (netYtOut, netSyFee) = state.approxSwapExactSyForYt(index, exactSyIn, block.timestamp, defaultApproxParams);
+        (netYtOut, netSyFee, ) = state.approxSwapExactSyForYt(index, exactSyIn, block.timestamp, defaultApproxParams);
 
         priceImpact = _calcPriceImpactYt(market, netYtOut.neg());
 

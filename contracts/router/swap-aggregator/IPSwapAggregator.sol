@@ -20,7 +20,14 @@ enum SwapType {
     KYBERSWAP,
     ODOS,
     // ETH_WETH not used in Aggregator
-    ETH_WETH
+    ETH_WETH,
+    OKX,
+    ONE_INCH,
+    RESERVE_1,
+    RESERVE_2,
+    RESERVE_3,
+    RESERVE_4,
+    RESERVE_5
 }
 
 interface IPSwapAggregator {

@@ -157,14 +157,6 @@ interface IPActionSwapYTV3Events {
         int256 netTokenToAccount,
         uint256 netSyInterm
     );
-
-    event SwapPtAndYt(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        int256 netPtToAccount,
-        int256 netYtToAccount
-    );
 }
 
 interface IPActionMiscV3Events {

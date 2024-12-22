@@ -6,15 +6,14 @@ import "../../interfaces/IStandardizedYield.sol";
 import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPAllActionTypeV3.sol";
 import "../../interfaces/IPMarket.sol";
-import "../../router/math/MarketApproxLib.sol";
-
+import "../../router/math/MarketApproxLibV2.sol";
 import "../../core/libraries/Errors.sol";
 import "../swap-aggregator/IPSwapAggregator.sol";
 import "./CallbackHelper.sol";
 
 abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
-    using MarketApproxPtInLib for MarketState;
-    using MarketApproxPtOutLib for MarketState;
+    using MarketApproxPtInLibV2 for MarketState;
+    using MarketApproxPtOutLibV2 for MarketState;
     using PMath for uint256;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
@@ -234,7 +233,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         }
 
         if (doMarketOrder) {
-            (uint256 netPtOutMarket, ) = _readMarket(market).approxSwapExactSyForPt(
+            (uint256 netPtOutMarket, ) = _readMarket(market).approxSwapExactSyForPtV2(
                 YT.newIndex(),
                 netSyLeft,
                 block.timestamp,
@@ -329,7 +328,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         }
 
         if (doMarketOrder) {
-            (uint256 netYtOutMarket, ) = _readMarket(market).approxSwapExactSyForYt(
+            (uint256 netYtOutMarket, ) = _readMarket(market).approxSwapExactSyForYtV2(
                 YT.newIndex(),
                 netSyLeft,
                 block.timestamp,

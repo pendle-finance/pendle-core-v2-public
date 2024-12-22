@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../router/math/MarketApproxLib.sol";
+import "../router/math/MarketApproxLibV2.sol";
 import "./IPAllActionTypeV3.sol";
 import {IPAllEventsV3} from "./IPAllEventsV3.sol";
 import "./IStandardizedYield.sol";
@@ -81,12 +81,6 @@ interface IPActionMiscV3 is IPAllEventsV3 {
         SwapDataExtra[] calldata swaps,
         uint256[] calldata netSwaps
     ) external payable returns (uint256[] memory netOutFromSwaps);
-
-    function swapTokenToToken(
-        address receiver,
-        uint256 minTokenOut,
-        TokenInput calldata inp
-    ) external payable returns (uint256 netTokenOut);
 
     function swapTokenToTokenViaSy(
         address receiver,

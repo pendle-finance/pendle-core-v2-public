@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPRouterStatic.sol";
 import "./StorageLayout.sol";
-import "hardhat/console.sol";
+import "./MarketApproxLibV1.sol";
 
 contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using MarketMathCore for MarketState;
@@ -280,7 +280,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         MarketPreCompute memory comp = state.getMarketPreCompute(_pyIndex(market), block.timestamp);
 
         uint256 guessLowerBound = 0;
-        uint256 guessUpperBound = MarketApproxPtOutLib.calcMaxPtOut(comp, state.totalPt);
+        uint256 guessUpperBound = MarketApproxPtOutLibV1.calcMaxPtOut(comp, state.totalPt);
         return genApproxParamsPtOut(netPtOut, guessLowerBound, guessUpperBound, slippage);
     }
 

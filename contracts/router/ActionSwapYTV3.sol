@@ -8,8 +8,8 @@ import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 
 contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
-    using MarketApproxPtInLib for MarketState;
-    using MarketApproxPtOutLib for MarketState;
+    using MarketApproxPtInLibV2 for MarketState;
+    using MarketApproxPtOutLibV2 for MarketState;
     using PYIndexLib for IPYieldToken;
 
     // ------------------ SWAP TOKEN FOR YT ------------------
@@ -104,68 +104,5 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
 
         (netSyOut, netSyFee) = _swapExactYtForSy(receiver, market, SY, YT, exactYtIn, minSyOut, limit);
         emit SwapYtAndSy(msg.sender, market, receiver, exactYtIn.neg(), netSyOut.Int());
-    }
-
-    // ------------------ SWAP PT FOR YT ------------------
-
-    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    function swapExactPtForYt(
-        address receiver,
-        address market,
-        uint256 exactPtIn,
-        uint256 minYtOut,
-        ApproxParams calldata guessTotalPtToSwap
-    ) external returns (uint256 netYtOut, uint256 netSyFee) {
-        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
-
-        uint256 totalPtToSwap;
-        (netYtOut, totalPtToSwap, netSyFee) = _readMarket(market).approxSwapExactPtForYt(
-            YT.newIndex(),
-            exactPtIn,
-            block.timestamp,
-            guessTotalPtToSwap
-        );
-
-        _transferFrom(IERC20(PT), msg.sender, market, exactPtIn);
-
-        IPMarket(market).swapExactPtForSy(
-            address(YT),
-            totalPtToSwap,
-            _encodeSwapExactPtForYt(receiver, exactPtIn, minYtOut, YT)
-        );
-
-        emit SwapPtAndYt(msg.sender, market, receiver, exactPtIn.neg(), netYtOut.Int());
-    }
-
-    // ------------------ SWAP YT FOR PT ------------------
-
-    /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    function swapExactYtForPt(
-        address receiver,
-        address market,
-        uint256 exactYtIn,
-        uint256 minPtOut,
-        ApproxParams calldata guessTotalPtFromSwap
-    ) external returns (uint256 netPtOut, uint256 netSyFee) {
-        (, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
-
-        uint256 totalPtFromSwap;
-        (netPtOut, totalPtFromSwap, netSyFee) = _readMarket(market).approxSwapExactYtForPt(
-            YT.newIndex(),
-            exactYtIn,
-            block.timestamp,
-            guessTotalPtFromSwap
-        );
-
-        if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
-
-        _transferFrom(IERC20(YT), msg.sender, address(YT), exactYtIn);
-        IPMarket(market).swapSyForExactPt(
-            address(this),
-            totalPtFromSwap,
-            _encodeSwapExactYtForPt(receiver, netPtOut, PT, YT)
-        );
-
-        emit SwapPtAndYt(msg.sender, market, receiver, netPtOut.Int(), exactYtIn.neg());
     }
 }

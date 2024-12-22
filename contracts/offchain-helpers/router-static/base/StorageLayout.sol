@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../../router/math/MarketApproxLib.sol";
+import "./MarketApproxLibV1.sol";
 
 abstract contract StorageLayout {
     address internal owner;

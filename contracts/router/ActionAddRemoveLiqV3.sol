@@ -10,8 +10,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
-    using MarketApproxPtInLib for MarketState;
-    using MarketApproxPtOutLib for MarketState;
+    using MarketApproxPtInLibV2 for MarketState;
+    using MarketApproxPtOutLibV2 for MarketState;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
 
@@ -104,7 +104,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
             _transferOut(address(PT), market, netPtLeft);
         }
 
-        (uint256 netPtSwapMarket, , ) = _readMarket(market).approxSwapPtToAddLiquidity(
+        (uint256 netPtSwapMarket, , ) = _readMarket(market).approxSwapPtToAddLiquidityV2(
             YT.newIndex(),
             netPtLeft,
             netSyReceived,
@@ -221,7 +221,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
             _transferOut(address(SY), market, netSyLeft);
         }
 
-        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapSyToAddLiquidity(
+        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapSyToAddLiquidityV2(
             YT.newIndex(),
             netSyLeft,
             netPtReceived,

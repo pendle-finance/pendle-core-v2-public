@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: None
 pragma solidity ^0.8.0;
 
 import "./IPMarket.sol";
-import {ApproxParams} from "../router/math/MarketApproxLib.sol";
+import {ApproxParams} from "../router/math/MarketApproxLibV2.sol";
 
 interface IPActionMarketAuxStatic {
     function calcPriceImpactPY(address market, int256 netPtOut) external view returns (uint256);
