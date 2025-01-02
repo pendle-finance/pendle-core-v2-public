@@ -9,7 +9,7 @@ import "../core/libraries/TokenHelper.sol";
 import "../core/libraries/Errors.sol";
 import "../interfaces/IPMultiTokenMerkleDistributor.sol";
 
-contract PendleMultiMerkleDistributor is
+contract PendleMultiTokenMerkleDistributor is
     IPMultiTokenMerkleDistributor,
     UUPSUpgradeable,
     BoringOwnableUpgradeable,
