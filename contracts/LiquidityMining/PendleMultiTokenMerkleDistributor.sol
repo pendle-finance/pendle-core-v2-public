@@ -60,6 +60,7 @@ contract PendleMultiTokenMerkleDistributor is
     function claimVerified(address receiver, address[] memory tokens) external returns (uint256[] memory amountOuts) {
         address user = msg.sender;
         uint256 nToken = tokens.length;
+        amountOuts = new uint256[](nToken);
 
         for (uint256 i = 0; i < nToken; ++i) {
             address token = tokens[i];
