@@ -10,13 +10,13 @@ interface IPMultiTokenMerkleDistributor {
     error InvalidMerkleProof();
 
     function claim(
+        address receiver,
         address[] memory tokens,
-        address[] memory receivers,
         uint256[] memory totalAccrueds,
         bytes32[][] memory proofs
-    ) external returns (uint256[] memory amountOut);
+    ) external returns (uint256[] memory amountOuts);
 
-    function claimVerified(address[] memory tokens, address receiver) external returns (uint256[] memory amountOuts);
+    function claimVerified(address receiver, address[] memory tokens) external returns (uint256[] memory amountOuts);
 
     function verify(
         address user,
@@ -24,6 +24,4 @@ interface IPMultiTokenMerkleDistributor {
         uint256[] memory totalAccrueds,
         bytes32[][] memory proofs
     ) external returns (uint256[] memory amountClaimable);
-
-    function getRewardTokenList() external view returns (address[] memory);
 }

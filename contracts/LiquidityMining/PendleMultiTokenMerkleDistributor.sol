@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../core/libraries/BoringOwnableUpgradeable.sol";
 import "../core/libraries/TokenHelper.sol";
+import "../core/libraries/Errors.sol";
 import "../interfaces/IPMultiTokenMerkleDistributor.sol";
 
 contract PendleMultiMerkleDistributor is
@@ -20,37 +21,34 @@ contract PendleMultiMerkleDistributor is
     mapping(address => mapping(address => uint256)) public claimed;
     mapping(address => mapping(address => uint256)) public verified;
 
-    address[] public defaultTokenList;
-
     constructor() {
         _disableInitializers();
     }
 
     receive() external payable {}
 
-    function initialize(address[] calldata _initialDefaultTokenList) external initializer {
+    function initialize() external initializer {
         __BoringOwnable_init();
-        _setDefaultTokenList(_initialDefaultTokenList);
-    }
-
-    function getRewardTokenList() external view returns (address[] memory) {
-        return defaultTokenList;
     }
 
     function claim(
+        address receiver,
         address[] memory tokens,
-        address[] memory receivers,
         uint256[] memory totalAccrueds,
         bytes32[][] memory proofs
     ) external returns (uint256[] memory amountOuts) {
+        
+        if (tokens.length != totalAccrueds.length || tokens.length != proofs.length) {
+            revert Errors.ArrayLengthMismatch();
+        }
+
         address user = msg.sender;
         uint256 nToken = tokens.length;
         amountOuts = new uint256[](nToken);
 
         for (uint256 i = 0; i < nToken; ++i) {
-            (address token, address receiver, uint256 totalAccrued, bytes32[] memory proof) = (
+            (address token, uint256 totalAccrued, bytes32[] memory proof) = (
                 tokens[i],
-                receivers[i],
                 totalAccrueds[i],
                 proofs[i]
             );
@@ -64,7 +62,7 @@ contract PendleMultiMerkleDistributor is
         }
     }
 
-    function claimVerified(address[] memory tokens, address receiver) external returns (uint256[] memory amountOuts) {
+    function claimVerified(address receiver, address[] memory tokens) external returns (uint256[] memory amountOuts) {
         address user = msg.sender;
         uint256 nToken = tokens.length;
 
@@ -115,15 +113,6 @@ contract PendleMultiMerkleDistributor is
     function setMerkleRoot(bytes32 newMerkleRoot) external payable onlyOwner {
         merkleRoot = newMerkleRoot;
         emit SetMerkleRoot(merkleRoot);
-    }
-
-    function setDefaultTokenList(address[] memory _newDefaultTokenList) external onlyOwner {
-        _setDefaultTokenList(_newDefaultTokenList);
-    }
-
-    function _setDefaultTokenList(address[] memory _newDefaultTokenList) internal {
-        defaultTokenList = _newDefaultTokenList;
-        emit SetDefaultTokenList(_newDefaultTokenList);
     }
 
     // ----------------- upgrade-related -----------------
