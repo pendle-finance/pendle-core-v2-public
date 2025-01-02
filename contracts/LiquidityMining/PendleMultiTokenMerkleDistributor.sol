@@ -37,7 +37,6 @@ contract PendleMultiMerkleDistributor is
         uint256[] memory totalAccrueds,
         bytes32[][] memory proofs
     ) external returns (uint256[] memory amountOuts) {
-        
         if (tokens.length != totalAccrueds.length || tokens.length != proofs.length) {
             revert Errors.ArrayLengthMismatch();
         }
@@ -47,11 +46,7 @@ contract PendleMultiMerkleDistributor is
         amountOuts = new uint256[](nToken);
 
         for (uint256 i = 0; i < nToken; ++i) {
-            (address token, uint256 totalAccrued, bytes32[] memory proof) = (
-                tokens[i],
-                totalAccrueds[i],
-                proofs[i]
-            );
+            (address token, uint256 totalAccrued, bytes32[] memory proof) = (tokens[i], totalAccrueds[i], proofs[i]);
             if (!_verifyMerkleData(token, user, totalAccrued, proof)) revert InvalidMerkleProof();
 
             amountOuts[i] = totalAccrued - claimed[token][user];
