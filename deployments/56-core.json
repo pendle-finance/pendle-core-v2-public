@@ -46,6 +46,7 @@
     "vePendle": "0x8A09574b0401A856d89d1b583eE22E8cb0C5530B",
     "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
     "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
+    "multiTokenDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
     }
