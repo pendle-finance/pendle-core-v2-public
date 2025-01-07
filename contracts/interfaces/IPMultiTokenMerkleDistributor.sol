@@ -9,6 +9,12 @@ interface IPMultiTokenMerkleDistributor {
 
     error InvalidMerkleProof();
 
+    function merkleRoot() external view returns (bytes32);
+
+    function claimed(address token, address user) external view returns (uint256);
+
+    function verified(address token, address user) external view returns (uint256);
+
     function claim(
         address receiver,
         address[] memory tokens,
