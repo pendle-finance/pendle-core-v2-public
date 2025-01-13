@@ -34,6 +34,4 @@ interface IPSwapAggregator {
     event SwapSingle(SwapType indexed swapType, address indexed tokenIn, uint256 amountIn);
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata swapData) external payable;
-
-    function swapMultiOdos(address[] calldata tokensIn, SwapData calldata swapData) external payable;
 }

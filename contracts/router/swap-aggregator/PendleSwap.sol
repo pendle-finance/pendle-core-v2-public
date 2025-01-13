@@ -3,14 +3,18 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./OKXScaleHelper.sol";
+import "./OneInchScaleHelper.sol";
 
-contract PendleSwap is IPSwapAggregator, TokenHelper {
+contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, OneInchScaleHelper {
     using Address for address;
+    using SafeERC20 for IERC20;
 
-    address public immutable KYBER_SCALING_HELPER = 0x2f577A41BeC1BE1152AeEA12e73b7391d15f655D;
+    address private constant KYBER_SCALING_HELPER = 0x2f577A41BeC1BE1152AeEA12e73b7391d15f655D;
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
-        _safeApproveInf(tokenIn, data.extRouter);
+        _approveForExtRouter(tokenIn, data);
         data.extRouter.functionCallWithValue(
             data.needScale ? _getScaledInputData(data.swapType, data.extCalldata, amountIn) : data.extCalldata,
             tokenIn == NATIVE ? amountIn : 0
@@ -19,11 +23,20 @@ contract PendleSwap is IPSwapAggregator, TokenHelper {
         emit SwapSingle(data.swapType, tokenIn, amountIn);
     }
 
-    function swapMultiOdos(address[] calldata tokensIn, SwapData calldata data) external payable {
-        for (uint256 i = 0; i < tokensIn.length; ++i) {
-            _safeApproveInf(tokensIn[i], data.extRouter);
+    function _approveForExtRouter(address token, SwapData calldata data) internal {
+        if (token == NATIVE) return;
+
+        if (data.swapType == SwapType.OKX) {
+            _safeApproveInfV2(IERC20(token), _okx_getTokenApprove());
+        } else {
+            _safeApproveInfV2(IERC20(token), data.extRouter);
         }
-        data.extRouter.functionCallWithValue(data.extCalldata, msg.value);
+    }
+
+    function _safeApproveInfV2(IERC20 token, address spender) internal {
+        if (token.allowance(address(this), spender) < type(uint256).max) {
+            token.forceApprove(spender, type(uint256).max);
+        }
     }
 
     function _getScaledInputData(
@@ -41,6 +54,10 @@ contract PendleSwap is IPSwapAggregator, TokenHelper {
             require(isSuccess, "PendleSwap: Kyber scaling failed");
         } else if (swapType == SwapType.ODOS) {
             scaledCallData = _odosScaling(rawCallData, amountIn);
+        } else if (swapType == SwapType.OKX) {
+            scaledCallData = _okxScaling(rawCallData, amountIn);
+        } else if (swapType == SwapType.ONE_INCH) {
+            scaledCallData = _oneInchScaling(rawCallData, amountIn);
         } else {
             assert(false);
         }
