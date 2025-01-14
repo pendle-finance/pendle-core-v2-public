@@ -30,6 +30,8 @@ abstract contract LimitRouterBase is
     uint128 internal constant _ORDER_DOES_NOT_EXIST = 0;
     uint128 internal constant _ORDER_FILLED = 1;
     uint256 internal constant NEW_PRIME = 12421;
+    uint256 internal constant MAX_LN_FEE_RATE_ROOT = 48790164169432003; // ln(1.05)
+
     bytes private constant EMPTY_BYTES = abi.encode();
 
     address public feeRecipient;
@@ -486,19 +488,13 @@ abstract contract LimitRouterBase is
         uint256 len = YTs.length;
         require(len == lnFeeRateRoots.length, "LOP: length mismatch");
 
-        if (msg.sender == ownerHelper) {
-            _requireFeeNotSet(YTs);
-        }
-
         for (uint256 i = 0; i < len; i++) {
             require(lnFeeRateRoots[i] > 0, "LOP: zero fee not allowed");
+            require(lnFeeRateRoots[i] <= MAX_LN_FEE_RATE_ROOT, "LOP: fee too high");
+
             __lnFeeRateRoot[YTs[i]] = lnFeeRateRoots[i];
         }
-    }
 
-    function _requireFeeNotSet(address[] memory YTs) internal view {
-        for (uint256 i = 0; i < YTs.length; i++) {
-            require(__lnFeeRateRoot[YTs[i]] == 0, "LOP: fee already set");
-        }
+        emit LnFeeRateRootsSet(YTs, lnFeeRateRoots);
     }
 }

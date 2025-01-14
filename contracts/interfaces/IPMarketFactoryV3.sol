@@ -28,4 +28,6 @@ interface IPMarketFactoryV3 {
         int256 initialAnchor,
         uint80 lnFeeRateRoot
     ) external returns (address market);
+
+    function setOverriddenFee(address router, address market, uint80 newFee) external;
 }

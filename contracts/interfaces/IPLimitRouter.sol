@@ -89,6 +89,9 @@ interface IPLimitRouter is IPLimitOrderType {
         address taker
     );
 
+    // event added on 2/1/2025
+    event LnFeeRateRootsSet(address[] YTs, uint256[] lnFeeRateRoots);
+
     // @dev actualMaking, actualTaking are in the SY form
     function fill(
         FillOrderParams[] memory params,
