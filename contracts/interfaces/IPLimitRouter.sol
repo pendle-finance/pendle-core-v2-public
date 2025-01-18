@@ -121,6 +121,8 @@ interface IPLimitRouter is IPLimitOrderType {
 
     function simulate(address target, bytes calldata data) external payable;
 
+    function WNATIVE() external view returns (address);
+
     function _checkSig(
         Order memory order,
         bytes memory signature

@@ -39,7 +39,7 @@ abstract contract LimitRouterBase is
     // YT => lnFeeRateRoot // not to be accessed directly
     mapping(address => uint256) internal __lnFeeRateRoot;
 
-    address private immutable WNATIVE;
+    address public immutable WNATIVE;
 
     mapping(bytes32 => OrderStatus) internal _status;
 
