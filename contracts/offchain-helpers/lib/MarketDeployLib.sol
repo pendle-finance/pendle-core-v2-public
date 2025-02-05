@@ -49,7 +49,7 @@ library MarketDeployLib {
 
     function calcInitialProportion(
         uint256 expiry,
-        uint256 rateScalar,
+        uint256 scalarRoot,
         uint256 rateAnchor,
         uint256 desiredImpliedRate
     ) internal view returns (uint256 initialProportion) {
@@ -59,7 +59,9 @@ library MarketDeployLib {
         args.lnImpliedRate = LogExpMath.ln(PMath.IONE + desiredImpliedRate.Int()).Uint();
         args.desiredExchangeRate = ((args.lnImpliedRate * args.timeToExpiry) / YEAR).Int().exp();
 
-        initialProportion = (args.desiredExchangeRate - rateAnchor.Int()).mulDown(rateScalar.Int()).exp().Uint(); // (PT) / (PT + Asset)
+        uint256 rateScalar = scalarRoot * YEAR / args.timeToExpiry;
+        int256 logitP = (args.desiredExchangeRate - rateAnchor.Int()).mulDown(rateScalar.Int()).exp();
+        initialProportion = (logitP.divDown(PMath.IONE + logitP)).Uint();
     }
 
     function calcFee(uint256 fee) internal pure returns (uint80 lnFeeRateRoot) {
