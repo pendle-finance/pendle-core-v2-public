@@ -48,7 +48,8 @@
     "arbMerkleDistribution": "0x23a102e78D1FF1645a3666691495174764a5FCAF",
     "linearDistributor": "0x83d85AEDD308261d847C3eb8d7146457bD8F38E8",
     "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
-    "multiTokenDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
     }
