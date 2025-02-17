@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../core/libraries/TokenHelper.sol";
-import "../interfaces/IPAllActionV3.sol";
-import "../interfaces/IPMarketFactoryV3.sol";
-import "../interfaces/IPYieldContractFactory.sol";
-import "../interfaces/IPMarketV3.sol";
+import "../../core/libraries/TokenHelper.sol";
+import "../../interfaces/IPAllActionV3.sol";
+import "../../interfaces/IPMarketFactoryV3.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPMarketV3.sol";
 import "./lib/MarketDeployLib.sol";
 
 contract PendlePoolDeployHelperV2 is TokenHelper {

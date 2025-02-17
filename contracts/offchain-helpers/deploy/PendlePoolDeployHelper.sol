@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPAllActionV3.sol";
-import "../interfaces/IPMarketFactoryV3.sol";
-import "../interfaces/IPYieldContractFactory.sol";
-import "../interfaces/IPMarketV3.sol";
+import "../../interfaces/IPAllActionV3.sol";
+import "../../interfaces/IPMarketFactoryV3.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPMarketV3.sol";
 // import "../core/StandardizedYield/implementations/PendleERC4626SY.sol";
-import "../core/libraries/TokenHelper.sol";
+import "../../core/libraries/TokenHelper.sol";
 
 contract PendlePoolDeployHelper is TokenHelper {
     address public immutable router;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../core/libraries/math/PMath.sol";
-import "../../core/libraries/math/LogExpMath.sol";
+import "../../../core/libraries/math/PMath.sol";
+import "../../../core/libraries/math/LogExpMath.sol";
 
 library MarketDeployLib {
     using PMath for uint256;
