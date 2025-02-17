@@ -59,7 +59,7 @@ library MarketDeployLib {
         args.lnImpliedRate = LogExpMath.ln(PMath.IONE + desiredImpliedRate.Int()).Uint();
         args.desiredExchangeRate = ((args.lnImpliedRate * args.timeToExpiry) / YEAR).Int().exp();
 
-        uint256 rateScalar = scalarRoot * YEAR / args.timeToExpiry;
+        uint256 rateScalar = (scalarRoot * YEAR) / args.timeToExpiry;
         int256 logitP = (args.desiredExchangeRate - rateAnchor.Int()).mulDown(rateScalar.Int()).exp();
         initialProportion = (logitP.divDown(PMath.IONE + logitP)).Uint();
     }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./PendlePoolDeployHelperV2.sol";
 import "../../interfaces/IPCommonSYFactory.sol";
+import "../../interfaces/IOwnable.sol";
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 
 contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnableUpgradeable {
@@ -32,9 +33,10 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         bytes memory constructorParams,
         PoolConfig memory config,
         address tokenToSeedLiqudity,
-        uint256 amountToSeed
+        uint256 amountToSeed,
+        address newOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC4626_DEPLOY_ID, constructorParams);
+        address SY = _deploySY(ERC4626_DEPLOY_ID, constructorParams, newOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 
@@ -42,9 +44,10 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         bytes memory constructorParams,
         PoolConfig memory config,
         address tokenToSeedLiqudity,
-        uint256 amountToSeed
+        uint256 amountToSeed,
+        address newOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC4626_NOT_REDEEMABLE_DEPLOY_ID, constructorParams);
+        address SY = _deploySY(ERC4626_NOT_REDEEMABLE_DEPLOY_ID, constructorParams, newOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 
@@ -52,9 +55,15 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         bytes memory constructorParams,
         PoolConfig memory config,
         address tokenToSeedLiqudity,
-        uint256 amountToSeed
+        uint256 amountToSeed,
+        address newOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC20_DEPLOY_ID, constructorParams);
+        address SY = _deploySY(ERC20_DEPLOY_ID, constructorParams, newOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
+    }
+
+    function _deploySY(bytes32 id, bytes memory constructorParams, address newOwner) internal returns (address SY) {
+        SY = IPCommonSYFactory(syFactory).deploySY(id, constructorParams);
+        IOwnable(SY).transferOwnership(newOwner);
     }
 }
