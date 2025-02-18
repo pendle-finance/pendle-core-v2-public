@@ -2,6 +2,14 @@
 pragma solidity ^0.8.0;
 
 interface IPPoolDeployHelperV2 {
+    struct PoolDeploymentParams {
+        uint32 expiry;
+        uint80 lnFeeRateRoot;
+        int256 scalarRoot;
+        int256 initialRateAnchor;
+        bool doCacheIndexSameBlock;
+    }
+
     struct PoolDeploymentAddrs {
         address SY;
         address PT;
@@ -16,6 +24,8 @@ interface IPPoolDeployHelperV2 {
         uint256 desiredImpliedRate;
         uint256 fee;
     }
+
+    event MarketDeployment(PoolDeploymentAddrs addrs, PoolDeploymentParams params);
 
     function deploy5115MarketAndSeedLiquidity(
         address SY,

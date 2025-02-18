@@ -34,9 +34,9 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         PoolConfig memory config,
         address tokenToSeedLiqudity,
         uint256 amountToSeed,
-        address newOwner
+        address syOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC4626_DEPLOY_ID, constructorParams, newOwner);
+        address SY = IPCommonSYFactory(syFactory).deploySY(ERC4626_DEPLOY_ID, constructorParams, syOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 
@@ -45,9 +45,13 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         PoolConfig memory config,
         address tokenToSeedLiqudity,
         uint256 amountToSeed,
-        address newOwner
+        address syOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC4626_NOT_REDEEMABLE_DEPLOY_ID, constructorParams, newOwner);
+        address SY = IPCommonSYFactory(syFactory).deploySY(
+            ERC4626_NOT_REDEEMABLE_DEPLOY_ID,
+            constructorParams,
+            syOwner
+        );
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 
@@ -56,9 +60,9 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         PoolConfig memory config,
         address tokenToSeedLiqudity,
         uint256 amountToSeed,
-        address newOwner
+        address syOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(ERC20_DEPLOY_ID, constructorParams, newOwner);
+        address SY = IPCommonSYFactory(syFactory).deploySY(ERC20_DEPLOY_ID, constructorParams, syOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 }
