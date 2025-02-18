@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/BoringOwnableUpgradeable.sol";
 import "../../core/libraries/BaseSplitCodeFactory.sol";
+import "../../interfaces/IOwnable.sol";
 
 contract PendleCommonSYFactory is BoringOwnableUpgradeable {
     error InvalidCreationCode(bytes32 id, CreationCode code);
@@ -43,7 +44,7 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeable {
         emit SetSYCreationCode(id, code);
     }
 
-    function deploySY(bytes32 id, bytes memory constructorParams) external returns (address SY) {
+    function deploySY(bytes32 id, bytes memory constructorParams, address syOwner) external returns (address SY) {
         CreationCode memory code = creationCodes[id];
 
         if (code.creationCodeContractA == address(0)) {
@@ -61,5 +62,6 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeable {
         );
 
         emit DeployedSY(id, constructorParams, SY);
+        IOwnable(SY).transferOwnership(syOwner, true, false);
     }
 }
