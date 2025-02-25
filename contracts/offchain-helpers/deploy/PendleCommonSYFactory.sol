@@ -23,6 +23,8 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
     mapping(bytes32 => CreationCode) public creationCodes;
 
+    uint256 public nonce;
+
     constructor() {
         _disableInitializers();
     }
@@ -53,7 +55,7 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
         SY = BaseSplitCodeFactory._create2(
             0,
-            bytes32(block.chainid),
+            keccak256(abi.encode(block.chainid, nonce++)),
             constructorParams,
             code.creationCodeContractA,
             code.creationCodeSizeA,
