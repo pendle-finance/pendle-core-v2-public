@@ -1,0 +1,47 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 146,
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
+        "governance": "0x7877adfaded756f3248a0ebfe8ac2e2ef87b75ac",
+        "devMultisig": "0x7877adfaded756f3248a0ebfe8ac2e2ef87b75ac",
+        "pendle": "0xf1eF7d2D4C0c881cd634481e0586ed5d2871A74B",
+        "lzEndpoint": "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
+        "wrappedNative": "0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38",
+        "initialRewardFee": "30000000000000000",
+        "initialInterestFee": "30000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "baseCodeSplitter": "0x6952Eb0c152D683ea2F2B8B90a5E888c1550B69D",
+    "PENDLE": "0xf1eF7d2D4C0c881cd634481e0586ed5d2871A74B",
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "yieldContractFactoryV5": "0x0582D93FD9c9d42f26bE5D86a5f75291F92102C2",
+    "marketFactoryV5": "0xFeE31A6eC6eBefa0b5A594Bf5b1139e3c6fAA0fB",
+    "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0x663C21103915B68e9dA797CfdF3cAb01a037D5Ff",
+        "ActionSwapPTV3": "0xd8D200d9A713A1c71cF1e7F694B14E5F1D948b15",
+        "ActionSwapYTV3": "0x4a03Ce0a268951d04E187B1CF48075eE69266e27",
+        "ActionMiscV3": "0x373Dba2055Ad40cb4815148bC47cd1DC16e92E44",
+        "ActionSimple": "0x852e59252c94716F0df19B52b36512f6C9297a96",
+        "ActionCallbackV3": "0x7b78F36aBf6cF3C6C0dd54716dFeF0607ae17846",
+        "ActionStorageV4": "0xdED51dca2ECED7a0BAab3D9711A87f214769Da0f"
+    },
+    "routerStatic": "0x0013ACc071f732fd6BF8210AB46A3794a7D8945e",
+    "pendleSwap": "0x313e7Ef7d52f5C10aC04ebaa4d33CDc68634c212",
+    "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
+    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "receiverEndpoint": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
+    "limitRouter": "0x0000000000000000000000000000000000000000",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "vePendle": "0xE017CCC08505Ac8fbb5a364680e459d9fBaEE74d",
+    "gaugeController": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x0000000000000000000000000000000000000000"
+    }
+}
