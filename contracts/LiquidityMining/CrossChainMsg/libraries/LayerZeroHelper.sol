@@ -23,6 +23,10 @@ library LayerZeroHelper {
         else if (chainId == 10) return 111;
         // base
         else if (chainId == 8453) return 184;
+        // sonic 
+        else if (chainId == 146) return 332;
+        // bera 
+        else if (chainId == 80094) return 362;
         assert(false);
     }
 
@@ -45,6 +49,10 @@ library LayerZeroHelper {
         else if (chainId == 111) return 10;
         // base
         else if (chainId == 184) return 8453;
+        // sonic
+        else if (chainId == 332) return 146;
+        // bera
+        else if (chainId == 362) return 80094;
         assert(false);
     }
 
