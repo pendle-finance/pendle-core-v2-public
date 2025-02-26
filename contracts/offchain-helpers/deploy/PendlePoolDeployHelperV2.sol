@@ -80,11 +80,7 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         });
 
         addrs.SY = SY;
-        (addrs.PT, addrs.YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(
-            SY,
-            params.expiry,
-            params.doCacheIndexSameBlock
-        );
+        (addrs.PT, addrs.YT) = _createPYIfNotExist(SY, params.expiry);
 
         addrs.market = IPMarketFactoryV3(marketFactory).createNewMarket(
             addrs.PT,
@@ -94,6 +90,15 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         );
 
         emit MarketDeployment(addrs, params);
+    }
+
+    function _createPYIfNotExist(address SY, uint32 expiry) internal returns (address PT, address YT) {
+        PT = IPYieldContractFactory(yieldContractFactory).getPT(SY, uint256(expiry));
+        if (PT == address(0)) {
+            (PT, YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(SY, expiry, doCacheIndexSameBlock);
+        } else {
+            YT = IPYieldContractFactory(yieldContractFactory).getYT(SY, expiry);
+        }
     }
 
     function _seedLiquidity(
