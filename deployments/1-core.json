@@ -13,7 +13,8 @@
         "initialReserveFeePercent": "80",
         "initialPendlePerSec": "826719576719576719",
         "safeWaitTime": 15000,
-        "sySwapper": "0x248087C69e72E211b7264720Bf6cC5A954F98CDE"
+        "sySwapper": "0x248087C69e72E211b7264720Bf6cC5A954F98CDE",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
     "baseCodeSplitter": "0x35878C2Cff38cC4032E85283183428170BA618A2",
     "PENDLE": "0x808507121b80c02388fad14726482e061b8da827",
@@ -40,19 +41,22 @@
     "yieldContractFactoryV5": "0x35A338522a435D46f77Be32C70E215B813D0e3aC",
     "marketFactoryV5": "0x6fcf753f2C67b83f7B09746Bbc4FA0047b35D050",
     "poolDeployHelper": "0x4Df98410c95737FD646D2413AC6CAFc1c04834b9",
+    "poolDeployHelperV2": "0xF642d8Daa026B8aEd6dFE82FACbA2E077AF199E2",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
+    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+    },
     "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
-    "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
-    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
-    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
-    "beta": {
-        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
-    }
+    "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
+    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9"
 }
