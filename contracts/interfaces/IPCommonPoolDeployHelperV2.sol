@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./IPPoolDeployHelperV2.sol";
 
-interface IPendleCommonPoolDeployHelperV2 is IPPoolDeployHelperV2 {
+interface IPCommonPoolDeployHelperV2 is IPPoolDeployHelperV2 {
     function deployERC4626Market(
         bytes memory constructorParams,
         PoolConfig memory config,
