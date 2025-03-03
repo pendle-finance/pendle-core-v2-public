@@ -4,9 +4,9 @@ pragma solidity ^0.8.17;
 import "./PendlePoolDeployHelperV2.sol";
 import "../../interfaces/IPCommonSYFactory.sol";
 import "../../interfaces/IOwnable.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 
-contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnableUpgradeable {
+contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnableUpgradeableV2 {
     bytes32 public constant ERC4626_DEPLOY_ID = keccak256("PendleERC4626SYV2");
     bytes32 public constant ERC4626_NOT_REDEEMABLE_DEPLOY_ID = keccak256("PendleERC4626NotRedeemableToAssetSYV2");
     bytes32 public constant ERC20_DEPLOY_ID = keccak256("PendleERC20SY");
@@ -23,8 +23,8 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
         _disableInitializers();
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     // Those 3 are all not payable as they should not accept tokenIn as native

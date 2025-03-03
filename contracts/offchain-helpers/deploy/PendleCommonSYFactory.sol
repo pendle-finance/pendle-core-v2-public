@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/BaseSplitCodeFactory.sol";
 import "../../interfaces/IOwnable.sol";
 
-contract PendleCommonSYFactory is BoringOwnableUpgradeable {
+contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
     error InvalidCreationCode(bytes32 id, CreationCode code);
 
     error InvalidSYId(bytes32 id);
@@ -27,8 +27,8 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeable {
         _disableInitializers();
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function setSYCreationCode(bytes32 id, CreationCode memory code) external onlyOwner {

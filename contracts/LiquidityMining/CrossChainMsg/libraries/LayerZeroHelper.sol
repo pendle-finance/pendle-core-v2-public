@@ -23,9 +23,9 @@ library LayerZeroHelper {
         else if (chainId == 10) return 111;
         // base
         else if (chainId == 8453) return 184;
-        // sonic 
+        // sonic
         else if (chainId == 146) return 332;
-        // bera 
+        // bera
         else if (chainId == 80094) return 362;
         assert(false);
     }
