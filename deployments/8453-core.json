@@ -17,8 +17,6 @@
     "baseCodeSplitter": "0xf3f560164979fe7F8f3eb2b64669Eac00E7043A6",
     "PENDLE": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
     "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
-    "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
-    "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
     "routerFacets": {
         "ActionAddRemoveLiqV3": "0x663C21103915B68e9dA797CfdF3cAb01a037D5Ff",
@@ -32,16 +30,21 @@
     "routerStatic": "0xB4205a645c7e920BD8504181B1D7f2c5C955C3e7",
     "pendleSwap": "0x313e7Ef7d52f5C10aC04ebaa4d33CDc68634c212",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
-    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
-    "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
+    "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
+    "poolDeployHelper": "0x8D77771fA2518474cc83a613ef3d6140A84dbe56",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
-    "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",
-    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58",
+    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
-    }
+    },
+    "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",
+    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58"
 }

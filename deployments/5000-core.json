@@ -12,7 +12,8 @@
         "initialInterestFee": "30000000000000000",
         "initialReserveFeePercent": "80",
         "safeWaitTime": 15000,
-        "sySwapper": ""
+        "sySwapper": "",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
     "baseCodeSplitter": "0x3d622b0ac50552d6283C7efE6EAdfc98aD0f6cB7",
     "PENDLE": "0xd27B18915e7acc8FD6Ac75DB6766a80f8D2f5729",
@@ -37,9 +38,12 @@
     "yieldContractFactoryV5": "0x5dFBEAEa9e41f85c334075482A20afb7031207aE",
     "marketFactoryV5": "0xcb02435716b0143D4Ac1BDf370302D619E714126",
     "poolDeployHelper": "0x553dCDd1297058B2b2E05779FC5Ec3d5225376Ce",
+    "poolDeployHelperV2": "0x6E716B682D0b63E7BF2C7b1cD20F2Fc2F3596fc7",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "receiverEndpoint": "0xf799E4c029d14f41Dc1918C9A4C67242F565710e",
     "vePendle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
     "gaugeController": "0x428f2f93afAc3F96B0DE59854038c585e06165C8",

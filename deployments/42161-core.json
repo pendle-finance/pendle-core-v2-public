@@ -12,7 +12,8 @@
         "initialInterestFee": "30000000000000000",
         "initialReserveFeePercent": "80",
         "safeWaitTime": 15000,
-        "sySwapper": "0x7F6A486BbfAB887E24Df2b10eeF4E2ac9E34Dd46"
+        "sySwapper": "0x7F6A486BbfAB887E24Df2b10eeF4E2ac9E34Dd46",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
     "baseCodeSplitter": "0x29deaEE5413a07C933C15B37d7deB6Eb744Ba9C8",
     "PENDLE": "0x0c880f6761F1af8d9Aa9C466984b80DAb9a8c9e8",
@@ -42,15 +43,16 @@
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
+    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
+    "beta": {
+        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+    },
     "receiverEndpoint": "0xC9215ae9EC67385F38C755D862C8eE3702B5793A",
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "gaugeController": "0x1e56299ebc8a1010cec26005d12e3e5c5cc2db00",
-    "arbMerkleDistribution": "0x23a102e78D1FF1645a3666691495174764a5FCAF",
-    "linearDistributor": "0x83d85AEDD308261d847C3eb8d7146457bD8F38E8",
-    "sparkLinearDiscountOracleFactory": "0xA9A924A4BB95509F77868E086154C25e934F6171",
-    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
-    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
-    "beta": {
-        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
-    }
+    "arbMerkleDistribution": "0x23a102e78D1FF1645a3666691495174764a5FCAF"
 }
