@@ -7,8 +7,8 @@ import "./base/StorageLayout.sol";
 
 // solhint-disable no-empty-blocks
 contract PendleRouterStatic is Proxy, StorageLayout {
-    constructor(address actionStorage) {
-        owner = msg.sender;
+    constructor(address owner_, address actionStorage) {
+        owner = owner_;
         selectorToFacet[IPMiniDiamond.setFacetForSelectors.selector] = actionStorage;
     }
 
