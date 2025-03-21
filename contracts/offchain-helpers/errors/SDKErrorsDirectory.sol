@@ -294,4 +294,37 @@ library SDKErrorsDirectory {
     error AdditionalWaitRequired(uint32 duration);
 
     error LombardStakeLimitExceed(uint256 remainingStake, uint256 amountStaking);
+    error AstherusYieldProxyActivitiesOnGoing();
+    error NotEnoughNative(uint256 msgValue);
+    error LzTokenUnavailable();
+    error OnlyPeer(uint32 eid, bytes32 sender);
+    error NoPeer(uint32 eid);
+    error InvalidEndpointCall();
+    error InvalidDelegate();
+    error InvalidLocalDecimals();
+    error SlippageExceeded(uint256 amountLD, uint256 minAmountLD);
+    error InvalidInitialization();
+    error NotInitializing();
+    error UUPSUnauthorizedCallContext();
+    error UUPSUnsupportedProxiableUUID(bytes32 slot);
+    error EnforcedPause();
+    error ExpectedPause();
+    error OwnableUnauthorizedAccount(address account);
+    error ERC1967InvalidImplementation(address implementation);
+    error ERC1967InvalidAdmin(address admin);
+    error ERC1967InvalidBeacon(address beacon);
+    error ERC1967NonPayable();
+    error ERC2612ExpiredSignature(uint256 deadline);
+    error ERC2612InvalidSigner(address signer, address owner);
+    error InvalidAccountNonce(address account, uint256 currentNonce);
+    error StringTooLong(string str);
+    error InvalidShortString();
+    error StringsInsufficientHexLength(uint256 value, uint256 length);
+    error ECDSAInvalidSignature();
+    error ECDSAInvalidSignatureLength(uint256 length);
+    error ECDSAInvalidSignatureS(bytes32 s);
+
+    error MoonwellMintError(uint256 errorCode);
+    error MoonwellRedeemError(uint256 errorCode);
+    error PendingRewardNonZero(address rewardToken, uint256 amount);
 }
