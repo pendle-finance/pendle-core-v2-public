@@ -4,7 +4,7 @@
         "chainId": 8453,
         "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
         "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
-        "devMultisig": "0x3c0f8F070E6400C1C4eD10CfF85dE4c643b66bd3",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
         "pendle": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
         "lzEndpoint": "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
         "wrappedNative": "0x4200000000000000000000000000000000000006",
