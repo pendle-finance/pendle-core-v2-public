@@ -6,12 +6,17 @@ import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPMarket.sol";
 
 contract PendleSparkLinearDiscountOracleFactory {
-    function createWithPt(address pt, uint256 baseDiscountPerYear) external returns (address) {
-        return address(new PendleSparkLinearDiscountOracle(pt, baseDiscountPerYear));
+    event OracleCreated(address indexed pt, uint256 baseDiscountPerYear, address oracle);
+
+    function createWithPt(address pt, uint256 baseDiscountPerYear) external returns (address res) {
+        res = address(new PendleSparkLinearDiscountOracle(pt, baseDiscountPerYear));
+        emit OracleCreated(pt, baseDiscountPerYear, res);
     }
 
     function createWithMarket(address market, uint256 baseDiscountPerYear) external returns (address) {
         (, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
-        return address(new PendleSparkLinearDiscountOracle(address(PT), baseDiscountPerYear));
+        address res = address(new PendleSparkLinearDiscountOracle(address(PT), baseDiscountPerYear));
+        emit OracleCreated(address(PT), baseDiscountPerYear, res);
+        return res;
     }
 }
