@@ -28,16 +28,11 @@ contract ParaswapScaleHelper {
             swapData.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, swapData, partnerAndFee, permit, executorData);
-        } 
-        
+        }
         // Handle UniswapV2
         else if (selector == IAugustusV6.swapExactAmountInOnUniswapV2.selector) {
-            (
-                address executor,
-                IAugustusV6.UniswapV2Data memory uniData,
-                uint256 partnerAndFee,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.UniswapV2Data, uint256, bytes));
+            (address executor, IAugustusV6.UniswapV2Data memory uniData, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (address, IAugustusV6.UniswapV2Data, uint256, bytes));
 
             // Direct scaling calculation
             uniData.toAmount = uniData.toAmount * amountIn / uniData.fromAmount;
@@ -45,16 +40,11 @@ contract ParaswapScaleHelper {
             uniData.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, uniData, partnerAndFee, permit);
-        } 
-        
+        }
         // Handle UniswapV3
         else if (selector == IAugustusV6.swapExactAmountInOnUniswapV3.selector) {
-            (
-                address executor,
-                IAugustusV6.UniswapV3Data memory uniV3Data,
-                uint256 partnerAndFee,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.UniswapV3Data, uint256, bytes));
+            (address executor, IAugustusV6.UniswapV3Data memory uniV3Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (address, IAugustusV6.UniswapV3Data, uint256, bytes));
 
             // Direct scaling calculation
             uniV3Data.toAmount = uniV3Data.toAmount * amountIn / uniV3Data.fromAmount;
@@ -62,8 +52,7 @@ contract ParaswapScaleHelper {
             uniV3Data.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, uniV3Data, partnerAndFee, permit);
-        } 
-        
+        }
         // Handle BalancerV2
         else if (selector == IAugustusV6.swapExactAmountInOnBalancerV2.selector) {
             (
@@ -80,16 +69,11 @@ contract ParaswapScaleHelper {
             balancerData.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, balancerData, partnerAndFee, permit, data);
-        } 
-        
+        }
         // Handle CurveV1
         else if (selector == IAugustusV6.swapExactAmountInOnCurveV1.selector) {
-            (
-                address executor,
-                IAugustusV6.CurveV1Data memory curveV1Data,
-                uint256 partnerAndFee,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.CurveV1Data, uint256, bytes));
+            (address executor, IAugustusV6.CurveV1Data memory curveV1Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (address, IAugustusV6.CurveV1Data, uint256, bytes));
 
             // Direct scaling calculation
             curveV1Data.toAmount = curveV1Data.toAmount * amountIn / curveV1Data.fromAmount;
@@ -97,16 +81,11 @@ contract ParaswapScaleHelper {
             curveV1Data.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, curveV1Data, partnerAndFee, permit);
-        } 
-        
+        }
         // Handle CurveV2
         else if (selector == IAugustusV6.swapExactAmountInOnCurveV2.selector) {
-            (
-                address executor,
-                IAugustusV6.CurveV2Data memory curveV2Data,
-                uint256 partnerAndFee,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.CurveV2Data, uint256, bytes));
+            (address executor, IAugustusV6.CurveV2Data memory curveV2Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (address, IAugustusV6.CurveV2Data, uint256, bytes));
 
             // Direct scaling calculation
             curveV2Data.toAmount = curveV2Data.toAmount * amountIn / curveV2Data.fromAmount;
@@ -114,8 +93,7 @@ contract ParaswapScaleHelper {
             curveV2Data.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, curveV2Data, partnerAndFee, permit);
-        } 
-        
+        }
         // Handle AugustusRFQ
         else if (selector == IAugustusV6.swapOnAugustusRFQTryBatchFill.selector) {
             (
@@ -124,21 +102,17 @@ contract ParaswapScaleHelper {
                 IAugustusV6.OrderInfo[] memory orders,
                 bytes memory permit
             ) = abi.decode(dataToDecode, (address, IAugustusV6.AugustusRFQData, IAugustusV6.OrderInfo[], bytes));
-            
+
             // Direct scaling calculation
             augustusData.toAmount = augustusData.toAmount * amountIn / augustusData.fromAmount;
             augustusData.fromAmount = amountIn;
 
             return abi.encodeWithSelector(selector, executor, augustusData, orders, permit);
-        } 
-        
+        }
         // Handle MakerPSM
         else if (selector == IAugustusV6.swapExactAmountInOutOnMakerPSM.selector) {
-            (
-                address executor,
-                IAugustusV6.MakerPSMData memory makerPSMData,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.MakerPSMData, bytes));
+            (address executor, IAugustusV6.MakerPSMData memory makerPSMData, bytes memory permit) =
+                abi.decode(dataToDecode, (address, IAugustusV6.MakerPSMData, bytes));
 
             // Direct scaling calculation
             makerPSMData.toAmount = makerPSMData.toAmount * amountIn / makerPSMData.fromAmount;
@@ -276,7 +250,7 @@ interface IAugustusV6 {
         bytes32 metadata;
         address payable beneficiary;
     }
-    
+
     struct Order {
         uint256 nonceAndMeta;
         uint128 expiry;
@@ -317,9 +291,7 @@ interface IAugustusV6 {
         uint256 beneficiaryDirectionApproveFlag;
     }
 
-    function swapExactAmountInOutOnMakerPSM(
-        address executor,
-        MakerPSMData calldata makerPSMData,
-        bytes calldata permit
-    ) external returns (uint256 spentAmount, uint256 receivedAmount);
+    function swapExactAmountInOutOnMakerPSM(address executor, MakerPSMData calldata makerPSMData, bytes calldata permit)
+        external
+        returns (uint256 spentAmount, uint256 receivedAmount);
 }
