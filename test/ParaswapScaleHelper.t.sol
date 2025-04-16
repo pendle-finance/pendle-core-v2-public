@@ -39,7 +39,7 @@ contract ParaswapScaleHelperTest is Test {
         helper = new ParaswapScaleHelperTestHarness();
     }
 
-    function test_swapExactAmountInGeneric() public {
+    function test_swapExactAmountInGeneric() public view {
         // Create a sample GenericData struct
         IAugustusV6.GenericData memory data = IAugustusV6.GenericData({
             srcToken: IERC20(TOKEN_SRC),
@@ -95,7 +95,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(decodedData.metadata, bytes32(0), "Metadata should not change");
     }
 
-    function test_swapExactAmountInOnUniswapV2() public {
+    function test_swapExactAmountInOnUniswapV2() public view {
         // Create a sample UniswapV2Data struct
         IAugustusV6.UniswapV2Data memory data = IAugustusV6.UniswapV2Data({
             srcToken: IERC20(TOKEN_SRC),
@@ -151,7 +151,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(keccak256(decodedData.pools), keccak256(bytes("uniswapRouteData")), "Pools data should not change");
     }
 
-    function test_swapExactAmountInOnUniswapV3() public {
+    function test_swapExactAmountInOnUniswapV3() public view {
         // Create a sample UniswapV3Data struct
         IAugustusV6.UniswapV3Data memory data = IAugustusV6.UniswapV3Data({
             srcToken: IERC20(TOKEN_SRC),
@@ -207,7 +207,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(keccak256(decodedData.pools), keccak256(bytes("uniswapV3RouteData")), "Pools data should not change");
     }
 
-    function test_swapExactAmountInOnBalancerV2() public {
+    function test_swapExactAmountInOnBalancerV2() public view {
         // Create a sample BalancerV2Data struct
         IAugustusV6.BalancerV2Data memory data = IAugustusV6.BalancerV2Data({
             fromAmount: ORIGINAL_AMOUNT,
@@ -262,7 +262,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(decodedData.beneficiaryAndApproveFlag, 1234567890, "Beneficiary flag should not change");
     }
 
-    function test_swapExactAmountInOnCurveV1() public {
+    function test_swapExactAmountInOnCurveV1() public view {
         // Create a sample CurveV1Data struct
         IAugustusV6.CurveV1Data memory data = IAugustusV6.CurveV1Data({
             curveData: 12345,
@@ -320,7 +320,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(decodedData.metadata, bytes32(0), "Metadata should not change");
     }
 
-    function test_swapExactAmountInOnCurveV2() public {
+    function test_swapExactAmountInOnCurveV2() public view {
         // Create a sample CurveV2Data struct
         IAugustusV6.CurveV2Data memory data = IAugustusV6.CurveV2Data({
             curveData: 12345,
@@ -386,78 +386,7 @@ contract ParaswapScaleHelperTest is Test {
         assertEq(decodedData.metadata, bytes32(0), "Metadata should not change");
     }
 
-    function test_swapOnAugustusRFQTryBatchFill() public {
-        // Create a sample AugustusRFQData struct
-        IAugustusV6.AugustusRFQData memory data = IAugustusV6.AugustusRFQData({
-            fromAmount: ORIGINAL_AMOUNT,
-            toAmount: EXPECTED_TO_AMOUNT,
-            wrapApproveDirection: 1,
-            metadata: bytes32(0),
-            beneficiary: payable(BENEFICIARY)
-        });
-
-        // Create a sample order
-        IAugustusV6.Order memory order = IAugustusV6.Order({
-            nonceAndMeta: 12345,
-            expiry: 67890,
-            makerAsset: TOKEN_SRC,
-            takerAsset: TOKEN_DEST,
-            maker: address(0x2),
-            taker: address(0x3),
-            makerAmount: 5000,
-            takerAmount: 3000
-        });
-
-        // Create order info array
-        IAugustusV6.OrderInfo[] memory orders = new IAugustusV6.OrderInfo[](1);
-        orders[0] = IAugustusV6.OrderInfo({
-            order: order,
-            signature: bytes("signature"),
-            takerTokenFillAmount: 3000,
-            permitTakerAsset: bytes("permit1"),
-            permitMakerAsset: bytes("permit2")
-        });
-
-        // Create the original calldata
-        bytes memory rawCallData =
-            abi.encodeWithSelector(IAugustusV6.swapOnAugustusRFQTryBatchFill.selector, EXECUTOR, data, orders, PERMIT);
-
-        // Scale the amount by 2x
-        bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
-
-        // Decode the scaled calldata and verify the amounts
-        bytes memory callDataWithoutSelector = new bytes(scaledCallData.length - 4);
-        for (uint256 i = 0; i < callDataWithoutSelector.length; i++) {
-            callDataWithoutSelector[i] = scaledCallData[i + 4];
-        }
-
-        (
-            address decodedExecutor,
-            IAugustusV6.AugustusRFQData memory decodedData,
-            IAugustusV6.OrderInfo[] memory decodedOrders,
-            bytes memory decodedPermit
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.AugustusRFQData, IAugustusV6.OrderInfo[], bytes));
-
-        // Check that the amounts have been scaled correctly
-        assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
-        assertEq(decodedData.toAmount, EXPECTED_SCALED_TO_AMOUNT, "To amount should be scaled proportionally (2x)");
-
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
-        assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
-
-        // Check that other fields stayed the same
-        assertEq(decodedData.wrapApproveDirection, 1, "Wrap direction should not change");
-        assertEq(decodedData.beneficiary, payable(BENEFICIARY), "Beneficiary should not change");
-        assertEq(decodedData.metadata, bytes32(0), "Metadata should not change");
-
-        // Check that orders data is preserved
-        assertEq(decodedOrders.length, 1, "Should have 1 order");
-        assertEq(decodedOrders[0].order.nonceAndMeta, 12345, "Order nonce should not change");
-        assertEq(decodedOrders[0].order.expiry, 67890, "Order expiry should not change");
-    }
-
-    function test_swapExactAmountInOutOnMakerPSM() public {
+    function test_swapExactAmountInOutOnMakerPSM() public view {
         // Create a sample MakerPSMData struct
         IAugustusV6.MakerPSMData memory data = IAugustusV6.MakerPSMData({
             srcToken: IERC20(TOKEN_SRC),

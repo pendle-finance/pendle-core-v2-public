@@ -94,21 +94,6 @@ contract ParaswapScaleHelper {
 
             return abi.encodeWithSelector(selector, executor, curveV2Data, partnerAndFee, permit);
         }
-        // Handle AugustusRFQ
-        else if (selector == IAugustusV6.swapOnAugustusRFQTryBatchFill.selector) {
-            (
-                address executor,
-                IAugustusV6.AugustusRFQData memory augustusData,
-                IAugustusV6.OrderInfo[] memory orders,
-                bytes memory permit
-            ) = abi.decode(dataToDecode, (address, IAugustusV6.AugustusRFQData, IAugustusV6.OrderInfo[], bytes));
-
-            // Direct scaling calculation
-            augustusData.toAmount = augustusData.toAmount * amountIn / augustusData.fromAmount;
-            augustusData.fromAmount = amountIn;
-
-            return abi.encodeWithSelector(selector, executor, augustusData, orders, permit);
-        }
         // Handle MakerPSM
         else if (selector == IAugustusV6.swapExactAmountInOutOnMakerPSM.selector) {
             (address executor, IAugustusV6.MakerPSMData memory makerPSMData, bytes memory permit) =
@@ -241,41 +226,6 @@ interface IAugustusV6 {
         uint256 partnerAndFee,
         bytes calldata permit
     ) external payable returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
-
-    // ============ AugustusRFQ Swap ============
-    struct AugustusRFQData {
-        uint256 fromAmount;
-        uint256 toAmount;
-        uint8 wrapApproveDirection;
-        bytes32 metadata;
-        address payable beneficiary;
-    }
-
-    struct Order {
-        uint256 nonceAndMeta;
-        uint128 expiry;
-        address makerAsset;
-        address takerAsset;
-        address maker;
-        address taker;
-        uint256 makerAmount;
-        uint256 takerAmount;
-    }
-
-    struct OrderInfo {
-        Order order;
-        bytes signature;
-        uint256 takerTokenFillAmount;
-        bytes permitTakerAsset;
-        bytes permitMakerAsset;
-    }
-
-    function swapOnAugustusRFQTryBatchFill(
-        address executor,
-        AugustusRFQData calldata data,
-        OrderInfo[] calldata orders,
-        bytes calldata permit
-    ) external payable returns (uint256 spentAmount, uint256 receivedAmount);
 
     // ============ MakerPSM Swap ============
     struct MakerPSMData {
