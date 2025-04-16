@@ -41,7 +41,7 @@
     "receiverEndpoint": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "vePendle": "0xE017CCC08505Ac8fbb5a364680e459d9fBaEE74d",
     "gaugeController": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
-    "sparkLinearDiscountOracleFactory": "0x084ceE278DA67F2B0fead8194FFe43C566E4e0B3",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "beta": {

@@ -38,7 +38,7 @@
     "reflector": "0xFAa7aD6258b1aa40F2cC414E49033dc77183ba76",
     "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
     "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
-    "sparkLinearDiscountOracleFactory": "0x084ceE278DA67F2B0fead8194FFe43C566E4e0B3",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "beta": {
