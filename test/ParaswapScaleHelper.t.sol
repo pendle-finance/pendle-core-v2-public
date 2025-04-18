@@ -109,9 +109,8 @@ contract ParaswapScaleHelperTest is Test {
         });
 
         // Create the original calldata
-        bytes memory rawCallData = abi.encodeWithSelector(
-            IAugustusV6.swapExactAmountInOnUniswapV2.selector, EXECUTOR, data, PARTNER_AND_FEE, PERMIT
-        );
+        bytes memory rawCallData =
+            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOnUniswapV2.selector, data, PARTNER_AND_FEE, PERMIT);
 
         // Scale the amount by 2x
         bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
@@ -122,12 +121,8 @@ contract ParaswapScaleHelperTest is Test {
             callDataWithoutSelector[i] = scaledCallData[i + 4];
         }
 
-        (
-            address decodedExecutor,
-            IAugustusV6.UniswapV2Data memory decodedData,
-            uint256 decodedPartnerAndFee,
-            bytes memory decodedPermit
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.UniswapV2Data, uint256, bytes));
+        (IAugustusV6.UniswapV2Data memory decodedData, uint256 decodedPartnerAndFee, bytes memory decodedPermit) =
+            abi.decode(callDataWithoutSelector, (IAugustusV6.UniswapV2Data, uint256, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
@@ -138,8 +133,7 @@ contract ParaswapScaleHelperTest is Test {
             "Quoted amount should be scaled proportionally (2x)"
         );
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(decodedPartnerAndFee, PARTNER_AND_FEE, "Partner and fee should not change");
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
 
@@ -165,9 +159,8 @@ contract ParaswapScaleHelperTest is Test {
         });
 
         // Create the original calldata
-        bytes memory rawCallData = abi.encodeWithSelector(
-            IAugustusV6.swapExactAmountInOnUniswapV3.selector, EXECUTOR, data, PARTNER_AND_FEE, PERMIT
-        );
+        bytes memory rawCallData =
+            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOnUniswapV3.selector, data, PARTNER_AND_FEE, PERMIT);
 
         // Scale the amount by 2x
         bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
@@ -178,12 +171,8 @@ contract ParaswapScaleHelperTest is Test {
             callDataWithoutSelector[i] = scaledCallData[i + 4];
         }
 
-        (
-            address decodedExecutor,
-            IAugustusV6.UniswapV3Data memory decodedData,
-            uint256 decodedPartnerAndFee,
-            bytes memory decodedPermit
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.UniswapV3Data, uint256, bytes));
+        (IAugustusV6.UniswapV3Data memory decodedData, uint256 decodedPartnerAndFee, bytes memory decodedPermit) =
+            abi.decode(callDataWithoutSelector, (IAugustusV6.UniswapV3Data, uint256, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
@@ -194,8 +183,7 @@ contract ParaswapScaleHelperTest is Test {
             "Quoted amount should be scaled proportionally (2x)"
         );
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(decodedPartnerAndFee, PARTNER_AND_FEE, "Partner and fee should not change");
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
 
@@ -222,7 +210,7 @@ contract ParaswapScaleHelperTest is Test {
 
         // Create the original calldata
         bytes memory rawCallData = abi.encodeWithSelector(
-            IAugustusV6.swapExactAmountInOnBalancerV2.selector, EXECUTOR, data, PARTNER_AND_FEE, PERMIT, extraData
+            IAugustusV6.swapExactAmountInOnBalancerV2.selector, data, PARTNER_AND_FEE, PERMIT, extraData
         );
 
         // Scale the amount by 2x
@@ -235,12 +223,11 @@ contract ParaswapScaleHelperTest is Test {
         }
 
         (
-            address decodedExecutor,
             IAugustusV6.BalancerV2Data memory decodedData,
             uint256 decodedPartnerAndFee,
             bytes memory decodedPermit,
             bytes memory decodedExtraData
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.BalancerV2Data, uint256, bytes, bytes));
+        ) = abi.decode(callDataWithoutSelector, (IAugustusV6.BalancerV2Data, uint256, bytes, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
@@ -251,8 +238,7 @@ contract ParaswapScaleHelperTest is Test {
             "Quoted amount should be scaled proportionally (2x)"
         );
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(decodedPartnerAndFee, PARTNER_AND_FEE, "Partner and fee should not change");
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
         assertEq(keccak256(decodedExtraData), keccak256(extraData), "Extra data should not change");
@@ -277,9 +263,8 @@ contract ParaswapScaleHelperTest is Test {
         });
 
         // Create the original calldata
-        bytes memory rawCallData = abi.encodeWithSelector(
-            IAugustusV6.swapExactAmountInOnCurveV1.selector, EXECUTOR, data, PARTNER_AND_FEE, PERMIT
-        );
+        bytes memory rawCallData =
+            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOnCurveV1.selector, data, PARTNER_AND_FEE, PERMIT);
 
         // Scale the amount by 2x
         bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
@@ -290,12 +275,8 @@ contract ParaswapScaleHelperTest is Test {
             callDataWithoutSelector[i] = scaledCallData[i + 4];
         }
 
-        (
-            address decodedExecutor,
-            IAugustusV6.CurveV1Data memory decodedData,
-            uint256 decodedPartnerAndFee,
-            bytes memory decodedPermit
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.CurveV1Data, uint256, bytes));
+        (IAugustusV6.CurveV1Data memory decodedData, uint256 decodedPartnerAndFee, bytes memory decodedPermit) =
+            abi.decode(callDataWithoutSelector, (IAugustusV6.CurveV1Data, uint256, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
@@ -306,8 +287,7 @@ contract ParaswapScaleHelperTest is Test {
             "Quoted amount should be scaled proportionally (2x)"
         );
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(decodedPartnerAndFee, PARTNER_AND_FEE, "Partner and fee should not change");
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
 
@@ -337,9 +317,8 @@ contract ParaswapScaleHelperTest is Test {
         });
 
         // Create the original calldata
-        bytes memory rawCallData = abi.encodeWithSelector(
-            IAugustusV6.swapExactAmountInOnCurveV2.selector, EXECUTOR, data, PARTNER_AND_FEE, PERMIT
-        );
+        bytes memory rawCallData =
+            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOnCurveV2.selector, data, PARTNER_AND_FEE, PERMIT);
 
         // Scale the amount by 2x
         bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
@@ -350,12 +329,8 @@ contract ParaswapScaleHelperTest is Test {
             callDataWithoutSelector[i] = scaledCallData[i + 4];
         }
 
-        (
-            address decodedExecutor,
-            IAugustusV6.CurveV2Data memory decodedData,
-            uint256 decodedPartnerAndFee,
-            bytes memory decodedPermit
-        ) = abi.decode(callDataWithoutSelector, (address, IAugustusV6.CurveV2Data, uint256, bytes));
+        (IAugustusV6.CurveV2Data memory decodedData, uint256 decodedPartnerAndFee, bytes memory decodedPermit) =
+            abi.decode(callDataWithoutSelector, (IAugustusV6.CurveV2Data, uint256, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
@@ -366,8 +341,7 @@ contract ParaswapScaleHelperTest is Test {
             "Quoted amount should be scaled proportionally (2x)"
         );
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(decodedPartnerAndFee, PARTNER_AND_FEE, "Partner and fee should not change");
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
 
@@ -403,7 +377,7 @@ contract ParaswapScaleHelperTest is Test {
 
         // Create the original calldata
         bytes memory rawCallData =
-            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOutOnMakerPSM.selector, EXECUTOR, data, PERMIT);
+            abi.encodeWithSelector(IAugustusV6.swapExactAmountInOutOnMakerPSM.selector, data, PERMIT);
 
         // Scale the amount by 2x
         bytes memory scaledCallData = helper.exposedParaswapScaling(rawCallData, SCALED_AMOUNT);
@@ -414,15 +388,14 @@ contract ParaswapScaleHelperTest is Test {
             callDataWithoutSelector[i] = scaledCallData[i + 4];
         }
 
-        (address decodedExecutor, IAugustusV6.MakerPSMData memory decodedData, bytes memory decodedPermit) =
-            abi.decode(callDataWithoutSelector, (address, IAugustusV6.MakerPSMData, bytes));
+        (IAugustusV6.MakerPSMData memory decodedData, bytes memory decodedPermit) =
+            abi.decode(callDataWithoutSelector, (IAugustusV6.MakerPSMData, bytes));
 
         // Check that the amounts have been scaled correctly
         assertEq(decodedData.fromAmount, SCALED_AMOUNT, "From amount should be scaled to the new amount");
         assertEq(decodedData.toAmount, EXPECTED_SCALED_TO_AMOUNT, "To amount should be scaled proportionally (2x)");
 
-        // Check that the executor and other parameters stayed the same
-        assertEq(decodedExecutor, EXECUTOR, "Executor address should not change");
+        // Check that other parameters stayed the same
         assertEq(keccak256(decodedPermit), keccak256(PERMIT), "Permit should not change");
 
         // Check that other fields stayed the same
