@@ -4,6 +4,7 @@ pragma solidity ^0.8.17;
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/BaseSplitCodeFactory.sol";
 import "../../interfaces/IOwnable.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
     error InvalidCreationCode(bytes32 id, CreationCode code);
@@ -21,11 +22,16 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
     event DeployedSY(bytes32 id, bytes constructorParams, address SY);
 
+    address public immutable proxyAdmin;
+
     mapping(bytes32 => CreationCode) public creationCodes;
 
     uint256 public nonce;
 
-    constructor() {
+    mapping(bytes32 => address) public implementations;
+
+    constructor(address _proxyAdmin) {
+        proxyAdmin = _proxyAdmin;
         _disableInitializers();
     }
 
@@ -65,5 +71,34 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
         emit DeployedSY(id, constructorParams, SY);
         IOwnable(SY).transferOwnership(syOwner, true, false);
+    }
+
+    function deployUpgradableSY(
+        bytes32 id,
+        bytes memory constructorParams,
+        bytes memory initData,
+        address syOwner
+    ) external returns (address) {
+        CreationCode memory code = creationCodes[id];
+
+        if (code.creationCodeContractA == address(0)) {
+            revert InvalidSYId(id);
+        }
+
+        address implementation = BaseSplitCodeFactory._create2(
+            0,
+            keccak256(abi.encode(block.chainid, nonce++)),
+            constructorParams,
+            code.creationCodeContractA,
+            code.creationCodeSizeA,
+            code.creationCodeContractB,
+            code.creationCodeSizeB
+        );
+        address proxy = address(new TransparentUpgradeableProxy(implementation, proxyAdmin, initData));
+        
+        emit DeployedSY(id, constructorParams, proxy);
+
+        IOwnable(proxy).transferOwnership(syOwner, true, false);
+        return proxy;
     }
 }
