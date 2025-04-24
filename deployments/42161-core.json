@@ -31,7 +31,7 @@
         "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
     },
     "routerStatic": "0xAdB09F65bd90d19e3148D9ccb693F3161C6DB3E8",
-    "pendleSwap": "0x313e7Ef7d52f5C10aC04ebaa4d33CDc68634c212",
+    "pendleSwap": "0xd4e9B0d466789d7F6201442eecCBA6a75A552db0",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
     "yieldContractFactoryV3": "0xEb38531db128EcA928aea1B1CE9E5609B15ba146",
     "marketFactoryV3": "0x2FCb47B58350cD377f94d3821e7373Df60bD9Ced",
@@ -42,7 +42,7 @@
     "poolDeployHelper": "0xEE2eF4ADaf5Bd61FD107fD169CAe3AB79958B928",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
-    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "reflector": "0x73d5DBF81A4f3bFa7b335e6a2d4638D6017a4fA8",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",

@@ -23,7 +23,7 @@ enum SwapType {
     ETH_WETH,
     OKX,
     ONE_INCH,
-    RESERVE_1,
+    PARASWAP,
     RESERVE_2,
     RESERVE_3,
     RESERVE_4,

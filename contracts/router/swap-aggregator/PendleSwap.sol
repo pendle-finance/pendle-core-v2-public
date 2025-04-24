@@ -5,9 +5,9 @@ import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./OKXScaleHelper.sol";
-import "./OneInchScaleHelper.sol";
+import "./ParaswapScaleHelper.sol";
 
-contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, OneInchScaleHelper {
+contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, ParaswapScaleHelper {
     using Address for address;
     using SafeERC20 for IERC20;
 
@@ -54,10 +54,10 @@ contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, OneInchSca
             require(isSuccess, "PendleSwap: Kyber scaling failed");
         } else if (swapType == SwapType.ODOS) {
             scaledCallData = _odosScaling(rawCallData, amountIn);
+        } else if (swapType == SwapType.PARASWAP) {
+            scaledCallData = _paraswapScaling(rawCallData, amountIn);
         } else if (swapType == SwapType.OKX) {
             scaledCallData = _okxScaling(rawCallData, amountIn);
-        } else if (swapType == SwapType.ONE_INCH) {
-            scaledCallData = _oneInchScaling(rawCallData, amountIn);
         } else {
             assert(false);
         }

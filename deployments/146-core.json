@@ -28,9 +28,9 @@
         "ActionStorageV4": "0xdED51dca2ECED7a0BAab3D9711A87f214769Da0f"
     },
     "routerStatic": "0x0013ACc071f732fd6BF8210AB46A3794a7D8945e",
-    "pendleSwap": "0x313e7Ef7d52f5C10aC04ebaa4d33CDc68634c212",
+    "pendleSwap": "0xd4e9B0d466789d7F6201442eecCBA6a75A552db0",
     "pyYtLpOracle": "0x9a9fa8338dd5e5b2188006f1cd2ef26d921650c2",
-    "reflector": "0x5039Da22E5126e7c4e9284376116716A91782faF",
+    "reflector": "0x73d5DBF81A4f3bFa7b335e6a2d4638D6017a4fA8",
     "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
     "yieldContractFactoryV5": "0x0582D93FD9c9d42f26bE5D86a5f75291F92102C2",
     "marketFactoryV5": "0xFeE31A6eC6eBefa0b5A594Bf5b1139e3c6fAA0fB",
