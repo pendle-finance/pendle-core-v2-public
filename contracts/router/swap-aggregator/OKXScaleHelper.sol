@@ -25,10 +25,7 @@ abstract contract OKXScaleHelper {
         if (chainid == 42161) {
             return 0x70cBb871E8f30Fc8Ce23609E9E0Ea87B6b222F58;
         }
-        if (chainid == 8453) {
-            return 0x57df6092665eb6058DE53939612413ff4B09114E;
-        }
-        if (chainid == 5000) {
+        if (chainid == 8453 || chainid == 5000 || chainid == 146) {
             return 0x57df6092665eb6058DE53939612413ff4B09114E;
         }
         return address(0);
