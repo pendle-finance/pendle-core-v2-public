@@ -7,11 +7,29 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./OKXScaleHelper.sol";
 import "./ParaswapScaleHelper.sol";
 
-contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, ParaswapScaleHelper {
+import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+
+contract PendleSwap is
+    IPSwapAggregator,
+    TokenHelper,
+    OKXScaleHelper,
+    ParaswapScaleHelper,
+    BoringOwnableUpgradeable,
+    UUPSUpgradeable
+{
     using Address for address;
     using SafeERC20 for IERC20;
 
     address private constant KYBER_SCALING_HELPER = 0x2f577A41BeC1BE1152AeEA12e73b7391d15f655D;
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize() external initializer {
+        __BoringOwnable_init();
+    }
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
         _approveForExtRouter(tokenIn, data);
@@ -86,6 +104,8 @@ contract PendleSwap is IPSwapAggregator, TokenHelper, OKXScaleHelper, ParaswapSc
     }
 
     receive() external payable {}
+
+    function _authorizeUpgrade(address) internal virtual override onlyOwner {}
 }
 
 interface IKyberScalingHelper {
