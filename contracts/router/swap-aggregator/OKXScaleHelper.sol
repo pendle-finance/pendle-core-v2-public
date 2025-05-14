@@ -6,27 +6,37 @@ import "./IPSwapAggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract OKXScaleHelper {
-    function _okx_getTokenApprove() internal view returns (address) {
-        if (block.chainid == 1) {
+    address private immutable _tokenApprove;
+
+    constructor() {
+        _tokenApprove = getTokenApproveForChain(block.chainid);
+    }
+
+    function getTokenApproveForChain(uint256 chainid) private pure returns (address) {
+        if (chainid == 1) {
             return 0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f;
         }
-        if (block.chainid == 10) {
+        if (chainid == 10) {
             return 0x68D6B739D2020067D1e2F713b999dA97E4d54812;
         }
-        if (block.chainid == 56) {
+        if (chainid == 56) {
             return 0x2c34A2Fb1d0b4f55de51E1d0bDEfaDDce6b7cDD6;
         }
-        if (block.chainid == 42161) {
+        if (chainid == 42161) {
             return 0x70cBb871E8f30Fc8Ce23609E9E0Ea87B6b222F58;
         }
-        if (block.chainid == 8453) {
+        if (chainid == 8453) {
             return 0x57df6092665eb6058DE53939612413ff4B09114E;
         }
-        if (block.chainid == 5000) {
+        if (chainid == 5000) {
             return 0x57df6092665eb6058DE53939612413ff4B09114E;
         }
+        return address(0);
+    }
 
-        revert("PendleSwap: OKX Chain not supported");
+    function _okx_getTokenApprove() internal view returns (address) {
+        require(_tokenApprove != address(0), "PendleSwap: OKX chain not supported");
+        return _tokenApprove;
     }
 
     function _okxScaling(
