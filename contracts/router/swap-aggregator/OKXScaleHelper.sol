@@ -6,13 +6,9 @@ import "./IPSwapAggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract OKXScaleHelper {
-    address private immutable _tokenApprove;
+    address private immutable _tokenApprove = __getTokenApproveForChain(block.chainid);
 
-    constructor() {
-        _tokenApprove = getTokenApproveForChain(block.chainid);
-    }
-
-    function getTokenApproveForChain(uint256 chainid) private pure returns (address) {
+    function __getTokenApproveForChain(uint256 chainid) private pure returns (address) {
         if (chainid == 1) {
             return 0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f;
         }
