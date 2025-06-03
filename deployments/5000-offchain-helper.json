@@ -3,5 +3,6 @@
     "pendleMulticallV2": "0x539fd510fE352CC81822a222F821c340133Ed41C",
     "implicitSwapfeeContract": "0xa87f7EeDD570943BcFFcE6D00B13D9a95ede8810",
     "simulateHelper": "0x2b3EC64160F658fFe7061769415Ff080fca80BbA",
-    "supplyCapReader": "0x438C7dBA7d355aA0c77459AF38B2E62f9f9EccBf"
+    "supplyCapReader": "0x438C7dBA7d355aA0c77459AF38B2E62f9f9EccBf",
+    "balanceReader": "0x2085F50305f656f96b22ECBfe0A4f5e786Ff0438"
 }
