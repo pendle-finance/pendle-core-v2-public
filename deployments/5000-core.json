@@ -52,5 +52,6 @@
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
-    }
+    },
+    "lpWrapperFactory": "0x6D653C8DAAc8D81c9CE98E038fbF94D7E652e147"
 }

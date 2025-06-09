@@ -46,5 +46,6 @@
     },
     "receiverEndpoint": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "vePendle": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
-    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0"
+    "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
+    "lpWrapperFactory": "0x7c0fa6ad8c14aFc85706E28B6ed2d9cbACc47161"
 }
