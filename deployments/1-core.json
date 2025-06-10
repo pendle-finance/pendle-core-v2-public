@@ -59,5 +59,6 @@
     "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
     "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
-    "lpWrapperFactory": "0x12930Bd944bb34B0A21CCc2E7d32a6834Bd58e19"
+    "lpWrapperFactory": "0x12930Bd944bb34B0A21CCc2E7d32a6834Bd58e19",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9"
 }

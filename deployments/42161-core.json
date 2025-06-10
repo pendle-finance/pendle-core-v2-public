@@ -55,5 +55,6 @@
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
     "gaugeController": "0x1e56299ebc8a1010cec26005d12e3e5c5cc2db00",
     "arbMerkleDistribution": "0x23a102e78D1FF1645a3666691495174764a5FCAF",
-    "lpWrapperFactory": "0xdb5dB14819a16642e6736aB0cDFe0156f8E01ddF"
+    "lpWrapperFactory": "0xdb5dB14819a16642e6736aB0cDFe0156f8E01ddF",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9"
 }

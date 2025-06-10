@@ -53,5 +53,6 @@
     "beta": {
         "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
     },
-    "lpWrapperFactory": "0x6D653C8DAAc8D81c9CE98E038fbF94D7E652e147"
+    "lpWrapperFactory": "0x6D653C8DAAc8D81c9CE98E038fbF94D7E652e147",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9"
 }
