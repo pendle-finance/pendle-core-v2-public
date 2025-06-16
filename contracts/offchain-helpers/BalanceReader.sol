@@ -45,10 +45,10 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeable {
 
             info.lpBalance = market.balanceOf(user);
             info.lpActiveBalance = market.activeBalance(user);
-            info.lpRewardsOut = market.redeemRewards(user);
+            info.lpRewardsOut = _redeemRewards(market, user);
 
             info.ytBalance = YT.balanceOf(user);
-            (info.ytInterestOut, info.ytRewardsOut) = YT.redeemDueInterestAndRewards(user, true, true);
+            (info.ytInterestOut, info.ytRewardsOut) = _redeemDueInterestAndRewards(YT, user);
 
             info.ptBalance = PT.balanceOf(user);
         }
@@ -62,7 +62,37 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeable {
 
             UserSYInfo memory info = res[i];
             info.syBalance = SY.balanceOf(user);
-            info.rewardsOut = SY.claimRewards(user);
+            info.rewardsOut = _claimRewards(SY, user);
+        }
+    }
+
+    function _redeemRewards(IPMarket market, address user) internal returns (uint256[] memory /*rewardsOut*/) {
+        try market.redeemRewards(user) returns (uint256[] memory rewardsOut) {
+            return rewardsOut;
+        } catch {
+            return new uint256[](market.getRewardTokens().length);
+        }
+    }
+
+    function _redeemDueInterestAndRewards(
+        IPYieldToken YT,
+        address user
+    ) internal returns (uint256 /*interestOut*/, uint256[] memory /*rewardsOut*/) {
+        try YT.redeemDueInterestAndRewards(user, true, true) returns (
+            uint256 interestOut,
+            uint256[] memory rewardsOut
+        ) {
+            return (interestOut, rewardsOut);
+        } catch {
+            return (0, new uint256[](YT.getRewardTokens().length));
+        }
+    }
+
+    function _claimRewards(IStandardizedYield SY, address user) internal returns (uint256[] memory /*rewardsOut*/) {
+        try SY.claimRewards(user) returns (uint256[] memory rewardsOut) {
+            return rewardsOut;
+        } catch {
+            return new uint256[](SY.getRewardTokens().length);
         }
     }
 }
