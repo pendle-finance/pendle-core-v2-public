@@ -133,6 +133,12 @@ contract PendleChainlinkOracle is IPChainlinkOracle {
             return (assetDecimals, assetDecimals);
         } else if (_oracleType == PendleOracleType.PT_TO_SY) {
             return (assetDecimals, syDecimals);
+        } else if (_oracleType == PendleOracleType.LP_TO_ASSET) {
+            return (18, assetDecimals);
+        } else if (_oracleType == PendleOracleType.LP_TO_SY) {
+            return (18, syDecimals);
+        } else {
+            revert("not supported");
         }
     }
 }
