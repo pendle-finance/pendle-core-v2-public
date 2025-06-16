@@ -111,6 +111,10 @@ contract PendleChainlinkOracle is IPChainlinkOracle {
             return PendlePYOracleLib.getPtToSyRate;
         } else if (baseOracleType == PendleOracleType.PT_TO_ASSET) {
             return PendlePYOracleLib.getPtToAssetRate;
+        } else if (baseOracleType == PendleOracleType.LP_TO_SY) {
+            return PendleLpOracleLib.getLpToSyRate;
+        } else if (baseOracleType == PendleOracleType.LP_TO_ASSET) {
+            return PendleLpOracleLib.getLpToAssetRate;
         } else {
             revert("not supported");
         }
