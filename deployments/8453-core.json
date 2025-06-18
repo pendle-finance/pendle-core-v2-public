@@ -40,9 +40,9 @@
     "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
-    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
     "beta": {
-        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd"
     },
     "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
     "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD",

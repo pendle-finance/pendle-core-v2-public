@@ -49,14 +49,14 @@
     "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "beta": {
-        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd"
     },
     "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
     "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
-    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
     "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
     "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
     "lpWrapperFactory": "0x12930Bd944bb34B0A21CCc2E7d32a6834Bd58e19",

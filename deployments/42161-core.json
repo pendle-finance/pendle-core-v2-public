@@ -44,12 +44,12 @@
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "reflector": "0x73d5DBF81A4f3bFa7b335e6a2d4638D6017a4fA8",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
-    "externalRewardsDistributor": "0xae898a7d07f8e27f25e13d0f351a7401f9a5bf9d",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
     "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
     "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "beta": {
-        "PendleChainlinkOracleFactory": "0x2A73e899389cABa2a2f648BaBA35e67f5C00EFee"
+        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd"
     },
     "receiverEndpoint": "0xC9215ae9EC67385F38C755D862C8eE3702B5793A",
     "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644",
