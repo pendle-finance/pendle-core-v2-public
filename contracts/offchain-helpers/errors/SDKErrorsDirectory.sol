@@ -504,4 +504,56 @@ library SDKErrorsDirectory {
     error INVALID_GLOBAL_SLIPPAGE();
     error TOLERANCE_EXCEEDED();
     error AMOUNT_IN_NOT_EQUAL_OR_LOWER_THAN_BALANCE();
+
+    error FailedCall();
+
+    error FailedDeployment();
+
+    error MissingPrecompile(address);
+
+    error SafeCastOverflowedUintDowncast(uint8 bits, uint256 value);
+
+    error SafeCastOverflowedIntToUint(int256 value);
+
+    error SafeCastOverflowedIntDowncast(uint8 bits, int256 value);
+
+    error SafeCastOverflowedUintToInt(uint256 value);
+
+    error InvalidAddress();
+
+    error InvalidMaxStalenessUpperBound();
+
+    error InvalidMaxStaleness();
+
+    error InvalidMaxConfWidthLowerBound();
+
+    error InvalidFeed();
+
+    error InvalidBaseDecimals();
+
+    error TooStalePrice();
+
+    error TooAheadPrice();
+
+    error InvalidPrice();
+
+    error InvalidPriceExponent();
+
+    error DuplicateFeed();
+
+    error InvalidConfiguration();
+
+    error ExecutionFailed(bytes data);
+
+    error CollOverLimit();
+
+    error InvalidDataArray();
+
+    error InvalidSPLength();
+
+    error ZeroWeight();
+
+    error InvalidTotalWeight();
+
+    error DuplicateAddress();
 }

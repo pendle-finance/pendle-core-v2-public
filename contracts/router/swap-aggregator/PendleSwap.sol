@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./OKXScaleHelper.sol";
 import "./ParaswapScaleHelper.sol";
 
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract PendleSwap is
@@ -15,7 +15,7 @@ contract PendleSwap is
     TokenHelper,
     OKXScaleHelper,
     ParaswapScaleHelper,
-    BoringOwnableUpgradeable,
+    BoringOwnableUpgradeableV2,
     UUPSUpgradeable
 {
     using Address for address;
@@ -27,8 +27,8 @@ contract PendleSwap is
         _disableInitializers();
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
