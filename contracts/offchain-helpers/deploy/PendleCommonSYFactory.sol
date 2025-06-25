@@ -95,7 +95,7 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
             code.creationCodeSizeB
         );
         address proxy = address(new TransparentUpgradeableProxy(implementation, proxyAdmin, initData));
-        
+
         emit DeployedSY(id, constructorParams, proxy);
 
         IOwnable(proxy).transferOwnership(syOwner, true, false);

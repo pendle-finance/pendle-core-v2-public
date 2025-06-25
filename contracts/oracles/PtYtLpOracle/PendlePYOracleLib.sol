@@ -94,7 +94,7 @@ library PendlePYOracleLib {
 
     function getMarketLnImpliedRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         if (duration == 0) {
-            (,,uint96 lnImpliedRate,,,) = IPMarket(market)._storage();
+            (, , uint96 lnImpliedRate, , , ) = IPMarket(market)._storage();
             return uint256(lnImpliedRate);
         }
 

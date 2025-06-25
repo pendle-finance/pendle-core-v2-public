@@ -95,7 +95,11 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
     function _createPYIfNotExist(address SY, uint32 expiry) internal returns (address PT, address YT) {
         PT = IPYieldContractFactory(yieldContractFactory).getPT(SY, uint256(expiry));
         if (PT == address(0)) {
-            (PT, YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(SY, expiry, doCacheIndexSameBlock);
+            (PT, YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(
+                SY,
+                expiry,
+                doCacheIndexSameBlock
+            );
         } else {
             YT = IPYieldContractFactory(yieldContractFactory).getYT(SY, expiry);
         }
