@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IPMsgSendEndpoint.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
 
-abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeable {
+abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeableV2 {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     uint256 public approxDstExecutionGas;

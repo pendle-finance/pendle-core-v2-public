@@ -4,11 +4,11 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IPMerkleDistributor.sol";
 
-contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, BoringOwnableUpgradeable, TokenHelper {
+contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, BoringOwnableUpgradeableV2, TokenHelper {
     address public immutable token;
 
     bytes32 public merkleRoot;
@@ -22,8 +22,8 @@ contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, Boring
 
     receive() external payable {}
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function claim(

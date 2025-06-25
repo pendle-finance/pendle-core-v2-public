@@ -32,14 +32,14 @@ import "../libraries/ExpiryUtilsLib.sol";
 import "../libraries/BaseSplitCodeFactory.sol";
 import "../libraries/MiniHelpers.sol";
 import "../libraries/Errors.sol";
-import "../libraries/BoringOwnableUpgradeable.sol";
+import "../libraries/BoringOwnableUpgradeableV2.sol";
 import "../libraries/StringLib.sol";
 
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
 /// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
-contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContractFactory {
+contract PendleYieldContractFactory is BoringOwnableUpgradeableV2, IPYieldContractFactory {
     using ExpiryUtils for string;
     using StringLib for string;
     using StringLib for StringLib.slice;
@@ -90,7 +90,7 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeable, IPYieldContract
         uint128 _rewardFeeRate,
         address _treasury
     ) external initializer {
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setRewardFeeRate(_rewardFeeRate);

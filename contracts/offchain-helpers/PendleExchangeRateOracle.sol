@@ -2,11 +2,11 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/math/PMath.sol";
 import "../interfaces/IPExchangeRateOracle.sol";
 
-contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOracle {
+contract PendleExchangeRateOracle is BoringOwnableUpgradeableV2, IPExchangeRateOracle {
     using PMath for uint256;
     using PMath for uint128;
 
@@ -36,8 +36,7 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeable, IPExchangeRateOra
     constructor(string memory _name, uint256 _maxRateDiff) initializer {
         name = _name;
         maxRateDiff = _maxRateDiff;
-
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
     }
 
     function getExchangeRate() external view returns (uint256) {

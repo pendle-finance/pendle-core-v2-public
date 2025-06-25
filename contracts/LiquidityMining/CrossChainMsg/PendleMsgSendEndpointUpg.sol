@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "../../interfaces/IPMsgSendEndpoint.sol";
 import "../../interfaces/ILayerZeroEndpoint.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
 import "./libraries/LayerZeroHelper.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * So we can leave the configuration unset.
  */
 
-contract PendleMsgSendEndpointUpg is IPMsgSendEndpoint, Initializable, UUPSUpgradeable, BoringOwnableUpgradeable {
+contract PendleMsgSendEndpointUpg is IPMsgSendEndpoint, Initializable, UUPSUpgradeable, BoringOwnableUpgradeableV2 {
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     address payable public immutable refundAddress;
@@ -33,8 +33,8 @@ contract PendleMsgSendEndpointUpg is IPMsgSendEndpoint, Initializable, UUPSUpgra
         lzEndpoint = _lzEndpoint;
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function calcFee(

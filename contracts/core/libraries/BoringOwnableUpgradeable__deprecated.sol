@@ -8,10 +8,14 @@ contract BoringOwnableUpgradeableData {
     address public pendingOwner;
 }
 
-abstract contract BoringOwnableUpgradeable is BoringOwnableUpgradeableData, Initializable {
+/**
+ * @dev This contract is deprecated and should not be used in new contracts.
+ * @dev Please use BoringOwnableUpgradeableV2 instead.
+ */
+abstract contract BoringOwnableUpgradeable__deprecated is BoringOwnableUpgradeableData, Initializable {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    function __BoringOwnable_init() internal onlyInitializing {
+    function __BoringOwnable__deprecated_init() internal onlyInitializing {
         owner = msg.sender;
     }
 

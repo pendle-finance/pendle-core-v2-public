@@ -2,11 +2,11 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IStandardizedYield.sol";
 
-contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeable {
+contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
     struct UserMarketInfo {
         uint256 lpBalance;
         uint256 lpActiveBalance;
@@ -28,8 +28,8 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeable {
         _disableInitializers();
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function _authorizeUpgrade(address) internal virtual override onlyOwner {}

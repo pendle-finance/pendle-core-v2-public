@@ -5,7 +5,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import "../interfaces/IPLimitRouter.sol";
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IStandardizedYield.sol";
 import "./helpers/NonceManager.sol";
@@ -15,7 +15,7 @@ import {LimitMathCore as LimitMath} from "./LimitMathCore.sol";
 abstract contract LimitRouterBase is
     EIP712Upgradeable,
     IPLimitRouter,
-    BoringOwnableUpgradeable,
+    BoringOwnableUpgradeableV2,
     NonceManager,
     TokenHelper
 {
@@ -59,8 +59,8 @@ abstract contract LimitRouterBase is
     // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
-    function initialize(address _feeRecipient) external initializer {
-        __BoringOwnable_init();
+    function initialize(address _feeRecipient, address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
         __EIP712_init("Pendle Limit Order Protocol", "1");
         setFeeRecipient(_feeRecipient);
     }

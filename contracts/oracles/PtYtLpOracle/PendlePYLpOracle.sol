@@ -4,12 +4,12 @@ pragma solidity ^0.8.17;
 import "./PendlePYOracleLib.sol";
 import "./PendleLpOracleLib.sol";
 import "../../interfaces/IPPYLpOracle.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
 // Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
 // but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
-contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
+contract PendlePYLpOracle is BoringOwnableUpgradeableV2, IPPYLpOracle {
     using PendlePYOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
 
@@ -30,8 +30,8 @@ contract PendlePYLpOracle is BoringOwnableUpgradeable, IPPYLpOracle {
         _disableInitializers();
     }
 
-    function initialize(uint16 _blockCycleNumerator) external initializer {
-        __BoringOwnable_init();
+    function initialize(uint16 _blockCycleNumerator, address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
         _setBlockCycleNumerator(_blockCycleNumerator);
     }
 

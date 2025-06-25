@@ -8,9 +8,9 @@ import "../../../interfaces/IPMarketFactory.sol";
 
 import "../../libraries/BaseSplitCodeFactory.sol";
 import "../../libraries/Errors.sol";
-import "../../libraries/BoringOwnableUpgradeable.sol";
+import "../../libraries/BoringOwnableUpgradeableV2.sol";
 
-contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
+contract PendleMarketFactory is BoringOwnableUpgradeableV2, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public immutable marketCreationCodeContractA;
@@ -59,7 +59,7 @@ contract PendleMarketFactory is BoringOwnableUpgradeable, IPMarketFactory {
         address newVePendle,
         address newGaugeController
     ) external initializer {
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
         setTreasury(_treasury);
         setDefaultFee(_defaultLnFeeRateRoot, _defaultReserveFeePercent);
 

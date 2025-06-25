@@ -8,9 +8,9 @@ import "../../../interfaces/IPMarketFactoryV3.sol";
 
 import "../../libraries/BaseSplitCodeFactory.sol";
 import "../../libraries/Errors.sol";
-import "../../libraries/BoringOwnableUpgradeable.sol";
+import "../../libraries/BoringOwnableUpgradeableV2.sol";
 
-contract PendleMarketFactoryV3 is BoringOwnableUpgradeable, IPMarketFactoryV3 {
+contract PendleMarketFactoryV3 is BoringOwnableUpgradeableV2, IPMarketFactoryV3 {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public immutable marketCreationCodeContractA;
@@ -55,7 +55,7 @@ contract PendleMarketFactoryV3 is BoringOwnableUpgradeable, IPMarketFactoryV3 {
         marketCreationCodeContractB = _marketCreationCodeContractB;
         marketCreationCodeSizeB = _marketCreationCodeSizeB;
 
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
         setTreasuryAndFeeReserve(_treasury, _reserveFeePercent);
 
         vePendle = _vePendle;

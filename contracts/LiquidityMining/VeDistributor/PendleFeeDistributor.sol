@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
 import "../../interfaces/IPFeeDistributor.sol";
 import "../../interfaces/IPVotingEscrowMainchain.sol";
@@ -12,7 +12,7 @@ import "../libraries/WeekMath.sol";
 import "../libraries/VeHistoryLib.sol";
 import "../../core/libraries/ArrayLib.sol";
 
-contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFeeDistributor {
+contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeableV2, IPFeeDistributor {
     using SafeERC20 for IERC20;
     using VeBalanceLib for VeBalance;
     using ArrayLib for uint256[];
@@ -191,8 +191,8 @@ contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeable, IPFe
         }
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     // ----------------- upgrade-related -----------------

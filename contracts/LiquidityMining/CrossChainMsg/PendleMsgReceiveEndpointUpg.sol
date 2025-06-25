@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "../../interfaces/ILayerZeroEndpoint.sol";
 import "../../interfaces/IPMsgReceiverApp.sol";
 import "../../interfaces/ILayerZeroReceiver.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
 import "./libraries/LayerZeroHelper.sol";
 import "./libraries/ExcessivelySafeCall.sol";
@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * So we can leave the configuration unset.
  */
 
-contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSUpgradeable, BoringOwnableUpgradeable {
+contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSUpgradeable, BoringOwnableUpgradeableV2 {
     using ExcessivelySafeCall for address;
 
     address public immutable lzEndpoint;
@@ -50,8 +50,8 @@ contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSU
         sendEndpointChainId = _sendEndpointChainId;
     }
 
-    function initialize() external initializer {
-        __BoringOwnable_init();
+    function initialize(address _owner) external initializer {
+        __BoringOwnableV2_init(_owner);
     }
 
     function lzReceive(

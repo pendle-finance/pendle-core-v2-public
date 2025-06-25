@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../core/libraries/BoringOwnableUpgradeable.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/BaseSplitCodeFactory.sol";
 
-contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeable {
+contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeableV2 {
     event Deployed(
         string indexed name,
         address creationCodeContractA,
@@ -14,7 +14,7 @@ contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeable {
     );
 
     constructor() initializer {
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
     }
 
     function deploy(

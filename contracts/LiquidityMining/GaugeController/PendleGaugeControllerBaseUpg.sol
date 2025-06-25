@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../core/libraries/math/PMath.sol";
 import "../../core/libraries/Errors.sol";
-import "../../core/libraries/BoringOwnableUpgradeable.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 
 import "../libraries/WeekMath.sol";
 
@@ -24,7 +24,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
  * on inheriting contracts
  */
 
-abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeable, UUPSUpgradeable {
+abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnableUpgradeableV2, UUPSUpgradeable {
     using SafeERC20 for IERC20;
     using PMath for uint256;
 

@@ -47,7 +47,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
     ) initializer PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) {
         pendle = _pendle;
         lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
     }
 
     /// @notice basically a proxy function to call increaseLockPosition & broadcastUserPosition at the same time

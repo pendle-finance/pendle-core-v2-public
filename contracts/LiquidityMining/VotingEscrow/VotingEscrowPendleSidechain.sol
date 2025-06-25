@@ -9,7 +9,7 @@ import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
 
 // solhint-disable no-empty-blocks
-contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg, BoringOwnableUpgradeable {
+contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg, BoringOwnableUpgradeableV2 {
     uint256 public lastTotalSupplyReceivedAt;
 
     mapping(address => address) internal delegatorOf;
@@ -23,7 +23,7 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiver
     constructor(
         address _PendleMsgReceiveEndpointUpg
     ) initializer PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg) {
-        __BoringOwnable_init();
+        __BoringOwnableV2_init(msg.sender);
     }
 
     function totalSupplyCurrent() public view virtual override returns (uint128) {
