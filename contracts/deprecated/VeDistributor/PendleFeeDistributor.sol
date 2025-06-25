@@ -8,8 +8,8 @@ import "../../core/libraries/Errors.sol";
 import "../../interfaces/IPFeeDistributor.sol";
 import "../../interfaces/IPVotingEscrowMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
-import "../libraries/WeekMath.sol";
-import "../libraries/VeHistoryLib.sol";
+import "../../LiquidityMining/libraries/WeekMath.sol";
+import "../../LiquidityMining/libraries/VeHistoryLib.sol";
 import "../../core/libraries/ArrayLib.sol";
 
 contract PendleFeeDistributor is UUPSUpgradeable, BoringOwnableUpgradeableV2, IPFeeDistributor {
