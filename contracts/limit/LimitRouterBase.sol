@@ -60,9 +60,10 @@ abstract contract LimitRouterBase is
     receive() external payable {}
 
     function initialize(address _feeRecipient, address _owner) external initializer {
-        __BoringOwnableV2_init(_owner);
+        __BoringOwnableV2_init(msg.sender);
         __EIP712_init("Pendle Limit Order Protocol", "1");
         setFeeRecipient(_feeRecipient);
+        transferOwnership(_owner, true, false);
     }
 
     function fill(
