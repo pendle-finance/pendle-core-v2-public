@@ -16,7 +16,7 @@
     },
     "baseCodeSplitter": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
     "PENDLE": "0xFf9c599D51C407A45D631c6e89cB047Efb88AeF6",
-    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "governanceProxy": "0x830024529386a4a179ba6d1f31e8d49228674cd0",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
     "routerFacets": {
         "ActionAddRemoveLiqV3": "0x663C21103915B68e9dA797CfdF3cAb01a037D5Ff",
