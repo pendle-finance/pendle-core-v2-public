@@ -76,6 +76,8 @@ interface IPLimitRouter is IPLimitOrderType {
 
     event OrderCanceled(address indexed maker, bytes32 indexed orderHash);
 
+    event OrderForceCanceled(bytes32 indexed orderHash);
+
     event OrderFilledV2(
         bytes32 indexed orderHash,
         OrderType indexed orderType,

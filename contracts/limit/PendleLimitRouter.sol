@@ -29,6 +29,16 @@ contract PendleLimitRouter is LimitRouterBase {
         emit OrderCanceled(msg.sender, orderHash);
     }
 
+    /// @dev auto skip cancelled orders to avoid race conditions
+    function forceCancel(bytes32[] calldata orderHashes) public onlyHelperAndOwner {
+        for (uint256 i = 0; i < orderHashes.length; ++i) {
+            if (_status[orderHashes[i]].remaining == _ORDER_FILLED) continue;
+
+            _status[orderHashes[i]].remaining = _ORDER_FILLED;
+            emit OrderForceCanceled(orderHashes[i]);
+        }
+    }
+
     function orderStatusesRaw(
         bytes32[] memory orderHashes
     ) public view returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts) {

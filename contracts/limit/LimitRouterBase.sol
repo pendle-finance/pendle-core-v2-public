@@ -485,12 +485,17 @@ abstract contract LimitRouterBase is
         ownerHelper = _helper;
     }
 
-    function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots) public onlyHelperAndOwner {
+    /// @dev if zero fees are intended, it must be explicitly allowed again
+    function setLnFeeRateRoots(
+        address[] memory YTs,
+        uint256[] memory lnFeeRateRoots,
+        bool allowZeroFees
+    ) public onlyHelperAndOwner {
         uint256 len = YTs.length;
         require(len == lnFeeRateRoots.length, "LOP: length mismatch");
 
         for (uint256 i = 0; i < len; i++) {
-            require(lnFeeRateRoots[i] > 0, "LOP: zero fee not allowed");
+            require(lnFeeRateRoots[i] > 0 || allowZeroFees, "LOP: zero fee must be allowed explicitly");
             require(lnFeeRateRoots[i] <= MAX_LN_FEE_RATE_ROOT, "LOP: fee too high");
 
             __lnFeeRateRoot[YTs[i]] = lnFeeRateRoots[i];
