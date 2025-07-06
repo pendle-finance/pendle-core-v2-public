@@ -10,7 +10,7 @@ contract PendleMulticallOwnerV1 is BoringOwnableUpgradeableV2 {
         bytes callData;
     }
 
-    constructor(address _owner) {
+    constructor(address _owner) initializer {
         __BoringOwnableV2_init(_owner);
     }
 
