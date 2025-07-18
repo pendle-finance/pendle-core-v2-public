@@ -335,13 +335,15 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
                 guessYtOut
             );
 
+            uint256 preYtBalance = YT.balanceOf(receiver);
             (, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(
                 address(YT),
                 netYtOutMarket, // exactPtIn = netYtOut
                 _encodeSwapExactSyForYt(receiver, YT)
             );
+            uint256 actualYtOutMarket = YT.balanceOf(receiver) - preYtBalance;
 
-            netYtOut += netYtOutMarket;
+            netYtOut += actualYtOutMarket;
             netSyFee += netSyFeeMarket;
         }
 
