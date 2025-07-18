@@ -40,7 +40,7 @@ contract ExpiredLpPtRedeemer is TokenHelper, ReentrancyGuardUpgradeable, BoringO
         uint256 totalPtRedeem = 0;
 
         if (netPtIn > 0) {
-            _transferFrom(PT, msg.sender, address(this), netLpIn);
+            _transferFrom(PT, msg.sender, address(this), netPtIn);
             totalPtRedeem += netPtIn;
         }
 
