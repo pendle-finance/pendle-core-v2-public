@@ -27,6 +27,8 @@ library LayerZeroHelper {
         else if (chainId == 146) return 332;
         // bera
         else if (chainId == 80094) return 362;
+        // hyperevm
+        else if (chainId == 999) return 367;
         assert(false);
     }
 
@@ -53,6 +55,8 @@ library LayerZeroHelper {
         else if (chainId == 332) return 146;
         // bera
         else if (chainId == 362) return 80094;
+        // hyperevm
+        else if (chainId == 367) return 999;
         assert(false);
     }
 
