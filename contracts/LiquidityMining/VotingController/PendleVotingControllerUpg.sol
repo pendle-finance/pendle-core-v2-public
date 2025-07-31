@@ -207,7 +207,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     /**
      * @notice set the cap for a pool, or remove cap (using global cap) if `cap` is 0
      */
-    function setPoolCaps(address[] calldata pools, uint256[] calldata caps) external onlyRemovePoolHelperAndOwner {
+    function setPoolCaps(address[] calldata pools, uint256[] calldata caps) external onlyAddPoolHelperAndOwner {
         if (pools.length != caps.length) revert Errors.ArrayLengthMismatch();
         for (uint256 i = 0; i < pools.length; ++i) {
             _setPoolCap(pools[i], caps[i]);
