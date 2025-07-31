@@ -143,7 +143,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     function broadcastResults(uint64 chainId) external payable refundUnusedEth {
         uint128 wTime = WeekMath.getCurrentWeekStart();
         if (!weekData[wTime].isEpochFinalized) revert Errors.VCEpochNotFinalized(wTime);
-        _broadcastResults(chainId, wTime, pendlePerSec);
+        _broadcastResults(chainId, wTime, pendlePerSec, globalCap);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -205,6 +205,20 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     }
 
     /**
+     * @notice set the cap for a pool, or remove cap (using global cap) if `cap` is 0
+     */
+    function setPoolCaps(address[] calldata pools, uint256[] calldata caps) external onlyRemovePoolHelperAndOwner {
+        if (pools.length != caps.length) revert Errors.ArrayLengthMismatch();
+        for (uint256 i = 0; i < pools.length; ++i) {
+            _setPoolCap(pools[i], caps[i]);
+        }
+    }
+
+    function setGlobalCap(uint256 cap) external onlyOwner {
+        _setGlobalCap(cap);
+    }
+
+    /**
      * @notice use the gov-privilege to force broadcast a message in case there are issues with LayerZero
      * @custom:gov NOTE TO GOV: gov should always call finalizeEpoch beforehand
      */
@@ -213,7 +227,7 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         uint128 wTime,
         uint128 forcedPendlePerSec
     ) external payable onlyOwner refundUnusedEth {
-        _broadcastResults(chainId, wTime, forcedPendlePerSec);
+        _broadcastResults(chainId, wTime, forcedPendlePerSec, globalCap);
     }
 
     /**
@@ -244,7 +258,12 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     //////////////////////////////////////////////////////////////*/
 
     /// @notice broadcast voting results of the timestamp to chainId
-    function _broadcastResults(uint64 chainId, uint128 wTime, uint128 totalPendlePerSec) internal {
+    function _broadcastResults(
+        uint64 chainId,
+        uint128 wTime,
+        uint128 totalPendlePerSec,
+        uint256 currentGlobalCap
+    ) internal {
         uint256 totalVotes = weekData[wTime].totalVotes;
         if (totalVotes == 0) return;
 
@@ -256,7 +275,8 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
 
         for (uint256 i = 0; i < length; ++i) {
             uint256 poolVotes = weekData[wTime].poolVotes[pools[i]];
-            totalPendleAmounts[i] = (totalPendlePerSec * poolVotes * WEEK) / totalVotes;
+            uint256 cappedRate = PMath.min(_getPoolCapOpt(pools[i], currentGlobalCap), poolVotes.divDown(totalVotes));
+            totalPendleAmounts[i] = (uint256(totalPendlePerSec) * WEEK).mulDown(cappedRate);
         }
 
         if (chainId == block.chainid) {

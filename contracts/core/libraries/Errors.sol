@@ -121,6 +121,7 @@ library Errors {
     error ApxETHNotEnoughBuffer();
 
     // Liquidity Mining
+    error VCInvalidCap(uint256 cap);
     error VCInactivePool(address pool);
     error VCPoolAlreadyActive(address pool);
     error VCZeroVePendle(address user);

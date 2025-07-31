@@ -76,7 +76,12 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     address public addPoolHelper;
     address public removePoolHelper;
 
-    uint256[98] private __gap;
+    // [pool] => cap
+    mapping(address => uint256) public poolCaps;
+
+    uint256 public globalCap;
+
+    uint256[96] private __gap;
 
     constructor(address _vePendle) {
         vePendle = IPVeToken(_vePendle);
@@ -85,6 +90,11 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     /*///////////////////////////////////////////////////////////////
                             VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+
+    function getPoolCap(address pool) public view returns (uint256) {
+        uint256 cap = poolCaps[pool];
+        return (cap != 0) ? cap : globalCap;
+    }
 
     function getPoolTotalVoteAt(address pool, uint128 wTime) public view returns (uint128) {
         return weekData[wTime].poolVotes[pool];
@@ -262,5 +272,28 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     /// weight of the vote is too small) & the expiry is after the current time
     function _isVoteActive(VeBalance memory vote) internal view returns (bool) {
         return vote.slope != 0 && !MiniHelpers.isCurrentlyExpired(vote.getExpiry());
+    }
+
+    function _setPoolCap(address pool, uint256 cap) internal {
+        _validateCap(cap);
+        poolCaps[pool] = cap;
+        emit SetPoolCap(pool, cap);
+    }
+
+    function _setGlobalCap(uint256 cap) internal {
+        _validateCap(cap);
+        globalCap = cap;
+        emit SetGlobalCap(cap);
+    }
+
+    function _getPoolCapOpt(address _pool, uint256 _globalCap) internal view returns (uint256) {
+        uint256 cap = poolCaps[_pool];
+        return (cap != 0) ? cap : _globalCap;
+    }
+
+    function _validateCap(uint256 cap) internal pure {
+        if (cap > PMath.ONE) {
+            revert Errors.VCInvalidCap(cap);
+        }
     }
 }
