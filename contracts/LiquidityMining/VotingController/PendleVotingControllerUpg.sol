@@ -212,10 +212,12 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         for (uint256 i = 0; i < pools.length; ++i) {
             _setPoolCap(pools[i], caps[i]);
         }
+        emit SetPoolCaps(pools, caps);
     }
 
     function setGlobalCap(uint256 cap) external onlyOwner {
         _setGlobalCap(cap);
+        emit SetGlobalCap(cap);
     }
 
     /**

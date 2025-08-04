@@ -16,7 +16,7 @@ interface IPVotingController {
 
     event BroadcastResults(uint64 indexed chainId, uint128 indexed wTime, uint128 totalPendlePerSec);
 
-    event SetPoolCap(address indexed pool, uint256 cap);
+    event SetPoolCaps(address[] pools, uint256[] caps);
 
     event SetGlobalCap(uint256 cap);
 

@@ -277,13 +277,11 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
     function _setPoolCap(address pool, uint256 cap) internal {
         _validateCap(cap);
         poolCaps[pool] = cap;
-        emit SetPoolCap(pool, cap);
     }
 
     function _setGlobalCap(uint256 cap) internal {
         _validateCap(cap);
         globalCap = cap;
-        emit SetGlobalCap(cap);
     }
 
     function _getPoolCapOpt(address _pool, uint256 _globalCap) internal view returns (uint256) {
