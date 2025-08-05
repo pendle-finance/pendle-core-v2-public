@@ -19,6 +19,11 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
     using PYIndexLib for PYIndex;
 
     bytes internal constant EMPTY_BYTES = abi.encode();
+    address internal immutable DUST_RECEIVER;
+
+    constructor(address _dustReceiver) {
+        DUST_RECEIVER = _dustReceiver;
+    }
 
     // ----------------- MINT REDEEM SY PY -----------------
 
@@ -158,6 +163,10 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         return IPMarket(market).readState(address(this));
     }
 
+    function _sweepDust(address token) internal {
+        _transferOut(token, DUST_RECEIVER, _selfBalance(token));
+    }
+
     // ----------------- PT SWAP -----------------
 
     function _entry_swapExactPtForSy(address market, LimitOrderData calldata limit) internal view returns (address) {
@@ -184,8 +193,6 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netPtLeft, netSyOut, netSyFee, doMarketOrder) = _fillLimit(receiver, PT, netPtLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(PT), market, netPtLeft);
-            } else {
-                _transferOut(address(PT), receiver, netPtLeft);
             }
         }
 
@@ -199,6 +206,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             netSyOut += netSyOutMarket;
             netSyFee += netSyFeeMarket;
         }
+
+        _sweepDust(address(PT));
 
         if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
@@ -227,8 +236,6 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netSyLeft, netPtOut, netSyFee, doMarketOrder) = _fillLimit(receiver, SY, netSyLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(SY), market, netSyLeft);
-            } else {
-                _transferOut(address(SY), receiver, netSyLeft);
             }
         }
 
@@ -245,6 +252,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             netPtOut += netPtOutMarket;
             netSyFee += netSyFeeMarket;
         }
+
+        _sweepDust(address(SY));
 
         if (netPtOut < minPtOut) revert("Slippage: INSUFFICIENT_PT_OUT");
     }
@@ -275,8 +284,6 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netYtLeft, netSyOut, netSyFee, doMarketOrder) = _fillLimit(receiver, YT, netYtLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(YT), address(YT), netYtLeft);
-            } else {
-                _transferOut(address(YT), receiver, netYtLeft);
             }
         }
 
@@ -293,6 +300,8 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             netSyFee += netSyFeeMarket;
             netSyOut += SY.balanceOf(receiver) - preSyBalance;
         }
+
+        _sweepDust(address(YT));
 
         if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
@@ -322,8 +331,6 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             (netSyLeft, netYtOut, netSyFee, doMarketOrder) = _fillLimit(receiver, SY, netSyLeft, limit);
             if (doMarketOrder) {
                 _transferOut(address(SY), address(YT), netSyLeft);
-            } else {
-                _transferOut(address(SY), receiver, netSyLeft);
             }
         }
 
@@ -344,6 +351,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             netYtOut += netYtOutMarket;
             netSyFee += netSyFeeMarket;
         }
+        _sweepDust(address(SY));
 
         if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
     }
