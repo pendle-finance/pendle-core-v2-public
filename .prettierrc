@@ -8,6 +8,13 @@
       "options": {
         "printWidth": 120
       }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "tabWidth": 4,
+        "singleQuote": true
+      }
     }
   ]
 }
