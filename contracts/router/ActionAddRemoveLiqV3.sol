@@ -15,6 +15,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
 
+    constructor(address _dustReceiver) ActionDelegateBase(_dustReceiver) {}
+
     // ------------------ ADD LIQUIDITY DUAL ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.

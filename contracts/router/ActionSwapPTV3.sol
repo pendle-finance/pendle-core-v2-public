@@ -8,6 +8,8 @@ import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 contract ActionSwapPTV3 is IPActionSwapPTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
 
+    constructor(address _dustReceiver) ActionDelegateBase(_dustReceiver) {}
+
     // ------------------ SWAP TOKEN FOR PT ------------------
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
     function swapExactTokenForPt(

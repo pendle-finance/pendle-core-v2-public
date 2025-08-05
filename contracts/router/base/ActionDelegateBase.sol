@@ -6,6 +6,8 @@ import {IPActionSimple} from "../../interfaces/IPActionSimple.sol";
 import {ApproxParams, TokenInput, LimitOrderData} from "../../interfaces/IPAllActionTypeV3.sol";
 
 contract ActionDelegateBase is ActionBase {
+    constructor(address _dustReceiver) ActionBase(_dustReceiver) {}
+
     function delegateToAddLiquiditySinglePtSimple(
         address receiver,
         address market,

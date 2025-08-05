@@ -8,6 +8,8 @@ import "../interfaces/IPReflector.sol";
 contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     uint256 private constant NOT_FOUND = type(uint256).max;
 
+    constructor(address _dustReceiver) ActionBase(_dustReceiver) {}
+
     function mintSyFromToken(
         address receiver,
         address SY,
