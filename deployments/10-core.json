@@ -4,7 +4,7 @@
         "chainId": 10,
         "treasury": "0xE972D450ec5b11b99D97760422e0E054Afbc8042",
         "governance": "0xa06C863fcf17cA6f24AA81aeA75E23953193fF6A",
-        "devMultisig": "0x79d7a5e8b130eEf1e022b3EDEE4DAF226DC168CA",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
         "pendle": "0xBC7B1Ff1c6989f006a1185318eD4E7b5796e66E1",
         "lzEndpoint": "0x3c2269811836af69497E5F486A85D7316753cf62",
         "wrappedNative": "0x4200000000000000000000000000000000000006",
@@ -53,5 +53,9 @@
     },
     "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
-    "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C"
+    "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
+    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F",
+    "expiredRedeemer": "0x8267fdabd1b8C8645138f2dE5B0fe24988DC9820",
+    "lpWrapperFactory": "0xeCfEB97D7F070DA5b93c5DC274183F1D7f68532F",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9"
 }
