@@ -5,8 +5,9 @@ import "../core/erc20/PendleERC20.sol";
 import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IPLPWrapperFactory.sol";
+import "../interfaces/ILPWrapper.sol";
 
-contract PendleLPWrapper is PendleERC20, TokenHelper {
+contract PendleLPWrapper is PendleERC20, TokenHelper, ILPWrapper {
     address public immutable LP;
     address public immutable factory;
     bool public isRewardRedemptionDisabled;
