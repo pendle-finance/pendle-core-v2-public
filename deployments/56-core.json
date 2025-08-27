@@ -56,5 +56,6 @@
     "gaugeController": "0x704478Dd72FD7F9B83d1F1e0fc18C14B54F034d0",
     "lpWrapperFactory": "0x6f14d3cD37a0647a3eE60eb2214486f8A1CDdccc",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
-    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F"
+    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F",
+    "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5"
 }

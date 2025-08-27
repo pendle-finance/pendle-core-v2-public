@@ -49,5 +49,6 @@
     "externalRewardsDistributor": "0x1Cb446fAE25Ae19878f9f71189902e2a6A6A749c",
     "lpWrapperFactory": "0xcb645C93820B92E5F21781C5c3c18C29BCb6126B",
     "decimalsFactory": "0xF2a26C2eb3c4098e03807442196FbA7f78b125a2",
-    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F"
+    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F",
+    "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5"
 }
