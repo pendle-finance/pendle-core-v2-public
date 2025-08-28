@@ -46,6 +46,9 @@
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "@chainlink/contracts": "^0.8.0",
+    "@layerzerolabs/lz-evm-protocol-v2": "^3.0.75",
+    "@layerzerolabs/oapp-evm": "^0.3.2",
+    "@layerzerolabs/oft-evm": "^3.1.4",
     "@openzeppelin/contracts": "4.9.3",
     "@openzeppelin/contracts-upgradeable": "4.9.3",
     "ethers": "^5.7.2"
