@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IPGovernanceProxy {
+    event GrantScopedAccess(address indexed caller, address indexed target, bytes4 indexed selector, bool state);
     struct Call {
         address target;
         uint256 value;
@@ -12,6 +13,8 @@ interface IPGovernanceProxy {
 
     function aggregate(Call[] calldata calls) external payable returns (bytes[] memory rtnData);
 
+    function aggregateWithScopedAccess(Call[] calldata calls) external payable returns (bytes[] memory rtnData);
+
     event SetAllowedSelectors(bytes4[] selectors, bytes32 indexed role);
 
     function ALICE() external view returns (bytes32);
@@ -21,4 +24,11 @@ interface IPGovernanceProxy {
     function CHARLIE() external view returns (bytes32);
 
     function allowedSelectors(bytes4 selector) external view returns (bytes32);
+
+    function grantScopedAccess(
+        address caller,
+        address[] memory targets,
+        bytes4[] memory selectors,
+        bool[] memory states
+    ) external;
 }

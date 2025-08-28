@@ -76,6 +76,7 @@
     "contract-name-camelcase": "off",
     "event-name-camelcase": "warn",
     "func-param-name-mixedcase": "off",
-    "modifier-name-mixedcase": "warn"
+    "modifier-name-mixedcase": "warn",
+    "gas-custom-errors": "off"
   }
 }
