@@ -21,17 +21,17 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     mapping(address => mapping(bytes4 => mapping(address => bool))) public hasScopedAccess;
 
     modifier onlyGuardian() {
-        require(hasRole(GUARDIAN, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "n/a");
+        require(hasRole(GUARDIAN, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "PGP: n/a");
         _;
     }
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "n/a");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "PGP: n/a");
         _;
     }
 
     modifier onlyAdminOrSelectorAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(SELECTOR_ADMIN, msg.sender), "n/a");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(SELECTOR_ADMIN, msg.sender), "PGP: n/a");
         _;
     }
 
@@ -41,7 +41,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
                 hasRole(BOB, msg.sender) ||
                 hasRole(CHARLIE, msg.sender) ||
                 hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "n/a"
+            "PGP: n/a"
         );
         _;
     }
@@ -53,7 +53,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     function aggregateWithScopedAccess(Call[] calldata calls) external payable returns (bytes[] memory) {
         for (uint256 i = 0; i < calls.length; i++) {
             bytes4 selector = bytes4(calls[i].callData[:4]);
-            require(hasScopedAccess[msg.sender][selector][calls[i].target], "n/a");
+            require(hasScopedAccess[msg.sender][selector][calls[i].target], "PGP: n/a");
         }
 
         return _aggregate(calls);
@@ -65,7 +65,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         if (!isAdmin) {
             for (uint256 i = 0; i < calls.length; i++) {
                 bytes4 selector = bytes4(calls[i].callData[:4]);
-                require(hasRole(allowedSelectors[selector], msg.sender), "n/a");
+                require(hasRole(allowedSelectors[selector], msg.sender), "PGP: n/a");
             }
         }
 
