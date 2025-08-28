@@ -1,0 +1,5 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
+    "fixedPricePTAMM": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340"
+}
