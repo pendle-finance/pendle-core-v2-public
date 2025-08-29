@@ -12,12 +12,9 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPGovernanceProxy {
     bytes32 public constant GUARDIAN = keccak256("GUARDIAN");
-    bytes32 public constant ALICE = keccak256("ALICE");
-    bytes32 public constant BOB = keccak256("BOB");
-    bytes32 public constant CHARLIE = keccak256("CHARLIE");
     bytes32 public constant SELECTOR_ADMIN = keccak256("SELECTOR_ADMIN");
 
-    mapping(bytes4 => bytes32) public allowedSelectors;
+    mapping(bytes4 => bytes32) public __deprecated_allowedSelectors;
     mapping(address => mapping(bytes4 => mapping(address => bool))) public hasScopedAccess;
 
     modifier onlyGuardian() {
@@ -34,18 +31,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(SELECTOR_ADMIN, msg.sender), "PGP: n/a");
         _;
     }
-
-    modifier onlyHaveSomeRole() {
-        require(
-            hasRole(ALICE, msg.sender) ||
-                hasRole(BOB, msg.sender) ||
-                hasRole(CHARLIE, msg.sender) ||
-                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "PGP: n/a"
-        );
-        _;
-    }
-
+    
     constructor() {
         _disableInitializers();
     }
@@ -59,16 +45,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         return _aggregate(calls);
     }
 
-    function aggregate(Call[] calldata calls) external payable onlyHaveSomeRole returns (bytes[] memory) {
-        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
-        if (!isAdmin) {
-            for (uint256 i = 0; i < calls.length; i++) {
-                bytes4 selector = bytes4(calls[i].callData[:4]);
-                require(hasRole(allowedSelectors[selector], msg.sender), "PGP: n/a");
-            }
-        }
-
+    function aggregate(Call[] calldata calls) external payable onlyAdmin returns (bytes[] memory) {
         return _aggregate(calls);
     }
 
@@ -102,13 +79,6 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
             hasScopedAccess[caller][selectors[i]][targets[i]] = states[i];
             emit GrantScopedAccess(caller, targets[i], selectors[i], states[i]);
         }
-    }
-
-    function setAllowedSelectors(bytes4[] calldata selectors, bytes32 role) external onlyAdmin {
-        for (uint256 i = 0; i < selectors.length; i++) {
-            allowedSelectors[selectors[i]] = role;
-        }
-        emit SetAllowedSelectors(selectors, role);
     }
 
     function _aggregate(Call[] calldata calls) internal returns (bytes[] memory rtnData) {

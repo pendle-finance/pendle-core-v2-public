@@ -17,14 +17,6 @@ interface IPGovernanceProxy {
 
     event SetAllowedSelectors(bytes4[] selectors, bytes32 indexed role);
 
-    function ALICE() external view returns (bytes32);
-
-    function BOB() external view returns (bytes32);
-
-    function CHARLIE() external view returns (bytes32);
-
-    function allowedSelectors(bytes4 selector) external view returns (bytes32);
-
     function grantScopedAccess(
         address caller,
         address[] memory targets,
