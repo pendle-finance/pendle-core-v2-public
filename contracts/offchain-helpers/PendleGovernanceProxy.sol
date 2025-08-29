@@ -12,9 +12,25 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPGovernanceProxy {
     bytes32 public constant GUARDIAN = keccak256("GUARDIAN");
-    bytes32 public constant SELECTOR_ADMIN = keccak256("SELECTOR_ADMIN");
 
     mapping(bytes4 => bytes32) public __deprecated_allowedSelectors;
+
+    // Only the admin (governance) of PendleGovernanceProxy can modify one address to be
+    // a selector admin of some selectors.
+    //
+    // A [selector admin] of a selector can grant/revoke scoped access of that selector
+    // to/from ANY caller and ANY target.
+    //
+    // For example: 0xdeployer is a selector admin of `updateSupplyCap(uint256)`, he can
+    // grant/revoke the scoped access of, say 0xalice to call `updateSupplyCap(uint256)`
+    // on ANY target contract (in this case, SYs).
+    //
+    // Changes on execution:
+    // - aggregate(Call[]): is now callable by admin only
+    // - aggregateWithScopedAccess(Call[]): new function to let anyone with scoped access
+    // to execute calls
+
+    mapping(address => mapping(bytes4 => bool)) public isSelectorAdminOf;
     mapping(address => mapping(bytes4 => mapping(address => bool))) public hasScopedAccess;
 
     modifier onlyGuardian() {
@@ -27,13 +43,46 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         _;
     }
 
-    modifier onlyAdminOrSelectorAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(SELECTOR_ADMIN, msg.sender), "PGP: n/a");
-        _;
-    }
-    
     constructor() {
         _disableInitializers();
+    }
+
+    function aggregate(Call[] calldata calls) external payable onlyAdmin returns (bytes[] memory) {
+        return _aggregate(calls);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            SCOPED ACCESS
+    //////////////////////////////////////////////////////////////*/
+
+    function modifySelectorAdmin(
+        address addr,
+        bytes4[] memory selectors,
+        bool[] memory isAdmins
+    ) external onlyAdmin {
+        require(selectors.length == isAdmins.length, "PGP: Array length mismatch");
+
+        for (uint256 i = 0; i < selectors.length; i++) {
+            isSelectorAdminOf[addr][selectors[i]] = isAdmins[i];
+            emit ModifySelectorAdmin(addr, selectors[i], isAdmins[i]);
+        }
+    }
+
+    function grantScopedAccess(
+        address caller,
+        address[] memory targets,
+        bytes4[] memory selectors,
+        bool[] memory accesses
+    ) external {
+        require(targets.length == selectors.length && targets.length == accesses.length, "PGP: Array length mismatch");
+
+        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        for (uint256 i = 0; i < targets.length; i++) {
+            require(isAdmin || isSelectorAdminOf[msg.sender][selectors[i]], "PGP: n/a");
+            hasScopedAccess[caller][selectors[i]][targets[i]] = accesses[i];
+            emit GrantScopedAccess(caller, targets[i], selectors[i], accesses[i]);
+        }
     }
 
     function aggregateWithScopedAccess(Call[] calldata calls) external payable returns (bytes[] memory) {
@@ -42,10 +91,6 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
             require(hasScopedAccess[msg.sender][selector][calls[i].target], "PGP: n/a");
         }
 
-        return _aggregate(calls);
-    }
-
-    function aggregate(Call[] calldata calls) external payable onlyAdmin returns (bytes[] memory) {
         return _aggregate(calls);
     }
 
@@ -66,20 +111,6 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     /*///////////////////////////////////////////////////////////////
                             ADMIN CALL
     //////////////////////////////////////////////////////////////*/
-
-    function grantScopedAccess(
-        address caller,
-        address[] memory targets,
-        bytes4[] memory selectors,
-        bool[] memory states
-    ) external onlyAdminOrSelectorAdmin {
-        require(targets.length == selectors.length && targets.length == states.length, "PGP: Array length mismatch");
-
-        for (uint256 i = 0; i < targets.length; i++) {
-            hasScopedAccess[caller][selectors[i]][targets[i]] = states[i];
-            emit GrantScopedAccess(caller, targets[i], selectors[i], states[i]);
-        }
-    }
 
     function _aggregate(Call[] calldata calls) internal returns (bytes[] memory rtnData) {
         uint256 length = calls.length;

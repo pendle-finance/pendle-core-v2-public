@@ -2,7 +2,12 @@
 pragma solidity ^0.8.0;
 
 interface IPGovernanceProxy {
-    event GrantScopedAccess(address indexed caller, address indexed target, bytes4 indexed selector, bool state);
+    event GrantScopedAccess(address indexed caller, address indexed target, bytes4 indexed selector, bool access);
+
+    event ModifySelectorAdmin(address indexed addr, bytes4 indexed selector, bool isAdmin);
+
+    event SetAllowedSelectors(bytes4[] selectors, bytes32 indexed role); // Deprecated
+
     struct Call {
         address target;
         uint256 value;
@@ -15,12 +20,25 @@ interface IPGovernanceProxy {
 
     function aggregateWithScopedAccess(Call[] calldata calls) external payable returns (bytes[] memory rtnData);
 
-    event SetAllowedSelectors(bytes4[] selectors, bytes32 indexed role);
+
+    function isSelectorAdminOf(address addr, bytes4 selector) external view returns (bool);
+
+    function hasScopedAccess(
+        address caller,
+        bytes4 selector,
+        address target
+    ) external view returns (bool);
+
+    function modifySelectorAdmin(
+        address addr,
+        bytes4[] memory selectors,
+        bool[] memory isAdmins
+    ) external;
 
     function grantScopedAccess(
         address caller,
         address[] memory targets,
         bytes4[] memory selectors,
-        bool[] memory states
+        bool[] memory accesses
     ) external;
 }
