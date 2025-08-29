@@ -15,18 +15,18 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
 
     mapping(bytes4 => bytes32) public __deprecated_allowedSelectors;
 
-    // Only the admin (governance) of PendleGovernanceProxy can modify one address to be
+    // Only the [ADMIN] (governance) of PendleGovernanceProxy can modify one address to be
     // a selector admin of some selectors.
     //
     // A [selector admin] of a selector can grant/revoke scoped access of that selector
     // to/from ANY caller and ANY target.
     //
-    // For example: 0xdeployer is a selector admin of `updateSupplyCap(uint256)`, he can
-    // grant/revoke the scoped access of, say 0xalice to call `updateSupplyCap(uint256)`
+    // For example: [0xdeployer] is a selector admin of `updateSupplyCap(uint256)`, he can
+    // grant/revoke the scoped access of, say [0xalice] to call `updateSupplyCap(uint256)`
     // on ANY target contract (in this case, SYs).
     //
     // Changes on execution:
-    // - aggregate(Call[]): is now callable by admin only
+    // - aggregate(Call[]): is now callable by [ADMIN] only
     // - aggregateWithScopedAccess(Call[]): new function to let anyone with scoped access
     // to execute calls
 
@@ -55,11 +55,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
                             SCOPED ACCESS
     //////////////////////////////////////////////////////////////*/
 
-    function modifySelectorAdmin(
-        address addr,
-        bytes4[] memory selectors,
-        bool[] memory isAdmins
-    ) external onlyAdmin {
+    function modifySelectorAdmin(address addr, bytes4[] memory selectors, bool[] memory isAdmins) external onlyAdmin {
         require(selectors.length == isAdmins.length, "PGP: Array length mismatch");
 
         for (uint256 i = 0; i < selectors.length; i++) {

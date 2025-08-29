@@ -20,20 +20,11 @@ interface IPGovernanceProxy {
 
     function aggregateWithScopedAccess(Call[] calldata calls) external payable returns (bytes[] memory rtnData);
 
-
     function isSelectorAdminOf(address addr, bytes4 selector) external view returns (bool);
 
-    function hasScopedAccess(
-        address caller,
-        bytes4 selector,
-        address target
-    ) external view returns (bool);
+    function hasScopedAccess(address caller, bytes4 selector, address target) external view returns (bool);
 
-    function modifySelectorAdmin(
-        address addr,
-        bytes4[] memory selectors,
-        bool[] memory isAdmins
-    ) external;
+    function modifySelectorAdmin(address addr, bytes4[] memory selectors, bool[] memory isAdmins) external;
 
     function grantScopedAccess(
         address caller,
