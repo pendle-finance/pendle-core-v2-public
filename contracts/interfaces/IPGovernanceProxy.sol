@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IPGovernanceProxy {
-    event GrantScopedAccess(address indexed caller, address indexed target, bytes4 indexed selector, bool access);
+    event ModifyScopedAccess(address indexed caller, bytes4 indexed selector, address indexed target, bool access);
 
     event ModifySelectorAdmin(address indexed addr, bytes4 indexed selector, bool isAdmin);
 
@@ -26,7 +26,7 @@ interface IPGovernanceProxy {
 
     function modifySelectorAdmin(address addr, bytes4[] memory selectors, bool[] memory isAdmins) external;
 
-    function grantScopedAccess(
+    function modifyScopedAccess(
         address caller,
         address[] memory targets,
         bytes4[] memory selectors,

@@ -30,8 +30,9 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     // - aggregateWithScopedAccess(Call[]): new function to let anyone with scoped access
     // to execute calls
 
-    mapping(address => mapping(bytes4 => bool)) public isSelectorAdminOf;
-    mapping(address => mapping(bytes4 => mapping(address => bool))) public hasScopedAccess;
+    mapping(address caller => mapping(bytes4 selector => bool isAdmin)) public isSelectorAdminOf;
+    mapping(address caller => mapping(bytes4 selector => mapping(address target => bool isAllowed)))
+        public hasScopedAccess;
 
     modifier onlyGuardian() {
         require(hasRole(GUARDIAN, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "PGP: n/a");
@@ -64,7 +65,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         }
     }
 
-    function grantScopedAccess(
+    function modifyScopedAccess(
         address caller,
         address[] memory targets,
         bytes4[] memory selectors,
@@ -77,7 +78,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         for (uint256 i = 0; i < targets.length; i++) {
             require(isAdmin || isSelectorAdminOf[msg.sender][selectors[i]], "PGP: n/a");
             hasScopedAccess[caller][selectors[i]][targets[i]] = accesses[i];
-            emit GrantScopedAccess(caller, targets[i], selectors[i], accesses[i]);
+            emit ModifyScopedAccess(caller, selectors[i], targets[i], accesses[i]);
         }
     }
 
