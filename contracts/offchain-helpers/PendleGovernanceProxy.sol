@@ -68,17 +68,15 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     function modifyScopedAccess(
         address caller,
         address[] memory targets,
-        bytes4[] memory selectors,
+        bytes4 selector,
         bool[] memory accesses
     ) external {
-        require(targets.length == selectors.length && targets.length == accesses.length, "PGP: Array length mismatch");
-
-        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        require(targets.length == accesses.length, "PGP: Array length mismatch");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSelectorAdminOf[msg.sender][selector], "PGP: n/a");
 
         for (uint256 i = 0; i < targets.length; i++) {
-            require(isAdmin || isSelectorAdminOf[msg.sender][selectors[i]], "PGP: n/a");
-            hasScopedAccess[caller][selectors[i]][targets[i]] = accesses[i];
-            emit ModifyScopedAccess(caller, selectors[i], targets[i], accesses[i]);
+            hasScopedAccess[caller][selector][targets[i]] = accesses[i];
+            emit ModifyScopedAccess(caller, selector, targets[i], accesses[i]);
         }
     }
 

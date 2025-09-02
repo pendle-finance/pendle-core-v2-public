@@ -29,7 +29,7 @@ interface IPGovernanceProxy {
     function modifyScopedAccess(
         address caller,
         address[] memory targets,
-        bytes4[] memory selectors,
+        bytes4 selector,
         bool[] memory accesses
     ) external;
 }
