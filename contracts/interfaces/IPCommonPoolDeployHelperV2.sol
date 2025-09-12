@@ -27,4 +27,13 @@ interface IPCommonPoolDeployHelperV2 is IPPoolDeployHelperV2 {
         uint256 amountToSeed,
         address syOwner
     ) external returns (PoolDeploymentAddrs memory);
+
+    function deployCommonMarketById(
+        bytes32 id,
+        bytes memory constructorParams,
+        PoolConfig memory config,
+        address tokenToSeedLiqudity,
+        uint256 amountToSeed,
+        address syOwner
+    ) external returns (PoolDeploymentAddrs memory);
 }
