@@ -96,8 +96,7 @@ contract FixedPricePTAMM is
         uint256 exactTokenOut,
         bytes calldata data
     ) external nonReentrant returns (uint256 netPtIn) {
-        netPtIn = previewSwapPtForExactToken(PT, token, exactTokenOut);
-        _swap(receiver, PT, netPtIn, token, exactTokenOut, data);
+        return _swapPtForExactToken(receiver, PT, token, exactTokenOut, data, false);
     }
 
     function swapExactPtForToken(
@@ -107,7 +106,50 @@ contract FixedPricePTAMM is
         address token,
         bytes calldata data
     ) external nonReentrant returns (uint256 netTokenOut) {
+        return _swapExactPtForToken(receiver, PT, exactPtIn, token, data, false);
+    }
+
+    function transferInThenSwapPtForExactToken(
+        address receiver,
+        address PT,
+        address token,
+        uint256 exactTokenOut
+    ) external nonReentrant returns (uint256 netPtIn) {
+        return _swapPtForExactToken(receiver, PT, token, exactTokenOut, "", true);
+    }
+
+    function transferInThenSwapExactPtForToken(
+        address receiver,
+        address PT,
+        uint256 exactPtIn,
+        address token
+    ) external nonReentrant returns (uint256 netPtIn) {
+        return _swapExactPtForToken(receiver, PT, exactPtIn, token, "", true);
+    }
+
+    function _swapPtForExactToken(
+        address receiver,
+        address PT,
+        address token,
+        uint256 exactTokenOut,
+        bytes memory data,
+        bool doTransferIn
+    ) internal returns (uint256 netPtIn) {
+        netPtIn = previewSwapPtForExactToken(PT, token, exactTokenOut);
+        if (doTransferIn) _transferIn(PT, msg.sender, netPtIn);
+        _swap(receiver, PT, netPtIn, token, exactTokenOut, data);
+    }
+
+    function _swapExactPtForToken(
+        address receiver,
+        address PT,
+        uint256 exactPtIn,
+        address token,
+        bytes memory data,
+        bool doTransferIn
+    ) internal returns (uint256 netTokenOut) {
         netTokenOut = previewSwapExactPtForToken(PT, exactPtIn, token);
+        if (doTransferIn) _transferIn(PT, msg.sender, exactPtIn);
         _swap(receiver, PT, exactPtIn, token, netTokenOut, data);
     }
 
@@ -117,7 +159,7 @@ contract FixedPricePTAMM is
         uint256 exactPtIn,
         address token,
         uint256 exactTokenOut,
-        bytes calldata data
+        bytes memory data
     ) internal {
         if ($().totalToken[token] < exactTokenOut)
             revert InsufficientTokenForTrade(token, $().totalToken[token], exactTokenOut);

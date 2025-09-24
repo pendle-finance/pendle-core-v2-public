@@ -53,6 +53,20 @@ interface IPFixedPricePTAMM {
         bytes calldata data
     ) external returns (uint256 netTokenOut);
 
+    function transferInThenSwapPtForExactToken(
+        address receiver,
+        address PT,
+        address token,
+        uint256 exactTokenOut
+    ) external returns (uint256 netPtIn);
+
+    function transferInThenSwapExactPtForToken(
+        address receiver,
+        address PT,
+        uint256 exactPtIn,
+        address token
+    ) external returns (uint256 netPtIn);
+
     // Admin functions
 
     function setPriceOracle(address PT, address token, address priceOracle, uint256 multiplier) external;
