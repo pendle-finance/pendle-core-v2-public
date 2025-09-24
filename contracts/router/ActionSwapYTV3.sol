@@ -12,8 +12,6 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
     using MarketApproxPtOutLibV2 for MarketState;
     using PYIndexLib for IPYieldToken;
 
-    constructor(address _dustReceiver) ActionDelegateBase(_dustReceiver) {}
-
     // ------------------ SWAP TOKEN FOR YT ------------------
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.

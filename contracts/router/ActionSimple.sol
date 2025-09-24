@@ -24,8 +24,6 @@ contract ActionSimple is ActionBase, IPActionSimple {
     using PYIndexLib for PYIndex;
     using PMath for uint256;
 
-    constructor(address _dustReceiver) ActionBase(_dustReceiver) {}
-
     // ------------------ SWAP TOKEN FOR PT ------------------
     /// @notice This function is for internal router use only and should not be called directly.
     /// @dev Use swapExactTokenForPt from the main router instead.
