@@ -4,5 +4,7 @@
     "simulateHelper": "0xc23Dd2807e51dd1D317e1321CBeEb9ace98531EE",
     "supplyCapReader": "0x251CfB4E84CefecA6c1e6a4D8a0cb9c524e7484f",
     "balanceReader": "0x2085F50305f656f96b22ECBfe0A4f5e786Ff0438",
-    "limitBackendHelperV2": "0x05f6bAF4189e46aC0C728bb3fE2fCba247441100"
+    "limitBackendHelperV2": "0x05f6bAF4189e46aC0C728bb3fE2fCba247441100",
+    "checkSolvent": "0x21332dCAe68b603B9170d25D21fda68f18Da91df",
+    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F"
 }

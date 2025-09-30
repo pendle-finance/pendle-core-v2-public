@@ -54,7 +54,6 @@
     "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
     "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
-    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F",
     "expiredRedeemer": "0x8267fdabd1b8C8645138f2dE5B0fe24988DC9820",
     "lpWrapperFactory": "0xeCfEB97D7F070DA5b93c5DC274183F1D7f68532F",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",

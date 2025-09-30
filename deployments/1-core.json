@@ -61,7 +61,6 @@
     "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
     "lpWrapperFactory": "0x12930Bd944bb34B0A21CCc2E7d32a6834Bd58e19",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
-    "externalCapGate": "0x65E04a3b2af7716B7f0765dE62Fa2f1B3290C23F",
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
     "cross-chain": {
         "ptOftAdapterFactory": "0x905aF80C4DE82E0075a19fDE2f5777f1A6636732"

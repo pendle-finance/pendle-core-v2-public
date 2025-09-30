@@ -29,6 +29,8 @@ library LayerZeroHelper {
         else if (chainId == 80094) return 362;
         // hyperevm
         else if (chainId == 999) return 367;
+        // plasma 
+        else if (chainId == 9745) return 383;
         assert(false);
     }
 
@@ -57,6 +59,8 @@ library LayerZeroHelper {
         else if (chainId == 362) return 80094;
         // hyperevm
         else if (chainId == 367) return 999;
+        // plasma 
+        else if (chainId == 383) return 9745;
         assert(false);
     }
 
