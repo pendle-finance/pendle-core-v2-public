@@ -69,7 +69,12 @@ contract LimitBackendHelperV2 is TokenHelper {
     }
 
     function parseMinted(bytes memory result) internal pure returns (uint256 minted, bytes memory error) {
-        assert(result.length >= 4 && bytes4(result) == Errors.SimulationResults.selector);
+        bool isSimulationResult = result.length >= 4 && bytes4(result) == Errors.SimulationResults.selector;
+
+        if (!isSimulationResult) {
+            return (type(uint256).max, result);
+        }
+
         (bool success, bytes memory data) = abi.decode(BytesLib.slice(result, 4, result.length - 4), (bool, bytes));
 
         if (success) {
