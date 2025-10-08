@@ -50,8 +50,9 @@
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
-    "beta": {
-        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd"
+    "experimental": {
+        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd",
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
     },
     "lpWrapperFactory": "0x6D653C8DAAc8D81c9CE98E038fbF94D7E652e147",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",

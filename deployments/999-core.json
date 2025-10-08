@@ -39,8 +39,9 @@
     "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
     "syFactory": "0x5eae07541b334a2cdc1f107788a2069d6c1e73c2",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
-    "beta": {
-        "PendleChainlinkOracleFactory": "0xAcD67f36183c8bA6b80Cfa60375510Ce17D0dd26"
+    "experimental": {
+        "PendleChainlinkOracleFactory": "0xAcD67f36183c8bA6b80Cfa60375510Ce17D0dd26",
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
     },
     "vePendle": "0x1fBaCedf510dAA79dfD9B41227A7ba192d5D548D",
     "receiverEndpoint": "0xaD511b12F73c145Cf158EB92E4fa256937d952A4",
