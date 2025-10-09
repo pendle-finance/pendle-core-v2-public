@@ -35,12 +35,13 @@ contract PendleCommonPoolDeployHelperV2 is PendlePoolDeployHelperV2, BoringOwnab
     function deployCommonMarketById(
         bytes32 id,
         bytes memory constructorParams,
+        bytes memory initData,
         PoolConfig memory config,
         address tokenToSeedLiqudity,
         uint256 amountToSeed,
         address syOwner
     ) external returns (PoolDeploymentAddrs memory) {
-        address SY = IPCommonSYFactory(syFactory).deploySY(id, constructorParams, syOwner);
+        address SY = IPCommonSYFactory(syFactory).deployUpgradableSY(id, constructorParams, initData, syOwner);
         return deploy5115MarketAndSeedLiquidity(SY, config, tokenToSeedLiqudity, amountToSeed);
     }
 
