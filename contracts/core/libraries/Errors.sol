@@ -180,4 +180,10 @@ library Errors {
     // Swap Aggregator
     error SAInsufficientTokenIn(address tokenIn, uint256 amountExpected, uint256 amountActual);
     error UnsupportedSelector(uint256 aggregatorType, bytes4 selector);
+
+    // Cross Chain Oracle App
+    error FeedNotInitialized();
+    error ExchangeRateCallFailed();
+    error InvalidDestinationEid();
+    error InvalidMsgType();
 }

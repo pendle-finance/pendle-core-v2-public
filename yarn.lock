@@ -793,6 +793,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@layerzerolabs/oapp-evm-upgradeable@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@layerzerolabs/oapp-evm-upgradeable@npm:0.1.2"
+  dependencies:
+    ethers: "npm:^5.7.2"
+  peerDependencies:
+    "@layerzerolabs/lz-evm-messagelib-v2": ^3.0.75
+    "@layerzerolabs/lz-evm-protocol-v2": ^3.0.75
+    "@layerzerolabs/lz-evm-v1-0.7": ^3.0.75
+    "@openzeppelin/contracts": ^4.8.1 || ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^4.8.1 || ^5.0.0
+  checksum: 10/6f63e4e68e3b4b7b617622106c850d2412f1b69f81316770035f19f93ebd153707661ea2cedfff6cfa0384aae7d76001b942c6cb9e076fd671895950ff2965fc
+  languageName: node
+  linkType: hard
+
 "@layerzerolabs/oapp-evm@npm:^0.3.2":
   version: 0.3.2
   resolution: "@layerzerolabs/oapp-evm@npm:0.3.2"
@@ -1178,6 +1193,7 @@ __metadata:
     "@chainlink/contracts": "npm:^0.8.0"
     "@layerzerolabs/lz-evm-protocol-v2": "npm:^3.0.75"
     "@layerzerolabs/oapp-evm": "npm:^0.3.2"
+    "@layerzerolabs/oapp-evm-upgradeable": "npm:^0.1.2"
     "@layerzerolabs/oft-evm": "npm:^3.1.4"
     "@openzeppelin/contracts": "npm:4.9.3"
     "@openzeppelin/contracts-upgradeable": "npm:4.9.3"
