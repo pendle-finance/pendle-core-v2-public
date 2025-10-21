@@ -1,8 +1,22 @@
 {
     "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 43114,
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "lzEndpoint": "0x3c2269811836af69497E5F486A85D7316753cf62",
+        "wrappedNative": "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+        "initialRewardFee": "50000000000000000",
+        "initialInterestFee": "50000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
     "fixedPricePTAMM": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
     "experimental": {
         "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
         "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
-    }
+    },
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e"
 }
