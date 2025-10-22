@@ -167,14 +167,6 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * - `pool` must not have been added before (even if has been removed).
      * - `chainId` must be valid.
      */
-    function addPool(uint64 chainId, address pool) external onlyAddPoolHelperAndOwner {
-        if (_isPoolActive(pool)) revert Errors.VCPoolAlreadyActive(pool);
-        if (allRemovedPools.contains(pool)) revert Errors.VCPoolAlreadyAddAndRemoved(pool);
-
-        _addPool(chainId, pool);
-        emit AddPool(chainId, pool);
-    }
-
     function addMultiPools(uint64[] memory chainIds, address[] memory pools) external onlyAddPoolHelperAndOwner {
         if (chainIds.length != pools.length) revert Errors.ArrayLengthMismatch();
         for (uint256 i = 0; i < chainIds.length; ++i) {
@@ -193,15 +185,19 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * - Previous week's results should have been broadcasted prior to calling this function.
      * - `pool` must be currently active.
      */
-    function removePool(address pool) external onlyRemovePoolHelperAndOwner {
-        if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
-        uint64 chainId = poolData[pool].chainId;
+    function removeMultiPools(address[] calldata pools) external onlyRemovePoolHelperAndOwner {
+        for (uint256 i = 0; i < pools.length; ++i) {
+            address pool = pools[i];
+            if (!_isPoolActive(pool)) revert Errors.VCInactivePool(pool);
 
-        applyPoolSlopeChanges(pool);
-        _removePool(pool);
+            uint64 chainId = poolData[pool].chainId;
 
-        emit RemovePool(chainId, pool);
+            applyPoolSlopeChanges(pool);
+            _removePool(pool);
+
+            emit RemovePool(chainId, pool);
+        }
     }
 
     /**
