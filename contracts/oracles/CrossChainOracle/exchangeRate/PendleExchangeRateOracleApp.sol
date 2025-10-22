@@ -19,8 +19,15 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
     uint32 public immutable eid;
     mapping(uint32 srcEid => mapping(bytes32 source => ExchangeRateData)) private feedData;
 
+    address public allowedSender;
+
     modifier validateDstEid(uint32 dstEid) {
         if (dstEid == eid) revert Errors.InvalidDestinationEid();
+        _;
+    }
+
+    modifier onlyOwnerOrAllowedSender() {
+        require(msg.sender == owner() || msg.sender == allowedSender, "Not authorized");
         _;
     }
 
@@ -30,6 +37,11 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
     ) PendleCrossChainOracleBaseApp_Init(_endpoint, _refundAddress) {
         _disableInitializers();
         eid = ILayerZeroEndpointV2(_endpoint).eid();
+    }
+
+    function initialize(address _owner, address _delegate, address _allowedSender) external initializer {
+        __PendleCrossChainOracleBaseApp_initialize(_owner, _delegate);
+        _setAllowedSender(_allowedSender);
     }
 
     /// @inheritdoc IPExchangeRateOracleApp
@@ -47,7 +59,13 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
     function sendExchangeRate(
         SendExchangeRateParam calldata sendParam,
         MessagingFee calldata fee
-    ) external payable onlyOwner validateDstEid(sendParam.dstEid) returns (MessagingReceipt memory receipt) {
+    )
+        external
+        payable
+        onlyOwnerOrAllowedSender
+        validateDstEid(sendParam.dstEid)
+        returns (MessagingReceipt memory receipt)
+    {
         uint256 exchangeRate = _getExchangeRateFromSource(sendParam.exchangeRateSource);
         (bytes memory message, bytes memory options) = _buildMsgAndOptions(sendParam, exchangeRate);
 
@@ -127,5 +145,16 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
             currentFeedData.exchangeRate = exchangeRate;
             currentFeedData.updatedAt = updatedAt;
         }
+    }
+
+    // ====== Admin functions ======
+
+    function setAllowedSender(address _allowedSender) external onlyOwner {
+        _setAllowedSender(_allowedSender);
+    }
+
+    function _setAllowedSender(address _allowedSender) internal {
+        allowedSender = _allowedSender;
+        emit AllowedSenderSet(_allowedSender);
     }
 }

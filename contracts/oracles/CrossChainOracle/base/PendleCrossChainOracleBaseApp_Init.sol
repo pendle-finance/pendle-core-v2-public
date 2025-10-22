@@ -13,7 +13,10 @@ abstract contract PendleCrossChainOracleBaseApp_Init is OAppUpgradeable, OAppOpt
         refundAddress = _refundAddress;
     }
 
-    function initialize(address _owner, address _delegate) external virtual initializer {
+    function __PendleCrossChainOracleBaseApp_initialize(
+        address _owner,
+        address _delegate
+    ) internal virtual onlyInitializing {
         __OApp_init(_delegate);
         _transferOwnership(_owner);
     }

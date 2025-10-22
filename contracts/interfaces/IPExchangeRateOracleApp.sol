@@ -20,6 +20,8 @@ interface IPExchangeRateOracleApp {
         bool rateAccepted
     );
 
+    event AllowedSenderSet(address indexed sender);
+
     /**
      * @dev Parameters for the send operation
      * @param exchangeRateSource The address of the exchange rate source
@@ -77,4 +79,8 @@ interface IPExchangeRateOracleApp {
         SendExchangeRateParam calldata sendParam,
         MessagingFee calldata fee
     ) external payable returns (MessagingReceipt memory receipt);
+
+    // ====== Admin functions ======
+
+    function setAllowedSender(address _allowedSender) external;
 }
