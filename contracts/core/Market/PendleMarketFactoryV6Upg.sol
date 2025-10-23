@@ -2,16 +2,18 @@
 pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "../../../interfaces/IPMarketV3.sol";
-import "../../../interfaces/IPYieldContractFactory.sol";
-import "../../../interfaces/IPMarketFactoryV3.sol";
+import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPMarketFactory.sol";
 
-import "../../libraries/BaseSplitCodeFactory.sol";
-import "../../libraries/Errors.sol";
-import "../../libraries/BoringOwnableUpgradeableV2.sol";
+import "../libraries/BaseSplitCodeFactory.sol";
+import "../libraries/Errors.sol";
+import "../libraries/BoringOwnableUpgradeableV2.sol";
 
-contract PendleMarketFactoryV3 is BoringOwnableUpgradeableV2, IPMarketFactoryV3 {
+contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    uint256 public constant VERSION = 6;
 
     address public immutable marketCreationCodeContractA;
     uint256 public immutable marketCreationCodeSizeA;
@@ -42,11 +44,9 @@ contract PendleMarketFactoryV3 is BoringOwnableUpgradeableV2, IPMarketFactoryV3 
         uint256 _marketCreationCodeSizeA,
         address _marketCreationCodeContractB,
         uint256 _marketCreationCodeSizeB,
-        address _treasury,
-        uint8 _reserveFeePercent,
         address _vePendle,
         address _gaugeController
-    ) initializer {
+    ) {
         yieldContractFactory = _yieldContractFactory;
         maxLnFeeRateRoot = uint256(LogExpMath.ln(int256((105 * PMath.IONE) / 100))); // ln(1.05)
 
@@ -55,11 +55,15 @@ contract PendleMarketFactoryV3 is BoringOwnableUpgradeableV2, IPMarketFactoryV3 
         marketCreationCodeContractB = _marketCreationCodeContractB;
         marketCreationCodeSizeB = _marketCreationCodeSizeB;
 
-        __BoringOwnableV2_init(msg.sender);
-        setTreasuryAndFeeReserve(_treasury, _reserveFeePercent);
-
         vePendle = _vePendle;
         gaugeController = _gaugeController;
+
+        _disableInitializers();
+    }
+
+    function initialize(address _owner, address _treasury, uint8 _reserveFeePercent) external initializer {
+        __BoringOwnableV2_init(_owner);
+        setTreasuryAndFeeReserve(_treasury, _reserveFeePercent);
     }
 
     /**
@@ -127,7 +131,7 @@ contract PendleMarketFactoryV3 is BoringOwnableUpgradeableV2, IPMarketFactoryV3 
     function setOverriddenFee(address router, address market, uint80 newFee) public onlyOwner {
         if (!allMarkets.contains(market)) revert Errors.MFNotPendleMarket(market);
 
-        uint80 marketFee = IPMarketV3(market).getNonOverrideLnFeeRateRoot();
+        uint80 marketFee = IPMarket(market).getNonOverrideLnFeeRateRoot();
         if (newFee >= marketFee) revert Errors.MarketFactoryOverriddenFeeTooHigh(newFee, marketFee);
 
         // NOTE: newFee = 0 allowed !!

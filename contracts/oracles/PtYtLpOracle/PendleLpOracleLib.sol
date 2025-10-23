@@ -46,6 +46,7 @@ library PendleLpOracleLib {
         uint32 duration,
         uint256 pyIndex
     ) private view returns (uint256 lpToAssetRateRaw) {
+        _checkMarketReentrancy(market);
         MarketState memory state = market.readState(address(0));
 
         int256 totalHypotheticalAsset;
@@ -82,5 +83,13 @@ library PendleLpOracleLib {
 
         int256 rateLastTrade = MarketMathCore._getExchangeRateFromImpliedRate(state.lastLnImpliedRate, timeToExpiry);
         rateHypTrade = (rateLastTrade + rateOracle) / 2;
+    }
+
+    function _checkMarketReentrancy(IPMarket market) internal view {
+        try market.reentrancyGuardEntered() returns (bool entered) {
+            require(entered == false, "ReentrancyGuard: reentrant call");
+        } catch {
+            return;
+        }
     }
 }

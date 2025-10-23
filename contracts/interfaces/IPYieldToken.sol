@@ -59,4 +59,8 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
     function doCacheIndexSameBlock() external view returns (bool);
 
     function pyIndexLastUpdatedBlock() external view returns (uint128);
+
+    function reentrancyGuardEntered() external view returns (bool);
+
+    function VERSION() external pure returns (uint256);
 }

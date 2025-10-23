@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "../../interfaces/IPAllActionV3.sol";
-import "../../interfaces/IPMarketFactoryV3.sol";
+import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../../interfaces/IPMarketV3.sol";
+import "../../interfaces/IPMarket.sol";
 // import "../core/StandardizedYield/implementations/PendleERC4626SY.sol";
 import "../../core/libraries/TokenHelper.sol";
 
@@ -53,7 +53,7 @@ contract PendlePoolDeployHelper is TokenHelper {
             params.expiry,
             params.doCacheIndexSameBlock
         );
-        market = IPMarketFactoryV3(marketFactory).createNewMarket(
+        market = IPMarketFactory(marketFactory).createNewMarket(
             PT,
             params.scalarRoot,
             params.initialRateAnchor,
@@ -120,15 +120,15 @@ contract PendlePoolDeployHelper is TokenHelper {
         int256 initialRateAnchor
     ) external returns (address newMarket) {
         (, IPPrincipalToken PT, ) = IPMarket(oldMarket).readTokens();
-        newMarket = IPMarketFactoryV3(marketFactory).createNewMarket(
+        newMarket = IPMarketFactory(marketFactory).createNewMarket(
             address(PT),
             scalarRoot,
             initialRateAnchor,
             lnFeeRateRoot
         );
         _transferFrom(IERC20(oldMarket), msg.sender, oldMarket, amountLp);
-        (uint256 netSyOut, uint256 netPtOut) = IPMarketV3(oldMarket).burn(newMarket, newMarket, amountLp);
-        IPMarketV3(newMarket).mint(msg.sender, netSyOut, netPtOut);
+        (uint256 netSyOut, uint256 netPtOut) = IPMarket(oldMarket).burn(newMarket, newMarket, amountLp);
+        IPMarket(newMarket).mint(msg.sender, netSyOut, netPtOut);
     }
 
     receive() external payable {}

@@ -53,6 +53,18 @@ contract PendleERC20 is Context, IERC20, IERC20Metadata {
         _status = _NOT_ENTERED;
     }
 
+    function reentrancyGuardEntered() external view virtual returns (bool) {
+        return _reentrancyGuardEntered();
+    }
+
+    /**
+     * @dev Returns true if the reentrancy guard is currently set to "entered", which indicates there is a
+     * `nonReentrant` function in the call stack.
+     */
+    function _reentrancyGuardEntered() internal view returns (bool) {
+        return _status == _ENTERED;
+    }
+
     /**
      * @dev Sets the values for {name}, {symbol} and {decimals}.
      *

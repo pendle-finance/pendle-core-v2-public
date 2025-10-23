@@ -12,6 +12,8 @@ import "../erc20/PendleERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
+    uint256 public constant VERSION = 6;
+
     address public immutable SY;
     address public immutable factory;
     uint256 public immutable expiry;
@@ -59,5 +61,9 @@ contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
 
     function isExpired() public view returns (bool) {
         return MiniHelpers.isCurrentlyExpired(expiry);
+    }
+
+    function reentrancyGuardEntered() external view override(PendleERC20, IPPrincipalToken) returns (bool) {
+        return _reentrancyGuardEntered();
     }
 }

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+// import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./IPPrincipalToken.sol";
 import "./IPYieldToken.sol";
 import "./IStandardizedYield.sol";
 import "./IPGauge.sol";
 import "../core/Market/MarketMathCore.sol";
 
-interface IPMarket is IERC20Metadata, IPGauge {
+interface IPMarket is IPGauge, IERC20Metadata {
     event Mint(address indexed receiver, uint256 netLpMinted, uint256 netSyUsed, uint256 netPtUsed);
 
     event Burn(
@@ -90,4 +90,10 @@ interface IPMarket is IERC20Metadata, IPGauge {
             uint16 observationCardinality,
             uint16 observationCardinalityNext
         );
+
+    function getNonOverrideLnFeeRateRoot() external view returns (uint80);
+
+    function VERSION() external pure returns (uint256);
+
+    function reentrancyGuardEntered() external view returns (bool);
 }

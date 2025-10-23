@@ -3,9 +3,9 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IPAllActionV3.sol";
-import "../../interfaces/IPMarketFactoryV3.sol";
+import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../../interfaces/IPMarketV3.sol";
+import "../../interfaces/IPMarket.sol";
 import "./lib/MarketDeployLib.sol";
 
 contract PendlePoolDeployHelperV2 is TokenHelper {
@@ -82,7 +82,7 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         addrs.SY = SY;
         (addrs.PT, addrs.YT) = _createPYIfNotExist(SY, params.expiry);
 
-        addrs.market = IPMarketFactoryV3(marketFactory).createNewMarket(
+        addrs.market = IPMarketFactory(marketFactory).createNewMarket(
             addrs.PT,
             params.scalarRoot,
             params.initialRateAnchor,

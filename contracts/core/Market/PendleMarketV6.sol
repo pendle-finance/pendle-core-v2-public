@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../../interfaces/IPMarketV3.sol";
-import "../../../interfaces/IPMarketFactoryV3.sol";
-import "../../../interfaces/IPMarketSwapCallback.sol";
+import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPMarketFactory.sol";
+import "../../interfaces/IPMarketSwapCallback.sol";
 
-import "../../erc20/PendleERC20.sol";
-import "../PendleGauge.sol";
-import "../OracleLib.sol";
+import "../erc20/PendleERC20.sol";
+import "./PendleGauge.sol";
+import "./OracleLib.sol";
+import "../libraries/StringLib.sol";
 
 /**
 Invariance to maintain:
@@ -15,13 +16,16 @@ Invariance to maintain:
 - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
     guaranteed by address(0) & address(this) check in each updateForTwo function
 */
-contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
+contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
+    using PYIndexLib for PYIndex;
     using OracleLib for OracleLib.Observation[65535];
+    using StringLib for string;
+    using StringLib for StringLib.slice;
 
     struct MarketStorage {
         int128 totalPt;
@@ -34,8 +38,13 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
         // 1 SLOT = 144 bits
     }
 
-    string private constant NAME = "Pendle Market";
-    string private constant SYMBOL = "PENDLE-LPT";
+    string private constant PT_NAME_PREF = "PT ";
+    string private constant PT_SYMBOL_PREF = "PT-";
+
+    string private constant LP_NAME_PREF = "PLP ";
+    string private constant LP_SYMBOL_PREF = "PLP-";
+
+    uint256 public constant VERSION = 6;
 
     IPPrincipalToken internal immutable PT;
     IStandardizedYield internal immutable SY;
@@ -64,7 +73,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
         uint80 _lnFeeRateRoot,
         address _vePendle,
         address _gaugeController
-    ) PendleERC20(NAME, SYMBOL, 18) PendleGauge(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController) {
+    )
+        PendleERC20(_getLPName(_PT), _getLPSymbol(_PT), 18)
+        PendleGauge(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController)
+    {
         PT = IPPrincipalToken(_PT);
         SY = IStandardizedYield(PT.SY());
         YT = IPYieldToken(PT.YT());
@@ -80,6 +92,14 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
         lnFeeRateRoot = _lnFeeRateRoot;
         expiry = IPPrincipalToken(_PT).expiry();
         factory = msg.sender;
+    }
+
+    function _getLPName(address _PT) internal view returns (string memory) {
+        return LP_NAME_PREF.toSlice().concat(IPPrincipalToken(_PT).name().stripPrefixSlice(PT_NAME_PREF));
+    }
+
+    function _getLPSymbol(address _PT) internal view returns (string memory) {
+        return LP_SYMBOL_PREF.toSlice().concat(IPPrincipalToken(_PT).symbol().stripPrefixSlice(PT_SYMBOL_PREF));
     }
 
     /**
@@ -164,9 +184,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
         bytes calldata data
     ) external nonReentrant notExpired returns (uint256 netSyOut, uint256 netSyFee) {
         MarketState memory market = readState(msg.sender);
+        PYIndex index = YT.newIndex();
 
         uint256 netSyToReserve;
-        (netSyOut, netSyFee, netSyToReserve) = market.swapExactPtForSy(YT.newIndex(), exactPtIn, block.timestamp);
+        (netSyOut, netSyFee, netSyToReserve) = market.swapExactPtForSy(index, exactPtIn, block.timestamp);
 
         if (receiver != address(this)) IERC20(SY).safeTransfer(receiver, netSyOut);
         IERC20(SY).safeTransfer(market.treasury, netSyToReserve);
@@ -179,6 +200,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
 
         if (_selfBalance(PT) < market.totalPt.Uint())
             revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
+
+        if (index.syToAsset(netSyFee - netSyToReserve) == 0) {
+            revert Errors.MarketZeroNetLPFee();
+        }
 
         emit Swap(msg.sender, receiver, exactPtIn.neg(), netSyOut.Int(), netSyFee, netSyToReserve);
     }
@@ -200,8 +225,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
     ) external nonReentrant notExpired returns (uint256 netSyIn, uint256 netSyFee) {
         MarketState memory market = readState(msg.sender);
 
+        PYIndex index = YT.newIndex();
+
         uint256 netSyToReserve;
-        (netSyIn, netSyFee, netSyToReserve) = market.swapSyForExactPt(YT.newIndex(), exactPtOut, block.timestamp);
+        (netSyIn, netSyFee, netSyToReserve) = market.swapSyForExactPt(index, exactPtOut, block.timestamp);
 
         if (receiver != address(this)) IERC20(PT).safeTransfer(receiver, exactPtOut);
         IERC20(SY).safeTransfer(market.treasury, netSyToReserve);
@@ -215,6 +242,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
         // have received enough SY
         if (_selfBalance(SY) < market.totalSy.Uint())
             revert Errors.MarketInsufficientSyReceived(_selfBalance(SY), market.totalSy.Uint());
+
+        if (index.syToAsset(netSyFee - netSyToReserve) == 0) {
+            revert Errors.MarketZeroNetLPFee();
+        }
 
         emit Swap(msg.sender, receiver, exactPtOut.Int(), netSyIn.neg(), netSyFee, netSyToReserve);
     }
@@ -279,7 +310,7 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
 
         uint80 overriddenFee;
 
-        (market.treasury, overriddenFee, market.reserveFeePercent) = IPMarketFactoryV3(factory).getMarketConfig(
+        (market.treasury, overriddenFee, market.reserveFeePercent) = IPMarketFactory(factory).getMarketConfig(
             address(this),
             router
         );
@@ -330,6 +361,10 @@ contract PendleMarketV3 is PendleERC20, PendleGauge, IPMarketV3 {
 
     function isExpired() public view returns (bool) {
         return MiniHelpers.isCurrentlyExpired(expiry);
+    }
+
+    function reentrancyGuardEntered() external view override(PendleERC20, IPMarket) returns (bool) {
+        return _reentrancyGuardEntered();
     }
 
     /*///////////////////////////////////////////////////////////////

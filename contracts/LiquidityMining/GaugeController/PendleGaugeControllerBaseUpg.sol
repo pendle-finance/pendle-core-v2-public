@@ -43,6 +43,7 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
     IPMarketFactory public immutable marketFactory2;
     IPMarketFactory public immutable marketFactory3;
     IPMarketFactory public immutable marketFactory4;
+    IPMarketFactory public immutable marketFactory5;
 
     mapping(address => MarketRewardData) public rewardData;
     mapping(uint128 => bool) public epochRewardReceived;
@@ -57,7 +58,8 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
             marketFactory.isValidMarket(msg.sender) ||
             marketFactory2.isValidMarket(msg.sender) ||
             marketFactory3.isValidMarket(msg.sender) ||
-            marketFactory4.isValidMarket(msg.sender)
+            marketFactory4.isValidMarket(msg.sender) ||
+            marketFactory5.isValidMarket(msg.sender)
         ) {
             isValidMarket[msg.sender] = true;
             _;
@@ -71,13 +73,15 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         address _marketFactory,
         address _marketFactory2,
         address _marketFactory3,
-        address _marketFactory4
+        address _marketFactory4,
+        address _marketFactory5
     ) {
         pendle = _pendle;
         marketFactory = IPMarketFactory(_marketFactory);
         marketFactory2 = IPMarketFactory(_marketFactory2);
         marketFactory3 = IPMarketFactory(_marketFactory3);
         marketFactory4 = IPMarketFactory(_marketFactory4);
+        marketFactory5 = IPMarketFactory(_marketFactory5);
     }
 
     /**

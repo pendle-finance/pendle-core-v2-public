@@ -69,6 +69,8 @@ abstract contract PendleGauge is RewardManager, IPGauge {
 
         totalActiveSupply = totalActiveSupply - activeBalance[user] + newActiveBalance;
         activeBalance[user] = newActiveBalance;
+
+        emit UpdateActiveBalance(user, newActiveBalance);
     }
 
     function _calcVeBoostedLpBalance(address user, uint256 lpBalance) internal virtual returns (uint256) {

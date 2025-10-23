@@ -13,9 +13,17 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Pend
         address _marketFactory2,
         address _marketFactory3,
         address _marketFactory4,
+        address _marketFactory5,
         address _PendleMsgReceiveEndpointUpg
     )
-        PendleGaugeControllerBaseUpg(_pendle, _marketFactory, _marketFactory2, _marketFactory3, _marketFactory4)
+        PendleGaugeControllerBaseUpg(
+            _pendle,
+            _marketFactory,
+            _marketFactory2,
+            _marketFactory3,
+            _marketFactory4,
+            _marketFactory5
+        )
         PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
     {
         _disableInitializers();

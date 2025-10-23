@@ -68,7 +68,7 @@
         "strict": false
       }
     ],
-    "const-name-snakecase": "warn",
+    "const-name-snakecase": "off",
     "func-name-mixedcase": "off",
     "use-forbidden-name": "warn",
     "var-name-mixedcase": "off",
@@ -77,6 +77,7 @@
     "event-name-camelcase": "warn",
     "func-param-name-mixedcase": "off",
     "modifier-name-mixedcase": "warn",
-    "gas-custom-errors": "off"
+    "gas-custom-errors": "off",
+    "immutable-vars-naming": "off"
   }
 }

@@ -30,6 +30,7 @@ library Errors {
     error MarketZeroAmountsInput();
     error MarketZeroAmountsOutput();
     error MarketZeroLnImpliedRate();
+    error MarketZeroNetLPFee();
     error MarketInsufficientPtForTrade(int256 currentAmount, int256 requiredAmount);
     error MarketInsufficientPtReceived(uint256 actualBalance, uint256 requiredBalance);
     error MarketInsufficientSyReceived(uint256 actualBalance, uint256 requiredBalance);

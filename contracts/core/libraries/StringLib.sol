@@ -757,4 +757,16 @@ library StringLib {
 
         return ret;
     }
+
+    function stripPrefix(string memory _str, string memory _prefix) internal pure returns (string memory) {
+        slice memory s = toSlice(_str);
+        slice memory d = toSlice(_prefix);
+        return toString(beyond(s, d));
+    }
+
+    function stripPrefixSlice(string memory _str, string memory _delim) internal pure returns (slice memory) {
+        slice memory s = toSlice(_str);
+        slice memory d = toSlice(_delim);
+        return beyond(s, d);
+    }
 }

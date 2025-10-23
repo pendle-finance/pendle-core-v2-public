@@ -35,6 +35,8 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
         mapping(address => uint256) userRewardOwed;
     }
 
+    uint256 public constant VERSION = 6;
+
     address public immutable SY;
     address public immutable PT;
     address public immutable factory;
@@ -238,6 +240,10 @@ contract PendleYieldToken is IPYieldToken, PendleERC20, RewardManagerAbstract, I
     /// @notice returns the last-updated PY index
     function pyIndexStored() public view returns (uint256) {
         return _pyIndexStored;
+    }
+
+    function reentrancyGuardEntered() external view override(PendleERC20, IPYieldToken) returns (bool) {
+        return _reentrancyGuardEntered();
     }
 
     /**

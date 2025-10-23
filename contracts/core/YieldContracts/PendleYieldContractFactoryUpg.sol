@@ -38,11 +38,12 @@ import "../libraries/StringLib.sol";
 import "./PendlePrincipalToken.sol";
 import "./PendleYieldToken.sol";
 
-/// @dev If this contract is ever made upgradeable, please pay attention to the numContractDeployed variable
-contract PendleYieldContractFactory is BoringOwnableUpgradeableV2, IPYieldContractFactory {
+contract PendleYieldContractFactoryUpg is BoringOwnableUpgradeableV2, IPYieldContractFactory {
     using ExpiryUtils for string;
     using StringLib for string;
     using StringLib for StringLib.slice;
+
+    uint256 public constant VERSION = 6;
 
     string private constant PT_PREFIX = "PT";
     string private constant YT_PREFIX = "YT";
@@ -82,15 +83,18 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeableV2, IPYieldContra
         ytCreationCodeSizeA = _ytCreationCodeSizeA;
         ytCreationCodeContractB = _ytCreationCodeContractB;
         ytCreationCodeSizeB = _ytCreationCodeSizeB;
+
+        _disableInitializers();
     }
 
     function initialize(
         uint96 _expiryDivisor,
         uint128 _interestFeeRate,
         uint128 _rewardFeeRate,
-        address _treasury
+        address _treasury,
+        address _owner
     ) external initializer {
-        __BoringOwnableV2_init(msg.sender);
+        __BoringOwnableV2_init(_owner);
         setExpiryDivisor(_expiryDivisor);
         setInterestFeeRate(_interestFeeRate);
         setRewardFeeRate(_rewardFeeRate);
@@ -114,8 +118,8 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeableV2, IPYieldContra
 
         (, , uint8 assetDecimals) = _SY.assetInfo();
 
-        string memory syCoreName = _stripSYPrefix(_SY.name());
-        string memory syCoreSymbol = _stripSYPrefix(_SY.symbol());
+        string memory syCoreName = _SY.name().stripPrefix(SY_NAME_PREF);
+        string memory syCoreSymbol = _SY.symbol().stripPrefix(SY_SYMBOL_PREF);
 
         PT = Create2.deploy(
             0,
@@ -188,12 +192,5 @@ contract PendleYieldContractFactory is BoringOwnableUpgradeableV2, IPYieldContra
 
         treasury = newTreasury;
         emit SetTreasury(newTreasury);
-    }
-
-    function _stripSYPrefix(string memory _str) internal pure returns (string memory) {
-        StringLib.slice memory str = _str.toSlice();
-        StringLib.slice memory delim_name = SY_NAME_PREF.toSlice();
-        StringLib.slice memory delim_symbol = SY_SYMBOL_PREF.toSlice();
-        return str.beyond(delim_name).beyond(delim_symbol).toString();
     }
 }

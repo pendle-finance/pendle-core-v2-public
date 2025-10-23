@@ -34,6 +34,8 @@ interface IPYieldContractFactory {
 
     event SetTreasury(address indexed treasury);
 
+    function VERSION() external pure returns (uint256);
+
     function getPT(address SY, uint256 expiry) external view returns (address);
 
     function getYT(address SY, uint256 expiry) external view returns (address);
