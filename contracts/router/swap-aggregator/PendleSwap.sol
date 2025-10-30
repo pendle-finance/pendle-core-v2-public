@@ -23,7 +23,7 @@ contract PendleSwap is
 
     address private constant KYBER_SCALING_HELPER = 0x2f577A41BeC1BE1152AeEA12e73b7391d15f655D;
 
-    constructor() {
+    constructor(bool okx_allowUnsupportedChain) OKXScaleHelper(okx_allowUnsupportedChain) {
         _disableInitializers();
     }
 

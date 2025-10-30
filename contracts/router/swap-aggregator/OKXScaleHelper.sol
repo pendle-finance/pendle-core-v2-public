@@ -6,8 +6,18 @@ import "./IPSwapAggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract OKXScaleHelper {
-    address private immutable _tokenApprove = __getTokenApproveForChain(block.chainid);
+    address public immutable _tokenApprove;
 
+    // @dev `allowUnsupportedChain` is a safe guard to prevent deploying this contract on unsupported chains by mistake
+    // @dev Please add new `__getTokenApproveForChain` entry when deploying to a new chain.
+    constructor(bool allowUnsupportedChain) {
+        _tokenApprove = __getTokenApproveForChain(block.chainid);
+        if (!allowUnsupportedChain) {
+            require(_tokenApprove != address(0), "PendleSwap: OKX chain not supported");
+        }
+    }
+
+    // https://web3.okx.com/build/dev-docs/dex-api/dex-smart-contract#token-approval
     function __getTokenApproveForChain(uint256 chainid) private pure returns (address) {
         if (chainid == 1) {
             return 0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f;
@@ -26,6 +36,9 @@ abstract contract OKXScaleHelper {
         }
         if (chainid == 146) {
             return 0xD321ab5589d3E8FA5Df985ccFEf625022E2DD910;
+        }
+        if (chainid == 9745) {
+            return 0x9FD43F5E4c24543b2eBC807321E58e6D350d6a5A;
         }
         return address(0);
     }
