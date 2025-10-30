@@ -51,5 +51,8 @@
     "lpWrapperFactory": "0xcb645C93820B92E5F21781C5c3c18C29BCb6126B",
     "decimalsFactory": "0xF2a26C2eb3c4098e03807442196FbA7f78b125a2",
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
-    "fixedPricePTAMM": "0xF0bF560F01d4196773a5c58A09d6D34b6bba4503"
+    "fixedPricePTAMM": "0xF0bF560F01d4196773a5c58A09d6D34b6bba4503",
+    "cross-chain": {
+        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
+    }
 }

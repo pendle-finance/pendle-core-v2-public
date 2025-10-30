@@ -60,6 +60,7 @@
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
     "cross-chain": {
+        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870",
         "ptOftAdapterFactory": "0x45Dd4aEcc425b01bf98C567407aB4a4fF3C7d349"
     }
 }
