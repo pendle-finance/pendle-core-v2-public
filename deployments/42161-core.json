@@ -61,6 +61,7 @@
     "expiredRedeemer": "0x23567b248cd64479384d2e0cbe83522afb8dd446",
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
     "cross-chain": {
-        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
+        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870",
+        "ptOftAdapterFactory": "0x4F215b3F8a6E056Ff293E6818F3f501B5F4787D7"
     }
 }
