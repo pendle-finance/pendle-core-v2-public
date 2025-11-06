@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../base/PendleCrossChainOracleBaseApp_Init.sol";
-import {ILayerZeroEndpointV2} from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import "../../../interfaces/IPExchangeRateOracleApp.sol";
 import {IStandardizedYield} from "../../../interfaces/IStandardizedYield.sol";
 import {ExchangeRateMsgCodec} from "../libraries/ExchangeRateMsgCodec.sol";
@@ -16,27 +15,17 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
     using ExchangeRateMsgCodec for bytes;
     using ExchangeRateMsgCodec for bytes32;
 
-    uint32 public immutable eid;
     mapping(uint32 srcEid => mapping(bytes32 source => ExchangeRateData)) private feedData;
 
     address public allowedSender;
-
-    modifier validateDstEid(uint32 dstEid) {
-        if (dstEid == eid) revert Errors.InvalidDestinationEid();
-        _;
-    }
 
     modifier onlyOwnerOrAllowedSender() {
         require(msg.sender == owner() || msg.sender == allowedSender, "Not authorized");
         _;
     }
 
-    constructor(
-        address _endpoint,
-        address payable _refundAddress
-    ) PendleCrossChainOracleBaseApp_Init(_endpoint, _refundAddress) {
+    constructor(address _endpoint) PendleCrossChainOracleBaseApp_Init(_endpoint) {
         _disableInitializers();
-        eid = ILayerZeroEndpointV2(_endpoint).eid();
     }
 
     function initialize(address _owner, address _delegate, address _allowedSender) external initializer {
@@ -45,33 +34,51 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
     }
 
     /// @inheritdoc IPExchangeRateOracleApp
+    function quoteSendExchangeRateBatch(
+        SendExchangeRateParam[] calldata sendParams,
+        bool[] calldata payInLzTokens
+    ) external view returns (MessagingFee[] memory fees) {
+        if (sendParams.length != payInLzTokens.length) revert Errors.ArrayLengthMismatch();
+
+        uint256 length = sendParams.length;
+        fees = new MessagingFee[](length);
+
+        for (uint256 i = 0; i < length; ++i) {
+            fees[i] = _quoteSendExchangeRate(sendParams[i], payInLzTokens[i]);
+        }
+    }
+
+    /// @inheritdoc IPExchangeRateOracleApp
     function quoteSendExchangeRate(
         SendExchangeRateParam calldata sendParam,
         bool payInLzToken
     ) external view returns (MessagingFee memory fee) {
-        uint256 exchangeRate = _getExchangeRateFromSource(sendParam.exchangeRateSource);
-        (bytes memory message, bytes memory options) = _buildMsgAndOptions(sendParam, exchangeRate);
+        return _quoteSendExchangeRate(sendParam, payInLzToken);
+    }
 
-        fee = _quote(sendParam.dstEid, message, options, payInLzToken);
+    /// @inheritdoc IPExchangeRateOracleApp
+    function sendExchangeRateBatch(
+        SendExchangeRateParam[] calldata sendParams,
+        MessagingFee[] calldata fees
+    ) external payable onlyOwnerOrAllowedSender returns (MessagingReceipt[] memory receipts) {
+        if (sendParams.length != fees.length) revert Errors.ArrayLengthMismatch();
+        _validateNativeFees(fees);
+
+        uint256 length = sendParams.length;
+        receipts = new MessagingReceipt[](length);
+
+        for (uint256 i = 0; i < length; ++i) {
+            receipts[i] = _sendExchangeRate(sendParams[i], fees[i]);
+        }
     }
 
     /// @inheritdoc IPExchangeRateOracleApp
     function sendExchangeRate(
         SendExchangeRateParam calldata sendParam,
         MessagingFee calldata fee
-    )
-        external
-        payable
-        onlyOwnerOrAllowedSender
-        validateDstEid(sendParam.dstEid)
-        returns (MessagingReceipt memory receipt)
-    {
-        uint256 exchangeRate = _getExchangeRateFromSource(sendParam.exchangeRateSource);
-        (bytes memory message, bytes memory options) = _buildMsgAndOptions(sendParam, exchangeRate);
-
-        receipt = _lzSend(sendParam.dstEid, message, options, fee, refundAddress);
-
-        emit ExchangeRateSent(receipt.guid, sendParam.dstEid, sendParam.exchangeRateSource, exchangeRate);
+    ) external payable onlyOwnerOrAllowedSender returns (MessagingReceipt memory receipt) {
+        _validateNativeFee(fee);
+        return _sendExchangeRate(sendParam, fee);
     }
 
     /// @inheritdoc IPExchangeRateOracleApp
@@ -87,6 +94,30 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
         exchangeRateData = feedData[_srcEid][exchangeRateSource];
 
         if (exchangeRateData.updatedAt == 0) revert Errors.FeedNotInitialized();
+    }
+
+    function _quoteSendExchangeRate(
+        SendExchangeRateParam calldata sendParam,
+        bool payInLzToken
+    ) internal view returns (MessagingFee memory fee) {
+        _validateDstEid(sendParam.dstEid);
+        uint256 exchangeRate = _getExchangeRateFromSource(sendParam.exchangeRateSource);
+        (bytes memory message, bytes memory options) = _buildMsgAndOptions(sendParam, exchangeRate);
+
+        fee = _quote(sendParam.dstEid, message, options, payInLzToken);
+    }
+
+    function _sendExchangeRate(
+        SendExchangeRateParam calldata sendParam,
+        MessagingFee calldata fee
+    ) internal returns (MessagingReceipt memory receipt) {
+        _validateDstEid(sendParam.dstEid);
+        uint256 exchangeRate = _getExchangeRateFromSource(sendParam.exchangeRateSource);
+        (bytes memory message, bytes memory options) = _buildMsgAndOptions(sendParam, exchangeRate);
+
+        receipt = _lzSend(sendParam.dstEid, message, options, fee, msg.sender);
+
+        emit ExchangeRateSent(receipt.guid, sendParam.dstEid, sendParam.exchangeRateSource, exchangeRate);
     }
 
     function _lzReceive(
@@ -145,6 +176,33 @@ contract PendleExchangeRateOracleApp is PendleCrossChainOracleBaseApp_Init, IPEx
             currentFeedData.exchangeRate = exchangeRate;
             currentFeedData.updatedAt = updatedAt;
         }
+    }
+
+    function _validateDstEid(uint32 dstEid) internal view {
+        if (dstEid == eid) revert Errors.InvalidDestinationEid();
+    }
+
+    /**
+     * @dev Override of base _payNative function.
+     * The original implementation enforced msg.value == _nativeFee, which is incompatible with
+     * batching multiple messages. Fee checks are performed by _validateNativeFees / _validateNativeFee,
+     * so this implementation simply returns the provided native fee.
+     */
+    function _payNative(uint256 _nativeFee) internal pure override returns (uint256 nativeFee) {
+        return _nativeFee;
+    }
+
+    function _validateNativeFees(MessagingFee[] calldata fees) internal {
+        uint256 totalFee = 0;
+        for (uint256 i = 0; i < fees.length; ++i) {
+            totalFee += fees[i].nativeFee;
+        }
+
+        if (totalFee != msg.value) revert Errors.NotEnoughNativeFee(msg.value, totalFee);
+    }
+
+    function _validateNativeFee(MessagingFee calldata fee) internal {
+        if (fee.nativeFee != msg.value) revert Errors.NotEnoughNativeFee(msg.value, fee.nativeFee);
     }
 
     // ====== Admin functions ======

@@ -68,6 +68,19 @@ interface IPExchangeRateOracleApp {
     ) external view returns (MessagingFee memory fee);
 
     /**
+     * @dev Quote the fees required for batch sendExchangeRate execution
+     * @param sendParams Array of parameters for each sendExchangeRate operation.
+     * @param payInLzTokens Array of flags indicating whether each call pays in LZ token.
+     * @return fees Array of fees for each operation in the batch
+     *      - nativeFee: the fee paid in native token for each operation
+     *      - lzTokenFee: the fee paid in lzToken for each operation
+     */
+    function quoteSendExchangeRateBatch(
+        SendExchangeRateParam[] calldata sendParams,
+        bool[] calldata payInLzTokens
+    ) external view returns (MessagingFee[] memory fees);
+
+    /**
      * @dev Execute sending exchange rate to another chain
      * @param sendParam The parameters required for the operation
      * @param fee The calculated fee for the operation. This can be retrieved through quoteSendExchangeRate() for estimation
@@ -79,6 +92,21 @@ interface IPExchangeRateOracleApp {
         SendExchangeRateParam calldata sendParam,
         MessagingFee calldata fee
     ) external payable returns (MessagingReceipt memory receipt);
+
+    /**
+     * @dev Execute batch sending of exchange rates in a single transaction
+     * @param sendParams Array of parameters for each operation.
+     * @param fees Array of calculated fees for each operation. Retrieve via quoteSendExchangeRateBatch() for estimation
+     *      - nativeFee: the fee paid in native token for each operation
+     *      - lzTokenFee: the fee paid in lzToken for each operation
+     * @return receipts Array of message receipts for each send operation, contains guid, nonce and the actual fee required
+     * @notice msg.value must equal or exceed sum of all fees[i].nativeFee. Excess refunded to refundAddress
+     * @notice If any operation fails, entire batch reverts
+     */
+    function sendExchangeRateBatch(
+        SendExchangeRateParam[] calldata sendParams,
+        MessagingFee[] calldata fees
+    ) external payable returns (MessagingReceipt[] memory receipts);
 
     // ====== Admin functions ======
 

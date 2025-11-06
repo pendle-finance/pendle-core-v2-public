@@ -187,4 +187,5 @@ library Errors {
     error ExchangeRateCallFailed();
     error InvalidDestinationEid();
     error InvalidMsgType();
+    error NotEnoughNativeFee(uint256 msgValue, uint256 totalFee);
 }
