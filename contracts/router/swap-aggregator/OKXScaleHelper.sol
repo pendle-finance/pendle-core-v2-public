@@ -131,6 +131,37 @@ abstract contract OKXScaleHelper {
             baseRequest.fromTokenAmount = actualAmount;
 
             return abi.encodeWithSelector(selector, orderId, baseRequest, batchesAmount, batches, extraData);
+        } else if (selector == IOKXDexRouter.dagSwapByOrderId.selector) {
+            (
+                uint256 orderId, IOKXDexRouter.BaseRequest memory baseRequest, IOKXDexRouter.RouterPath[] memory paths
+            ) = abi.decode(
+                    dataToDecode, 
+                    (
+                        uint256, 
+                        IOKXDexRouter.BaseRequest, 
+                        IOKXDexRouter.RouterPath[]
+                    )
+            );
+
+            baseRequest.minReturnAmount = (baseRequest.minReturnAmount * actualAmount) / baseRequest.fromTokenAmount;
+            baseRequest.fromTokenAmount = actualAmount;
+
+            return abi.encodeWithSelector(selector, orderId, baseRequest, paths);
+        } else if (selector == IOKXDexRouter.dagSwapTo.selector) {
+            (uint256 orderId, address receiver, IOKXDexRouter.BaseRequest memory baseRequest, IOKXDexRouter.RouterPath[] memory paths) = abi.decode(
+                dataToDecode,
+                (
+                    uint256, 
+                    address, 
+                    IOKXDexRouter.BaseRequest, 
+                    IOKXDexRouter.RouterPath[]
+                )
+            );
+
+            baseRequest.minReturnAmount = (baseRequest.minReturnAmount * actualAmount) / baseRequest.fromTokenAmount;
+            baseRequest.fromTokenAmount = actualAmount;
+
+            return abi.encodeWithSelector(selector, orderId, receiver, baseRequest, paths);
         } else {
             revert("PendleSwap: OKX selector not supported");
         }
@@ -230,5 +261,18 @@ interface IOKXDexRouter {
         uint256[] calldata batchesAmount,
         RouterPath[][] calldata batches,
         PMMSwapRequest[] calldata extraData
+    ) external payable returns (uint256 returnAmount);
+
+    function dagSwapByOrderId(
+        uint256 orderId,
+        BaseRequest calldata baseRequest,
+        RouterPath[] calldata paths
+    ) external payable returns (uint256 returnAmount);
+
+    function dagSwapTo(
+        uint256 orderId,
+        address receiver,
+        BaseRequest calldata baseRequest,
+        RouterPath[] calldata paths
     ) external payable returns (uint256 returnAmount);
 }
