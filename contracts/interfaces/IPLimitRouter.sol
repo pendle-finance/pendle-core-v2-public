@@ -139,6 +139,10 @@ interface IPLimitRouter is IPLimitOrderType {
             uint256
         ); /*filledMakerAmount*/
 
+    function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots, bool allowZeroFees) external;
+
+    function getLnFeeRateRoot(address YT) external view returns (uint256 res);
+
     /* --- Deprecated events --- */
 
     // deprecate on 7/1/2024, prior to official launch
