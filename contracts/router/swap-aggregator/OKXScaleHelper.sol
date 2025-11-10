@@ -194,7 +194,7 @@ abstract contract OKXScaleHelper {
             }
             trimFlagIndex -= 32;
         }
-        require(trimFlagIndex == 0 || trimFlagIndex > scaledCallData.length, "PendleSwap: OKX calldata length mismatch");
+        require(trimFlagIndex == 0 || trimFlagIndex > scaledCallData.length + 32, "PendleSwap: OKX calldata length mismatch");
         if (trimFlagIndex > scaledCallData.length + 32) {
             uint256 flagIndex = trimFlagIndex - 32;
             uint256 data = uint256(bytes32(dataToDecode[flagIndex:flagIndex + 32]));
@@ -212,7 +212,6 @@ abstract contract OKXScaleHelper {
                     abi.encodePacked(bytes6(bytes32(uint256(TRIM_FLAG))), uint48(0), uint160(acutalExpectAmountOut))
                 );
                 bytes32 first = bytes32(dataToDecode[trimFlagIndex:trimFlagIndex + 32]);
-
                 scaledCallData = abi.encodePacked(scaledCallData, middle, first);
             } else {
                 bytes32 last = bytes32(dataToDecode[flagIndex - 32:flagIndex]);
