@@ -175,7 +175,19 @@ abstract contract OKXScaleHelper {
             scaledArr[i] = (arr[i] * newAmount) / oldAmount;
         }
     }
+// ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
+// │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate   │ trim_address    │
+// │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
+// │0x777777771111│0x000000000000│               │0x777777771111│            │                 │
+// └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
+//   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
 
+// ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
+// │ trim_flag   │ charge_rate │ charge_address  │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate1  │ trim_address1   │
+// │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
+// │0x777777772222│            │                 │0x777777772222│0x000000000000│               │0x77777772222│             │                 │
+// └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
+//   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
     function _scaleTrimInfo(
         bytes calldata dataToDecode,
         bytes memory scaledCallData,
