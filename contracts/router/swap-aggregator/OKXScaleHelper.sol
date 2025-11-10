@@ -175,19 +175,19 @@ abstract contract OKXScaleHelper {
             scaledArr[i] = (arr[i] * newAmount) / oldAmount;
         }
     }
-// ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
-// │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate   │ trim_address    │
-// │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
-// │0x777777771111│0x000000000000│               │0x777777771111│            │                 │
-// └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
-//   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
+    // ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
+    // │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate   │ trim_address    │
+    // │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
+    // │0x777777771111│0x000000000000│               │0x777777771111│            │                 │
+    // └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
+    //   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
 
-// ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
-// │ trim_flag   │ charge_rate │ charge_address  │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate1  │ trim_address1   │
-// │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
-// │0x777777772222│            │                 │0x777777772222│0x000000000000│               │0x77777772222│             │                 │
-// └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
-//   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
+    // ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
+    // │ trim_flag   │ charge_rate │ charge_address  │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate1  │ trim_address1   │
+    // │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
+    // │0x777777772222│            │                 │0x777777772222│0x000000000000│               │0x77777772222│             │                 │
+    // └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
+    //   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
     function _scaleTrimInfo(
         bytes calldata dataToDecode,
         bytes memory scaledCallData,
@@ -196,26 +196,29 @@ abstract contract OKXScaleHelper {
     ) internal pure returns (bytes memory) {
         uint256 length = dataToDecode.length;
         // search trim flag from back to front, get the index
-        uint256 trimFlagIndex = length - 32;
-        while (trimFlagIndex > 0) {
+        uint256 firstFlagIndex = length - 32;
+        while (firstFlagIndex > 0) {
             if (
-                uint256(bytes32(dataToDecode[trimFlagIndex:trimFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_FLAG
-                    || uint256(bytes32(dataToDecode[trimFlagIndex:trimFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_DUAL_FLAG
+                uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_FLAG
+                    || uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_DUAL_FLAG
             ) {
                 break;
             }
-            trimFlagIndex -= 32;
+            firstFlagIndex -= 32;
         }
-        require(trimFlagIndex == 0 || trimFlagIndex > scaledCallData.length + 32, "PendleSwap: OKX calldata length mismatch");
-        if (trimFlagIndex > scaledCallData.length + 32) {
-            uint256 flagIndex = trimFlagIndex - 32;
-            uint256 data = uint256(bytes32(dataToDecode[flagIndex:flagIndex + 32]));
+        require(
+            firstFlagIndex == 0 || firstFlagIndex > scaledCallData.length + 32,
+            "PendleSwap: OKX calldata length mismatch"
+        );
+        if (firstFlagIndex > scaledCallData.length + 32) {
+            uint256 middleFlagIndex = firstFlagIndex - 32;
+            uint256 data = uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32]));
             require(
                 data & TRIM_FLAG_MASK == TRIM_FLAG || data & TRIM_FLAG_MASK == TRIM_DUAL_FLAG,
                 "PendleSwap: OKX trim flag not found in expected position"
             );
             uint256 expectAmountOut =
-                uint256(bytes32(dataToDecode[flagIndex:flagIndex + 32])) & TRIM_EXPECT_AMOUNT_OUT_MASK;
+                uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32])) & TRIM_EXPECT_AMOUNT_OUT_MASK;
 
             uint256 acutalExpectAmountOut = (expectAmountOut * actualAmountIn) / rawAmountIn;
 
@@ -223,16 +226,16 @@ abstract contract OKXScaleHelper {
                 bytes32 middle = bytes32(
                     abi.encodePacked(bytes6(bytes32(uint256(TRIM_FLAG))), uint48(0), uint160(acutalExpectAmountOut))
                 );
-                bytes32 first = bytes32(dataToDecode[trimFlagIndex:trimFlagIndex + 32]);
+                bytes32 first = bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32]);
                 scaledCallData = abi.encodePacked(scaledCallData, middle, first);
             } else {
-                bytes32 last = bytes32(dataToDecode[flagIndex - 32:flagIndex]);
+                bytes32 last = bytes32(dataToDecode[middleFlagIndex - 32:middleFlagIndex]);
                 bytes32 middle = bytes32(
                     abi.encodePacked(
                         bytes6(bytes32(uint256(TRIM_DUAL_FLAG))), uint48(0), uint160(acutalExpectAmountOut)
                     )
                 );
-                bytes32 first = bytes32(dataToDecode[trimFlagIndex:trimFlagIndex + 32]);
+                bytes32 first = bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32]);
 
                 scaledCallData = abi.encodePacked(scaledCallData, last, middle, first);
             }
