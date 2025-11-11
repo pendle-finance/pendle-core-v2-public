@@ -223,18 +223,21 @@ abstract contract OKXScaleHelper {
             uint256 acutalExpectAmountOut = (expectAmountOut * actualAmountIn) / rawAmountIn;
 
             if (data & TRIM_FLAG_MASK == TRIM_FLAG) {
-                bytes32 middle = bytes32(
-                    abi.encodePacked(bytes6(bytes32(uint256(TRIM_FLAG))), uint48(0), uint160(acutalExpectAmountOut))
-                );
+                uint256 middle = uint160(acutalExpectAmountOut)
+                    + (
+                        uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32]))
+                            & (~TRIM_EXPECT_AMOUNT_OUT_MASK)
+                    );
                 bytes32 first = bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32]);
                 scaledCallData = abi.encodePacked(scaledCallData, middle, first);
             } else {
                 bytes32 last = bytes32(dataToDecode[middleFlagIndex - 32:middleFlagIndex]);
-                bytes32 middle = bytes32(
-                    abi.encodePacked(
-                        bytes6(bytes32(uint256(TRIM_DUAL_FLAG))), uint48(0), uint160(acutalExpectAmountOut)
-                    )
-                );
+                uint256 middle = uint160(acutalExpectAmountOut)
+                    + (
+                        uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32]))
+                            & (~TRIM_EXPECT_AMOUNT_OUT_MASK)
+                    );
+
                 bytes32 first = bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32]);
 
                 scaledCallData = abi.encodePacked(scaledCallData, last, middle, first);
@@ -245,28 +248,6 @@ abstract contract OKXScaleHelper {
 }
 
 interface IOKXDexRouter {
-    struct CommissionInfo {
-        bool isFromTokenCommission; //0x00
-        bool isToTokenCommission; //0x20
-        uint256 commissionRate; //0x40
-        address refererAddress; //0x60
-        address token; //0x80
-        uint256 commissionRate2; //0xa0
-        address refererAddress2; //0xc0
-        bool isToBCommission; //0xe0
-        uint256 commissionRate3; //0x100
-        address refererAddress3; //0x120
-    }
-
-    struct TrimInfo {
-        bool hasTrim; // 0x00
-        uint256 trimRate; // 0x20
-        address trimAddress; // 0x40
-        uint256 expectAmountOut; // 0x60
-        uint256 chargeRate; // 0x80
-        address chargeAddress; // 0xa0
-    }
-
     struct BaseRequest {
         uint256 fromToken;
         address toToken;
