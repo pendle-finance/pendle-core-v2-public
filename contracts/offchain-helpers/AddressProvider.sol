@@ -1,7 +1,7 @@
 pragma solidity ^0.8.17;
 
-import "../interfaces/IAddressProvider.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
+import "../interfaces/IAddressProvider.sol";
 
 contract AddressProvider is IAddressProvider, BoringOwnableUpgradeableV2 {
     mapping(uint256 => address) public get;

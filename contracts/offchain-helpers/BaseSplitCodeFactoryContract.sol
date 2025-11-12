@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/BaseSplitCodeFactory.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 
 contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeableV2 {
     event Deployed(
@@ -17,10 +17,7 @@ contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeableV2 {
         __BoringOwnableV2_init(msg.sender);
     }
 
-    function deploy(
-        string memory name,
-        bytes calldata creationCode
-    )
+    function deploy(string memory name, bytes calldata creationCode)
         external
         onlyOwner
         returns (
@@ -30,8 +27,9 @@ contract BaseSplitCodeFactoryContract is BoringOwnableUpgradeableV2 {
             uint256 creationCodeSizeB
         )
     {
-        (creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB) = BaseSplitCodeFactory
-            .setCreationCode(creationCode);
+        (
+            creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB
+        ) = BaseSplitCodeFactory.setCreationCode(creationCode);
         emit Deployed(name, creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB);
     }
 }

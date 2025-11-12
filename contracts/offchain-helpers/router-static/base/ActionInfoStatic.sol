@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPMarketFactory.sol";
 import "../../../interfaces/IPRouterStatic.sol";
 import "../../../interfaces/IPYieldContractFactory.sol";
-import "../../../interfaces/IPMarketFactory.sol";
 
 // solhint-disable no-empty-blocks
 contract ActionInfoStatic is IPActionInfoStatic {
@@ -19,9 +19,11 @@ contract ActionInfoStatic is IPActionInfoStatic {
     }
 
     /// can be SY, PY or Market
-    function getTokensInOut(
-        address token
-    ) external view returns (address[] memory tokensIn, address[] memory tokensOut) {
+    function getTokensInOut(address token)
+        external
+        view
+        returns (address[] memory tokensIn, address[] memory tokensOut)
+    {
         try IStandardizedYield(token).getTokensIn() returns (address[] memory res) {
             return (res, IStandardizedYield(token).getTokensOut());
         } catch {}
@@ -75,7 +77,7 @@ contract ActionInfoStatic is IPActionInfoStatic {
         if (uint256(state.totalLp) == 0) return res; // market not initialized
 
         // LP PT SY
-        (IStandardizedYield SY, IPPrincipalToken PT, ) = _market.readTokens();
+        (IStandardizedYield SY, IPPrincipalToken PT,) = _market.readTokens();
 
         uint256 userLp = _balanceOf(market, user);
         uint256 userPt = (userLp * uint256(state.totalPt)) / uint256(state.totalLp);
@@ -92,10 +94,11 @@ contract ActionInfoStatic is IPActionInfoStatic {
         res.unclaimedRewards = _zipTokenAmounts(rewardTokens, rewardsOut);
     }
 
-    function _zipTokenAmounts(
-        address[] memory tokens,
-        uint256[] memory amounts
-    ) internal pure returns (TokenAmount[] memory res) {
+    function _zipTokenAmounts(address[] memory tokens, uint256[] memory amounts)
+        internal
+        pure
+        returns (TokenAmount[] memory res)
+    {
         res = new TokenAmount[](tokens.length);
 
         for (uint256 i = 0; i < tokens.length; i++) {

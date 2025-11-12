@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../interfaces/IPMarket.sol";
 import "../interfaces/IStandardizedYield.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
     struct UserMarketInfo {
@@ -66,7 +66,12 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
         }
     }
 
-    function _redeemRewards(IPMarket market, address user) internal returns (uint256[] memory /*rewardsOut*/) {
+    function _redeemRewards(IPMarket market, address user)
+        internal
+        returns (
+            uint256[] memory /*rewardsOut*/
+        )
+    {
         try market.redeemRewards(user) returns (uint256[] memory rewardsOut) {
             return rewardsOut;
         } catch {
@@ -74,13 +79,15 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
         }
     }
 
-    function _redeemDueInterestAndRewards(
-        IPYieldToken YT,
-        address user
-    ) internal returns (uint256 /*interestOut*/, uint256[] memory /*rewardsOut*/) {
+    function _redeemDueInterestAndRewards(IPYieldToken YT, address user)
+        internal
+        returns (
+            uint256, /*interestOut*/
+            uint256[] memory /*rewardsOut*/
+        )
+    {
         try YT.redeemDueInterestAndRewards(user, true, true) returns (
-            uint256 interestOut,
-            uint256[] memory rewardsOut
+            uint256 interestOut, uint256[] memory rewardsOut
         ) {
             return (interestOut, rewardsOut);
         } catch {
@@ -88,7 +95,12 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
         }
     }
 
-    function _claimRewards(IStandardizedYield SY, address user) internal returns (uint256[] memory /*rewardsOut*/) {
+    function _claimRewards(IStandardizedYield SY, address user)
+        internal
+        returns (
+            uint256[] memory /*rewardsOut*/
+        )
+    {
         try SY.claimRewards(user) returns (uint256[] memory rewardsOut) {
             return rewardsOut;
         } catch {

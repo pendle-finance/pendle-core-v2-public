@@ -5,8 +5,8 @@ pragma solidity ^0.8.17;
 import "../libraries/VeBalanceLib.sol";
 import "../libraries/WeekMath.sol";
 
-import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
+import "./VotingEscrowTokenBase.sol";
 
 // solhint-disable no-empty-blocks
 contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiverAppUpg, BoringOwnableUpgradeableV2 {
@@ -20,9 +20,10 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiver
 
     event SetNewUserPosition(LockedPosition position);
 
-    constructor(
-        address _PendleMsgReceiveEndpointUpg
-    ) initializer PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg) {
+    constructor(address _PendleMsgReceiveEndpointUpg)
+        initializer
+        PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
+    {
         __BoringOwnableV2_init(msg.sender);
     }
 
@@ -44,10 +45,8 @@ contract VotingEscrowPendleSidechain is VotingEscrowTokenBase, PendleMsgReceiver
      * @dev If the message also contains some users' position, we should update it
      */
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint128 msgTime, VeBalance memory supply, bytes memory userData) = abi.decode(
-            message,
-            (uint128, VeBalance, bytes)
-        );
+        (uint128 msgTime, VeBalance memory supply, bytes memory userData) =
+            abi.decode(message, (uint128, VeBalance, bytes));
         _setNewTotalSupply(msgTime, supply);
         if (userData.length > 0) {
             _setNewUserPosition(userData);

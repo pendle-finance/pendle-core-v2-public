@@ -13,12 +13,9 @@ contract PendleChainlinkOracleWithQuote is PendleChainlinkOracle {
     address public immutable quoteOracle;
     int256 public immutable quoteScale;
 
-    constructor(
-        address _market,
-        uint32 _twapDuration,
-        PendleOracleType _baseOracleType,
-        address _quoteOracle
-    ) PendleChainlinkOracle(_market, _twapDuration, _baseOracleType) {
+    constructor(address _market, uint32 _twapDuration, PendleOracleType _baseOracleType, address _quoteOracle)
+        PendleChainlinkOracle(_market, _twapDuration, _baseOracleType)
+    {
         quoteOracle = _quoteOracle;
         quoteScale = PMath.Int(10 ** AggregatorV3Interface(_quoteOracle).decimals());
     }
@@ -39,7 +36,7 @@ contract PendleChainlinkOracleWithQuote is PendleChainlinkOracle {
         override
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
-        (, int256 quoteAnswer, , uint256 quoteUpdatedAt, ) = AggregatorV3Interface(quoteOracle).latestRoundData();
+        (, int256 quoteAnswer,, uint256 quoteUpdatedAt,) = AggregatorV3Interface(quoteOracle).latestRoundData();
 
         roundId = 0;
         answer = (_getPendleTokenPrice() * quoteAnswer) / quoteScale;

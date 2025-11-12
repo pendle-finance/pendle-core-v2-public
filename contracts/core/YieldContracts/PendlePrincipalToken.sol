@@ -4,8 +4,8 @@ pragma solidity ^0.8.17;
 import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldToken.sol";
 
-import "../libraries/MiniHelpers.sol";
 import "../libraries/Errors.sol";
+import "../libraries/MiniHelpers.sol";
 
 import "../erc20/PendleERC20.sol";
 
@@ -29,13 +29,9 @@ contract PendlePrincipalToken is PendleERC20, Initializable, IPPrincipalToken {
         _;
     }
 
-    constructor(
-        address _SY,
-        string memory _name,
-        string memory _symbol,
-        uint8 __decimals,
-        uint256 _expiry
-    ) PendleERC20(_name, _symbol, __decimals) {
+    constructor(address _SY, string memory _name, string memory _symbol, uint8 __decimals, uint256 _expiry)
+        PendleERC20(_name, _symbol, __decimals)
+    {
         SY = _SY;
         expiry = _expiry;
         factory = msg.sender;

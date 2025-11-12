@@ -15,7 +15,7 @@ contract PendleMulticallV1 {
     function aggregate(Call[] calldata calls) public payable virtual {
         uint256 length = calls.length;
         Call calldata call;
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i = 0; i < length;) {
             call = calls[i];
 
             (bool success, bytes memory resp) = call.target.call(call.callData);
@@ -31,15 +31,15 @@ contract PendleMulticallV1 {
         }
     }
 
-    function tryAggregate(
-        bool requireSuccess,
-        uint256 gasLimit,
-        Call[] calldata calls
-    ) public payable returns (Result[] memory returnData) {
+    function tryAggregate(bool requireSuccess, uint256 gasLimit, Call[] calldata calls)
+        public
+        payable
+        returns (Result[] memory returnData)
+    {
         uint256 length = calls.length;
         returnData = new Result[](length);
         Call calldata call;
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i = 0; i < length;) {
             call = calls[i];
 
             (bool success, bytes memory resp) = call.target.call{gas: gasLimit}(calls[i].callData);

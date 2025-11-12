@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.0;
 
-import "../router/base/ActionBase.sol";
+import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../interfaces/IPActionMiscV3.sol";
 import "../interfaces/IPReflector.sol";
-import "../core/libraries/BoringOwnableUpgradeableV2.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../router/base/ActionBase.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract ExpiredLpPtRedeemer is TokenHelper, ReentrancyGuardUpgradeable, BoringOwnableUpgradeableV2, UUPSUpgradeable {
     mapping(address => bool) public whitelistedMarkets;
@@ -46,11 +46,8 @@ contract ExpiredLpPtRedeemer is TokenHelper, ReentrancyGuardUpgradeable, BoringO
 
         if (netLpIn > 0) {
             _transferFrom(IERC20(market), msg.sender, market, netLpIn);
-            (uint256 netSyFromRemove, uint256 netPtFromRemove) = IPMarket(market).burn(
-                address(this),
-                address(this),
-                netLpIn
-            );
+            (uint256 netSyFromRemove, uint256 netPtFromRemove) =
+                IPMarket(market).burn(address(this), address(this), netLpIn);
 
             totalSyRedeem += netSyFromRemove;
             totalPtRedeem += netPtFromRemove;

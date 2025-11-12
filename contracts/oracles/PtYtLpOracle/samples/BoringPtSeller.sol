@@ -22,11 +22,12 @@ abstract contract BoringPtSeller {
         } else {
             // safeTransfer not required
             PT.transfer(market, netPtIn);
-            (netSyOut, ) = IPMarket(market).swapExactPtForSy(
-                address(SY), // better gas optimization to transfer SY directly to itself and burn
-                netPtIn,
-                EMPTY_BYTES
-            );
+            (netSyOut,) = IPMarket(market)
+                .swapExactPtForSy(
+                    address(SY), // better gas optimization to transfer SY directly to itself and burn
+                    netPtIn,
+                    EMPTY_BYTES
+                );
         }
 
         netTokenOut = SY.redeem(address(this), netSyOut, tokenOut, 0, true);

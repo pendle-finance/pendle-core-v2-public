@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "../router/math/MarketApproxLibV2.sol";
 import "./IPAllActionTypeV3.sol";
 import {IPAllEventsV3} from "./IPAllEventsV3.sol";
-import "./IStandardizedYield.sol";
 import "./IPMarket.sol";
+import "./IStandardizedYield.sol";
 
 /// Refer to IPAllActionTypeV3.sol for details on the parameters
 interface IPActionMiscV3 is IPAllEventsV3 {
@@ -19,47 +19,31 @@ interface IPActionMiscV3 is IPAllEventsV3 {
         bytes returnData;
     }
 
-    function mintSyFromToken(
-        address receiver,
-        address SY,
-        uint256 minSyOut,
-        TokenInput calldata input
-    ) external payable returns (uint256 netSyOut);
+    function mintSyFromToken(address receiver, address SY, uint256 minSyOut, TokenInput calldata input)
+        external
+        payable
+        returns (uint256 netSyOut);
 
-    function redeemSyToToken(
-        address receiver,
-        address SY,
-        uint256 netSyIn,
-        TokenOutput calldata output
-    ) external returns (uint256 netTokenOut);
+    function redeemSyToToken(address receiver, address SY, uint256 netSyIn, TokenOutput calldata output)
+        external
+        returns (uint256 netTokenOut);
 
-    function mintPyFromToken(
-        address receiver,
-        address YT,
-        uint256 minPyOut,
-        TokenInput calldata input
-    ) external payable returns (uint256 netPyOut, uint256 netSyInterm);
+    function mintPyFromToken(address receiver, address YT, uint256 minPyOut, TokenInput calldata input)
+        external
+        payable
+        returns (uint256 netPyOut, uint256 netSyInterm);
 
-    function redeemPyToToken(
-        address receiver,
-        address YT,
-        uint256 netPyIn,
-        TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netSyInterm);
+    function redeemPyToToken(address receiver, address YT, uint256 netPyIn, TokenOutput calldata output)
+        external
+        returns (uint256 netTokenOut, uint256 netSyInterm);
 
-    function mintPyFromSy(
-        address receiver,
-        address YT,
-        uint256 netSyIn,
-        uint256 minPyOut
-    ) external returns (uint256 netPyOut);
+    function mintPyFromSy(address receiver, address YT, uint256 netSyIn, uint256 minPyOut)
+        external
+        returns (uint256 netPyOut);
 
-    function redeemPyToSy(
-        address receiver,
-        address YT,
-        uint256 netPyIn,
-        uint256 minSyOut
-    ) external returns (uint256 netSyOut);
+    function redeemPyToSy(address receiver, address YT, uint256 netPyIn, uint256 minSyOut)
+        external
+        returns (uint256 netSyOut);
 
     function redeemDueInterestAndRewards(
         address user,
@@ -118,13 +102,9 @@ interface IPActionMiscV3 is IPAllEventsV3 {
         TokenOutput calldata output
     ) external returns (uint256 netTokenOut, ExitPostExpReturnParams memory params);
 
-    function exitPostExpToSy(
-        address receiver,
-        address market,
-        uint256 netPtIn,
-        uint256 netLpIn,
-        uint256 minSyOut
-    ) external returns (ExitPostExpReturnParams memory params);
+    function exitPostExpToSy(address receiver, address market, uint256 netPtIn, uint256 netLpIn, uint256 minSyOut)
+        external
+        returns (ExitPostExpReturnParams memory params);
 
     function callAndReflect(
         address payable reflector,

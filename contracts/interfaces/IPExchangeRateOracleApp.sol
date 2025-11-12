@@ -5,10 +5,7 @@ import {MessagingFee, MessagingReceipt} from "@layerzerolabs/oapp-evm-upgradeabl
 
 interface IPExchangeRateOracleApp {
     event ExchangeRateSent(
-        bytes32 indexed guid,
-        uint32 indexed dstEid,
-        address indexed exchangeRateSource,
-        uint256 exchangeRate
+        bytes32 indexed guid, uint32 indexed dstEid, address indexed exchangeRateSource, uint256 exchangeRate
     );
 
     event ExchangeRateReceived(
@@ -49,10 +46,10 @@ interface IPExchangeRateOracleApp {
      * @param _srcEid Endpoint ID of the source chain
      * @param exchangeRateSource The exchange rate source identifier on the source chain
      */
-    function getExchangeRate(
-        uint32 _srcEid,
-        bytes32 exchangeRateSource
-    ) external view returns (ExchangeRateData memory exchangeRateData);
+    function getExchangeRate(uint32 _srcEid, bytes32 exchangeRateSource)
+        external
+        view
+        returns (ExchangeRateData memory exchangeRateData);
 
     /**
      * @dev Quote the fee required for sendExchangeRate execution
@@ -62,10 +59,10 @@ interface IPExchangeRateOracleApp {
      *      - nativeFee: the fee paid in native token
      *      - lzTokenFee: the fee paid in lzToken
      */
-    function quoteSendExchangeRate(
-        SendExchangeRateParam calldata sendParam,
-        bool payInLzToken
-    ) external view returns (MessagingFee memory fee);
+    function quoteSendExchangeRate(SendExchangeRateParam calldata sendParam, bool payInLzToken)
+        external
+        view
+        returns (MessagingFee memory fee);
 
     /**
      * @dev Quote the fees required for batch sendExchangeRate execution
@@ -75,23 +72,24 @@ interface IPExchangeRateOracleApp {
      *      - nativeFee: the fee paid in native token for each operation
      *      - lzTokenFee: the fee paid in lzToken for each operation
      */
-    function quoteSendExchangeRateBatch(
-        SendExchangeRateParam[] calldata sendParams,
-        bool[] calldata payInLzTokens
-    ) external view returns (MessagingFee[] memory fees);
+    function quoteSendExchangeRateBatch(SendExchangeRateParam[] calldata sendParams, bool[] calldata payInLzTokens)
+        external
+        view
+        returns (MessagingFee[] memory fees);
 
     /**
      * @dev Execute sending exchange rate to another chain
      * @param sendParam The parameters required for the operation
-     * @param fee The calculated fee for the operation. This can be retrieved through quoteSendExchangeRate() for estimation
+     * @param fee The calculated fee for the operation. This can be retrieved through quoteSendExchangeRate() for
+     * estimation
      *      - nativeFee: the fee paid in native token
      *      - lzTokenFee: the fee paid in lzToken
      * @return receipt The message receipt for the send operation, contains guid, nonce and the actual fee required
      */
-    function sendExchangeRate(
-        SendExchangeRateParam calldata sendParam,
-        MessagingFee calldata fee
-    ) external payable returns (MessagingReceipt memory receipt);
+    function sendExchangeRate(SendExchangeRateParam calldata sendParam, MessagingFee calldata fee)
+        external
+        payable
+        returns (MessagingReceipt memory receipt);
 
     /**
      * @dev Execute batch sending of exchange rates in a single transaction
@@ -99,14 +97,15 @@ interface IPExchangeRateOracleApp {
      * @param fees Array of calculated fees for each operation. Retrieve via quoteSendExchangeRateBatch() for estimation
      *      - nativeFee: the fee paid in native token for each operation
      *      - lzTokenFee: the fee paid in lzToken for each operation
-     * @return receipts Array of message receipts for each send operation, contains guid, nonce and the actual fee required
+     * @return receipts Array of message receipts for each send operation, contains guid, nonce and the actual fee
+     * required
      * @notice msg.value must equal or exceed sum of all fees[i].nativeFee. Excess refunded to refundAddress
      * @notice If any operation fails, entire batch reverts
      */
-    function sendExchangeRateBatch(
-        SendExchangeRateParam[] calldata sendParams,
-        MessagingFee[] calldata fees
-    ) external payable returns (MessagingReceipt[] memory receipts);
+    function sendExchangeRateBatch(SendExchangeRateParam[] calldata sendParams, MessagingFee[] calldata fees)
+        external
+        payable
+        returns (MessagingReceipt[] memory receipts);
 
     // ====== Admin functions ======
 

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendleChainlinkOracle.sol";
-import "./PendleChainlinkOracleWithQuote.sol";
 import "../../../interfaces/IPChainlinkOracleFactory.sol";
 import "../../../interfaces/IPPYLpOracle.sol";
+import "./PendleChainlinkOracle.sol";
+import "./PendleChainlinkOracleWithQuote.sol";
 
 contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     error OracleAlreadyExists();
@@ -28,11 +28,10 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     //                          CREATE ORACLE
     // =================================================================
 
-    function createOracle(
-        address market,
-        uint32 twapDuration,
-        PendleOracleType baseOracleType
-    ) external returns (address oracle) {
+    function createOracle(address market, uint32 twapDuration, PendleOracleType baseOracleType)
+        external
+        returns (address oracle)
+    {
         bytes32 oracleId = getOracleId(market, twapDuration, baseOracleType);
         if (oracles[oracleId] != address(0)) revert OracleAlreadyExists();
 
@@ -66,11 +65,11 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     //                          GET ORACLE
     // =================================================================
 
-    function getOracle(
-        address market,
-        uint32 twapDuration,
-        PendleOracleType baseOracleType
-    ) public view returns (address) {
+    function getOracle(address market, uint32 twapDuration, PendleOracleType baseOracleType)
+        public
+        view
+        returns (address)
+    {
         return oracles[getOracleId(market, twapDuration, baseOracleType)];
     }
 
@@ -83,11 +82,11 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
         return oraclesWithQuote[getOracleWithQuoteId(market, twapDuration, baseOracleType, quoteOracle)];
     }
 
-    function getOracleId(
-        address market,
-        uint32 twapDuration,
-        PendleOracleType baseOracleType
-    ) public pure returns (bytes32) {
+    function getOracleId(address market, uint32 twapDuration, PendleOracleType baseOracleType)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(market, twapDuration, baseOracleType));
     }
 
@@ -105,12 +104,12 @@ contract PendleChainlinkOracleFactory is IPChainlinkOracleFactory {
     // =================================================================
 
     function checkMarketOracleState(address market, uint32 twapDuration) public view {
-        (bool increaseCardinalityRequired, uint32 cardinalityRequired, bool oldestObservationSatisfied) = IPPYLpOracle(
-            pyLpOracle
-        ).getOracleState(market, twapDuration);
+        (bool increaseCardinalityRequired, uint32 cardinalityRequired, bool oldestObservationSatisfied) =
+            IPPYLpOracle(pyLpOracle).getOracleState(market, twapDuration);
 
         if (increaseCardinalityRequired) {
-            // call IPMarket(market).increaseObservationsCardinalityNext(cardinalityRequired) then wait for twapDuration seconds
+            // call IPMarket(market).increaseObservationsCardinalityNext(cardinalityRequired) then wait for twapDuration
+            // seconds
             revert OracleIncreaseCardinalityRequired(cardinalityRequired);
         }
         if (!oldestObservationSatisfied) {

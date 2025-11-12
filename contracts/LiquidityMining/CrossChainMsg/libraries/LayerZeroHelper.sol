@@ -6,13 +6,13 @@ library LayerZeroHelper {
 
     function _getLayerZeroChainIds(uint256 chainId) internal pure returns (uint16) {
         // fuji testnet
-        if (chainId == 43113) return 10106;
+        if (chainId == 43_113) return 10_106;
         // mumbai testnet
-        else if (chainId == 80001) return 10109;
+        else if (chainId == 80_001) return 10_109;
         // avax mainnet
-        else if (chainId == 43114) return 106;
+        else if (chainId == 43_114) return 106;
         // arbitrum one
-        else if (chainId == 42161) return 110;
+        else if (chainId == 42_161) return 110;
         // binance smart chain
         else if (chainId == 56) return 102;
         // mainnet
@@ -26,23 +26,23 @@ library LayerZeroHelper {
         // sonic
         else if (chainId == 146) return 332;
         // bera
-        else if (chainId == 80094) return 362;
+        else if (chainId == 80_094) return 362;
         // hyperevm
         else if (chainId == 999) return 367;
-        // plasma 
+        // plasma
         else if (chainId == 9745) return 383;
         assert(false);
     }
 
     function _getOriginalChainIds(uint16 chainId) internal pure returns (uint256) {
         // fuji testnet
-        if (chainId == 10106) return 43113;
+        if (chainId == 10_106) return 43_113;
         // mumbai testnet
-        else if (chainId == 10109) return 80001;
+        else if (chainId == 10_109) return 80_001;
         // avax mainnet
-        else if (chainId == 106) return 43114;
+        else if (chainId == 106) return 43_114;
         // arbitrum one
-        else if (chainId == 110) return 42161;
+        else if (chainId == 110) return 42_161;
         // binance smart chain
         else if (chainId == 102) return 56;
         // mainnet
@@ -56,10 +56,10 @@ library LayerZeroHelper {
         // sonic
         else if (chainId == 332) return 146;
         // bera
-        else if (chainId == 362) return 80094;
+        else if (chainId == 362) return 80_094;
         // hyperevm
         else if (chainId == 367) return 999;
-        // plasma 
+        // plasma
         else if (chainId == 383) return 9745;
         assert(false);
     }

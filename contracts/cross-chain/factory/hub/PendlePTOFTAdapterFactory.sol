@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {IPPTOFTAdapterFactory} from "../../../interfaces/IPPTOFTAdapterFactory.sol";
 import {BoringOwnableUpgradeableV2} from "../../../core/libraries/BoringOwnableUpgradeableV2.sol";
+import {IPPTOFTAdapterFactory} from "../../../interfaces/IPPTOFTAdapterFactory.sol";
 import {OFTAdapterImpl} from "../../oftImpl/hub/OFTAdapterImpl.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";

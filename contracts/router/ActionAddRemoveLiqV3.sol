@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./base/ActionBase.sol";
 import "../interfaces/IPActionAddRemoveLiqV3.sol";
+import "./base/ActionBase.sol";
 
 import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
 
@@ -25,12 +25,12 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 netPtDesired,
         uint256 minLpOut
     ) external payable returns (uint256 netLpOut, uint256 netPtUsed, uint256 netSyInterm) {
-        (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, IPPrincipalToken PT,) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(market, address(SY), 1, input);
         uint256 netSyUsed;
 
-        (, , netSyUsed, netPtUsed) = _readMarket(market).addLiquidity(netSyInterm, netPtDesired, block.timestamp);
+        (,, netSyUsed, netPtUsed) = _readMarket(market).addLiquidity(netSyInterm, netPtDesired, block.timestamp);
 
         if (netSyInterm != netSyUsed) {
             revert("Slippage: NOT_ALL_SY_USED");
@@ -38,19 +38,12 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
 
         // SY has been minted and transferred to the market
         _transferFrom(PT, msg.sender, market, netPtUsed);
-        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
+        (netLpOut,,) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
         emit AddLiquidityDualTokenAndPt(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            input.netTokenIn,
-            netPtUsed,
-            netLpOut,
-            netSyInterm
+            msg.sender, market, input.tokenIn, receiver, input.netTokenIn, netPtUsed, netLpOut, netSyInterm
         );
     }
 
@@ -61,18 +54,15 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 netPtDesired,
         uint256 minLpOut
     ) external returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed) {
-        (IStandardizedYield SY, IPPrincipalToken PT, ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY, IPPrincipalToken PT,) = IPMarket(market).readTokens();
 
         // calculate the amount of SY and PT to be used
-        (, netLpOut, netSyUsed, netPtUsed) = _readMarket(market).addLiquidity(
-            netSyDesired,
-            netPtDesired,
-            block.timestamp
-        );
+        (, netLpOut, netSyUsed, netPtUsed) =
+            _readMarket(market).addLiquidity(netSyDesired, netPtDesired, block.timestamp);
 
         _transferFrom(SY, msg.sender, market, netSyUsed);
         _transferFrom(PT, msg.sender, market, netPtUsed);
-        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
+        (netLpOut,,) = IPMarket(market).mint(receiver, netSyUsed, netPtUsed);
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
@@ -100,31 +90,23 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 netSyReceived;
 
         if (!_isEmptyLimit(limit)) {
-            (netPtLeft, netSyReceived, netSyFee, ) = _fillLimit(market, PT, netPtLeft, limit);
+            (netPtLeft, netSyReceived, netSyFee,) = _fillLimit(market, PT, netPtLeft, limit);
             _transferOut(address(PT), market, netPtLeft);
         }
 
-        (uint256 netPtSwapMarket, , ) = _readMarket(market).approxSwapPtToAddLiquidityV2(
-            YT.newIndex(),
-            netPtLeft,
-            netSyReceived,
-            block.timestamp,
-            guessPtSwapToSy
-        );
+        (uint256 netPtSwapMarket,,) = _readMarket(market)
+            .approxSwapPtToAddLiquidityV2(YT.newIndex(), netPtLeft, netSyReceived, block.timestamp, guessPtSwapToSy);
 
         // execute the swap
-        (uint256 netSyOutMarket, uint256 netSyFeeMarket) = IPMarket(market).swapExactPtForSy(
-            market,
-            netPtSwapMarket,
-            EMPTY_BYTES
-        );
+        (uint256 netSyOutMarket, uint256 netSyFeeMarket) =
+            IPMarket(market).swapExactPtForSy(market, netPtSwapMarket, EMPTY_BYTES);
 
         netPtLeft -= netPtSwapMarket;
         netSyReceived += netSyOutMarket;
         netSyFee += netSyFeeMarket;
 
         // execute the addLiquidity
-        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyReceived, netPtLeft);
+        (netLpOut,,) = IPMarket(market).mint(receiver, netSyReceived, netPtLeft);
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
 
@@ -146,29 +128,15 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
             return delegateToAddLiquiditySingleTokenSimple(receiver, market, minLpOut, input);
         }
 
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_addLiquiditySingleSy(market, limit), address(SY), 1, input);
 
-        (netLpOut, netSyFee) = _addLiquiditySingleSy(
-            receiver,
-            market,
-            SY,
-            YT,
-            netSyInterm,
-            minLpOut,
-            guessPtReceivedFromSy,
-            limit
-        );
+        (netLpOut, netSyFee) =
+            _addLiquiditySingleSy(receiver, market, SY, YT, netSyInterm, minLpOut, guessPtReceivedFromSy, limit);
 
         emit AddLiquiditySingleToken(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            input.netTokenIn,
-            netLpOut,
-            netSyInterm
+            msg.sender, market, input.tokenIn, receiver, input.netTokenIn, netLpOut, netSyInterm
         );
     }
 
@@ -185,20 +153,12 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
             return delegateToAddLiquiditySingleSySimple(receiver, market, netSyIn, minLpOut);
         }
 
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
 
         _transferFrom(SY, msg.sender, _entry_addLiquiditySingleSy(market, limit), netSyIn);
 
-        (netLpOut, netSyFee) = _addLiquiditySingleSy(
-            receiver,
-            market,
-            SY,
-            YT,
-            netSyIn,
-            minLpOut,
-            guessPtReceivedFromSy,
-            limit
-        );
+        (netLpOut, netSyFee) =
+            _addLiquiditySingleSy(receiver, market, SY, YT, netSyIn, minLpOut, guessPtReceivedFromSy, limit);
 
         emit AddLiquiditySingleSy(msg.sender, market, receiver, netSyIn, netLpOut);
     }
@@ -217,29 +177,23 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 netPtReceived;
 
         if (!_isEmptyLimit(limit)) {
-            (netSyLeft, netPtReceived, netSyFee, ) = _fillLimit(market, SY, netSyLeft, limit);
+            (netSyLeft, netPtReceived, netSyFee,) = _fillLimit(market, SY, netSyLeft, limit);
             _transferOut(address(SY), market, netSyLeft);
         }
 
-        (uint256 netPtOutMarket, , ) = _readMarket(market).approxSwapSyToAddLiquidityV2(
-            YT.newIndex(),
-            netSyLeft,
-            netPtReceived,
-            block.timestamp,
-            guessPtReceivedFromSy
-        );
+        (uint256 netPtOutMarket,,) = _readMarket(market)
+            .approxSwapSyToAddLiquidityV2(
+                YT.newIndex(), netSyLeft, netPtReceived, block.timestamp, guessPtReceivedFromSy
+            );
 
-        (uint256 netSySwapMarket, uint256 netSyFeeMarket) = IPMarket(market).swapSyForExactPt(
-            market,
-            netPtOutMarket,
-            EMPTY_BYTES
-        );
+        (uint256 netSySwapMarket, uint256 netSyFeeMarket) =
+            IPMarket(market).swapSyForExactPt(market, netPtOutMarket, EMPTY_BYTES);
 
         netSyLeft -= netSySwapMarket;
         netPtReceived += netPtOutMarket;
         netSyFee += netSyFeeMarket;
 
-        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyLeft, netPtReceived);
+        (netLpOut,,) = IPMarket(market).mint(receiver, netSyLeft, netPtReceived);
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
     }
@@ -254,30 +208,15 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 minYtOut,
         TokenInput calldata input
     ) external payable returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyMintPy, uint256 netSyInterm) {
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(address(this), address(SY), 1, input);
 
-        (netLpOut, netYtOut, netSyMintPy) = _addLiquiditySingleSyKeepYt(
-            receiver,
-            market,
-            SY,
-            YT,
-            netSyInterm,
-            minLpOut,
-            minYtOut
-        );
+        (netLpOut, netYtOut, netSyMintPy) =
+            _addLiquiditySingleSyKeepYt(receiver, market, SY, YT, netSyInterm, minLpOut, minYtOut);
 
         emit AddLiquiditySingleTokenKeepYt(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            input.netTokenIn,
-            netLpOut,
-            netYtOut,
-            netSyMintPy,
-            netSyInterm
+            msg.sender, market, input.tokenIn, receiver, input.netTokenIn, netLpOut, netYtOut, netSyMintPy, netSyInterm
         );
     }
 
@@ -288,19 +227,12 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         uint256 minLpOut,
         uint256 minYtOut
     ) external returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyMintPy) {
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
 
         _transferIn(address(SY), msg.sender, netSyIn);
 
-        (netLpOut, netYtOut, netSyMintPy) = _addLiquiditySingleSyKeepYt(
-            receiver,
-            market,
-            SY,
-            YT,
-            netSyIn,
-            minLpOut,
-            minYtOut
-        );
+        (netLpOut, netYtOut, netSyMintPy) =
+            _addLiquiditySingleSyKeepYt(receiver, market, SY, YT, netSyIn, minLpOut, minYtOut);
 
         emit AddLiquiditySingleSyKeepYt(msg.sender, market, receiver, netSyIn, netSyMintPy, netLpOut, netYtOut);
     }
@@ -319,8 +251,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         PYIndex pyIndex = YT.newIndex();
 
         netSyMintPy =
-            (netSyIn * state.totalPt.Uint()) /
-            (state.totalPt.Uint() + pyIndex.syToAsset(state.totalSy.Uint()));
+            (netSyIn * state.totalPt.Uint()) / (state.totalPt.Uint() + pyIndex.syToAsset(state.totalSy.Uint()));
 
         uint256 netSyAddLiquidity = netSyIn - netSyMintPy;
 
@@ -333,7 +264,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         // PT goes to market, YT goes to receiver
         netYtOut = YT.mintPY(market, receiver);
 
-        (netLpOut, , ) = IPMarket(market).mint(receiver, netSyAddLiquidity, netYtOut);
+        (netLpOut,,) = IPMarket(market).mint(receiver, netSyAddLiquidity, netYtOut);
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
         if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
@@ -349,7 +280,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         TokenOutput calldata output,
         uint256 minPtOut
     ) external returns (uint256 netTokenOut, uint256 netPtOut, uint256 netSyInterm) {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,,) = IPMarket(market).readTokens();
 
         // burn LP, SY sent to SY, PT sent to receiver
         _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
@@ -360,14 +291,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         // redeem SY to token
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyInterm, output, false);
         emit RemoveLiquidityDualTokenAndPt(
-            msg.sender,
-            market,
-            output.tokenOut,
-            receiver,
-            netLpToRemove,
-            netPtOut,
-            netTokenOut,
-            netSyInterm
+            msg.sender, market, output.tokenOut, receiver, netLpToRemove, netPtOut, netTokenOut, netSyInterm
         );
     }
 
@@ -407,22 +331,13 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
 
         // execute the burn
         _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
-        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(
-            _entry_swapExactSyForPt(market, limit),
-            receiver,
-            netLpToRemove
-        );
+        (uint256 netSyOutBurn, uint256 netPtOutBurn) =
+            IPMarket(market).burn(_entry_swapExactSyForPt(market, limit), receiver, netLpToRemove);
         netSyLeft += netSyOutBurn;
         netPtOut += netPtOutBurn;
 
-        (uint256 netPtOutSwap, uint256 netSyFeeSwap) = _swapExactSyForPt(
-            receiver,
-            market,
-            netSyLeft,
-            0,
-            guessPtReceivedFromSy,
-            limit
-        );
+        (uint256 netPtOutSwap, uint256 netSyFeeSwap) =
+            _swapExactSyForPt(receiver, market, netSyLeft, 0, guessPtReceivedFromSy, limit);
         netPtOut += netPtOutSwap;
         netSyFee += netSyFeeSwap;
 
@@ -441,7 +356,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         TokenOutput calldata output,
         LimitOrderData calldata limit
     ) external returns (uint256 netTokenOut, uint256 netSyFee, uint256 netSyInterm) {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,,) = IPMarket(market).readTokens();
 
         _transferFrom(IERC20(market), msg.sender, market, netLpToRemove);
 
@@ -450,13 +365,7 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyInterm, output, false);
 
         emit RemoveLiquiditySingleToken(
-            msg.sender,
-            market,
-            output.tokenOut,
-            receiver,
-            netLpToRemove,
-            netTokenOut,
-            netSyInterm
+            msg.sender, market, output.tokenOut, receiver, netLpToRemove, netTokenOut, netSyInterm
         );
     }
 
@@ -491,13 +400,12 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
         if (netSyOut < minSyOut) revert("Slippage: INSUFFICIENT_SY_OUT");
     }
 
-    function __removeLpToSyAfterExpiry(
-        address receiver,
-        address market,
-        uint256 netLpToRemove
-    ) internal returns (uint256 netSyOut) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
-        (uint256 syFromBurn, ) = IPMarket(market).burn(receiver, address(YT), netLpToRemove);
+    function __removeLpToSyAfterExpiry(address receiver, address market, uint256 netLpToRemove)
+        internal
+        returns (uint256 netSyOut)
+    {
+        (,, IPYieldToken YT) = IPMarket(market).readTokens();
+        (uint256 syFromBurn,) = IPMarket(market).burn(receiver, address(YT), netLpToRemove);
         netSyOut = syFromBurn + YT.redeemPY(receiver);
     }
 
@@ -509,11 +417,8 @@ contract ActionAddRemoveLiqV3 is IPActionAddRemoveLiqV3, ActionBase, ActionDeleg
     ) internal returns (uint256 netSyOut, uint256 netSyFee) {
         uint256 netPtLeft;
 
-        (uint256 netSyOutBurn, uint256 netPtOutBurn) = IPMarket(market).burn(
-            receiver,
-            _entry_swapExactPtForSy(market, limit),
-            netLpToRemove
-        );
+        (uint256 netSyOutBurn, uint256 netPtOutBurn) =
+            IPMarket(market).burn(receiver, _entry_swapExactPtForSy(market, limit), netLpToRemove);
         netSyOut += netSyOutBurn;
         netPtLeft += netPtOutBurn;
 

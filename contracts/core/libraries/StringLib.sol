@@ -471,12 +471,11 @@ library StringLib {
 
     // Returns the memory address of the first byte of the first occurrence of
     // `needle` in `self`, or the first byte after `self` if not found.
-    function findPtr(
-        uint256 selflen,
-        uint256 selfptr,
-        uint256 needlelen,
-        uint256 needleptr
-    ) private pure returns (uint256) {
+    function findPtr(uint256 selflen, uint256 selfptr, uint256 needlelen, uint256 needleptr)
+        private
+        pure
+        returns (uint256)
+    {
         uint256 ptr = selfptr;
         uint256 idx;
 
@@ -528,12 +527,11 @@ library StringLib {
 
     // Returns the memory address of the first byte after the last occurrence of
     // `needle` in `self`, or the address of `self` if not found.
-    function rfindPtr(
-        uint256 selflen,
-        uint256 selfptr,
-        uint256 needlelen,
-        uint256 needleptr
-    ) private pure returns (uint256) {
+    function rfindPtr(uint256 selflen, uint256 selfptr, uint256 needlelen, uint256 needleptr)
+        private
+        pure
+        returns (uint256)
+    {
         uint256 ptr;
 
         if (needlelen <= selflen) {
@@ -738,7 +736,9 @@ library StringLib {
         if (parts.length == 0) return "";
 
         uint256 length = self._len * (parts.length - 1);
-        for (uint256 i = 0; i < parts.length; i++) length += parts[i]._len;
+        for (uint256 i = 0; i < parts.length; i++) {
+            length += parts[i]._len;
+        }
 
         string memory ret = new string(length);
         uint256 retptr;

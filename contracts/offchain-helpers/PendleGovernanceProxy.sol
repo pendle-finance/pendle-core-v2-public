@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "../interfaces/IPPausingInterface.sol";
 import "../interfaces/IPGovernanceProxy.sol";
+import "../interfaces/IPPausingInterface.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
@@ -31,8 +31,8 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
     // to execute calls
 
     mapping(address caller => mapping(bytes4 selector => bool isAdmin)) public isSelectorAdminOf;
-    mapping(address caller => mapping(bytes4 selector => mapping(address target => bool isAllowed)))
-        public hasScopedAccess;
+    mapping(address caller => mapping(bytes4 selector => mapping(address target => bool isAllowed))) public
+        hasScopedAccess;
 
     modifier onlyGuardian() {
         require(hasRole(GUARDIAN, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "PGP: n/a");
@@ -65,12 +65,9 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
         }
     }
 
-    function modifyScopedAccess(
-        address caller,
-        address[] memory targets,
-        bytes4 selector,
-        bool[] memory accesses
-    ) external {
+    function modifyScopedAccess(address caller, address[] memory targets, bytes4 selector, bool[] memory accesses)
+        external
+    {
         require(targets.length == accesses.length, "PGP: Array length mismatch");
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSelectorAdminOf[msg.sender][selector], "PGP: n/a");
 
@@ -95,7 +92,7 @@ contract PendleGovernanceProxy is AccessControlUpgradeable, UUPSUpgradeable, IPG
 
     function pause(address[] calldata addrs) external onlyGuardian {
         uint256 length = addrs.length;
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i = 0; i < length;) {
             IPPausingInterface(addrs[i]).pause();
             unchecked {
                 ++i;

@@ -20,11 +20,7 @@ interface StarNFTV1 {
     event ApprovalForAll(address indexed account, address indexed operator, bool approved);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event TransferBatch(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256[] ids,
-        uint256[] values
+        address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values
     );
     event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
     event URI(string value, uint256 indexed id);

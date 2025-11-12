@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../../interfaces/IPPYLpOracle.sol";
-import "../../../interfaces/IPMarket.sol";
 import "../../../core/libraries/math/PMath.sol";
+import "../../../interfaces/IPMarket.sol";
+import "../../../interfaces/IPPYLpOracle.sol";
 import "../PendleLpOracleLib.sol";
 
-import {AggregatorV2V3Interface as IChainlinkAggregator} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
+import {
+    AggregatorV2V3Interface as IChainlinkAggregator
+} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol";
 
 /**
  * @notice The returned price from this contract is multiplied by the default USD price of the
@@ -37,7 +39,8 @@ contract BoringPYUsdChainlinkSYOracle {
         pyLpOracle = _pyLpOracle;
 
         /**
-         * @notice All pricing functions in this contract should only be used after checkOracleState() is ran successfully without reverting.
+         * @notice All pricing functions in this contract should only be used after checkOracleState() is ran
+         * successfully without reverting.
          * This equals to calling checkOracleState() in your oracle constructor.
          */
         // checkOracleState();
@@ -82,15 +85,15 @@ contract BoringPYUsdChainlinkSYOracle {
     error IncreaseCardinalityRequired(uint16 cardinalityRequired);
     error AdditionalWaitRequired(uint32 duration);
 
-    /// @notice Call only once for each (market, duration). Once successful, it's permanently valid (also for any shorter duration).
+    /// @notice Call only once for each (market, duration). Once successful, it's permanently valid (also for any
+    /// shorter duration).
     function checkOracleState() external view {
-        (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) = IPPYLpOracle(
-            pyLpOracle
-        ).getOracleState(market, twapDuration);
+        (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied) =
+            IPPYLpOracle(pyLpOracle).getOracleState(market, twapDuration);
 
         if (increaseCardinalityRequired) {
-            // It's required to call IPMarket(market).increaseObservationsCardinalityNext(cardinalityRequired) and wait for
-            // at least the twapDuration, to allow data population.
+            // It's required to call IPMarket(market).increaseObservationsCardinalityNext(cardinalityRequired) and wait
+            // for at least the twapDuration, to allow data population.
             revert IncreaseCardinalityRequired(cardinalityRequired);
         }
 

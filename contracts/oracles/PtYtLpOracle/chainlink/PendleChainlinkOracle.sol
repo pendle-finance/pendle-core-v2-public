@@ -68,9 +68,12 @@ contract PendleChainlinkOracle is IPChainlinkOracle {
         answeredInRound = 0;
     }
 
-    function getRoundData(
-        uint80 roundId
-    ) external view roundIdIsZero(roundId) returns (uint80, int256, uint256, uint256, uint80) {
+    function getRoundData(uint80 roundId)
+        external
+        view
+        roundIdIsZero(roundId)
+        returns (uint80, int256, uint256, uint256, uint80)
+    {
         return latestRoundData();
     }
 
@@ -120,14 +123,15 @@ contract PendleChainlinkOracle is IPChainlinkOracle {
         }
     }
 
-    function _readDecimals(
-        address _market,
-        PendleOracleType _oracleType
-    ) internal view returns (uint8 _fromDecimals, uint8 _toDecimals) {
-        (IStandardizedYield SY, , ) = IPMarket(_market).readTokens();
+    function _readDecimals(address _market, PendleOracleType _oracleType)
+        internal
+        view
+        returns (uint8 _fromDecimals, uint8 _toDecimals)
+    {
+        (IStandardizedYield SY,,) = IPMarket(_market).readTokens();
 
         uint8 syDecimals = SY.decimals();
-        (, , uint8 assetDecimals) = SY.assetInfo();
+        (,, uint8 assetDecimals) = SY.assetInfo();
 
         if (_oracleType == PendleOracleType.PT_TO_ASSET) {
             return (assetDecimals, assetDecimals);

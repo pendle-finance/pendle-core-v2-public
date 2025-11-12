@@ -19,10 +19,7 @@ library Errors {
     error ApproxFail();
     error ApproxParamsInvalid(uint256 guessMin, uint256 guessMax, uint256 eps);
     error ApproxBinarySearchInputInvalid(
-        uint256 approxGuessMin,
-        uint256 approxGuessMax,
-        uint256 minGuessMin,
-        uint256 maxGuessMax
+        uint256 approxGuessMin, uint256 approxGuessMax, uint256 minGuessMin, uint256 maxGuessMax
     );
 
     // MARKET + MARKET MATH CORE

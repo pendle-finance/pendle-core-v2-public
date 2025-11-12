@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "../../interfaces/IPAllActionV3.sol";
+import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../../interfaces/IPMarket.sol";
 // import "../core/StandardizedYield/implementations/PendleERC4626SY.sol";
 import "../../core/libraries/TokenHelper.sol";
 
@@ -44,32 +44,20 @@ contract PendlePoolDeployHelper is TokenHelper {
         _seedLiquidity(market, address(SY), address(PT), address(YT), tokenToSeedLiqudity, amountToSeed);
     }
 
-    function _deployPYAndMarket(
-        address SY,
-        PoolDeploymentParams memory params
-    ) internal returns (address PT, address YT, address market) {
-        (PT, YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(
-            SY,
-            params.expiry,
-            params.doCacheIndexSameBlock
-        );
-        market = IPMarketFactory(marketFactory).createNewMarket(
-            PT,
-            params.scalarRoot,
-            params.initialRateAnchor,
-            params.lnFeeRateRoot
-        );
+    function _deployPYAndMarket(address SY, PoolDeploymentParams memory params)
+        internal
+        returns (address PT, address YT, address market)
+    {
+        (PT, YT) = IPYieldContractFactory(yieldContractFactory)
+            .createYieldContract(SY, params.expiry, params.doCacheIndexSameBlock);
+        market = IPMarketFactory(marketFactory)
+            .createNewMarket(PT, params.scalarRoot, params.initialRateAnchor, params.lnFeeRateRoot);
         emit MarketDeployment(market, SY, PT, YT, params);
     }
 
-    function _seedLiquidity(
-        address market,
-        address SY,
-        address PT,
-        address YT,
-        address token,
-        uint256 amountToSeed
-    ) internal {
+    function _seedLiquidity(address market, address SY, address PT, address YT, address token, uint256 amountToSeed)
+        internal
+    {
         _transferIn(token, msg.sender, amountToSeed);
 
         // Approval
@@ -93,10 +81,7 @@ contract PendlePoolDeployHelper is TokenHelper {
                     tokenMintSy: token,
                     pendleSwap: address(0),
                     swapData: SwapData({
-                        swapType: SwapType.NONE,
-                        extRouter: address(0),
-                        extCalldata: abi.encode(),
-                        needScale: false
+                        swapType: SwapType.NONE, extRouter: address(0), extCalldata: abi.encode(), needScale: false
                     })
                 })
             );
@@ -119,13 +104,9 @@ contract PendlePoolDeployHelper is TokenHelper {
         int256 scalarRoot,
         int256 initialRateAnchor
     ) external returns (address newMarket) {
-        (, IPPrincipalToken PT, ) = IPMarket(oldMarket).readTokens();
-        newMarket = IPMarketFactory(marketFactory).createNewMarket(
-            address(PT),
-            scalarRoot,
-            initialRateAnchor,
-            lnFeeRateRoot
-        );
+        (, IPPrincipalToken PT,) = IPMarket(oldMarket).readTokens();
+        newMarket =
+            IPMarketFactory(marketFactory).createNewMarket(address(PT), scalarRoot, initialRateAnchor, lnFeeRateRoot);
         _transferFrom(IERC20(oldMarket), msg.sender, oldMarket, amountLp);
         (uint256 netSyOut, uint256 netPtOut) = IPMarket(oldMarket).burn(newMarket, newMarket, amountLp);
         IPMarket(newMarket).mint(msg.sender, netSyOut, netPtOut);

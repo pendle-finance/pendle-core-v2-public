@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IPLimitRouter.sol";
 import "../core/Market/MarketMathCore.sol";
+import "../interfaces/IPLimitRouter.sol";
 import "../interfaces/IPMarketFactory.sol";
 
 library LimitMathCore {
@@ -12,37 +12,29 @@ library LimitMathCore {
     using PMath for uint256;
     using PMath for int256;
 
-    function calcBatch(
-        FillOrderParams[] memory params,
-        address YT,
-        uint256 lnFeeRateRoot
-    ) internal returns (IPLimitOrderType.FillResults memory out) {
-        return
-            calcBatch(
-                params,
-                IPYieldToken(YT).expiry() - block.timestamp,
-                IPYieldToken(YT).pyIndexCurrent(),
-                lnFeeRateRoot
-            );
+    function calcBatch(FillOrderParams[] memory params, address YT, uint256 lnFeeRateRoot)
+        internal
+        returns (IPLimitOrderType.FillResults memory out)
+    {
+        return calcBatch(
+            params, IPYieldToken(YT).expiry() - block.timestamp, IPYieldToken(YT).pyIndexCurrent(), lnFeeRateRoot
+        );
     }
 
     // --- PURE FUNCTIONS ---
-    function calcBatch(
-        FillOrderParams[] memory params,
-        uint256 timeToExpiry,
-        uint256 pyIndex,
-        uint256 lnFeeRateRoot
-    ) internal pure returns (IPLimitOrderType.FillResults memory out) {
+    function calcBatch(FillOrderParams[] memory params, uint256 timeToExpiry, uint256 pyIndex, uint256 lnFeeRateRoot)
+        internal
+        pure
+        returns (IPLimitOrderType.FillResults memory out)
+    {
         uint256 len = params.length;
         out.netMakings = new uint256[](len);
         out.netTakings = new uint256[](len);
         out.netFees = new uint256[](len);
         out.notionalVolumes = new uint256[](len);
 
-        function(uint256, uint256, PYIndex, uint256)
-            internal
-            pure
-            returns (uint256, uint256, uint256) calc = getCalcFunctions(params[0].order.orderType);
+        function(uint256, uint256, PYIndex, uint256) internal pure returns (uint256, uint256, uint256) calc =
+            getCalcFunctions(params[0].order.orderType);
 
         uint256 feeRate = impliedRateToExchangeRate(lnFeeRateRoot, timeToExpiry);
 
@@ -53,12 +45,8 @@ library LimitMathCore {
             uint256 exchangeRate = impliedRateToExchangeRate(param.order.lnImpliedRate, timeToExpiry);
 
             out.netMakings[i] = param.makingAmount;
-            (out.netTakings[i], out.netFees[i], out.notionalVolumes[i]) = calc(
-                out.netMakings[i],
-                exchangeRate,
-                PYIndex.wrap(pyIndex),
-                feeRate
-            );
+            (out.netTakings[i], out.netFees[i], out.notionalVolumes[i]) =
+                calc(out.netMakings[i], exchangeRate, PYIndex.wrap(pyIndex), feeRate);
 
             require(out.netTakings[i] > 0, "LOP: can't swap 0 amount");
 
@@ -69,12 +57,11 @@ library LimitMathCore {
         }
     }
 
-    function calcSyForPt(
-        uint256 makeSy,
-        uint256 r,
-        PYIndex index,
-        uint256 f
-    ) internal pure returns (uint256 takePt, uint256 fee, uint256 notionalVolume) {
+    function calcSyForPt(uint256 makeSy, uint256 r, PYIndex index, uint256 f)
+        internal
+        pure
+        returns (uint256 takePt, uint256 fee, uint256 notionalVolume)
+    {
         // takePt = makeSy * index * r
         // fee = makeSy * (f - 1) / f
         // notionalVolume = makeSy
@@ -84,12 +71,11 @@ library LimitMathCore {
         notionalVolume = makeSy;
     }
 
-    function calcPtForSy(
-        uint256 makePt,
-        uint256 r,
-        PYIndex index,
-        uint256 f
-    ) internal pure returns (uint256 takeSy, uint256 fee, uint256 notionalVolume) {
+    function calcPtForSy(uint256 makePt, uint256 r, PYIndex index, uint256 f)
+        internal
+        pure
+        returns (uint256 takeSy, uint256 fee, uint256 notionalVolume)
+    {
         // takeAsset = make / r
         // takeSy = takeAsset / index
         // fee = takeSy * (f-1)
@@ -100,12 +86,11 @@ library LimitMathCore {
         notionalVolume = takeSy;
     }
 
-    function calcSyForYt(
-        uint256 makeSy,
-        uint256 r,
-        PYIndex index,
-        uint256 f
-    ) internal pure returns (uint256 takeYt, uint256 fee, uint256 notionalVolume) {
+    function calcSyForYt(uint256 makeSy, uint256 r, PYIndex index, uint256 f)
+        internal
+        pure
+        returns (uint256 takeYt, uint256 fee, uint256 notionalVolume)
+    {
         // pt = makeSy * index * r
         // yt = pt / (r-1)
         // fee = makeSy * (f-1) / (r-1)
@@ -117,12 +102,11 @@ library LimitMathCore {
         notionalVolume = makeSy.divDown(pt_yt_ratio);
     }
 
-    function calcYtForSy(
-        uint256 makeYt,
-        uint256 r,
-        PYIndex index,
-        uint256 f
-    ) internal pure returns (uint256 takeSy, uint256 fee, uint256 notionalVolume) {
+    function calcYtForSy(uint256 makeYt, uint256 r, PYIndex index, uint256 f)
+        internal
+        pure
+        returns (uint256 takeSy, uint256 fee, uint256 notionalVolume)
+    {
         // pt = yt * (r-1)
         // takeSy = pt / r / index
         // feeSy = takeSy * (f-1) / f / (r-1)
@@ -138,9 +122,7 @@ library LimitMathCore {
         return MarketMathCore._getExchangeRateFromImpliedRate(lnRate, timeToExpiry).Uint();
     }
 
-    function getCalcFunctions(
-        IPLimitOrderType.OrderType t
-    )
+    function getCalcFunctions(IPLimitOrderType.OrderType t)
         internal
         pure
         returns (function(uint256, uint256, PYIndex, uint256) internal pure returns (uint256, uint256, uint256) calc)

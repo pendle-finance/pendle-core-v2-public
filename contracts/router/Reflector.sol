@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPAllActionV3.sol";
-import "../interfaces/IPReflector.sol";
-import "../interfaces/IPMarket.sol";
-import "../interfaces/IStandardizedYield.sol";
 import "../core/libraries/TokenHelper.sol";
+import "../interfaces/IPAllActionV3.sol";
+import "../interfaces/IPMarket.sol";
+import "../interfaces/IPReflector.sol";
+import "../interfaces/IStandardizedYield.sol";
 
 contract Reflector is TokenHelper, IPReflector {
     using SafeERC20 for IERC20;
@@ -33,9 +33,9 @@ contract Reflector is TokenHelper, IPReflector {
         bytes calldata data = inputData[4:];
 
         if (
-            selector == IPActionAddRemoveLiqV3.addLiquiditySingleToken.selector ||
-            selector == IPActionSwapPTV3.swapExactTokenForPt.selector ||
-            selector == IPActionSwapYTV3.swapExactTokenForYt.selector
+            selector == IPActionAddRemoveLiqV3.addLiquiditySingleToken.selector
+                || selector == IPActionSwapPTV3.swapExactTokenForPt.selector
+                || selector == IPActionSwapYTV3.swapExactTokenForYt.selector
         ) {
             (
                 address v1,
@@ -49,29 +49,23 @@ contract Reflector is TokenHelper, IPReflector {
             value = _scaleTokenInputAndGetValue(v5);
             newCalldata = abi.encodeWithSelector(selector, v1, v2, v3, v4, v5, v6);
         } else if (selector == IPActionAddRemoveLiqV3.addLiquiditySingleTokenKeepYt.selector) {
-            (address v1, address v2, uint256 v3, uint256 v4, TokenInput memory v5) = abi.decode(
-                data,
-                (address, address, uint256, uint256, TokenInput)
-            );
+            (address v1, address v2, uint256 v3, uint256 v4, TokenInput memory v5) =
+                abi.decode(data, (address, address, uint256, uint256, TokenInput));
 
             value = _scaleTokenInputAndGetValue(v5);
             newCalldata = abi.encodeWithSelector(selector, v1, v2, v3, v4, v5);
         } else if (
-            selector == IPActionAddRemoveLiqV3.addLiquiditySingleSy.selector ||
-            selector == IPActionSwapPTV3.swapExactSyForPt.selector ||
-            selector == IPActionSwapYTV3.swapExactSyForYt.selector
+            selector == IPActionAddRemoveLiqV3.addLiquiditySingleSy.selector
+                || selector == IPActionSwapPTV3.swapExactSyForPt.selector
+                || selector == IPActionSwapYTV3.swapExactSyForYt.selector
         ) {
-            (address v1, address v2, , uint256 v4, ApproxParams memory v5, LimitOrderData memory v6) = abi.decode(
-                data,
-                (address, address, uint256, uint256, ApproxParams, LimitOrderData)
-            );
+            (address v1, address v2,, uint256 v4, ApproxParams memory v5, LimitOrderData memory v6) =
+                abi.decode(data, (address, address, uint256, uint256, ApproxParams, LimitOrderData));
 
             newCalldata = abi.encodeWithSelector(selector, v1, v2, _scaleSyInput(v2), v4, v5, v6);
         } else if (selector == IPActionAddRemoveLiqV3.addLiquiditySingleSyKeepYt.selector) {
-            (address v1, address v2, , uint256 v4, uint256 v5) = abi.decode(
-                data,
-                (address, address, uint256, uint256, uint256)
-            );
+            (address v1, address v2,, uint256 v4, uint256 v5) =
+                abi.decode(data, (address, address, uint256, uint256, uint256));
 
             newCalldata = abi.encodeWithSelector(selector, v1, v2, _scaleSyInput(v2), v4, v5);
         } else {
@@ -95,7 +89,7 @@ contract Reflector is TokenHelper, IPReflector {
     }
 
     function _scaleSyInput(address market) internal returns (uint256 res) {
-        (IStandardizedYield SY, , ) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,,) = IPMarket(market).readTokens();
         res = SY.balanceOf(address(this));
 
         if (!approved[address(SY)]) {

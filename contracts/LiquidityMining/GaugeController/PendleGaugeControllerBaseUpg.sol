@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../core/libraries/math/PMath.sol";
-import "../../core/libraries/Errors.sol";
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
+import "../../core/libraries/Errors.sol";
+import "../../core/libraries/math/PMath.sol";
 
 import "../libraries/WeekMath.sol";
 
 import "../../interfaces/IPGaugeController.sol";
 import "../../interfaces/IPGaugeController.sol";
-import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarket.sol";
+import "../../interfaces/IPMarketFactory.sol";
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @dev Gauge controller provides no write function to any party other than voting controller
@@ -55,11 +55,9 @@ abstract contract PendleGaugeControllerBaseUpg is IPGaugeController, BoringOwnab
         if (isValidMarket[msg.sender]) {
             _;
         } else if (
-            marketFactory.isValidMarket(msg.sender) ||
-            marketFactory2.isValidMarket(msg.sender) ||
-            marketFactory3.isValidMarket(msg.sender) ||
-            marketFactory4.isValidMarket(msg.sender) ||
-            marketFactory5.isValidMarket(msg.sender)
+            marketFactory.isValidMarket(msg.sender) || marketFactory2.isValidMarket(msg.sender)
+                || marketFactory3.isValidMarket(msg.sender) || marketFactory4.isValidMarket(msg.sender)
+                || marketFactory5.isValidMarket(msg.sender)
         ) {
             isValidMarket[msg.sender] = true;
             _;

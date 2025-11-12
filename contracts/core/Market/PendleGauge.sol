@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IPGauge.sol";
-import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPGaugeController.sol";
+import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IStandardizedYield.sol";
 
 import "../RewardManager/RewardManager.sol";
 
 /**
-Invariants to maintain:
-- before any changes to active balance, updateAndDistributeRewards() must be called
+ * Invariants to maintain:
+ * - before any changes to active balance, updateAndDistributeRewards() must be called
  */
 abstract contract PendleGauge is RewardManager, IPGauge {
     using PMath for uint256;
@@ -37,7 +37,7 @@ abstract contract PendleGauge is RewardManager, IPGauge {
 
     /**
      * @dev Since rewardShares is based on activeBalance, user's activeBalance must be updated AFTER
-        rewards is updated
+     *     rewards is updated
      * @dev It's intended to have user's activeBalance updated when rewards is redeemed
      */
     function _redeemRewards(address user) internal virtual returns (uint256[] memory rewardsOut) {
@@ -57,7 +57,8 @@ abstract contract PendleGauge is RewardManager, IPGauge {
     }
 
     /**
-     * @dev should only be callable from `_updateUserActiveBalanceForTwo` to guarantee user != address(0) && user != address(this)
+     * @dev should only be callable from `_updateUserActiveBalanceForTwo` to guarantee user != address(0) && user !=
+     * address(this)
      */
     function _updateUserActiveBalancePrivate(address user) private {
         assert(user != address(0) && user != address(this));
@@ -78,9 +79,8 @@ abstract contract PendleGauge is RewardManager, IPGauge {
         // Inspired by Curve's Gauge
         uint256 veBoostedLpBalance = (lpBalance * TOKENLESS_PRODUCTION) / 100;
         if (vePendleSupply > 0) {
-            veBoostedLpBalance +=
-                (((_totalStaked() * vePendleBalance) / vePendleSupply) * (100 - TOKENLESS_PRODUCTION)) /
-                100;
+            veBoostedLpBalance += (((_totalStaked() * vePendleBalance) / vePendleSupply) * (100 - TOKENLESS_PRODUCTION))
+                / 100;
         }
         return veBoostedLpBalance;
     }

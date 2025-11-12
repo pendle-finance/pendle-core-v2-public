@@ -33,7 +33,7 @@ abstract contract OKXScaleHelper {
         if (chainid == 56) {
             return 0x2c34A2Fb1d0b4f55de51E1d0bDEfaDDce6b7cDD6;
         }
-        if (chainid == 42161) {
+        if (chainid == 42_161) {
             return 0x70cBb871E8f30Fc8Ce23609E9E0Ea87B6b222F58;
         }
         if (chainid == 8453 || chainid == 5000) {
@@ -53,18 +53,17 @@ abstract contract OKXScaleHelper {
         return _tokenApprove;
     }
 
-    function _okxScaling(
-        bytes calldata rawCallData,
-        uint256 actualAmount
-    ) internal pure returns (bytes memory scaledCallData) {
+    function _okxScaling(bytes calldata rawCallData, uint256 actualAmount)
+        internal
+        pure
+        returns (bytes memory scaledCallData)
+    {
         bytes4 selector = bytes4(rawCallData[:4]);
         bytes calldata dataToDecode = rawCallData[4:];
         uint256 rawAmountIn;
         if (selector == IOKXDexRouter.uniswapV3SwapTo.selector) {
-            (uint256 receiver, uint256 amount, uint256 minReturn, uint256[] memory pools) = abi.decode(
-                dataToDecode,
-                (uint256, uint256, uint256, uint256[])
-            );
+            (uint256 receiver, uint256 amount, uint256 minReturn, uint256[] memory pools) =
+                abi.decode(dataToDecode, (uint256, uint256, uint256, uint256[]));
             rawAmountIn = amount;
             minReturn = (minReturn * actualAmount) / amount;
             amount = actualAmount;
@@ -79,33 +78,26 @@ abstract contract OKXScaleHelper {
                 IOKXDexRouter.RouterPath[][] memory batches,
                 IOKXDexRouter.PMMSwapRequest[] memory extraData
             ) = abi.decode(
-                    dataToDecode,
-                    (
-                        uint256,
-                        address,
-                        IOKXDexRouter.BaseRequest,
-                        uint256[],
-                        IOKXDexRouter.RouterPath[][],
-                        IOKXDexRouter.PMMSwapRequest[]
-                    )
-                );
+                dataToDecode,
+                (
+                    uint256,
+                    address,
+                    IOKXDexRouter.BaseRequest,
+                    uint256[],
+                    IOKXDexRouter.RouterPath[][],
+                    IOKXDexRouter.PMMSwapRequest[]
+                )
+            );
             rawAmountIn = baseRequest.fromTokenAmount;
             batchesAmount = _scaleArray(batchesAmount, actualAmount, baseRequest.fromTokenAmount);
             baseRequest.minReturnAmount = (baseRequest.minReturnAmount * actualAmount) / baseRequest.fromTokenAmount;
             baseRequest.fromTokenAmount = actualAmount;
 
-            scaledCallData = abi.encodeWithSelector(
-                selector,
-                orderId,
-                receiver,
-                baseRequest,
-                batchesAmount,
-                batches,
-                extraData
-            );
+            scaledCallData =
+                abi.encodeWithSelector(selector, orderId, receiver, baseRequest, batchesAmount, batches, extraData);
         } else if (selector == IOKXDexRouter.unxswapTo.selector) {
-            (uint256 srcToken, uint256 amount, uint256 minReturn, address receiver, bytes32[] memory pools) = abi
-                .decode(dataToDecode, (uint256, uint256, uint256, address, bytes32[]));
+            (uint256 srcToken, uint256 amount, uint256 minReturn, address receiver, bytes32[] memory pools) =
+                abi.decode(dataToDecode, (uint256, uint256, uint256, address, bytes32[]));
 
             minReturn = (minReturn * actualAmount) / amount;
             rawAmountIn = amount;
@@ -113,10 +105,8 @@ abstract contract OKXScaleHelper {
 
             scaledCallData = abi.encodeWithSelector(selector, srcToken, amount, minReturn, receiver, pools);
         } else if (selector == IOKXDexRouter.unxswapByOrderId.selector) {
-            (uint256 srcToken, uint256 amount, uint256 minReturn, bytes32[] memory pools) = abi.decode(
-                dataToDecode,
-                (uint256, uint256, uint256, bytes32[])
-            );
+            (uint256 srcToken, uint256 amount, uint256 minReturn, bytes32[] memory pools) =
+                abi.decode(dataToDecode, (uint256, uint256, uint256, bytes32[]));
             rawAmountIn = amount;
 
             minReturn = (minReturn * actualAmount) / amount;
@@ -131,15 +121,15 @@ abstract contract OKXScaleHelper {
                 IOKXDexRouter.RouterPath[][] memory batches,
                 IOKXDexRouter.PMMSwapRequest[] memory extraData
             ) = abi.decode(
-                    dataToDecode,
-                    (
-                        uint256,
-                        IOKXDexRouter.BaseRequest,
-                        uint256[],
-                        IOKXDexRouter.RouterPath[][],
-                        IOKXDexRouter.PMMSwapRequest[]
-                    )
-                );
+                dataToDecode,
+                (
+                    uint256,
+                    IOKXDexRouter.BaseRequest,
+                    uint256[],
+                    IOKXDexRouter.RouterPath[][],
+                    IOKXDexRouter.PMMSwapRequest[]
+                )
+            );
             rawAmountIn = baseRequest.fromTokenAmount;
             batchesAmount = _scaleArray(batchesAmount, actualAmount, baseRequest.fromTokenAmount);
             baseRequest.minReturnAmount = (baseRequest.minReturnAmount * actualAmount) / baseRequest.fromTokenAmount;
@@ -160,11 +150,8 @@ abstract contract OKXScaleHelper {
 
             scaledCallData = abi.encodeWithSelector(selector, orderId, receiver, baseRequest, paths);
         } else if (selector == IOKXDexRouter.dagSwapByOrderId.selector) {
-            (
-                uint256 orderId,
-                IOKXDexRouter.BaseRequest memory baseRequest,
-                IOKXDexRouter.RouterPath[] memory paths
-            ) = abi.decode(dataToDecode, (uint256, IOKXDexRouter.BaseRequest, IOKXDexRouter.RouterPath[]));
+            (uint256 orderId, IOKXDexRouter.BaseRequest memory baseRequest, IOKXDexRouter.RouterPath[] memory paths) =
+                abi.decode(dataToDecode, (uint256, IOKXDexRouter.BaseRequest, IOKXDexRouter.RouterPath[]));
             rawAmountIn = baseRequest.fromTokenAmount;
             baseRequest.minReturnAmount = (baseRequest.minReturnAmount * actualAmount) / baseRequest.fromTokenAmount;
             baseRequest.fromTokenAmount = actualAmount;
@@ -178,11 +165,11 @@ abstract contract OKXScaleHelper {
         return scaledCallData;
     }
 
-    function _scaleArray(
-        uint256[] memory arr,
-        uint256 newAmount,
-        uint256 oldAmount
-    ) internal pure returns (uint256[] memory scaledArr) {
+    function _scaleArray(uint256[] memory arr, uint256 newAmount, uint256 oldAmount)
+        internal
+        pure
+        returns (uint256[] memory scaledArr)
+    {
         scaledArr = new uint256[](arr.length);
         for (uint256 i = 0; i < arr.length; i++) {
             scaledArr[i] = (arr[i] * newAmount) / oldAmount;
@@ -194,14 +181,19 @@ abstract contract OKXScaleHelper {
     // │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
     // │0x777777771111│0x000000000000│               │0x777777771111│            │                 │
     // └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
-    //   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
+    //   ←────────────── 32 bytes ──────────────→
+    // ←────────────── 32 bytes ──────────────→
 
     // ┌─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┬─────────────┬─────────────┬─────────────────┐
-    // │ trim_flag   │ charge_rate │ charge_address  │ trim_flag   │ padding     │ expect_amount   │ trim_flag   │ trim_rate1  │ trim_address1   │
-    // │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │
-    // │0x777777772222│            │                 │0x777777772222│0x000000000000│               │0x77777772222│             │                 │
+    // │ trim_flag   │ charge_rate │ charge_address  │ trim_flag   │ padding     │ expect_amount   │
+    // trim_flag   │ trim_rate1  │ trim_address1   │
+    // │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6 bytes     │ 6 bytes     │ 20 bytes        │ 6
+    // bytes     │ 6 bytes     │ 20 bytes        │ │0x777777772222│            │
+    // │0x777777772222│0x000000000000│               │0x77777772222│             │                 │
     // └─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┴─────────────┴─────────────┴─────────────────┘
-    //   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→   ←────────────── 32 bytes ──────────────→
+    // ←────────────── 32 bytes ──────────────→
+    // ←────────────── 32 bytes ──────────────→
+    // ←────────────── 32 bytes ──────────────→
     function _scaleTrimInfo(
         bytes calldata dataToDecode,
         bytes memory scaledCallData,
@@ -213,8 +205,9 @@ abstract contract OKXScaleHelper {
         uint256 firstFlagIndex = length - 32;
         while (firstFlagIndex > 0) {
             if (
-                uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_FLAG ||
-                uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_DUAL_FLAG
+                uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK == TRIM_FLAG
+                    || uint256(bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32])) & TRIM_FLAG_MASK
+                        == TRIM_DUAL_FLAG
             ) {
                 break;
             }
@@ -231,8 +224,8 @@ abstract contract OKXScaleHelper {
                 data & TRIM_FLAG_MASK == TRIM_FLAG || data & TRIM_FLAG_MASK == TRIM_DUAL_FLAG,
                 "PendleSwap: OKX trim flag not found in expected position"
             );
-            uint256 expectAmountOut = uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32])) &
-                TRIM_EXPECT_AMOUNT_OUT_MASK;
+            uint256 expectAmountOut =
+                uint256(bytes32(dataToDecode[middleFlagIndex:middleFlagIndex + 32])) & TRIM_EXPECT_AMOUNT_OUT_MASK;
 
             uint256 acutalExpectAmountOut = (expectAmountOut * actualAmountIn) / rawAmountIn;
 
@@ -246,9 +239,7 @@ abstract contract OKXScaleHelper {
                 bytes32 last = bytes32(dataToDecode[middleFlagIndex - 32:middleFlagIndex]);
                 bytes32 middle = bytes32(
                     abi.encodePacked(
-                        bytes6(bytes32(uint256(TRIM_DUAL_FLAG))),
-                        uint48(0),
-                        uint160(acutalExpectAmountOut)
+                        bytes6(bytes32(uint256(TRIM_DUAL_FLAG))), uint48(0), uint160(acutalExpectAmountOut)
                     )
                 );
                 bytes32 first = bytes32(dataToDecode[firstFlagIndex:firstFlagIndex + 32]);
@@ -325,12 +316,10 @@ interface IOKXDexRouter {
     //     address to
     // ) external payable;
 
-    function uniswapV3SwapTo(
-        uint256 receiver,
-        uint256 amount,
-        uint256 minReturn,
-        uint256[] calldata pools
-    ) external payable returns (uint256 returnAmount);
+    function uniswapV3SwapTo(uint256 receiver, uint256 amount, uint256 minReturn, uint256[] calldata pools)
+        external
+        payable
+        returns (uint256 returnAmount);
 
     function smartSwapTo(
         uint256 orderId,
@@ -356,7 +345,10 @@ interface IOKXDexRouter {
         uint256 minReturn,
         // solhint-disable-next-line no-unused-vars
         bytes32[] calldata pools
-    ) external payable returns (uint256 returnAmount);
+    )
+        external
+        payable
+        returns (uint256 returnAmount);
 
     function smartSwapByOrderId(
         uint256 orderId,
@@ -366,16 +358,13 @@ interface IOKXDexRouter {
         PMMSwapRequest[] calldata extraData
     ) external payable returns (uint256 returnAmount);
 
-    function dagSwapTo(
-        uint256 orderId,
-        address receiver,
-        BaseRequest calldata baseRequest,
-        RouterPath[] calldata paths
-    ) external payable returns (uint256 returnAmount);
+    function dagSwapTo(uint256 orderId, address receiver, BaseRequest calldata baseRequest, RouterPath[] calldata paths)
+        external
+        payable
+        returns (uint256 returnAmount);
 
-    function dagSwapByOrderId(
-        uint256 orderId,
-        BaseRequest calldata baseRequest,
-        RouterPath[] calldata paths
-    ) external payable returns (uint256 returnAmount);
+    function dagSwapByOrderId(uint256 orderId, BaseRequest calldata baseRequest, RouterPath[] calldata paths)
+        external
+        payable
+        returns (uint256 returnAmount);
 }

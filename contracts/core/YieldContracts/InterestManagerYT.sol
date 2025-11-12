@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../interfaces/IPYieldToken.sol";
-import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPInterestManagerYT.sol";
+import "../../interfaces/IPPrincipalToken.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
+import "../../interfaces/IPYieldToken.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../libraries/math/PMath.sol";
-import "../libraries/TokenHelper.sol";
 import "../StandardizedYield/SYUtils.sol";
+import "../libraries/TokenHelper.sol";
+import "../libraries/math/PMath.sol";
 
 /*
 With YT yielding more SYs overtime, which is allowed to be redeemed by users, the reward distribution should
@@ -40,11 +40,10 @@ abstract contract InterestManagerYT is TokenHelper, IPInterestManagerYT {
         if (user2 != address(0) && user2 != address(this)) _distributeInterestPrivate(user2, index);
     }
 
-    function _doTransferOutInterest(
-        address user,
-        address SY,
-        address factory
-    ) internal returns (uint256 interestAmount) {
+    function _doTransferOutInterest(address user, address SY, address factory)
+        internal
+        returns (uint256 interestAmount)
+    {
         address treasury = IPYieldContractFactory(factory).treasury();
         uint256 feeRate = IPYieldContractFactory(factory).interestFeeRate();
 

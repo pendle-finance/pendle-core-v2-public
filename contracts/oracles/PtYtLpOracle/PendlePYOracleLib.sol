@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IPMarket.sol";
 import "../../core/libraries/math/PMath.sol";
+import "../../interfaces/IPMarket.sol";
 
 // This library can & should be integrated directly for optimal gas usage.
-// If you prefer not to integrate it directly, the PendlePtOracle contract (a pre-deployed version of this contract) can be used.
+// If you prefer not to integrate it directly, the PendlePtOracle contract (a pre-deployed version of this contract) can
+// be used.
 library PendlePYOracleLib {
     using PMath for uint256;
     using PMath for int256;
 
     /**
      * This function returns the twap rate PT/Asset on market, but take into account the current rate of SY
-     This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
+     *  This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
      * @param market market to get rate from
      * @param duration twap duration
      */
@@ -27,7 +28,7 @@ library PendlePYOracleLib {
 
     /**
      * This function returns the twap rate YT/Asset on market, but take into account the current rate of SY
-     This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
+     *  This is to account for special cases where underlying asset becomes insolvent and has decreasing exchangeRate
      * @param market market to get rate from
      * @param duration twap duration
      */
@@ -80,7 +81,7 @@ library PendlePYOracleLib {
     }
 
     function getSYandPYIndexCurrent(IPMarket market) internal view returns (uint256 syIndex, uint256 pyIndex) {
-        (IStandardizedYield SY, , IPYieldToken YT) = market.readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = market.readTokens();
 
         syIndex = SY.exchangeRate();
         uint256 pyIndexStored = YT.pyIndexStored();
@@ -94,7 +95,7 @@ library PendlePYOracleLib {
 
     function getMarketLnImpliedRate(IPMarket market, uint32 duration) internal view returns (uint256) {
         if (duration == 0) {
-            (, , uint96 lnImpliedRate, , , ) = IPMarket(market)._storage();
+            (,, uint96 lnImpliedRate,,,) = IPMarket(market)._storage();
             return uint256(lnImpliedRate);
         }
 

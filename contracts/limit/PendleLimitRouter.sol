@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./LimitRouterBase.sol";
 import "../core/libraries/Errors.sol";
+import "./LimitRouterBase.sol";
 
 contract PendleLimitRouter is LimitRouterBase {
     using Address for address;
@@ -39,9 +39,11 @@ contract PendleLimitRouter is LimitRouterBase {
         }
     }
 
-    function orderStatusesRaw(
-        bytes32[] memory orderHashes
-    ) public view returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts) {
+    function orderStatusesRaw(bytes32[] memory orderHashes)
+        public
+        view
+        returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts)
+    {
         uint256 len = orderHashes.length;
         remainingsRaw = new uint256[](len);
         filledAmounts = new uint256[](len);
@@ -52,9 +54,11 @@ contract PendleLimitRouter is LimitRouterBase {
         }
     }
 
-    function orderStatuses(
-        bytes32[] memory orderHashes
-    ) external view returns (uint256[] memory remainings, uint256[] memory filledAmounts) {
+    function orderStatuses(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainings, uint256[] memory filledAmounts)
+    {
         (remainings, filledAmounts) = orderStatusesRaw(orderHashes);
         for (uint256 i = 0; i < remainings.length; i++) {
             require(remainings[i] != _ORDER_DOES_NOT_EXIST, "LOP: Unknown order");

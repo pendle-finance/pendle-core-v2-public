@@ -6,23 +6,23 @@ import {Errors} from "../../../core/libraries/Errors.sol";
 library ExchangeRateMsgCodec {
     uint16 public constant SEND_EXCHANGE_RATE = 1;
 
-    function encodeExchangeRateMessage(
-        address exchangeRateSource,
-        uint256 exchangeRate,
-        uint256 updatedAt
-    ) internal pure returns (uint16 msgType, bytes memory message) {
+    function encodeExchangeRateMessage(address exchangeRateSource, uint256 exchangeRate, uint256 updatedAt)
+        internal
+        pure
+        returns (uint16 msgType, bytes memory message)
+    {
         msgType = SEND_EXCHANGE_RATE;
         message = abi.encode(msgType, exchangeRateSource, exchangeRate, updatedAt);
     }
 
-    function decodeMessage(
-        bytes calldata message
-    ) internal pure returns (bytes32 exchangeRateSource, uint256 exchangeRate, uint256 updatedAt) {
+    function decodeMessage(bytes calldata message)
+        internal
+        pure
+        returns (bytes32 exchangeRateSource, uint256 exchangeRate, uint256 updatedAt)
+    {
         uint16 msgType;
-        (msgType, exchangeRateSource, exchangeRate, updatedAt) = abi.decode(
-            message,
-            (uint16, bytes32, uint256, uint256)
-        );
+        (msgType, exchangeRateSource, exchangeRate, updatedAt) =
+            abi.decode(message, (uint16, bytes32, uint256, uint256));
         if (msgType != SEND_EXCHANGE_RATE) revert Errors.InvalidMsgType();
     }
 

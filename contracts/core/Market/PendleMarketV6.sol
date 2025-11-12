@@ -6,16 +6,16 @@ import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPMarketSwapCallback.sol";
 
 import "../erc20/PendleERC20.sol";
-import "./PendleGauge.sol";
-import "./OracleLib.sol";
 import "../libraries/StringLib.sol";
+import "./OracleLib.sol";
+import "./PendleGauge.sol";
 
 /**
-Invariance to maintain:
-- Internal balances totalPt & totalSy not interfered by people transferring tokens in directly
-- address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
-    guaranteed by address(0) & address(this) check in each updateForTwo function
-*/
+ * Invariance to maintain:
+ * - Internal balances totalPt & totalSy not interfered by people transferring tokens in directly
+ * - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
+ *     guaranteed by address(0) & address(this) check in each updateForTwo function
+ */
 contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     using PMath for uint256;
     using PMath for int256;
@@ -23,7 +23,7 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     using SafeERC20 for IERC20;
     using PYIndexLib for IPYieldToken;
     using PYIndexLib for PYIndex;
-    using OracleLib for OracleLib.Observation[65535];
+    using OracleLib for OracleLib.Observation[65_535];
     using StringLib for string;
     using StringLib for StringLib.slice;
 
@@ -59,7 +59,7 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
 
     MarketStorage public _storage;
 
-    OracleLib.Observation[65535] public observations;
+    OracleLib.Observation[65_535] public observations;
 
     modifier notExpired() {
         if (isExpired()) revert Errors.MarketExpired();
@@ -81,9 +81,8 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
         SY = IStandardizedYield(PT.SY());
         YT = IPYieldToken(PT.YT());
 
-        (_storage.observationCardinality, _storage.observationCardinalityNext) = observations.initialize(
-            uint32(block.timestamp)
-        );
+        (_storage.observationCardinality, _storage.observationCardinalityNext) =
+            observations.initialize(uint32(block.timestamp));
 
         if (_scalarRoot <= 0) revert Errors.MarketScalarRootBelowZero(_scalarRoot);
 
@@ -110,21 +109,18 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
      * @dev PT and SY should be transferred to this contract prior to calling
      * @dev will revert if PT is expired
      */
-    function mint(
-        address receiver,
-        uint256 netSyDesired,
-        uint256 netPtDesired
-    ) external nonReentrant notExpired returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed) {
+    function mint(address receiver, uint256 netSyDesired, uint256 netPtDesired)
+        external
+        nonReentrant
+        notExpired
+        returns (uint256 netLpOut, uint256 netSyUsed, uint256 netPtUsed)
+    {
         MarketState memory market = readState(msg.sender);
         PYIndex index = YT.newIndex();
 
         uint256 lpToReserve;
 
-        (lpToReserve, netLpOut, netSyUsed, netPtUsed) = market.addLiquidity(
-            netSyDesired,
-            netPtDesired,
-            block.timestamp
-        );
+        (lpToReserve, netLpOut, netSyUsed, netPtUsed) = market.addLiquidity(netSyDesired, netPtDesired, block.timestamp);
 
         // initializing the market
         if (lpToReserve != 0) {
@@ -136,10 +132,12 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
 
         _writeState(market);
 
-        if (_selfBalance(SY) < market.totalSy.Uint())
+        if (_selfBalance(SY) < market.totalSy.Uint()) {
             revert Errors.MarketInsufficientSyReceived(_selfBalance(SY), market.totalSy.Uint());
-        if (_selfBalance(PT) < market.totalPt.Uint())
+        }
+        if (_selfBalance(PT) < market.totalPt.Uint()) {
             revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
+        }
 
         emit Mint(receiver, netLpOut, netSyUsed, netPtUsed);
     }
@@ -148,11 +146,11 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
      * @notice LP Holders can burn their LP to receive back SY & PT proportionally
      * to their share of the market
      */
-    function burn(
-        address receiverSy,
-        address receiverPt,
-        uint256 netLpToBurn
-    ) external nonReentrant returns (uint256 netSyOut, uint256 netPtOut) {
+    function burn(address receiverSy, address receiverPt, uint256 netLpToBurn)
+        external
+        nonReentrant
+        returns (uint256 netSyOut, uint256 netPtOut)
+    {
         MarketState memory market = readState(msg.sender);
 
         _burn(address(this), netLpToBurn);
@@ -171,18 +169,19 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
      * @notice Pendle Market allows swaps between PT & SY it is holding. This function
      * aims to swap an exact amount of PT to SY.
      * @dev steps working of this contract
-       - The outcome amount of SY will be precomputed by MarketMathLib
-       - Release the calculated amount of SY to receiver
-       - Callback to msg.sender if data.length > 0
-       - Ensure exactPtIn amount of PT has been transferred to this address
+     *    - The outcome amount of SY will be precomputed by MarketMathLib
+     *    - Release the calculated amount of SY to receiver
+     *    - Callback to msg.sender if data.length > 0
+     *    - Ensure exactPtIn amount of PT has been transferred to this address
      * @dev will revert if PT is expired
      * @param data bytes data to be sent in the callback (if any)
      */
-    function swapExactPtForSy(
-        address receiver,
-        uint256 exactPtIn,
-        bytes calldata data
-    ) external nonReentrant notExpired returns (uint256 netSyOut, uint256 netSyFee) {
+    function swapExactPtForSy(address receiver, uint256 exactPtIn, bytes calldata data)
+        external
+        nonReentrant
+        notExpired
+        returns (uint256 netSyOut, uint256 netSyFee)
+    {
         MarketState memory market = readState(msg.sender);
         PYIndex index = YT.newIndex();
 
@@ -198,8 +197,9 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
             IPMarketSwapCallback(msg.sender).swapCallback(exactPtIn.neg(), netSyOut.Int(), data);
         }
 
-        if (_selfBalance(PT) < market.totalPt.Uint())
+        if (_selfBalance(PT) < market.totalPt.Uint()) {
             revert Errors.MarketInsufficientPtReceived(_selfBalance(PT), market.totalPt.Uint());
+        }
 
         if (index.syToAsset(netSyFee - netSyToReserve) == 0) {
             revert Errors.MarketZeroNetLPFee();
@@ -212,17 +212,18 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
      * @notice Pendle Market allows swaps between PT & SY it is holding. This function
      * aims to swap SY for an exact amount of PT.
      * @dev steps working of this function
-       - The exact outcome amount of PT will be transferred to receiver
-       - Callback to msg.sender if data.length > 0
-       - Ensure the calculated required amount of SY is transferred to this address
+     *    - The exact outcome amount of PT will be transferred to receiver
+     *    - Callback to msg.sender if data.length > 0
+     *    - Ensure the calculated required amount of SY is transferred to this address
      * @dev will revert if PT is expired
      * @param data bytes data to be sent in the callback (if any)
      */
-    function swapSyForExactPt(
-        address receiver,
-        uint256 exactPtOut,
-        bytes calldata data
-    ) external nonReentrant notExpired returns (uint256 netSyIn, uint256 netSyFee) {
+    function swapSyForExactPt(address receiver, uint256 exactPtOut, bytes calldata data)
+        external
+        nonReentrant
+        notExpired
+        returns (uint256 netSyIn, uint256 netSyFee)
+    {
         MarketState memory market = readState(msg.sender);
 
         PYIndex index = YT.newIndex();
@@ -240,8 +241,9 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
         }
 
         // have received enough SY
-        if (_selfBalance(SY) < market.totalSy.Uint())
+        if (_selfBalance(SY) < market.totalSy.Uint()) {
             revert Errors.MarketInsufficientSyReceived(_selfBalance(SY), market.totalSy.Uint());
+        }
 
         if (index.syToAsset(netSyFee - netSyToReserve) == 0) {
             revert Errors.MarketZeroNetLPFee();
@@ -277,14 +279,13 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     //////////////////////////////////////////////////////////////*/
 
     function observe(uint32[] memory secondsAgos) external view returns (uint216[] memory lnImpliedRateCumulative) {
-        return
-            observations.observe(
-                uint32(block.timestamp),
-                secondsAgos,
-                _storage.lastLnImpliedRate,
-                _storage.observationIndex,
-                _storage.observationCardinality
-            );
+        return observations.observe(
+            uint32(block.timestamp),
+            secondsAgos,
+            _storage.lastLnImpliedRate,
+            _storage.observationIndex,
+            _storage.observationCardinality
+        );
     }
 
     function increaseObservationsCardinalityNext(uint16 cardinalityNext) external nonReentrant {
@@ -310,10 +311,8 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
 
         uint80 overriddenFee;
 
-        (market.treasury, overriddenFee, market.reserveFeePercent) = IPMarketFactory(factory).getMarketConfig(
-            address(this),
-            router
-        );
+        (market.treasury, overriddenFee, market.reserveFeePercent) =
+            IPMarketFactory(factory).getMarketConfig(address(this), router);
 
         market.lnFeeRateRoot = overriddenFee == 0 ? lnFeeRateRoot : overriddenFee;
         market.scalarRoot = scalarRoot;
@@ -380,11 +379,10 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     }
 
     // solhint-disable-next-line ordering
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal override(PendleERC20, PendleGauge) {
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal
+        override(PendleERC20, PendleGauge)
+    {
         PendleGauge._beforeTokenTransfer(from, to, amount);
     }
 

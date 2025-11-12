@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendleGaugeControllerBaseUpg.sol";
 import "../CrossChainMsg/PendleMsgReceiverAppUpg.sol";
+import "./PendleGaugeControllerBaseUpg.sol";
 
 // solhint-disable no-empty-blocks
 
@@ -17,12 +17,7 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Pend
         address _PendleMsgReceiveEndpointUpg
     )
         PendleGaugeControllerBaseUpg(
-            _pendle,
-            _marketFactory,
-            _marketFactory2,
-            _marketFactory3,
-            _marketFactory4,
-            _marketFactory5
+            _pendle, _marketFactory, _marketFactory2, _marketFactory3, _marketFactory4, _marketFactory5
         )
         PendleMsgReceiverAppUpg(_PendleMsgReceiveEndpointUpg)
     {
@@ -34,10 +29,8 @@ contract PendleGaugeControllerSidechainUpg is PendleGaugeControllerBaseUpg, Pend
     }
 
     function _executeMessage(bytes memory message) internal virtual override {
-        (uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) = abi.decode(
-            message,
-            (uint128, address[], uint256[])
-        );
+        (uint128 wTime, address[] memory markets, uint256[] memory pendleAmounts) =
+            abi.decode(message, (uint128, address[], uint256[]));
         _receiveVotingResults(wTime, markets, pendleAmounts);
     }
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../interfaces/IPActionCallbackV3.sol";
 import "../core/libraries/Errors.sol";
+import "../interfaces/IPActionCallbackV3.sol";
 import "./base/CallbackHelper.sol";
 
 import "../core/libraries/TokenHelper.sol";
@@ -28,12 +28,7 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
         }
     }
 
-    function limitRouterCallback(
-        uint256 actualMaking,
-        uint256 actualTaking,
-        uint256 totalFee,
-        bytes memory data
-    )
+    function limitRouterCallback(uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory data)
         external
         returns (
             bytes memory // encode as netTransferToLimit, netOutputFromLimit
@@ -44,10 +39,8 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
             return abi.encode(0, 0);
         }
 
-        (OrderType orderType, IPYieldToken YT, uint256 netRemaining, address receiver) = abi.decode(
-            data,
-            (OrderType, IPYieldToken, uint256, address)
-        );
+        (OrderType orderType, IPYieldToken YT, uint256 netRemaining, address receiver) =
+            abi.decode(data, (OrderType, IPYieldToken, uint256, address));
 
         if (orderType == OrderType.SY_FOR_PT || orderType == OrderType.SY_FOR_YT) {
             PYIndex index = YT.newIndex();
@@ -92,7 +85,14 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
         }
     }
 
-    function _callbackSwapExactSyForYt(int256 ptToAccount, int256, /*syToAccount*/ bytes calldata data) internal {
+    function _callbackSwapExactSyForYt(
+        int256 ptToAccount,
+        int256,
+        /*syToAccount*/
+        bytes calldata data
+    )
+        internal
+    {
         (address receiver, IPYieldToken YT) = _decodeSwapExactSyForYt(data);
 
         uint256 ptOwed = ptToAccount.abs();
@@ -116,7 +116,14 @@ contract ActionCallbackV3 is IPLimitOrderType, IPActionCallbackV3, CallbackHelpe
         YT.redeemPYMulti(receivers, amountPYToRedeems);
     }
 
-    function _callbackSwapExactPtForYt(int256 ptToAccount, int256, /*syToAccount*/ bytes calldata data) internal {
+    function _callbackSwapExactPtForYt(
+        int256 ptToAccount,
+        int256,
+        /*syToAccount*/
+        bytes calldata data
+    )
+        internal
+    {
         (address receiver, uint256 exactPtIn, uint256 minYtOut, IPYieldToken YT) = _decodeSwapExactPtForYt(data);
         uint256 netPtOwed = ptToAccount.abs();
 

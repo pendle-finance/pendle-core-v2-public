@@ -26,10 +26,6 @@ interface IPGovernanceProxy {
 
     function modifySelectorAdmin(address addr, bytes4[] memory selectors, bool[] memory isAdmins) external;
 
-    function modifyScopedAccess(
-        address caller,
-        address[] memory targets,
-        bytes4 selector,
-        bool[] memory accesses
-    ) external;
+    function modifyScopedAccess(address caller, address[] memory targets, bytes4 selector, bool[] memory accesses)
+        external;
 }

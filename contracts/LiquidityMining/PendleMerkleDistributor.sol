@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IPMerkleDistributor.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, BoringOwnableUpgradeableV2, TokenHelper {
     address public immutable token;
@@ -26,11 +26,10 @@ contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, Boring
         __BoringOwnableV2_init(_owner);
     }
 
-    function claim(
-        address receiver,
-        uint256 totalAccrued,
-        bytes32[] calldata proof
-    ) external returns (uint256 amountOut) {
+    function claim(address receiver, uint256 totalAccrued, bytes32[] calldata proof)
+        external
+        returns (uint256 amountOut)
+    {
         address user = msg.sender;
         if (!_verifyMerkleData(user, totalAccrued, proof)) revert InvalidMerkleProof();
 
@@ -57,11 +56,10 @@ contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, Boring
         emit Claimed(user, receiver, amountOut);
     }
 
-    function verify(
-        address user,
-        uint256 totalAccrued,
-        bytes32[] calldata proof
-    ) external returns (uint256 amountClaimable) {
+    function verify(address user, uint256 totalAccrued, bytes32[] calldata proof)
+        external
+        returns (uint256 amountClaimable)
+    {
         if (!_verifyMerkleData(user, totalAccrued, proof)) revert InvalidMerkleProof();
         amountClaimable = totalAccrued - claimed[user];
         verified[user] = totalAccrued;

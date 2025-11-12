@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../core/erc20/PendleERC20.sol";
 import "../core/libraries/TokenHelper.sol";
-import "../interfaces/IPMarket.sol";
-import "../interfaces/IPLPWrapperFactory.sol";
 import "../interfaces/ILPWrapper.sol";
+import "../interfaces/IPLPWrapperFactory.sol";
+import "../interfaces/IPMarket.sol";
 
 contract PendleLPWrapper is PendleERC20, TokenHelper, ILPWrapper {
     address public immutable LP;
@@ -32,7 +32,16 @@ contract PendleLPWrapper is PendleERC20, TokenHelper, ILPWrapper {
         _transferOut(LP, receiver, netWrapIn);
     }
 
-    function _beforeTokenTransfer(address /*from*/, address /*to*/, uint256 /*amount*/) internal override {
+    function _beforeTokenTransfer(
+        address,
+        /*from*/
+        address,
+        /*to*/
+        uint256 /*amount*/
+    )
+        internal
+        override
+    {
         if (!isRewardRedemptionDisabled) {
             IPMarket(LP).redeemRewards(address(this));
         }

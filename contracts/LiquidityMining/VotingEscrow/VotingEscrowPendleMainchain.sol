@@ -7,11 +7,11 @@ import "../../interfaces/IPVotingEscrowMainchain.sol";
 
 import "../libraries/VeHistoryLib.sol";
 
-import "../../core/libraries/MiniHelpers.sol";
 import "../../core/libraries/Errors.sol";
+import "../../core/libraries/MiniHelpers.sol";
 
-import "./VotingEscrowTokenBase.sol";
 import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
+import "./VotingEscrowTokenBase.sol";
 
 contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMainchain, PendleMsgSenderAppUpg {
     using SafeERC20 for IERC20;
@@ -40,11 +40,10 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
     // to ask for their vePendle balance at any wTime
     mapping(address => Checkpoints.History) internal userHistory;
 
-    constructor(
-        IERC20 _pendle,
-        address _pendleMsgSendEndpoint,
-        uint256 initialApproxDestinationGas
-    ) initializer PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) {
+    constructor(IERC20 _pendle, address _pendleMsgSendEndpoint, uint256 initialApproxDestinationGas)
+        initializer
+        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas)
+    {
         pendle = _pendle;
         lastSlopeChangeAppliedAt = WeekMath.getCurrentWeekStart();
         __BoringOwnableV2_init(msg.sender);
@@ -70,10 +69,10 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
      * @dev See `_increasePosition()` for details on inner workings.
      * @dev Sidechain broadcasting is not bundled since it can be done anytime after.
      */
-    function increaseLockPosition(
-        uint128 additionalAmountToLock,
-        uint128 newExpiry
-    ) public returns (uint128 newVeBalance) {
+    function increaseLockPosition(uint128 additionalAmountToLock, uint128 newExpiry)
+        public
+        returns (uint128 newVeBalance)
+    {
         address user = msg.sender;
 
         if (!WeekMath.isValidWTime(newExpiry)) revert Errors.InvalidWTime(newExpiry);
@@ -123,7 +122,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
      * @dev See `broadcastTotalSupply()` and `broadcastUserPosition()` for broadcasting
      */
     function totalSupplyCurrent() public virtual override(IPVeToken, VotingEscrowTokenBase) returns (uint128) {
-        (VeBalance memory supply, ) = _applySlopeChange();
+        (VeBalance memory supply,) = _applySlopeChange();
         return supply.getCurrentValue();
     }
 
@@ -166,14 +165,13 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
      * @dev works by simply removing the old position from all relevant data (as if the user has
      * never locked) and then add in the new position
      */
-    function _increasePosition(
-        address user,
-        uint128 amountToIncrease,
-        uint128 durationToIncrease
-    ) internal returns (uint128) {
+    function _increasePosition(address user, uint128 amountToIncrease, uint128 durationToIncrease)
+        internal
+        returns (uint128)
+    {
         LockedPosition memory oldPosition = positionData[user];
 
-        (VeBalance memory newSupply, ) = _applySlopeChange();
+        (VeBalance memory newSupply,) = _applySlopeChange();
 
         if (!MiniHelpers.isCurrentlyExpired(oldPosition.expiry)) {
             // remove old position not yet expired
@@ -182,10 +180,8 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
             slopeChanges[oldPosition.expiry] -= oldBalance.slope;
         }
 
-        LockedPosition memory newPosition = LockedPosition(
-            oldPosition.amount + amountToIncrease,
-            oldPosition.expiry + durationToIncrease
-        );
+        LockedPosition memory newPosition =
+            LockedPosition(oldPosition.amount + amountToIncrease, oldPosition.expiry + durationToIncrease);
 
         VeBalance memory newBalance = newPosition.convertToVeBalance();
         // add new position
@@ -227,7 +223,7 @@ contract VotingEscrowPendleMainchain is VotingEscrowTokenBase, IPVotingEscrowMai
     function _broadcastPosition(address user, uint256[] calldata chainIds) internal {
         if (chainIds.length == 0) revert Errors.ArrayEmpty();
 
-        (VeBalance memory supply, ) = _applySlopeChange();
+        (VeBalance memory supply,) = _applySlopeChange();
 
         bytes memory userData = (user == address(0) ? EMPTY_BYTES : abi.encode(user, positionData[user]));
 

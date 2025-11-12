@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../../core/libraries/math/PMath.sol";
 import "../../../core/Market/MarketMathCore.sol";
+import "../../../core/libraries/math/PMath.sol";
 import {ApproxParams} from "../../../interfaces/IPAllActionTypeV3.sol";
 
-/// Further explanation of the eps. Take swapExactSyForPt for example. To calc the corresponding amount of Pt to swap out,
-/// it's necessary to run an approximation algorithm, because by default there only exists the Pt to Sy formula
+/// Further explanation of the eps. Take swapExactSyForPt for example. To calc the corresponding amount of Pt to swap
+/// out, it's necessary to run an approximation algorithm, because by default there only exists the Pt to Sy formula
 /// To approx, the 5 values above will have to be provided, and the approx process will run as follows:
 /// mid = (guessMin + guessMax) / 2 // mid here is the current guess of the amount of Pt out
 /// netSyNeed = calcSwapSyForExactPt(mid)
 /// if (netSyNeed > exactSyIn) guessMax = mid - 1 // since the maximum Sy in can't exceed the exactSyIn
 /// else guessMin = mid (1)
 /// For the (1), since netSyNeed <= exactSyIn, the result might be usable. If the netSyNeed is within eps of
-/// exactSyIn (ex eps=0.1% => we have used 99.9% the amount of Sy specified), mid will be chosen as the final guess result
+/// exactSyIn (ex eps=0.1% => we have used 99.9% the amount of Sy specified), mid will be chosen as the final guess
+/// result
 
 /// for guessOffchain, this is to provide a shortcut to guessing. The offchain SDK can precalculate the exact result
-/// before the tx is sent. When the tx reaches the contract, the guessOffchain will be checked first, and if it satisfies the
-/// approximation, it will be used (and save all the guessing). It's expected that this shortcut will be used in most cases
+/// before the tx is sent. When the tx reaches the contract, the guessOffchain will be checked first, and if it
+/// satisfies the approximation, it will be used (and save all the guessing). It's expected that this shortcut will be
+/// used in most cases
 /// except in cases that there is a trade in the same market right before the tx
 
 library MarketApproxPtInLibV1 {
@@ -40,7 +42,15 @@ library MarketApproxPtInLibV1 {
         uint256 minSyOut,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtIn*/ uint256, /*netSyOut*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtIn*/
+            uint256, /*netSyOut*/
+            uint256 /*netSyFee*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -50,7 +60,7 @@ library MarketApproxPtInLibV1 {
 
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
-            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
+            (uint256 netSyOut, uint256 netSyFee,) = calcSyOut(market, comp, index, guess);
 
             if (netSyOut >= minSyOut) {
                 if (PMath.isAGreaterApproxB(netSyOut, minSyOut, approx.eps)) {
@@ -79,7 +89,15 @@ library MarketApproxPtInLibV1 {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtOut*/ uint256 /*netSyFee*/, uint256 /*iter*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netYtOut*/
+            uint256, /*netSyFee*/
+            uint256 /*iter*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             approx.guessMin = PMath.max(approx.guessMin, index.syToAsset(exactSyIn));
@@ -92,7 +110,7 @@ library MarketApproxPtInLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
+            (uint256 netSyOut, uint256 netSyFee,) = calcSyOut(market, comp, index, guess);
 
             uint256 netSyToTokenizePt = index.assetToSyUp(guess);
 
@@ -135,7 +153,16 @@ library MarketApproxPtInLibV1 {
         uint256 _netSyHolding,
         uint256 _blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtSwap*/ uint256, /*netSyFromSwap*/ uint256, /*netSyFee*/ uint256 /*iter*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtSwap*/
+            uint256, /*netSyFromSwap*/
+            uint256, /*netSyFee*/
+            uint256 /*iter*/
+        )
+    {
         Args5 memory a = Args5(_market, _index, _totalPtIn, _netSyHolding, _blockTime, approx);
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
         if (approx.guessOffchain == 0) {
@@ -149,14 +176,8 @@ library MarketApproxPtInLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee, ) = calcNumerators(
-                a.market,
-                a.index,
-                a.totalPtIn,
-                a.netSyHolding,
-                comp,
-                guess
-            );
+            (uint256 syNumerator, uint256 ptNumerator, uint256 netSyOut, uint256 netSyFee,) =
+                calcNumerators(a.market, a.index, a.totalPtIn, a.netSyHolding, comp, guess);
 
             if (PMath.isAApproxB(syNumerator, ptNumerator, approx.eps)) {
                 return (guess, netSyOut, netSyFee, iter);
@@ -214,7 +235,15 @@ library MarketApproxPtInLibV1 {
         uint256 exactPtIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtOut*/ uint256, /*totalPtToSwap*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netYtOut*/
+            uint256, /*totalPtToSwap*/
+            uint256 /*netSyFee*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             approx.guessMin = PMath.max(approx.guessMin, exactPtIn);
@@ -225,7 +254,7 @@ library MarketApproxPtInLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 netSyOut, uint256 netSyFee, ) = calcSyOut(market, comp, index, guess);
+            (uint256 netSyOut, uint256 netSyFee,) = calcSyOut(market, comp, index, guess);
 
             uint256 netAssetOut = index.syToAsset(netSyOut);
 
@@ -246,12 +275,11 @@ library MarketApproxPtInLibV1 {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    function calcSyOut(
-        MarketState memory market,
-        MarketPreCompute memory comp,
-        PYIndex index,
-        uint256 netPtIn
-    ) internal pure returns (uint256 netSyOut, uint256 netSyFee, uint256 netSyToReserve) {
+    function calcSyOut(MarketState memory market, MarketPreCompute memory comp, PYIndex index, uint256 netPtIn)
+        internal
+        pure
+        returns (uint256 netSyOut, uint256 netSyFee, uint256 netSyToReserve)
+    {
         (int256 _netSyOut, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(comp, index, -int256(netPtIn));
         netSyOut = uint256(_netSyOut);
         netSyFee = uint256(_netSyFee);
@@ -323,7 +351,15 @@ library MarketApproxPtOutLibV1 {
         uint256 exactSyIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtOut*/ uint256 /*netSyFee*/, uint256 /*iter*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtOut*/
+            uint256, /*netSyFee*/
+            uint256 /*iter*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -334,7 +370,7 @@ library MarketApproxPtOutLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 netSyIn, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
+            (uint256 netSyIn, uint256 netSyFee,) = calcSyIn(market, comp, index, guess);
 
             if (netSyIn <= exactSyIn) {
                 if (PMath.isASmallerApproxB(netSyIn, exactSyIn, approx.eps)) {
@@ -363,7 +399,15 @@ library MarketApproxPtOutLibV1 {
         uint256 minSyOut,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netYtIn*/ uint256, /*netSyOut*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netYtIn*/
+            uint256, /*netSyOut*/
+            uint256 /*netSyFee*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             // no limit on min
@@ -374,7 +418,7 @@ library MarketApproxPtOutLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
+            (uint256 netSyOwed, uint256 netSyFee,) = calcSyIn(market, comp, index, guess);
 
             uint256 netAssetToRepay = index.syToAssetUp(netSyOwed);
             uint256 netSyOut = index.assetToSy(guess - netAssetToRepay);
@@ -415,7 +459,16 @@ library MarketApproxPtOutLibV1 {
         uint256 _netPtHolding,
         uint256 _blockTime,
         ApproxParams memory _approx
-    ) internal pure returns (uint256, /*netPtFromSwap*/ uint256, /*netSySwap*/ uint256, /*netSyFee*/ uint256 /*iter*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtFromSwap*/
+            uint256, /*netSySwap*/
+            uint256, /*netSyFee*/
+            uint256 /*iter*/
+        )
+    {
         Args6 memory a = Args6(_market, _index, _totalSyIn, _netPtHolding, _blockTime, _approx);
 
         MarketPreCompute memory comp = a.market.getMarketPreCompute(a.index, a.blockTime);
@@ -482,7 +535,15 @@ library MarketApproxPtOutLibV1 {
         uint256 exactYtIn,
         uint256 blockTime,
         ApproxParams memory approx
-    ) internal pure returns (uint256, /*netPtOut*/ uint256, /*totalPtSwapped*/ uint256 /*netSyFee*/) {
+    )
+        internal
+        pure
+        returns (
+            uint256, /*netPtOut*/
+            uint256, /*totalPtSwapped*/
+            uint256 /*netSyFee*/
+        )
+    {
         MarketPreCompute memory comp = market.getMarketPreCompute(index, blockTime);
         if (approx.guessOffchain == 0) {
             approx.guessMin = PMath.max(approx.guessMin, exactYtIn);
@@ -493,7 +554,7 @@ library MarketApproxPtOutLibV1 {
         for (uint256 iter = 0; iter < approx.maxIteration; ++iter) {
             uint256 guess = nextGuess(approx, iter);
 
-            (uint256 netSyOwed, uint256 netSyFee, ) = calcSyIn(market, comp, index, guess);
+            (uint256 netSyOwed, uint256 netSyFee,) = calcSyIn(market, comp, index, guess);
 
             uint256 netYtToPull = index.syToAssetUp(netSyOwed);
 
@@ -511,12 +572,11 @@ library MarketApproxPtOutLibV1 {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    function calcSyIn(
-        MarketState memory market,
-        MarketPreCompute memory comp,
-        PYIndex index,
-        uint256 netPtOut
-    ) internal pure returns (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve) {
+    function calcSyIn(MarketState memory market, MarketPreCompute memory comp, PYIndex index, uint256 netPtOut)
+        internal
+        pure
+        returns (uint256 netSyIn, uint256 netSyFee, uint256 netSyToReserve)
+    {
         (int256 _netSyIn, int256 _netSyFee, int256 _netSyToReserve) = market.calcTrade(comp, index, int256(netPtOut));
 
         // all safe since totalPt and totalSy is int128

@@ -36,11 +36,10 @@ interface IAugustusV6 {
         bytes pools;
     }
 
-    function swapExactAmountInOnUniswapV2(
-        UniswapV2Data calldata uniData,
-        uint256 partnerAndFee,
-        bytes calldata permit
-    ) external payable returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
+    function swapExactAmountInOnUniswapV2(UniswapV2Data calldata uniData, uint256 partnerAndFee, bytes calldata permit)
+        external
+        payable
+        returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
 
     // ============ UniswapV3 Swap ============
     struct UniswapV3Data {
@@ -54,11 +53,10 @@ interface IAugustusV6 {
         bytes pools;
     }
 
-    function swapExactAmountInOnUniswapV3(
-        UniswapV3Data calldata uniData,
-        uint256 partnerAndFee,
-        bytes calldata permit
-    ) external payable returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
+    function swapExactAmountInOnUniswapV3(UniswapV3Data calldata uniData, uint256 partnerAndFee, bytes calldata permit)
+        external
+        payable
+        returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
 
     // ============ BalancerV2 Swap ============
     struct BalancerV2Data {
@@ -89,11 +87,10 @@ interface IAugustusV6 {
         address payable beneficiary;
     }
 
-    function swapExactAmountInOnCurveV1(
-        CurveV1Data calldata curveV1Data,
-        uint256 partnerAndFee,
-        bytes calldata permit
-    ) external payable returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
+    function swapExactAmountInOnCurveV1(CurveV1Data calldata curveV1Data, uint256 partnerAndFee, bytes calldata permit)
+        external
+        payable
+        returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
 
     // ============ CurveV2 Swap ============
     struct CurveV2Data {
@@ -110,11 +107,10 @@ interface IAugustusV6 {
         address payable beneficiary;
     }
 
-    function swapExactAmountInOnCurveV2(
-        CurveV2Data calldata curveV2Data,
-        uint256 partnerAndFee,
-        bytes calldata permit
-    ) external payable returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
+    function swapExactAmountInOnCurveV2(CurveV2Data calldata curveV2Data, uint256 partnerAndFee, bytes calldata permit)
+        external
+        payable
+        returns (uint256 receivedAmount, uint256 paraswapShare, uint256 partnerShare);
 
     // ============ MakerPSM Swap ============
     struct MakerPSMData {
@@ -130,17 +126,17 @@ interface IAugustusV6 {
         uint256 beneficiaryDirectionApproveFlag;
     }
 
-    function swapExactAmountInOutOnMakerPSM(
-        MakerPSMData calldata makerPSMData,
-        bytes calldata permit
-    ) external returns (uint256 spentAmount, uint256 receivedAmount);
+    function swapExactAmountInOutOnMakerPSM(MakerPSMData calldata makerPSMData, bytes calldata permit)
+        external
+        returns (uint256 spentAmount, uint256 receivedAmount);
 }
 
 contract ParaswapScaleHelper {
-    function _paraswapScaling(
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal pure returns (bytes memory scaledCallData) {
+    function _paraswapScaling(bytes calldata rawCallData, uint256 amountIn)
+        internal
+        pure
+        returns (bytes memory scaledCallData)
+    {
         bytes4 selector = bytes4(rawCallData[:4]);
         bytes calldata dataToDecode = rawCallData[4:];
 
@@ -163,10 +159,8 @@ contract ParaswapScaleHelper {
         }
         // Handle UniswapV2
         else if (selector == IAugustusV6.swapExactAmountInOnUniswapV2.selector) {
-            (IAugustusV6.UniswapV2Data memory uniData, uint256 partnerAndFee, bytes memory permit) = abi.decode(
-                dataToDecode,
-                (IAugustusV6.UniswapV2Data, uint256, bytes)
-            );
+            (IAugustusV6.UniswapV2Data memory uniData, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (IAugustusV6.UniswapV2Data, uint256, bytes));
 
             // Direct scaling calculation
             uniData.toAmount = (uniData.toAmount * amountIn) / uniData.fromAmount;
@@ -177,10 +171,8 @@ contract ParaswapScaleHelper {
         }
         // Handle UniswapV3
         else if (selector == IAugustusV6.swapExactAmountInOnUniswapV3.selector) {
-            (IAugustusV6.UniswapV3Data memory uniV3Data, uint256 partnerAndFee, bytes memory permit) = abi.decode(
-                dataToDecode,
-                (IAugustusV6.UniswapV3Data, uint256, bytes)
-            );
+            (IAugustusV6.UniswapV3Data memory uniV3Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (IAugustusV6.UniswapV3Data, uint256, bytes));
 
             // Direct scaling calculation
             uniV3Data.toAmount = (uniV3Data.toAmount * amountIn) / uniV3Data.fromAmount;
@@ -207,10 +199,8 @@ contract ParaswapScaleHelper {
         }
         // Handle CurveV1
         else if (selector == IAugustusV6.swapExactAmountInOnCurveV1.selector) {
-            (IAugustusV6.CurveV1Data memory curveV1Data, uint256 partnerAndFee, bytes memory permit) = abi.decode(
-                dataToDecode,
-                (IAugustusV6.CurveV1Data, uint256, bytes)
-            );
+            (IAugustusV6.CurveV1Data memory curveV1Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (IAugustusV6.CurveV1Data, uint256, bytes));
 
             // Direct scaling calculation
             curveV1Data.toAmount = (curveV1Data.toAmount * amountIn) / curveV1Data.fromAmount;
@@ -221,10 +211,8 @@ contract ParaswapScaleHelper {
         }
         // Handle CurveV2
         else if (selector == IAugustusV6.swapExactAmountInOnCurveV2.selector) {
-            (IAugustusV6.CurveV2Data memory curveV2Data, uint256 partnerAndFee, bytes memory permit) = abi.decode(
-                dataToDecode,
-                (IAugustusV6.CurveV2Data, uint256, bytes)
-            );
+            (IAugustusV6.CurveV2Data memory curveV2Data, uint256 partnerAndFee, bytes memory permit) =
+                abi.decode(dataToDecode, (IAugustusV6.CurveV2Data, uint256, bytes));
 
             // Direct scaling calculation
             curveV2Data.toAmount = (curveV2Data.toAmount * amountIn) / curveV2Data.fromAmount;
@@ -235,10 +223,8 @@ contract ParaswapScaleHelper {
         }
         // Handle MakerPSM
         else if (selector == IAugustusV6.swapExactAmountInOutOnMakerPSM.selector) {
-            (IAugustusV6.MakerPSMData memory makerPSMData, bytes memory permit) = abi.decode(
-                dataToDecode,
-                (IAugustusV6.MakerPSMData, bytes)
-            );
+            (IAugustusV6.MakerPSMData memory makerPSMData, bytes memory permit) =
+                abi.decode(dataToDecode, (IAugustusV6.MakerPSMData, bytes));
 
             // Direct scaling calculation
             makerPSMData.toAmount = (makerPSMData.toAmount * amountIn) / makerPSMData.fromAmount;

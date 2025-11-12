@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../interfaces/ILayerZeroEndpoint.sol";
-import "../../interfaces/IPMsgReceiverApp.sol";
-import "../../interfaces/ILayerZeroReceiver.sol";
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
-import "./libraries/LayerZeroHelper.sol";
+import "../../interfaces/ILayerZeroEndpoint.sol";
+import "../../interfaces/ILayerZeroReceiver.sol";
+import "../../interfaces/IPMsgReceiverApp.sol";
 import "./libraries/ExcessivelySafeCall.sol";
+import "./libraries/LayerZeroHelper.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /**
@@ -36,8 +36,8 @@ contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSU
      */
     modifier mustOriginateFromSendEndpoint(uint16 srcChainId, bytes memory path) {
         if (
-            sendEndpointAddr != LayerZeroHelper._getFirstAddressFromPath(path) ||
-            sendEndpointChainId != LayerZeroHelper._getOriginalChainIds(srcChainId)
+            sendEndpointAddr != LayerZeroHelper._getFirstAddressFromPath(path)
+                || sendEndpointChainId != LayerZeroHelper._getOriginalChainIds(srcChainId)
         ) revert Errors.MsgNotFromSendEndpoint(srcChainId, path);
         _;
     }
@@ -54,19 +54,17 @@ contract PendleMsgReceiveEndpointUpg is ILayerZeroReceiver, Initializable, UUPSU
         __BoringOwnableV2_init(_owner);
     }
 
-    function lzReceive(
-        uint16 _srcChainId,
-        bytes calldata _path,
-        uint64 _nonce,
-        bytes calldata _payload
-    ) external onlyLzEndpoint mustOriginateFromSendEndpoint(_srcChainId, _path) {
+    function lzReceive(uint16 _srcChainId, bytes calldata _path, uint64 _nonce, bytes calldata _payload)
+        external
+        onlyLzEndpoint
+        mustOriginateFromSendEndpoint(_srcChainId, _path)
+    {
         (address receiver, bytes memory message) = abi.decode(_payload, (address, bytes));
 
-        (bool success, bytes memory reason) = address(receiver).excessivelySafeCall(
-            gasleft(),
-            150,
-            abi.encodeWithSelector(IPMsgReceiverApp.executeMessage.selector, message)
-        );
+        (bool success, bytes memory reason) = address(receiver)
+            .excessivelySafeCall(
+                gasleft(), 150, abi.encodeWithSelector(IPMsgReceiverApp.executeMessage.selector, message)
+            );
 
         if (!success) {
             emit MessageFailed(_srcChainId, _path, _nonce, _payload, reason);

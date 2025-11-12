@@ -8,17 +8,13 @@ interface IPMerkleDistributor {
 
     error InvalidMerkleProof();
 
-    function claim(
-        address receiver,
-        uint256 totalAccrued,
-        bytes32[] calldata proof
-    ) external returns (uint256 amountOut);
+    function claim(address receiver, uint256 totalAccrued, bytes32[] calldata proof)
+        external
+        returns (uint256 amountOut);
 
     function claimVerified(address receiver) external returns (uint256 amountOut);
 
-    function verify(
-        address user,
-        uint256 totalAccrued,
-        bytes32[] calldata proof
-    ) external returns (uint256 amountVerified);
+    function verify(address user, uint256 totalAccrued, bytes32[] calldata proof)
+        external
+        returns (uint256 amountVerified);
 }
