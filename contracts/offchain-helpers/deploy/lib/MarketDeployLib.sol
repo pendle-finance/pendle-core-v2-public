@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../../core/libraries/math/PMath.sol";
 import "../../../core/libraries/math/LogExpMath.sol";
+import "../../../core/libraries/math/PMath.sol";
 
 library MarketDeployLib {
     using PMath for uint256;
@@ -11,7 +11,7 @@ library MarketDeployLib {
     using LogExpMath for int256;
 
     uint256 internal constant YEAR = 365 days;
-    uint256 internal constant LN_9 = 2197224577336219648;
+    uint256 internal constant LN_9 = 2_197_224_577_336_219_648;
 
     struct CalcParamsArgs {
         uint256 yearsToExpiry;
@@ -20,11 +20,11 @@ library MarketDeployLib {
         uint256 rateDiff;
     }
 
-    function calcParams(
-        uint256 rateMin,
-        uint256 rateMax,
-        uint256 expiry
-    ) internal view returns (uint256 scalarRoot, uint256 initialRateAnchor) {
+    function calcParams(uint256 rateMin, uint256 rateMax, uint256 expiry)
+        internal
+        view
+        returns (uint256 scalarRoot, uint256 initialRateAnchor)
+    {
         CalcParamsArgs memory args;
 
         args.yearsToExpiry = (expiry - block.timestamp).divDown(YEAR);
@@ -47,12 +47,11 @@ library MarketDeployLib {
         uint256 lnProportion;
     }
 
-    function calcInitialProportion(
-        uint256 expiry,
-        uint256 scalarRoot,
-        uint256 rateAnchor,
-        uint256 desiredImpliedRate
-    ) internal view returns (uint256 initialProportion) {
+    function calcInitialProportion(uint256 expiry, uint256 scalarRoot, uint256 rateAnchor, uint256 desiredImpliedRate)
+        internal
+        view
+        returns (uint256 initialProportion)
+    {
         CalcInitialProportionArgs memory args;
 
         args.timeToExpiry = expiry - block.timestamp;

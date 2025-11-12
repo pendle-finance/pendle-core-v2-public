@@ -16,47 +16,47 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
         return netPYToRedeem.divDown(pyIndexCurrentViewYt(YT));
     }
 
-    function mintPyFromTokenStatic(
-        address YT,
-        address tokenIn,
-        uint256 netTokenIn
-    ) external view returns (uint256 netPyOut) {
+    function mintPyFromTokenStatic(address YT, address tokenIn, uint256 netTokenIn)
+        external
+        view
+        returns (uint256 netPyOut)
+    {
         address SY = IPYieldToken(YT).SY();
         uint256 netSyReceived = mintSyFromTokenStatic(SY, tokenIn, netTokenIn);
         netPyOut = mintPyFromSyStatic(YT, netSyReceived);
     }
 
-    function redeemPyToTokenStatic(
-        address YT,
-        uint256 netPYToRedeem,
-        address tokenOut
-    ) external view returns (uint256 netTokenOut) {
+    function redeemPyToTokenStatic(address YT, uint256 netPYToRedeem, address tokenOut)
+        external
+        view
+        returns (uint256 netTokenOut)
+    {
         address SY = IPYieldToken(YT).SY();
         uint256 netSyReceived = redeemPyToSyStatic(YT, netPYToRedeem);
         netTokenOut = redeemSyToTokenStatic(SY, tokenOut, netSyReceived);
     }
 
-    function mintSyFromTokenStatic(
-        address SY,
-        address tokenIn,
-        uint256 netTokenIn
-    ) public view returns (uint256 netSyOut) {
+    function mintSyFromTokenStatic(address SY, address tokenIn, uint256 netTokenIn)
+        public
+        view
+        returns (uint256 netSyOut)
+    {
         return IStandardizedYield(SY).previewDeposit(tokenIn, netTokenIn);
     }
 
-    function redeemSyToTokenStatic(
-        address SY,
-        address tokenOut,
-        uint256 netSyIn
-    ) public view returns (uint256 netTokenOut) {
+    function redeemSyToTokenStatic(address SY, address tokenOut, uint256 netSyIn)
+        public
+        view
+        returns (uint256 netTokenOut)
+    {
         return IStandardizedYield(SY).previewRedeem(tokenOut, netSyIn);
     }
 
-    function getAmountTokenToMintSy(
-        address SY,
-        address tokenIn,
-        uint256 netSyOut
-    ) external view returns (uint256 netTokenIn) {
+    function getAmountTokenToMintSy(address SY, address tokenIn, uint256 netSyOut)
+        external
+        view
+        returns (uint256 netTokenIn)
+    {
         uint256 pivotAmount;
 
         if (tokenIn == address(0)) pivotAmount = 1e18;
@@ -96,7 +96,7 @@ contract ActionMintRedeemStatic is StorageLayout, IPActionMintRedeemStatic {
     }
 
     function pyIndexCurrentViewMarket(address market) public view returns (uint256) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (,, IPYieldToken YT) = IPMarket(market).readTokens();
         return pyIndexCurrentViewYt(address(YT));
     }
 

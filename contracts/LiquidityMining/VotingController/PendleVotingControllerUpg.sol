@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./VotingControllerStorageUpg.sol";
-import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
-import "../libraries/VeBalanceLib.sol";
 import "../../core/libraries/math/PMath.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
 import "../../interfaces/IPVotingController.sol";
+import "../CrossChainMsg/PendleMsgSenderAppUpg.sol";
+import "../libraries/VeBalanceLib.sol";
+import "./VotingControllerStorageUpg.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /*
@@ -39,18 +39,14 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     using EnumerableMap for EnumerableMap.UintToAddressMap;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    constructor(
-        address _vePendle,
-        address _pendleMsgSendEndpoint,
-        uint256 initialApproxDestinationGas
-    )
+    constructor(address _vePendle, address _pendleMsgSendEndpoint, uint256 initialApproxDestinationGas)
         VotingControllerStorageUpg(_vePendle)
-        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) // constructor only set immutable variables
+        PendleMsgSenderAppUpg(_pendleMsgSendEndpoint, initialApproxDestinationGas) // constructor only set immutable
+        // variables
         initializer
-    //solhint-disable-next-line
-    {
+        //solhint-disable-next-line
 
-    }
+    {}
 
     function initialize(address _owner) external initializer {
         __BoringOwnableV2_init(_owner);
@@ -88,8 +84,9 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
         }
 
         uint256 totalVotedWeight = userData[user].totalVotedWeight;
-        if (totalVotedWeight > VeBalanceLib.USER_VOTE_MAX_WEIGHT)
+        if (totalVotedWeight > VeBalanceLib.USER_VOTE_MAX_WEIGHT) {
             revert Errors.VCExceededMaxWeight(totalVotedWeight, VeBalanceLib.USER_VOTE_MAX_WEIGHT);
+        }
     }
 
     /**
@@ -220,11 +217,12 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
      * @notice use the gov-privilege to force broadcast a message in case there are issues with LayerZero
      * @custom:gov NOTE TO GOV: gov should always call finalizeEpoch beforehand
      */
-    function forceBroadcastResults(
-        uint64 chainId,
-        uint128 wTime,
-        uint128 forcedPendlePerSec
-    ) external payable onlyOwner refundUnusedEth {
+    function forceBroadcastResults(uint64 chainId, uint128 wTime, uint128 forcedPendlePerSec)
+        external
+        payable
+        onlyOwner
+        refundUnusedEth
+    {
         _broadcastResults(chainId, wTime, forcedPendlePerSec, globalCap);
     }
 
@@ -256,12 +254,9 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
     //////////////////////////////////////////////////////////////*/
 
     /// @notice broadcast voting results of the timestamp to chainId
-    function _broadcastResults(
-        uint64 chainId,
-        uint128 wTime,
-        uint128 totalPendlePerSec,
-        uint256 currentGlobalCap
-    ) internal {
+    function _broadcastResults(uint64 chainId, uint128 wTime, uint128 totalPendlePerSec, uint256 currentGlobalCap)
+        internal
+    {
         uint256 totalVotes = weekData[wTime].totalVotes;
         if (totalVotes == 0) return;
 
@@ -289,10 +284,8 @@ contract PendleVotingControllerUpg is PendleMsgSenderAppUpg, VotingControllerSto
 
     function _getUserVePendlePosition(address user) internal view returns (LockedPosition memory userPosition) {
         if (user == owner) {
-            (userPosition.amount, userPosition.expiry) = (
-                GOVERNANCE_PENDLE_VOTE,
-                WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME)
-            );
+            (userPosition.amount, userPosition.expiry) =
+            (GOVERNANCE_PENDLE_VOTE, WeekMath.getWeekStartTimestamp(uint128(block.timestamp) + MAX_LOCK_TIME));
         } else {
             (userPosition.amount, userPosition.expiry) = vePendle.positionData(user);
         }

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
-import "../core/libraries/TokenHelper.sol";
 import "../core/libraries/Errors.sol";
+import "../core/libraries/TokenHelper.sol";
 import "../interfaces/IPMultiTokenMerkleDistributor.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract PendleMultiTokenMerkleDistributor is
     IPMultiTokenMerkleDistributor,
@@ -31,12 +31,10 @@ contract PendleMultiTokenMerkleDistributor is
         __BoringOwnableV2_init(_owner);
     }
 
-    function claim(
-        address receiver,
-        address[] memory tokens,
-        uint256[] memory totalAccrueds,
-        bytes32[][] memory proofs
-    ) external returns (uint256[] memory amountOuts) {
+    function claim(address receiver, address[] memory tokens, uint256[] memory totalAccrueds, bytes32[][] memory proofs)
+        external
+        returns (uint256[] memory amountOuts)
+    {
         if (tokens.length != totalAccrueds.length || tokens.length != proofs.length) {
             revert Errors.ArrayLengthMismatch();
         }
@@ -76,12 +74,10 @@ contract PendleMultiTokenMerkleDistributor is
         }
     }
 
-    function verify(
-        address user,
-        address[] memory tokens,
-        uint256[] memory totalAccrueds,
-        bytes32[][] memory proofs
-    ) external returns (uint256[] memory amountClaimable) {
+    function verify(address user, address[] memory tokens, uint256[] memory totalAccrueds, bytes32[][] memory proofs)
+        external
+        returns (uint256[] memory amountClaimable)
+    {
         uint256 nToken = tokens.length;
         amountClaimable = new uint256[](nToken);
 
@@ -94,12 +90,11 @@ contract PendleMultiTokenMerkleDistributor is
         }
     }
 
-    function _verifyMerkleData(
-        address token,
-        address user,
-        uint256 amount,
-        bytes32[] memory proof
-    ) internal view returns (bool) {
+    function _verifyMerkleData(address token, address user, uint256 amount, bytes32[] memory proof)
+        internal
+        view
+        returns (bool)
+    {
         bytes32 leaf = keccak256(abi.encodePacked(token, user, amount));
         return MerkleProof.verify(proof, merkleRoot, leaf);
     }

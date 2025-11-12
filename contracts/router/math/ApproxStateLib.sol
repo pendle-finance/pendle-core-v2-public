@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {ApproxParams} from "../../interfaces/IPAllActionTypeV3.sol";
 import {PMath} from "../../core/libraries/math/PMath.sol";
+import {ApproxParams} from "../../interfaces/IPAllActionTypeV3.sol";
 
 enum ApproxStage {
     INITIAL,
@@ -46,38 +46,39 @@ library ApproxStateLib {
 
     function initWithOffchain(ApproxParams memory approx) internal pure returns (ApproxState memory) {
         if (approx.guessMin > approx.guessOffchain || approx.guessOffchain > approx.guessMax || approx.eps > PMath.ONE)
+        {
             revert("Internal: INVALID_APPROX_PARAMS");
-        return
-            ApproxState({
-                stage: ApproxStage.RESULT_FINDING,
-                ranges: [approx.guessMin, approx.guessMax],
-                hardBounds: [approx.guessMin, approx.guessMax],
-                curGuess: approx.guessOffchain,
-                startingGuess: approx.guessOffchain,
-                maxIteration: approx.maxIteration,
-                eps: approx.eps
-            });
+        }
+        return ApproxState({
+            stage: ApproxStage.RESULT_FINDING,
+            ranges: [approx.guessMin, approx.guessMax],
+            hardBounds: [approx.guessMin, approx.guessMax],
+            curGuess: approx.guessOffchain,
+            startingGuess: approx.guessOffchain,
+            maxIteration: approx.maxIteration,
+            eps: approx.eps
+        });
     }
 
-    function initNoOffChain(
-        uint256 estimation,
-        uint256[2] memory hardBounds
-    ) internal pure returns (ApproxState memory) {
+    function initNoOffChain(uint256 estimation, uint256[2] memory hardBounds)
+        internal
+        pure
+        returns (ApproxState memory)
+    {
         assert(hardBounds[0] <= hardBounds[1]);
 
         uint256 startingGuess = PMath.clamp(estimation, hardBounds[0], hardBounds[1]);
         uint256 rangesLower = PMath.max(startingGuess.tweakDown(GUESS_RANGE_TWEAK), hardBounds[0]);
         uint256 rangesUpper = PMath.min(startingGuess.tweakUp(GUESS_RANGE_TWEAK), hardBounds[1]);
-        return
-            ApproxState({
-                stage: ApproxStage.INITIAL,
-                ranges: [rangesLower, rangesUpper],
-                hardBounds: hardBounds,
-                curGuess: startingGuess,
-                startingGuess: startingGuess,
-                maxIteration: DEFAULT_MAX_ITERATION,
-                eps: DEFAULT_EPS
-            });
+        return ApproxState({
+            stage: ApproxStage.INITIAL,
+            ranges: [rangesLower, rangesUpper],
+            hardBounds: hardBounds,
+            curGuess: startingGuess,
+            startingGuess: startingGuess,
+            maxIteration: DEFAULT_MAX_ITERATION,
+            eps: DEFAULT_EPS
+        });
     }
 
     function transitionDown(ApproxState memory state, bool excludeGuessFromRange) internal pure {
@@ -124,9 +125,8 @@ library ApproxStateLib {
                 return;
             }
             uint256 distFromStartingGuess = state.ranges[1] - state.startingGuess;
-            uint256 extendedUpper = (
-                PMath.addWithUpperBound(state.ranges[1], distFromStartingGuess, state.hardBounds[1])
-            );
+            uint256 extendedUpper =
+                (PMath.addWithUpperBound(state.ranges[1], distFromStartingGuess, state.hardBounds[1]));
             state.ranges[1] = extendedUpper;
             state.curGuess = extendedUpper;
         } else if (state.stage == ApproxStage.RESULT_FINDING) {

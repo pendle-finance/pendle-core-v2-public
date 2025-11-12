@@ -47,28 +47,26 @@ import "./IPLimitRouter.sol";
 /// @param tokenIn must be one of the SY's tokens in (obtain via `IStandardizedYield#getTokensIn`)
 /// @param netTokenIn amount of token in
 function createTokenInputSimple(address tokenIn, uint256 netTokenIn) pure returns (TokenInput memory) {
-    return
-        TokenInput({
-            tokenIn: tokenIn,
-            netTokenIn: netTokenIn,
-            tokenMintSy: tokenIn,
-            pendleSwap: address(0),
-            swapData: createSwapTypeNoAggregator()
-        });
+    return TokenInput({
+        tokenIn: tokenIn,
+        netTokenIn: netTokenIn,
+        tokenMintSy: tokenIn,
+        pendleSwap: address(0),
+        swapData: createSwapTypeNoAggregator()
+    });
 }
 
 /// @dev Creates a TokenOutput struct without using any swap aggregator
 /// @param tokenOut must be one of the SY's tokens out (obtain via `IStandardizedYield#getTokensOut`)
 /// @param minTokenOut minimum amount of token out
 function createTokenOutputSimple(address tokenOut, uint256 minTokenOut) pure returns (TokenOutput memory) {
-    return
-        TokenOutput({
-            tokenOut: tokenOut,
-            minTokenOut: minTokenOut,
-            tokenRedeemSy: tokenOut,
-            pendleSwap: address(0),
-            swapData: createSwapTypeNoAggregator()
-        });
+    return TokenOutput({
+        tokenOut: tokenOut,
+        minTokenOut: minTokenOut,
+        tokenRedeemSy: tokenOut,
+        pendleSwap: address(0),
+        swapData: createSwapTypeNoAggregator()
+    });
 }
 
 function createEmptyLimitOrderData() pure returns (LimitOrderData memory) {}

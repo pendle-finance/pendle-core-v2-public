@@ -11,6 +11,7 @@ contract Multicall2 {
         address target;
         bytes callData;
     }
+
     struct Result {
         bool success;
         bytes returnData;
@@ -26,9 +27,10 @@ contract Multicall2 {
         }
     }
 
-    function blockAndAggregate(
-        Call[] memory calls
-    ) public returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
+    function blockAndAggregate(Call[] memory calls)
+        public
+        returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData)
+    {
         (blockNumber, blockHash, returnData) = tryBlockAndAggregate(true, calls);
     }
 
@@ -77,10 +79,10 @@ contract Multicall2 {
         }
     }
 
-    function tryBlockAndAggregate(
-        bool requireSuccess,
-        Call[] memory calls
-    ) public returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData) {
+    function tryBlockAndAggregate(bool requireSuccess, Call[] memory calls)
+        public
+        returns (uint256 blockNumber, bytes32 blockHash, Result[] memory returnData)
+    {
         blockNumber = block.number;
         blockHash = blockhash(block.number);
         returnData = tryAggregate(requireSuccess, calls);

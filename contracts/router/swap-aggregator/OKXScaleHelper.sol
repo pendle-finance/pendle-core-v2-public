@@ -33,7 +33,7 @@ abstract contract OKXScaleHelper {
         if (chainid == 56) {
             return 0x2c34A2Fb1d0b4f55de51E1d0bDEfaDDce6b7cDD6;
         }
-        if (chainid == 42161) {
+        if (chainid == 42_161) {
             return 0x70cBb871E8f30Fc8Ce23609E9E0Ea87B6b222F58;
         }
         if (chainid == 8453 || chainid == 5000) {
@@ -248,6 +248,28 @@ abstract contract OKXScaleHelper {
 }
 
 interface IOKXDexRouter {
+    struct CommissionInfo {
+        bool isFromTokenCommission; //0x00
+        bool isToTokenCommission; //0x20
+        uint256 commissionRate; //0x40
+        address refererAddress; //0x60
+        address token; //0x80
+        uint256 commissionRate2; //0xa0
+        address refererAddress2; //0xc0
+        bool isToBCommission; //0xe0
+        uint256 commissionRate3; //0x100
+        address refererAddress3; //0x120
+    }
+
+    struct TrimInfo {
+        bool hasTrim; // 0x00
+        uint256 trimRate; // 0x20
+        address trimAddress; // 0x40
+        uint256 expectAmountOut; // 0x60
+        uint256 chargeRate; // 0x80
+        address chargeAddress; // 0xa0
+    }
+
     struct BaseRequest {
         uint256 fromToken;
         address toToken;
@@ -319,7 +341,10 @@ interface IOKXDexRouter {
         uint256 minReturn,
         // solhint-disable-next-line no-unused-vars
         bytes32[] calldata pools
-    ) external payable returns (uint256 returnAmount);
+    )
+        external
+        payable
+        returns (uint256 returnAmount);
 
     function smartSwapByOrderId(
         uint256 orderId,

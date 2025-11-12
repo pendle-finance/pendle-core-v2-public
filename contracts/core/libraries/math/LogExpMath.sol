@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-// documentation files (the “Software”), to deal in the Software without restriction, including without limitation the
+// documentation files (the “Software”), to deal in the Software without restriction, including without limitation
+// the
 // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
 // Software.
 
-// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+// THE
 // WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -56,32 +58,33 @@ library LogExpMath {
     uint256 constant MILD_EXPONENT_BOUND = 2 ** 254 / uint256(ONE_20);
 
     // 18 decimal constants
-    int256 constant x0 = 128000000000000000000; // 2ˆ7
-    int256 constant a0 = 38877084059945950922200000000000000000000000000000000000; // eˆ(x0) (no decimals)
-    int256 constant x1 = 64000000000000000000; // 2ˆ6
-    int256 constant a1 = 6235149080811616882910000000; // eˆ(x1) (no decimals)
+    int256 constant x0 = 128_000_000_000_000_000_000; // 2ˆ7
+    int256 constant a0 = 38_877_084_059_945_950_922_200_000_000_000_000_000_000_000_000_000_000_000; // eˆ(x0) (no
+    // decimals)
+    int256 constant x1 = 64_000_000_000_000_000_000; // 2ˆ6
+    int256 constant a1 = 6_235_149_080_811_616_882_910_000_000; // eˆ(x1) (no decimals)
 
     // 20 decimal constants
-    int256 constant x2 = 3200000000000000000000; // 2ˆ5
-    int256 constant a2 = 7896296018268069516100000000000000; // eˆ(x2)
-    int256 constant x3 = 1600000000000000000000; // 2ˆ4
-    int256 constant a3 = 888611052050787263676000000; // eˆ(x3)
-    int256 constant x4 = 800000000000000000000; // 2ˆ3
-    int256 constant a4 = 298095798704172827474000; // eˆ(x4)
-    int256 constant x5 = 400000000000000000000; // 2ˆ2
-    int256 constant a5 = 5459815003314423907810; // eˆ(x5)
-    int256 constant x6 = 200000000000000000000; // 2ˆ1
-    int256 constant a6 = 738905609893065022723; // eˆ(x6)
-    int256 constant x7 = 100000000000000000000; // 2ˆ0
-    int256 constant a7 = 271828182845904523536; // eˆ(x7)
-    int256 constant x8 = 50000000000000000000; // 2ˆ-1
-    int256 constant a8 = 164872127070012814685; // eˆ(x8)
-    int256 constant x9 = 25000000000000000000; // 2ˆ-2
-    int256 constant a9 = 128402541668774148407; // eˆ(x9)
-    int256 constant x10 = 12500000000000000000; // 2ˆ-3
-    int256 constant a10 = 113314845306682631683; // eˆ(x10)
-    int256 constant x11 = 6250000000000000000; // 2ˆ-4
-    int256 constant a11 = 106449445891785942956; // eˆ(x11)
+    int256 constant x2 = 3_200_000_000_000_000_000_000; // 2ˆ5
+    int256 constant a2 = 7_896_296_018_268_069_516_100_000_000_000_000; // eˆ(x2)
+    int256 constant x3 = 1_600_000_000_000_000_000_000; // 2ˆ4
+    int256 constant a3 = 888_611_052_050_787_263_676_000_000; // eˆ(x3)
+    int256 constant x4 = 800_000_000_000_000_000_000; // 2ˆ3
+    int256 constant a4 = 298_095_798_704_172_827_474_000; // eˆ(x4)
+    int256 constant x5 = 400_000_000_000_000_000_000; // 2ˆ2
+    int256 constant a5 = 5_459_815_003_314_423_907_810; // eˆ(x5)
+    int256 constant x6 = 200_000_000_000_000_000_000; // 2ˆ1
+    int256 constant a6 = 738_905_609_893_065_022_723; // eˆ(x6)
+    int256 constant x7 = 100_000_000_000_000_000_000; // 2ˆ0
+    int256 constant a7 = 271_828_182_845_904_523_536; // eˆ(x7)
+    int256 constant x8 = 50_000_000_000_000_000_000; // 2ˆ-1
+    int256 constant a8 = 164_872_127_070_012_814_685; // eˆ(x8)
+    int256 constant x9 = 25_000_000_000_000_000_000; // 2ˆ-2
+    int256 constant a9 = 128_402_541_668_774_148_407; // eˆ(x9)
+    int256 constant x10 = 12_500_000_000_000_000_000; // 2ˆ-3
+    int256 constant a10 = 113_314_845_306_682_631_683; // eˆ(x10)
+    int256 constant x11 = 6_250_000_000_000_000_000; // 2ˆ-4
+    int256 constant a11 = 106_449_445_891_785_942_956; // eˆ(x11)
 
     /**
      * @dev Natural exponentiation (e^x) with signed 18 decimal fixed point exponent.
@@ -93,28 +96,29 @@ library LogExpMath {
             require(x >= MIN_NATURAL_EXPONENT && x <= MAX_NATURAL_EXPONENT, "Invalid exponent");
 
             if (x < 0) {
-                // We only handle positive exponents: e^(-x) is computed as 1 / e^x. We can safely make x positive since it
-                // fits in the signed 256 bit range (as it is larger than MIN_NATURAL_EXPONENT).
+                // We only handle positive exponents: e^(-x) is computed as 1 / e^x. We can safely make x positive since
+                // it fits in the signed 256 bit range (as it is larger than MIN_NATURAL_EXPONENT).
                 // Fixed point division requires multiplying by ONE_18.
                 return ((ONE_18 * ONE_18) / exp(-x));
             }
 
-            // First, we use the fact that e^(x+y) = e^x * e^y to decompose x into a sum of powers of two, which we call x_n,
-            // where x_n == 2^(7 - n), and e^x_n = a_n has been precomputed. We choose the first x_n, x0, to equal 2^7
+            // First, we use the fact that e^(x+y) = e^x * e^y to decompose x into a sum of powers of two, which we call
+            // x_n, where x_n == 2^(7 - n), and e^x_n = a_n has been precomputed. We choose the first x_n, x0, to equal
+            // 2^7
             // because all larger powers are larger than MAX_NATURAL_EXPONENT, and therefore not present in the
             // decomposition.
-            // At the end of this process we will have the product of all e^x_n = a_n that apply, and the remainder of this
-            // decomposition, which will be lower than the smallest x_n.
+            // At the end of this process we will have the product of all e^x_n = a_n that apply, and the remainder of
+            // this decomposition, which will be lower than the smallest x_n.
             // exp(x) = k_0 * a_0 * k_1 * a_1 * ... + k_n * a_n * exp(remainder), where each k_n equals either 0 or 1.
             // We mutate x by subtracting x_n, making it the remainder of the decomposition.
 
             // The first two a_n (e^(2^7) and e^(2^6)) are too large if stored as 18 decimal numbers, and could cause
             // intermediate overflows. Instead we store them as plain integers, with 0 decimals.
-            // Additionally, x0 + x1 is larger than MAX_NATURAL_EXPONENT, which means they will not both be present in the
-            // decomposition.
+            // Additionally, x0 + x1 is larger than MAX_NATURAL_EXPONENT, which means they will not both be present in
+            // the decomposition.
 
-            // For each x_n, we test if that term is present in the decomposition (if x is larger than it), and if so deduct
-            // it and compute the accumulated product.
+            // For each x_n, we test if that term is present in the decomposition (if x is larger than it), and if so
+            // deduct it and compute the accumulated product.
 
             int256 firstAN;
             if (x >= x0) {
@@ -131,8 +135,8 @@ library LogExpMath {
             // smaller terms.
             x *= 100;
 
-            // `product` is the accumulated product of all a_n (except a0 and a1), which starts at 20 decimal fixed point
-            // one. Recall that fixed point multiplication requires dividing by ONE_20.
+            // `product` is the accumulated product of all a_n (except a0 and a1), which starts at 20 decimal fixed
+            // point one. Recall that fixed point multiplication requires dividing by ONE_20.
             int256 product = ONE_20;
 
             if (x >= x2) {
@@ -170,8 +174,8 @@ library LogExpMath {
 
             // x10 and x11 are unnecessary here since we have high enough precision already.
 
-            // Now we need to compute e^x, where x is small (in particular, it is smaller than x9). We use the Taylor series
-            // expansion for e^x: 1 + x + (x^2 / 2!) + (x^3 / 3!) + ... + (x^n / n!).
+            // Now we need to compute e^x, where x is small (in particular, it is smaller than x9). We use the Taylor
+            // series expansion for e^x: 1 + x + (x^2 / 2!) + (x^3 / 3!) + ... + (x^n / n!).
 
             int256 seriesSum = ONE_20; // The initial one in the sum, with 20 decimal places.
             int256 term; // Each term in the sum, where the nth term is (x^n / n!).
@@ -219,8 +223,9 @@ library LogExpMath {
             // 12 Taylor terms are sufficient for 18 decimal precision.
 
             // We now have the first a_n (with no decimals), and the product of all other a_n present, and the Taylor
-            // approximation of the exponentiation of the remainder (both with 20 decimals). All that remains is to multiply
-            // all three (one 20 decimal fixed point multiplication, dividing by ONE_20, and one integer multiplication),
+            // approximation of the exponentiation of the remainder (both with 20 decimals). All that remains is to
+            // multiply all three (one 20 decimal fixed point multiplication, dividing by ONE_20, and one integer
+            // multiplication),
             // and then drop two digits to return an 18 decimal value.
 
             return (((product * seriesSum) / ONE_20) * firstAN) / 100;
@@ -266,10 +271,11 @@ library LogExpMath {
             require(x < 2 ** 255, "x out of bounds");
             int256 x_int256 = int256(x);
 
-            // We will compute y * ln(x) in a single step. Depending on the value of x, we can either use ln or ln_36. In
-            // both cases, we leave the division by ONE_18 (due to fixed point multiplication) to the end.
+            // We will compute y * ln(x) in a single step. Depending on the value of x, we can either use ln or ln_36.
+            // In both cases, we leave the division by ONE_18 (due to fixed point multiplication) to the end.
 
-            // This prevents y * ln(x) from overflowing, and at the same time guarantees y fits in the signed 256 bit range.
+            // This prevents y * ln(x) from overflowing, and at the same time guarantees y fits in the signed 256 bit
+            // range.
             require(y < MILD_EXPONENT_BOUND, "y out of bounds");
             int256 y_int256 = int256(y);
 
@@ -277,8 +283,8 @@ library LogExpMath {
             if (LN_36_LOWER_BOUND < x_int256 && x_int256 < LN_36_UPPER_BOUND) {
                 int256 ln_36_x = _ln_36(x_int256);
 
-                // ln_36_x has 36 decimal places, so multiplying by y_int256 isn't as straightforward, since we can't just
-                // bring y_int256 to 36 decimal places, as it might overflow. Instead, we perform two 18 decimal
+                // ln_36_x has 36 decimal places, so multiplying by y_int256 isn't as straightforward, since we can't
+                // just bring y_int256 to 36 decimal places, as it might overflow. Instead, we perform two 18 decimal
                 // multiplications and add the results: one with the first 18 decimals of ln_36_x, and one with the
                 // (downscaled) last 18 decimals.
                 logx_times_y = ((ln_36_x / ONE_18) * y_int256 + ((ln_36_x % ONE_18) * y_int256) / ONE_18);
@@ -289,8 +295,7 @@ library LogExpMath {
 
             // Finally, we compute exp(y * ln(x)) to arrive at x^y
             require(
-                MIN_NATURAL_EXPONENT <= logx_times_y && logx_times_y <= MAX_NATURAL_EXPONENT,
-                "product out of bounds"
+                MIN_NATURAL_EXPONENT <= logx_times_y && logx_times_y <= MAX_NATURAL_EXPONENT, "product out of bounds"
             );
 
             return uint256(exp(logx_times_y));
@@ -304,25 +309,27 @@ library LogExpMath {
         unchecked {
             if (a < ONE_18) {
                 // Since ln(a^k) = k * ln(a), we can compute ln(a) as ln(a) = ln((1/a)^(-1)) = - ln((1/a)). If a is less
-                // than one, 1/a will be greater than one, and this if statement will not be entered in the recursive call.
-                // Fixed point division requires multiplying by ONE_18.
+                // than one, 1/a will be greater than one, and this if statement will not be entered in the recursive
+                // call. Fixed point division requires multiplying by ONE_18.
                 return (-_ln((ONE_18 * ONE_18) / a));
             }
 
-            // First, we use the fact that ln^(a * b) = ln(a) + ln(b) to decompose ln(a) into a sum of powers of two, which
-            // we call x_n, where x_n == 2^(7 - n), which are the natural logarithm of precomputed quantities a_n (that is,
-            // ln(a_n) = x_n). We choose the first x_n, x0, to equal 2^7 because the exponential of all larger powers cannot
-            // be represented as 18 fixed point decimal numbers in 256 bits, and are therefore larger than a.
-            // At the end of this process we will have the sum of all x_n = ln(a_n) that apply, and the remainder of this
-            // decomposition, which will be lower than the smallest a_n.
+            // First, we use the fact that ln^(a * b) = ln(a) + ln(b) to decompose ln(a) into a sum of powers of two,
+            // which we call x_n, where x_n == 2^(7 - n), which are the natural logarithm of precomputed quantities a_n
+            // (that is,
+            // ln(a_n) = x_n). We choose the first x_n, x0, to equal 2^7 because the exponential of all larger powers
+            // cannot be represented as 18 fixed point decimal numbers in 256 bits, and are therefore larger than a.
+            // At the end of this process we will have the sum of all x_n = ln(a_n) that apply, and the remainder of
+            // this decomposition, which will be lower than the smallest a_n.
             // ln(a) = k_0 * x_0 + k_1 * x_1 + ... + k_n * x_n + ln(remainder), where each k_n equals either 0 or 1.
             // We mutate a by subtracting a_n, making it the remainder of the decomposition.
 
-            // For reasons related to how `exp` works, the first two a_n (e^(2^7) and e^(2^6)) are not stored as fixed point
-            // numbers with 18 decimals, but instead as plain integers with 0 decimals, so we need to multiply them by
+            // For reasons related to how `exp` works, the first two a_n (e^(2^7) and e^(2^6)) are not stored as fixed
+            // point numbers with 18 decimals, but instead as plain integers with 0 decimals, so we need to multiply
+            // them by
             // ONE_18 to convert them to fixed point.
-            // For each a_n, we test if that term is present in the decomposition (if a is larger than it), and if so divide
-            // by it and compute the accumulated sum.
+            // For each a_n, we test if that term is present in the decomposition (if a is larger than it), and if so
+            // divide by it and compute the accumulated sum.
 
             int256 sum = 0;
             if (a >= a0 * ONE_18) {
@@ -335,7 +342,8 @@ library LogExpMath {
                 sum += x1;
             }
 
-            // All other a_n and x_n are stored as 20 digit fixed point numbers, so we convert the sum and a to this format.
+            // All other a_n and x_n are stored as 20 digit fixed point numbers, so we convert the sum and a to this
+            // format.
             sum *= 100;
             a *= 100;
 
@@ -391,8 +399,8 @@ library LogExpMath {
                 sum += x11;
             }
 
-            // a is now a small number (smaller than a_11, which roughly equals 1.06). This means we can use a Taylor series
-            // that converges rapidly for values of `a` close to one - the same one used in ln_36.
+            // a is now a small number (smaller than a_11, which roughly equals 1.06). This means we can use a Taylor
+            // series that converges rapidly for values of `a` close to one - the same one used in ln_36.
             // Let z = (a - 1) / (a + 1).
             // ln(a) = 2 * (z + z^3 / 3 + z^5 / 5 + z^7 / 7 + ... + z^(2 * n + 1) / (2 * n + 1))
 
@@ -428,8 +436,9 @@ library LogExpMath {
             // Finally, we multiply by 2 (non fixed point) to compute ln(remainder)
             seriesSum *= 2;
 
-            // We now have the sum of all x_n present, and the Taylor approximation of the logarithm of the remainder (both
-            // with 20 decimals). All that remains is to sum these two, and then drop two digits to return a 18 decimal
+            // We now have the sum of all x_n present, and the Taylor approximation of the logarithm of the remainder
+            // (both with 20 decimals). All that remains is to sum these two, and then drop two digits to return a 18
+            // decimal
             // value.
 
             return (sum + seriesSum) / 100;
@@ -437,7 +446,8 @@ library LogExpMath {
     }
 
     /**
-     * @dev Intrnal high precision (36 decimal places) natural logarithm (ln(x)) with signed 18 decimal fixed point argument,
+     * @dev Intrnal high precision (36 decimal places) natural logarithm (ln(x)) with signed 18 decimal fixed point
+     * argument,
      * for x close to one.
      *
      * Should only be used if x is between LN_36_LOWER_BOUND and LN_36_UPPER_BOUND.

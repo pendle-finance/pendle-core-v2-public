@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/math/PMath.sol";
 import "../interfaces/IPExchangeRateOracle.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 contract PendleExchangeRateOracle is BoringOwnableUpgradeableV2, IPExchangeRateOracle {
     using PMath for uint256;
@@ -45,10 +45,7 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeableV2, IPExchangeRateO
 
     function setExchangeRate(uint128 rate, uint64 dataBlock, uint32 dataTimestamp) external onlyOwner {
         ExchangeRateData memory newData = ExchangeRateData({
-            rate: rate,
-            dataBlock: dataBlock,
-            dataTimestamp: dataTimestamp,
-            updatedAt: uint32(block.timestamp)
+            rate: rate, dataBlock: dataBlock, dataTimestamp: dataTimestamp, updatedAt: uint32(block.timestamp)
         });
         _setExchangeRate(newData);
     }
@@ -75,9 +72,8 @@ contract PendleExchangeRateOracle is BoringOwnableUpgradeableV2, IPExchangeRateO
 
     function _validateMetadata(ExchangeRateData memory oldData, ExchangeRateData memory newData) internal pure {
         if (
-            oldData.dataBlock >= newData.dataBlock ||
-            oldData.dataTimestamp >= newData.dataTimestamp ||
-            oldData.updatedAt + MIN_UPDATE_TIME_GAP >= newData.updatedAt
+            oldData.dataBlock >= newData.dataBlock || oldData.dataTimestamp >= newData.dataTimestamp
+                || oldData.updatedAt + MIN_UPDATE_TIME_GAP >= newData.updatedAt
         ) {
             revert InvalidMetadata(newData);
         }

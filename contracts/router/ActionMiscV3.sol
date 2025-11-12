@@ -1,41 +1,37 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./base/ActionBase.sol";
 import "../interfaces/IPActionMiscV3.sol";
 import "../interfaces/IPReflector.sol";
+import "./base/ActionBase.sol";
 
 contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     uint256 private constant NOT_FOUND = type(uint256).max;
 
-    function mintSyFromToken(
-        address receiver,
-        address SY,
-        uint256 minSyOut,
-        TokenInput calldata input
-    ) external payable returns (uint256 netSyOut) {
+    function mintSyFromToken(address receiver, address SY, uint256 minSyOut, TokenInput calldata input)
+        external
+        payable
+        returns (uint256 netSyOut)
+    {
         netSyOut = _mintSyFromToken(receiver, SY, minSyOut, input);
         emit MintSyFromToken(msg.sender, input.tokenIn, SY, receiver, input.netTokenIn, netSyOut);
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    function redeemSyToToken(
-        address receiver,
-        address SY,
-        uint256 netSyIn,
-        TokenOutput calldata output
-    ) external returns (uint256 netTokenOut) {
+    function redeemSyToToken(address receiver, address SY, uint256 netSyIn, TokenOutput calldata output)
+        external
+        returns (uint256 netTokenOut)
+    {
         netTokenOut = _redeemSyToToken(receiver, SY, netSyIn, output, true);
         emit RedeemSyToToken(msg.sender, output.tokenOut, SY, receiver, netSyIn, netTokenOut);
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    function mintPyFromToken(
-        address receiver,
-        address YT,
-        uint256 minPyOut,
-        TokenInput calldata input
-    ) external payable returns (uint256 netPyOut, uint256 netSyInterm) {
+    function mintPyFromToken(address receiver, address YT, uint256 minPyOut, TokenInput calldata input)
+        external
+        payable
+        returns (uint256 netPyOut, uint256 netSyInterm)
+    {
         address SY = IPYieldToken(YT).SY();
 
         netSyInterm = _mintSyFromToken(YT, SY, 0, input);
@@ -45,12 +41,10 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @notice For details on the parameters (input, guessPtSwapToSy, limit, etc.), please refer to IPAllActionTypeV3.
-    function redeemPyToToken(
-        address receiver,
-        address YT,
-        uint256 netPyIn,
-        TokenOutput calldata output
-    ) external returns (uint256 netTokenOut, uint256 netSyInterm) {
+    function redeemPyToToken(address receiver, address YT, uint256 netPyIn, TokenOutput calldata output)
+        external
+        returns (uint256 netTokenOut, uint256 netSyInterm)
+    {
         address SY = IPYieldToken(YT).SY();
 
         netSyInterm = _redeemPyToSy(SY, YT, netPyIn, 1);
@@ -59,22 +53,18 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         emit RedeemPyToToken(msg.sender, output.tokenOut, YT, receiver, netPyIn, netTokenOut, netSyInterm);
     }
 
-    function mintPyFromSy(
-        address receiver,
-        address YT,
-        uint256 netSyIn,
-        uint256 minPyOut
-    ) external returns (uint256 netPyOut) {
+    function mintPyFromSy(address receiver, address YT, uint256 netSyIn, uint256 minPyOut)
+        external
+        returns (uint256 netPyOut)
+    {
         netPyOut = _mintPyFromSy(receiver, IPYieldToken(YT).SY(), YT, netSyIn, minPyOut, true);
         emit MintPyFromSy(msg.sender, receiver, YT, netSyIn, netPyOut);
     }
 
-    function redeemPyToSy(
-        address receiver,
-        address YT,
-        uint256 netPyIn,
-        uint256 minSyOut
-    ) external returns (uint256 netSyOut) {
+    function redeemPyToSy(address receiver, address YT, uint256 netPyIn, uint256 minSyOut)
+        external
+        returns (uint256 netSyOut)
+    {
         netSyOut = _redeemPyToSy(receiver, YT, netPyIn, minSyOut);
         emit RedeemPyToSy(msg.sender, receiver, YT, netPyIn, netSyOut);
     }
@@ -119,14 +109,13 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         IPMarket[] calldata markets
     ) private returns (uint256[] memory netInterests) {
         netInterests = new uint256[](YTs.length);
-        for (uint256 i = 0; i < SYs.length; ++i) SYs[i].claimRewards(msg.sender);
+        for (uint256 i = 0; i < SYs.length; ++i) {
+            SYs[i].claimRewards(msg.sender);
+        }
 
         for (uint256 i = 0; i < YTs.length; ++i) {
-            (uint256 netSyInt, ) = YTs[i].yt.redeemDueInterestAndRewards(
-                msg.sender,
-                YTs[i].doRedeemInterest,
-                YTs[i].doRedeemRewards
-            );
+            (uint256 netSyInt,) =
+                YTs[i].yt.redeemDueInterestAndRewards(msg.sender, YTs[i].doRedeemInterest, YTs[i].doRedeemRewards);
 
             if (netSyInt == 0) continue;
 
@@ -135,7 +124,9 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
             netInterests[i] = SY.redeem(msg.sender, netSyInt, YTs[i].tokenRedeemSy, YTs[i].minTokenRedeemOut, true);
         }
 
-        for (uint256 i = 0; i < markets.length; ++i) markets[i].redeemRewards(msg.sender);
+        for (uint256 i = 0; i < markets.length; ++i) {
+            markets[i].redeemRewards(msg.sender);
+        }
     }
 
     function __redeemDueInterestAndRewardsV2AndSwap(
@@ -155,11 +146,8 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         netInterests = new uint256[](YTs.length);
         for (uint256 i = 0; i < YTs.length; ++i) {
             uint256[] memory netRewards;
-            (netInterests[i], netRewards) = YTs[i].yt.redeemDueInterestAndRewards(
-                msg.sender,
-                YTs[i].doRedeemInterest,
-                YTs[i].doRedeemRewards
-            );
+            (netInterests[i], netRewards) =
+                YTs[i].yt.redeemDueInterestAndRewards(msg.sender, YTs[i].doRedeemInterest, YTs[i].doRedeemRewards);
 
             if (YTs[i].doRedeemRewards) _add(swaps, netSwaps, YTs[i].yt.getRewardTokens(), netRewards);
         }
@@ -175,17 +163,13 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         for (uint256 i = 0; i < YTs.length; ++i) {
             if (netInterests[i] == 0) continue;
             IStandardizedYield SY = IStandardizedYield(YTs[i].yt.SY());
-            netInterests[i] = _redeemSyAndAdd(
-                swaps,
-                netSwaps,
-                SY,
-                netInterests[i],
-                YTs[i].tokenRedeemSy,
-                YTs[i].minTokenRedeemOut
-            );
+            netInterests[i] =
+                _redeemSyAndAdd(swaps, netSwaps, SY, netInterests[i], YTs[i].tokenRedeemSy, YTs[i].minTokenRedeemOut);
         }
 
-        for (uint256 i = 0; i < swaps.length; ++i) netOutFromSwaps[i] = _swap(swaps[i], netSwaps[i], pendleSwap, true);
+        for (uint256 i = 0; i < swaps.length; ++i) {
+            netOutFromSwaps[i] = _swap(swaps[i], netSwaps[i], pendleSwap, true);
+        }
     }
 
     /// @dev The interface might change in the future, check with Pendle team before use
@@ -315,13 +299,10 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
     }
 
     /// @dev The interface might change in the future, check with Pendle team before use
-    function exitPostExpToSy(
-        address receiver,
-        address market,
-        uint256 netPtIn,
-        uint256 netLpIn,
-        uint256 minSyOut
-    ) external returns (ExitPostExpReturnParams memory params) {
+    function exitPostExpToSy(address receiver, address market, uint256 netPtIn, uint256 netLpIn, uint256 minSyOut)
+        external
+        returns (ExitPostExpReturnParams memory params)
+    {
         (, params) = _exitPostExpToSy(false, receiver, market, netPtIn, netLpIn);
         require(params.totalSyOut >= minSyOut, "Slippage: INSUFFICIENT_SY_OUT");
 
@@ -361,12 +342,10 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         }
     }
 
-    function _swap(
-        SwapDataExtra calldata $,
-        uint256 netSwap,
-        IPSwapAggregator pendleSwap,
-        bool needScale
-    ) internal returns (uint256 netTokenOut) {
+    function _swap(SwapDataExtra calldata $, uint256 netSwap, IPSwapAggregator pendleSwap, bool needScale)
+        internal
+        returns (uint256 netTokenOut)
+    {
         SwapType swapType = $.swapData.swapType;
         assert(swapType != SwapType.NONE);
 
@@ -395,13 +374,10 @@ contract ActionMiscV3 is IPActionMiscV3, ActionBase {
         return NOT_FOUND;
     }
 
-    function _exitPostExpToSy(
-        bool setReceiverToSy,
-        address receiver,
-        address market,
-        uint256 netPtIn,
-        uint256 netLpIn
-    ) internal returns (IStandardizedYield SY, ExitPostExpReturnParams memory p) {
+    function _exitPostExpToSy(bool setReceiverToSy, address receiver, address market, uint256 netPtIn, uint256 netLpIn)
+        internal
+        returns (IStandardizedYield SY, ExitPostExpReturnParams memory p)
+    {
         IPPrincipalToken PT;
         IPYieldToken YT;
         (SY, PT, YT) = IPMarket(market).readTokens();

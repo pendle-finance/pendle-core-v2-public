@@ -3,12 +3,12 @@
 pragma solidity ^0.8.0;
 
 import "./IPActionAddRemoveLiqV3.sol";
+import "./IPActionCallbackV3.sol";
+import "./IPActionMiscV3.sol";
+import "./IPActionSimple.sol";
+import "./IPActionStorageV4.sol";
 import "./IPActionSwapPTV3.sol";
 import "./IPActionSwapYTV3.sol";
-import "./IPActionMiscV3.sol";
-import "./IPActionCallbackV3.sol";
-import "./IPActionStorageV4.sol";
-import "./IPActionSimple.sol";
 
 interface IPAllActionV3 is
     IPActionAddRemoveLiqV3,

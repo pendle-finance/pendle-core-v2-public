@@ -16,9 +16,8 @@ contract PendleExchangeRateOracleV2 is IPExchangeRateOracle {
     }
 
     function getExchangeRate() external view returns (uint256) {
-        IPExchangeRateOracleApp.ExchangeRateData memory exchangeRateData = IPExchangeRateOracleApp(
-            exchangeRateOracleApp
-        ).getExchangeRate(srcEid, exchangeRateSource);
+        IPExchangeRateOracleApp.ExchangeRateData memory exchangeRateData =
+            IPExchangeRateOracleApp(exchangeRateOracleApp).getExchangeRate(srcEid, exchangeRateSource);
 
         return exchangeRateData.exchangeRate;
     }

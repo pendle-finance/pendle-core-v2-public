@@ -3,12 +3,12 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../../interfaces/IPMarket.sol";
-import "../../interfaces/IPYieldContractFactory.sol";
 import "../../interfaces/IPMarketFactory.sol";
+import "../../interfaces/IPYieldContractFactory.sol";
 
 import "../libraries/BaseSplitCodeFactory.sol";
-import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeableV2.sol";
+import "../libraries/Errors.sol";
 
 contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -70,22 +70,23 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
      * @notice Create a market between PT and its corresponding SY with scalar & anchor config.
      * Anyone is allowed to create a market on their own.
      */
-    function createNewMarket(
-        address PT,
-        int256 scalarRoot,
-        int256 initialAnchor,
-        uint80 lnFeeRateRoot
-    ) external returns (address market) {
+    function createNewMarket(address PT, int256 scalarRoot, int256 initialAnchor, uint80 lnFeeRateRoot)
+        external
+        returns (address market)
+    {
         if (!IPYieldContractFactory(yieldContractFactory).isPT(PT)) revert Errors.MarketFactoryInvalidPt();
         if (IPPrincipalToken(PT).isExpired()) revert Errors.MarketFactoryExpiredPt();
-        if (lnFeeRateRoot > maxLnFeeRateRoot)
+        if (lnFeeRateRoot > maxLnFeeRateRoot) {
             revert Errors.MarketFactoryLnFeeRateRootTooHigh(lnFeeRateRoot, maxLnFeeRateRoot);
+        }
 
-        if (markets[PT][scalarRoot][initialAnchor][lnFeeRateRoot] != address(0))
+        if (markets[PT][scalarRoot][initialAnchor][lnFeeRateRoot] != address(0)) {
             revert Errors.MarketFactoryMarketExists();
+        }
 
-        if (initialAnchor < minInitialAnchor)
+        if (initialAnchor < minInitialAnchor) {
             revert Errors.MarketFactoryInitialAnchorTooLow(initialAnchor, minInitialAnchor);
+        }
 
         market = BaseSplitCodeFactory._create2(
             0,
@@ -104,10 +105,11 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
         emit CreateNewMarket(market, PT, scalarRoot, initialAnchor, lnFeeRateRoot);
     }
 
-    function getMarketConfig(
-        address market,
-        address router
-    ) external view returns (address _treasury, uint80 _overriddenFee, uint8 _reserveFeePercent) {
+    function getMarketConfig(address market, address router)
+        external
+        view
+        returns (address _treasury, uint80 _overriddenFee, uint8 _reserveFeePercent)
+    {
         (_treasury, _reserveFeePercent) = (treasury, reserveFeePercent);
         _overriddenFee = overriddenFee[router][market];
     }
@@ -119,8 +121,9 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
 
     function setTreasuryAndFeeReserve(address newTreasury, uint8 newReserveFeePercent) public onlyOwner {
         if (newTreasury == address(0)) revert Errors.MarketFactoryZeroTreasury();
-        if (newReserveFeePercent > maxReserveFeePercent)
+        if (newReserveFeePercent > maxReserveFeePercent) {
             revert Errors.MarketFactoryReserveFeePercentTooHigh(newReserveFeePercent, maxReserveFeePercent);
+        }
 
         treasury = newTreasury;
         reserveFeePercent = newReserveFeePercent;

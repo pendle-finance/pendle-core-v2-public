@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "./IRewardManager.sol";
 import "./IPInterestManagerYT.sol";
+import "./IRewardManager.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
     event NewInterestIndex(uint256 indexed newIndex);
@@ -27,16 +27,13 @@ interface IPYieldToken is IERC20Metadata, IRewardManager, IPInterestManagerYT {
 
     function redeemPY(address receiver) external returns (uint256 amountSyOut);
 
-    function redeemPYMulti(
-        address[] calldata receivers,
-        uint256[] calldata amountPYToRedeems
-    ) external returns (uint256[] memory amountSyOuts);
+    function redeemPYMulti(address[] calldata receivers, uint256[] calldata amountPYToRedeems)
+        external
+        returns (uint256[] memory amountSyOuts);
 
-    function redeemDueInterestAndRewards(
-        address user,
-        bool redeemInterest,
-        bool redeemRewards
-    ) external returns (uint256 interestOut, uint256[] memory rewardsOut);
+    function redeemDueInterestAndRewards(address user, bool redeemInterest, bool redeemRewards)
+        external
+        returns (uint256 interestOut, uint256[] memory rewardsOut);
 
     function rewardIndexesCurrent() external returns (uint256[] memory);
 

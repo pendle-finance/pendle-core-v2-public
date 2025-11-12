@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
+import "../../../LiquidityMining/libraries/VeBalanceLib.sol";
 import "../../../core/libraries/MiniHelpers.sol";
 import "../../../interfaces/IPRouterStatic.sol";
 import "../../../interfaces/IPVotingEscrowMainchain.sol";
-import "../../../LiquidityMining/libraries/VeBalanceLib.sol";
 
 contract ActionVePendleStatic is IPActionVePendleStatic {
     using VeBalanceLib for VeBalance;
@@ -19,11 +19,11 @@ contract ActionVePendleStatic is IPActionVePendleStatic {
         vePENDLE = _vePENDLE;
     }
 
-    function increaseLockPositionStatic(
-        address user,
-        uint128 additionalAmountToLock,
-        uint128 newExpiry
-    ) external view returns (uint128 newVeBalance) {
+    function increaseLockPositionStatic(address user, uint128 additionalAmountToLock, uint128 newExpiry)
+        external
+        view
+        returns (uint128 newVeBalance)
+    {
         if (!WeekMath.isValidWTime(newExpiry)) revert Errors.InvalidWTime(newExpiry);
         if (MiniHelpers.isTimeInThePast(newExpiry)) revert Errors.ExpiryInThePast(newExpiry);
 
@@ -44,10 +44,8 @@ contract ActionVePendleStatic is IPActionVePendleStatic {
 
         uint128 additionalDurationToLock = newExpiry - oldPosition.expiry;
 
-        LockedPosition memory newPosition = LockedPosition(
-            oldPosition.amount + additionalAmountToLock,
-            oldPosition.expiry + additionalDurationToLock
-        );
+        LockedPosition memory newPosition =
+            LockedPosition(oldPosition.amount + additionalAmountToLock, oldPosition.expiry + additionalDurationToLock);
 
         VeBalance memory newBalance = newPosition.convertToVeBalance();
         return newBalance.getCurrentValue();

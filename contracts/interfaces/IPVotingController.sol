@@ -28,10 +28,10 @@ interface IPVotingController {
     /// @notice deprecated, only kept for compatibility reasons
     function getUserPoolHistoryAt(address user, address pool, uint256 index) external view returns (Checkpoint memory);
 
-    function getWeekData(
-        uint128 wTime,
-        address[] calldata pools
-    ) external view returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes);
+    function getWeekData(uint128 wTime, address[] calldata pools)
+        external
+        view
+        returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes);
 
     function getPoolTotalVoteAt(address pool, uint128 wTime) external view returns (uint128);
 

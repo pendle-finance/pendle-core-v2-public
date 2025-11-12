@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./base/ActionBase.sol";
-import "./base/CallbackHelper.sol";
 import "../interfaces/IPActionSwapYTV3.sol";
+import "./base/ActionBase.sol";
 import {ActionDelegateBase} from "./base/ActionDelegateBase.sol";
+import "./base/CallbackHelper.sol";
 
 contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionDelegateBase {
     using PMath for uint256;
@@ -27,19 +27,13 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
             return delegateToSwapExactTokenForYtSimple(receiver, market, minYtOut, input);
         }
 
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
 
         netSyInterm = _mintSyFromToken(_entry_swapExactSyForYt(YT, limit), address(SY), 1, input);
         (netYtOut, netSyFee) = _swapExactSyForYt(receiver, market, SY, YT, netSyInterm, minYtOut, guessYtOut, limit);
 
         emit SwapYtAndToken(
-            msg.sender,
-            market,
-            input.tokenIn,
-            receiver,
-            netYtOut.Int(),
-            input.netTokenIn.neg(),
-            netSyInterm
+            msg.sender, market, input.tokenIn, receiver, netYtOut.Int(), input.netTokenIn.neg(), netSyInterm
         );
     }
 
@@ -56,7 +50,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
             return delegateToSwapExactSyForYtSimple(receiver, market, exactSyIn, minYtOut);
         }
 
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(SY, msg.sender, _entry_swapExactSyForYt(YT, limit), exactSyIn);
 
         (netYtOut, netSyFee) = _swapExactSyForYt(receiver, market, SY, YT, exactSyIn, minYtOut, guessYtOut, limit);
@@ -73,7 +67,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         TokenOutput calldata output,
         LimitOrderData calldata limit
     ) external returns (uint256 netTokenOut, uint256 netSyFee, uint256 netSyInterm) {
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(YT, msg.sender, _entry_swapExactYtForSy(YT, limit), exactYtIn);
 
         (netSyInterm, netSyFee) = _swapExactYtForSy(address(SY), market, SY, YT, exactYtIn, 0, limit);
@@ -81,13 +75,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         netTokenOut = _redeemSyToToken(receiver, address(SY), netSyInterm, output, false);
 
         emit SwapYtAndToken(
-            msg.sender,
-            market,
-            output.tokenOut,
-            receiver,
-            exactYtIn.neg(),
-            netTokenOut.Int(),
-            netSyInterm
+            msg.sender, market, output.tokenOut, receiver, exactYtIn.neg(), netTokenOut.Int(), netSyInterm
         );
     }
 
@@ -99,7 +87,7 @@ contract ActionSwapYTV3 is CallbackHelper, IPActionSwapYTV3, ActionBase, ActionD
         uint256 minSyOut,
         LimitOrderData calldata limit
     ) external returns (uint256 netSyOut, uint256 netSyFee) {
-        (IStandardizedYield SY, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (IStandardizedYield SY,, IPYieldToken YT) = IPMarket(market).readTokens();
         _transferFrom(YT, msg.sender, _entry_swapExactYtForSy(YT, limit), exactYtIn);
 
         (netSyOut, netSyFee) = _swapExactYtForSy(receiver, market, SY, YT, exactYtIn, minSyOut, limit);

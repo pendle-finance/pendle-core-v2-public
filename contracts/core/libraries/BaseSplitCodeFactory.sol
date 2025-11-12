@@ -87,9 +87,7 @@ library CodeDeployer {
 }
 
 library BaseSplitCodeFactory {
-    function setCreationCode(
-        bytes memory creationCode
-    )
+    function setCreationCode(bytes memory creationCode)
         internal
         returns (
             address creationCodeContractA,
@@ -104,8 +102,8 @@ library BaseSplitCodeFactory {
 
             // We are going to deploy two contracts: one with approximately the first half of `creationCode`'s contents
             // (A), and another with the remaining half (B).
-            // We store the lengths in both immutable and stack variables, since immutable variables cannot be read during
-            // construction.
+            // We store the lengths in both immutable and stack variables, since immutable variables cannot be read
+            // during construction.
             creationCodeSizeA = creationCodeSize / 2;
 
             creationCodeSizeB = creationCodeSize - creationCodeSizeA;
@@ -116,8 +114,8 @@ library BaseSplitCodeFactory {
 
             // Memory: [ code length ] [ A.data ] [ B.data ]
 
-            // Creating A's array is simple: we simply replace `creationCode`'s length with A's length. We'll later restore
-            // the original length.
+            // Creating A's array is simple: we simply replace `creationCode`'s length with A's length. We'll later
+            // restore the original length.
 
             bytes memory creationCodeA;
             assembly {
@@ -130,8 +128,9 @@ library BaseSplitCodeFactory {
 
             creationCodeContractA = CodeDeployer.deploy(creationCodeA);
 
-            // Creating B's array is a bit more involved: since we cannot move B's contents, we are going to create a 'new'
-            // memory array starting at A's last 32 bytes, which will be replaced with B's length. We'll back-up this last
+            // Creating B's array is a bit more involved: since we cannot move B's contents, we are going to create a
+            // 'new' memory array starting at A's last 32 bytes, which will be replaced with B's length. We'll back-up
+            // this last
             // byte to later restore it.
 
             bytes memory creationCodeB;
@@ -150,7 +149,8 @@ library BaseSplitCodeFactory {
 
             creationCodeContractB = CodeDeployer.deploy(creationCodeB);
 
-            // We now restore the original contents of `creationCode` by writing back the original length and A's last byte.
+            // We now restore the original contents of `creationCode` by writing back the original length and A's last
+            // byte.
             assembly {
                 mstore(creationCodeA, creationCodeSize)
                 mstore(creationCodeB, lastByteA)
@@ -167,14 +167,9 @@ library BaseSplitCodeFactory {
         address creationCodeContractB,
         uint256 creationCodeSizeB
     ) internal view returns (bytes memory) {
-        return
-            _getCreationCodeWithArgs(
-                "",
-                creationCodeContractA,
-                creationCodeSizeA,
-                creationCodeContractB,
-                creationCodeSizeB
-            );
+        return _getCreationCodeWithArgs(
+            "", creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB
+        );
     }
 
     /**
@@ -188,10 +183,11 @@ library BaseSplitCodeFactory {
         uint256 creationCodeSizeB
     ) private view returns (bytes memory code) {
         unchecked {
-            // This function exists because `abi.encode()` cannot be instructed to place its result at a specific address.
-            // We need for the ABI-encoded constructor arguments to be located immediately after the creation code, but
-            // cannot rely on `abi.encodePacked()` to perform concatenation as that would involve copying the creation code,
-            // which would be prohibitively expensive.
+            // This function exists because `abi.encode()` cannot be instructed to place its result at a specific
+            // address. We need for the ABI-encoded constructor arguments to be located immediately after the creation
+            // code, but
+            // cannot rely on `abi.encodePacked()` to perform concatenation as that would involve copying the creation
+            // code, which would be prohibitively expensive.
             // Instead, we compute the creation code in a pre-allocated array that is large enough to hold *both* the
             // creation code and the constructor arguments, and then copy the ABI-encoded arguments (which should not be
             // overly long) right after the end of the creation code.
@@ -204,8 +200,9 @@ library BaseSplitCodeFactory {
             uint256 codeSize = creationCodeSize + constructorArgsSize;
 
             assembly {
-                // First, we allocate memory for `code` by retrieving the free memory pointer and then moving it ahead of
-                // `code` by the size of the creation code plus constructor arguments, and 32 bytes for the array length.
+                // First, we allocate memory for `code` by retrieving the free memory pointer and then moving it ahead
+                // of `code` by the size of the creation code plus constructor arguments, and 32 bytes for the array
+                // length.
                 code := mload(0x40)
                 mstore(0x40, add(code, add(codeSize, 32)))
 
@@ -246,11 +243,7 @@ library BaseSplitCodeFactory {
     ) internal returns (address) {
         unchecked {
             bytes memory creationCode = _getCreationCodeWithArgs(
-                constructorArgs,
-                creationCodeContractA,
-                creationCodeSizeA,
-                creationCodeContractB,
-                creationCodeSizeB
+                constructorArgs, creationCodeContractA, creationCodeSizeA, creationCodeContractB, creationCodeSizeB
             );
             return Create2.deploy(amount, salt, creationCode);
         }

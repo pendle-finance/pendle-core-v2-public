@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/BaseSplitCodeFactory.sol";
+import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../interfaces/IOwnable.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
@@ -41,10 +41,8 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
     function setSYCreationCode(bytes32 id, CreationCode memory code) external onlyOwner {
         if (
-            code.creationCodeContractA == address(0) ||
-            code.creationCodeContractB == address(0) ||
-            code.creationCodeSizeA == 0 ||
-            code.creationCodeSizeB == 0
+            code.creationCodeContractA == address(0) || code.creationCodeContractB == address(0)
+                || code.creationCodeSizeA == 0 || code.creationCodeSizeB == 0
         ) {
             revert InvalidCreationCode(id, code);
         }
@@ -73,12 +71,10 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
         IOwnable(SY).transferOwnership(syOwner, true, false);
     }
 
-    function deployUpgradableSY(
-        bytes32 id,
-        bytes memory constructorParams,
-        bytes memory initData,
-        address syOwner
-    ) external returns (address) {
+    function deployUpgradableSY(bytes32 id, bytes memory constructorParams, bytes memory initData, address syOwner)
+        external
+        returns (address)
+    {
         CreationCode memory code = creationCodes[id];
 
         if (code.creationCodeContractA == address(0)) {

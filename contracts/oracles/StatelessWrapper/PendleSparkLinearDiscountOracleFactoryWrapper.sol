@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import {PendleLinearDiscountOracleWrapper} from "./PendleLinearDiscountOracleWrapper.sol";
 import {PendleSparkLinearDiscountOracleFactory} from "../internal/PendleSparkLinearDiscountOracleFactory.sol";
+import {PendleLinearDiscountOracleWrapper} from "./PendleLinearDiscountOracleWrapper.sol";
 
 contract PendleSparkLinearDiscountOracleFactoryWrapper {
     event WrapperOracleCreated(address indexed innerOracle, address indexed wrapper);

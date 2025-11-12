@@ -3,9 +3,9 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "../../interfaces/IPAllActionV3.sol";
+import "../../interfaces/IPMarket.sol";
 import "../../interfaces/IPMarketFactory.sol";
 import "../../interfaces/IPYieldContractFactory.sol";
-import "../../interfaces/IPMarket.sol";
 import "./lib/MarketDeployLib.sol";
 
 contract PendlePoolDeployHelperV2 is TokenHelper {
@@ -61,15 +61,12 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         return addrs;
     }
 
-    function _deployPYAndMarket(
-        address SY,
-        PoolConfig memory config
-    ) internal returns (PoolDeploymentParams memory params, PoolDeploymentAddrs memory addrs) {
-        (uint256 scalarRoot, uint256 initialRateAnchor) = MarketDeployLib.calcParams(
-            config.rateMin,
-            config.rateMax,
-            config.expiry
-        );
+    function _deployPYAndMarket(address SY, PoolConfig memory config)
+        internal
+        returns (PoolDeploymentParams memory params, PoolDeploymentAddrs memory addrs)
+    {
+        (uint256 scalarRoot, uint256 initialRateAnchor) =
+            MarketDeployLib.calcParams(config.rateMin, config.rateMax, config.expiry);
 
         params = PoolDeploymentParams({
             expiry: config.expiry,
@@ -82,12 +79,8 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         addrs.SY = SY;
         (addrs.PT, addrs.YT) = _createPYIfNotExist(SY, params.expiry);
 
-        addrs.market = IPMarketFactory(marketFactory).createNewMarket(
-            addrs.PT,
-            params.scalarRoot,
-            params.initialRateAnchor,
-            params.lnFeeRateRoot
-        );
+        addrs.market = IPMarketFactory(marketFactory)
+            .createNewMarket(addrs.PT, params.scalarRoot, params.initialRateAnchor, params.lnFeeRateRoot);
 
         emit MarketDeployment(addrs, params);
     }
@@ -95,11 +88,8 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
     function _createPYIfNotExist(address SY, uint32 expiry) internal returns (address PT, address YT) {
         PT = IPYieldContractFactory(yieldContractFactory).getPT(SY, uint256(expiry));
         if (PT == address(0)) {
-            (PT, YT) = IPYieldContractFactory(yieldContractFactory).createYieldContract(
-                SY,
-                expiry,
-                doCacheIndexSameBlock
-            );
+            (PT, YT) =
+                IPYieldContractFactory(yieldContractFactory).createYieldContract(SY, expiry, doCacheIndexSameBlock);
         } else {
             YT = IPYieldContractFactory(yieldContractFactory).getYT(SY, expiry);
         }
@@ -135,10 +125,7 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
                     tokenMintSy: token,
                     pendleSwap: address(0),
                     swapData: SwapData({
-                        swapType: SwapType.NONE,
-                        extRouter: address(0),
-                        extCalldata: abi.encode(),
-                        needScale: false
+                        swapType: SwapType.NONE, extRouter: address(0), extCalldata: abi.encode(), needScale: false
                     })
                 })
             );
@@ -147,19 +134,12 @@ contract PendlePoolDeployHelperV2 is TokenHelper {
         }
 
         uint256 initialProportion = MarketDeployLib.calcInitialProportion(
-            params.expiry,
-            params.scalarRoot.Uint(),
-            params.initialRateAnchor.Uint(),
-            desiredImpliedRate
+            params.expiry, params.scalarRoot.Uint(), params.initialRateAnchor.Uint(), desiredImpliedRate
         );
 
         // mint PY
-        uint256 amountPY = IPAllActionV3(router).mintPyFromSy(
-            address(this),
-            addrs.YT,
-            amountSY.mulDown(initialProportion),
-            0
-        );
+        uint256 amountPY =
+            IPAllActionV3(router).mintPyFromSy(address(this), addrs.YT, amountSY.mulDown(initialProportion), 0);
 
         // mint LP
         IPAllActionV3(router).addLiquidityDualSyAndPt(msg.sender, addrs.market, _selfBalance(addrs.SY), amountPY, 0);

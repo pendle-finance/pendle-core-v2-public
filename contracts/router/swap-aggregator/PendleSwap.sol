@@ -3,9 +3,9 @@ pragma solidity ^0.8.17;
 
 import "../../core/libraries/TokenHelper.sol";
 import "./IPSwapAggregator.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./OKXScaleHelper.sol";
 import "./ParaswapScaleHelper.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
@@ -33,10 +33,11 @@ contract PendleSwap is
 
     function swap(address tokenIn, uint256 amountIn, SwapData calldata data) external payable {
         _approveForExtRouter(tokenIn, data);
-        data.extRouter.functionCallWithValue(
-            data.needScale ? _getScaledInputData(data.swapType, data.extCalldata, amountIn) : data.extCalldata,
-            tokenIn == NATIVE ? amountIn : 0
-        );
+        data.extRouter
+            .functionCallWithValue(
+                data.needScale ? _getScaledInputData(data.swapType, data.extCalldata, amountIn) : data.extCalldata,
+                tokenIn == NATIVE ? amountIn : 0
+            );
 
         emit SwapSingle(data.swapType, tokenIn, amountIn);
     }
@@ -57,17 +58,15 @@ contract PendleSwap is
         }
     }
 
-    function _getScaledInputData(
-        SwapType swapType,
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal view returns (bytes memory scaledCallData) {
+    function _getScaledInputData(SwapType swapType, bytes calldata rawCallData, uint256 amountIn)
+        internal
+        view
+        returns (bytes memory scaledCallData)
+    {
         if (swapType == SwapType.KYBERSWAP) {
             bool isSuccess;
-            (isSuccess, scaledCallData) = IKyberScalingHelper(KYBER_SCALING_HELPER).getScaledInputData(
-                rawCallData,
-                amountIn
-            );
+            (isSuccess, scaledCallData) =
+                IKyberScalingHelper(KYBER_SCALING_HELPER).getScaledInputData(rawCallData, amountIn);
 
             require(isSuccess, "PendleSwap: Kyber scaling failed");
         } else if (swapType == SwapType.ODOS) {
@@ -81,10 +80,11 @@ contract PendleSwap is
         }
     }
 
-    function _odosScaling(
-        bytes calldata rawCallData,
-        uint256 amountIn
-    ) internal pure returns (bytes memory scaledCallData) {
+    function _odosScaling(bytes calldata rawCallData, uint256 amountIn)
+        internal
+        pure
+        returns (bytes memory scaledCallData)
+    {
         bytes4 selector = bytes4(rawCallData[:4]);
         bytes calldata dataToDecode = rawCallData[4:];
 
@@ -109,10 +109,10 @@ contract PendleSwap is
 }
 
 interface IKyberScalingHelper {
-    function getScaledInputData(
-        bytes calldata inputData,
-        uint256 newAmount
-    ) external view returns (bool isSuccess, bytes memory data);
+    function getScaledInputData(bytes calldata inputData, uint256 newAmount)
+        external
+        view
+        returns (bool isSuccess, bytes memory data);
 }
 
 interface IOdosRouterV2 {
@@ -126,10 +126,8 @@ interface IOdosRouterV2 {
         address outputReceiver;
     }
 
-    function swap(
-        swapTokenInfo memory tokenInfo,
-        bytes calldata pathDefinition,
-        address executor,
-        uint32 referralCode
-    ) external payable returns (uint256 amountOut);
+    function swap(swapTokenInfo memory tokenInfo, bytes calldata pathDefinition, address executor, uint32 referralCode)
+        external
+        payable
+        returns (uint256 amountOut);
 }

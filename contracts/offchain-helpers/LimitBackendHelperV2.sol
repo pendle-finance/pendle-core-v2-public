@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPLimitRouter.sol";
+import "../core/libraries/Errors.sol";
 import "../core/libraries/TokenHelper.sol";
+import "../interfaces/IPLimitRouter.sol";
 import "../interfaces/IStandardizedYield.sol";
 import "../interfaces/IWETH.sol";
-import "../core/libraries/Errors.sol";
 import "./BytesLib.sol";
 
 contract LimitBackendHelperV2 is TokenHelper {
@@ -19,11 +19,11 @@ contract LimitBackendHelperV2 is TokenHelper {
     }
 
     /// @notice vanilla read
-    function readSingleToken(
-        address token,
-        address[] calldata owners,
-        address spender
-    ) public view returns (uint256[] memory balances, uint256[] memory allowances) {
+    function readSingleToken(address token, address[] calldata owners, address spender)
+        public
+        view
+        returns (uint256[] memory balances, uint256[] memory allowances)
+    {
         balances = new uint256[](owners.length);
         allowances = new uint256[](owners.length);
         for (uint256 i = 0; i < owners.length; i++) {
@@ -33,11 +33,11 @@ contract LimitBackendHelperV2 is TokenHelper {
     }
 
     /// @notice auto return balances and allowances the input tokens of the orders, based on type
-    function readMultiTokens(
-        address[] calldata tokens,
-        address[] calldata owners,
-        address spender
-    ) public view returns (uint256[] memory balances, uint256[] memory allowances) {
+    function readMultiTokens(address[] calldata tokens, address[] calldata owners, address spender)
+        public
+        view
+        returns (uint256[] memory balances, uint256[] memory allowances)
+    {
         require(tokens.length == owners.length, "Length mismatch");
         balances = new uint256[](owners.length);
         allowances = new uint256[](owners.length);

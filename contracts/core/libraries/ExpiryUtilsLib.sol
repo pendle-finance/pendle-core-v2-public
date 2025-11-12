@@ -8,9 +8,9 @@ library ExpiryUtils {
         uint8 day;
     }
 
-    uint256 private constant DAY_IN_SECONDS = 86400;
-    uint256 private constant YEAR_IN_SECONDS = 31536000;
-    uint256 private constant LEAP_YEAR_IN_SECONDS = 31622400;
+    uint256 private constant DAY_IN_SECONDS = 86_400;
+    uint256 private constant YEAR_IN_SECONDS = 31_536_000;
+    uint256 private constant LEAP_YEAR_IN_SECONDS = 31_622_400;
     uint16 private constant ORIGIN_YEAR = 1970;
 
     /**
@@ -21,13 +21,13 @@ library ExpiryUtils {
      * @param _expiry The expiry in epoch time.
      * @param _delimiter Can be any delimiter, but usually "-" or " ".
      * @return result Returns the concatenated string.
-     **/
-    function concat(
-        string memory _bt,
-        string memory _yt,
-        uint256 _expiry,
-        string memory _delimiter
-    ) internal pure returns (string memory result) {
+     *
+     */
+    function concat(string memory _bt, string memory _yt, uint256 _expiry, string memory _delimiter)
+        internal
+        pure
+        returns (string memory result)
+    {
         result = string(abi.encodePacked(_bt, _delimiter, _yt, _delimiter, toRFC2822String(_expiry)));
     }
 

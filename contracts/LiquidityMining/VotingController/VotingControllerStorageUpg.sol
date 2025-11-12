@@ -5,11 +5,11 @@ import "../../interfaces/IPVeToken.sol";
 import "../../interfaces/IPVotingController.sol";
 
 import "../libraries/VeBalanceLib.sol";
-import "../libraries/WeekMath.sol";
 import "../libraries/VeHistoryLib.sol";
+import "../libraries/WeekMath.sol";
 
-import "../../core/libraries/MiniHelpers.sol";
 import "../../core/libraries/Errors.sol";
+import "../../core/libraries/MiniHelpers.sol";
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -110,10 +110,7 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         return __dep_userPoolHistory[user][pool].get(index);
     }
 
-    function getPoolData(
-        address pool,
-        uint128[] calldata wTimes
-    )
+    function getPoolData(address pool, uint128[] calldata wTimes)
         public
         view
         returns (
@@ -133,22 +130,26 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         }
     }
 
-    function getUserData(
-        address user,
-        address[] calldata pools
-    ) public view returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools) {
+    function getUserData(address user, address[] calldata pools)
+        public
+        view
+        returns (uint64 totalVotedWeight, UserPoolData[] memory voteForPools)
+    {
         UserData storage data = userData[user];
 
         totalVotedWeight = data.totalVotedWeight;
 
         voteForPools = new UserPoolData[](pools.length);
-        for (uint256 i = 0; i < pools.length; ++i) voteForPools[i] = data.voteForPools[pools[i]];
+        for (uint256 i = 0; i < pools.length; ++i) {
+            voteForPools[i] = data.voteForPools[pools[i]];
+        }
     }
 
-    function getWeekData(
-        uint128 wTime,
-        address[] calldata pools
-    ) public view returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes) {
+    function getWeekData(uint128 wTime, address[] calldata pools)
+        public
+        view
+        returns (bool isEpochFinalized, uint128 totalVotes, uint128[] memory poolVotes)
+    {
         if (!wTime.isValidWTime()) revert Errors.InvalidWTime(wTime);
 
         WeekData storage data = weekData[wTime];
@@ -156,23 +157,28 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
         (isEpochFinalized, totalVotes) = (data.isEpochFinalized, data.totalVotes);
 
         poolVotes = new uint128[](pools.length);
-        for (uint256 i = 0; i < pools.length; ++i) poolVotes[i] = data.poolVotes[pools[i]];
+        for (uint256 i = 0; i < pools.length; ++i) {
+            poolVotes[i] = data.poolVotes[pools[i]];
+        }
     }
 
     function getAllActivePools() external view returns (address[] memory) {
         return allActivePools.values();
     }
 
-    function getAllRemovedPools(
-        uint256 start,
-        uint256 end
-    ) external view returns (uint256 lengthOfRemovedPools, address[] memory arr) {
+    function getAllRemovedPools(uint256 start, uint256 end)
+        external
+        view
+        returns (uint256 lengthOfRemovedPools, address[] memory arr)
+    {
         lengthOfRemovedPools = allRemovedPools.length();
 
         if (end >= lengthOfRemovedPools) revert Errors.ArrayOutOfBounds();
 
         arr = new address[](end - start + 1);
-        for (uint256 i = start; i <= end; ++i) arr[i - start] = allRemovedPools.at(i);
+        for (uint256 i = start; i <= end; ++i) {
+            arr[i - start] = allRemovedPools.at(i);
+        }
     }
 
     function getActiveChainPools(uint64 chainId) external view returns (address[] memory) {
@@ -219,12 +225,10 @@ abstract contract VotingControllerStorageUpg is IPVotingController {
      * @notice modifies `user`'s vote weight on `pool`
      * @dev works by simply removing the old vote position, then adds in a fresh vote
      */
-    function _modifyVoteWeight(
-        address user,
-        address pool,
-        LockedPosition memory userPosition,
-        uint64 weight
-    ) internal returns (VeBalance memory newVote) {
+    function _modifyVoteWeight(address user, address pool, LockedPosition memory userPosition, uint64 weight)
+        internal
+        returns (VeBalance memory newVote)
+    {
         UserData storage uData = userData[user];
         PoolData storage pData = poolData[pool];
 

@@ -29,9 +29,7 @@ interface IPActionInfoStatic {
     function getPY(address py) external view returns (address pt, address yt);
 
     /// can be SY, PY or Market
-    function getTokensInOut(
-        address token
-    ) external view returns (address[] memory tokensIn, address[] memory tokensOut);
+    function getTokensInOut(address token) external view returns (address[] memory tokensIn, address[] memory tokensOut);
 
     function getUserSYInfo(address sy, address user) external returns (UserSYInfo memory res);
 

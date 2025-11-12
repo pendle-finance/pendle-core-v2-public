@@ -40,7 +40,8 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
         if (user2 != address(0) && user2 != address(this)) _distributeRewardsPrivate(user2, tokens, indexes);
     }
 
-    // should only be callable from `_updateAndDistributeRewardsForTwo` to guarantee user != address(0) && user != address(this)
+    // should only be callable from `_updateAndDistributeRewardsForTwo` to guarantee user != address(0) && user !=
+    // address(this)
     function _distributeRewardsPrivate(address user, address[] memory tokens, uint256[] memory indexes) private {
         assert(user != address(0) && user != address(this));
 
@@ -69,10 +70,10 @@ abstract contract RewardManagerAbstract is IRewardManager, TokenHelper {
 
     function _redeemExternalReward() internal virtual;
 
-    function _doTransferOutRewards(
-        address user,
-        address receiver
-    ) internal virtual returns (uint256[] memory rewardAmounts);
+    function _doTransferOutRewards(address user, address receiver)
+        internal
+        virtual
+        returns (uint256[] memory rewardAmounts);
 
     function _rewardSharesUser(address user) internal view virtual returns (uint256);
 }

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "../../interfaces/IPYieldToken.sol";
 import "../../interfaces/IPPrincipalToken.sol";
+import "../../interfaces/IPYieldToken.sol";
 
-import "./SYUtils.sol";
 import "../libraries/math/PMath.sol";
+import "./SYUtils.sol";
 
 type PYIndex is uint256;
 

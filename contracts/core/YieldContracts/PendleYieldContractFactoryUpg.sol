@@ -28,11 +28,11 @@ import "../../interfaces/IPYieldContractFactory.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import "../libraries/ExpiryUtilsLib.sol";
 import "../libraries/BaseSplitCodeFactory.sol";
-import "../libraries/MiniHelpers.sol";
-import "../libraries/Errors.sol";
 import "../libraries/BoringOwnableUpgradeableV2.sol";
+import "../libraries/Errors.sol";
+import "../libraries/ExpiryUtilsLib.sol";
+import "../libraries/MiniHelpers.sol";
 import "../libraries/StringLib.sol";
 
 import "./PendlePrincipalToken.sol";
@@ -105,18 +105,19 @@ contract PendleYieldContractFactoryUpg is BoringOwnableUpgradeableV2, IPYieldCon
      * @notice Create a pair of (PT, YT) from any SY and valid expiry. Anyone can create a yield contract
      * @dev It's intentional to make expiry an uint32 to guard against fat fingers. uint32.max is year 2106
      */
-    function createYieldContract(
-        address SY,
-        uint32 expiry,
-        bool doCacheIndexSameBlock
-    ) external returns (address PT, address YT) {
-        if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0) revert Errors.YCFactoryInvalidExpiry();
+    function createYieldContract(address SY, uint32 expiry, bool doCacheIndexSameBlock)
+        external
+        returns (address PT, address YT)
+    {
+        if (MiniHelpers.isTimeInThePast(expiry) || expiry % expiryDivisor != 0) {
+            revert Errors.YCFactoryInvalidExpiry();
+        }
 
         if (getPT[SY][expiry] != address(0)) revert Errors.YCFactoryYieldContractExisted();
 
         IStandardizedYield _SY = IStandardizedYield(SY);
 
-        (, , uint8 assetDecimals) = _SY.assetInfo();
+        (,, uint8 assetDecimals) = _SY.assetInfo();
 
         string memory syCoreName = _SY.name().stripPrefix(SY_NAME_PREF);
         string memory syCoreSymbol = _SY.symbol().stripPrefix(SY_SYMBOL_PREF);
@@ -172,16 +173,18 @@ contract PendleYieldContractFactoryUpg is BoringOwnableUpgradeableV2, IPYieldCon
     }
 
     function setInterestFeeRate(uint128 newInterestFeeRate) public onlyOwner {
-        if (newInterestFeeRate > maxInterestFeeRate)
+        if (newInterestFeeRate > maxInterestFeeRate) {
             revert Errors.YCFactoryInterestFeeRateTooHigh(newInterestFeeRate, maxInterestFeeRate);
+        }
 
         interestFeeRate = newInterestFeeRate;
         emit SetInterestFeeRate(newInterestFeeRate);
     }
 
     function setRewardFeeRate(uint128 newRewardFeeRate) public onlyOwner {
-        if (newRewardFeeRate > maxRewardFeeRate)
+        if (newRewardFeeRate > maxRewardFeeRate) {
             revert Errors.YCFactoryRewardFeeRateTooHigh(newRewardFeeRate, maxRewardFeeRate);
+        }
 
         rewardFeeRate = newRewardFeeRate;
         emit SetRewardFeeRate(newRewardFeeRate);

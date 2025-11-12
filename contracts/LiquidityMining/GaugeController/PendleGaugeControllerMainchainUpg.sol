@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendleGaugeControllerBaseUpg.sol";
 import "../../interfaces/IPGaugeControllerMainchain.sol";
+import "./PendleGaugeControllerBaseUpg.sol";
 
 contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGaugeControllerMainchain {
     address public immutable votingController;
@@ -22,12 +22,7 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGa
         address _marketFactory5
     )
         PendleGaugeControllerBaseUpg(
-            _pendle,
-            _marketFactory,
-            _marketFactory2,
-            _marketFactory3,
-            _marketFactory4,
-            _marketFactory5
+            _pendle, _marketFactory, _marketFactory2, _marketFactory3, _marketFactory4, _marketFactory5
         )
     {
         votingController = _votingController;
@@ -38,11 +33,10 @@ contract PendleGaugeControllerMainchainUpg is PendleGaugeControllerBaseUpg, IPGa
         __BoringOwnableV2_init(_owner);
     }
 
-    function updateVotingResults(
-        uint128 wTime,
-        address[] memory markets,
-        uint256[] memory pendleSpeeds
-    ) external onlyVotingController {
+    function updateVotingResults(uint128 wTime, address[] memory markets, uint256[] memory pendleSpeeds)
+        external
+        onlyVotingController
+    {
         _receiveVotingResults(wTime, markets, pendleSpeeds);
     }
 }

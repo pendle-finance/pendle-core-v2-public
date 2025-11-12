@@ -20,12 +20,12 @@ abstract contract BoringLpSeller {
         uint256 netSyToRedeem;
 
         if (PT.isExpired()) {
-            (uint256 netSyRemoved, ) = IPMarket(market).burn(address(SY), address(YT), netLpIn);
+            (uint256 netSyRemoved,) = IPMarket(market).burn(address(SY), address(YT), netLpIn);
             uint256 netSyFromPt = YT.redeemPY(address(SY));
             netSyToRedeem = netSyRemoved + netSyFromPt;
         } else {
             (uint256 netSyRemoved, uint256 netPtRemoved) = IPMarket(market).burn(address(SY), market, netLpIn);
-            (uint256 netSySwappedOut, ) = IPMarket(market).swapExactPtForSy(address(SY), netPtRemoved, EMPTY_BYTES);
+            (uint256 netSySwappedOut,) = IPMarket(market).swapExactPtForSy(address(SY), netPtRemoved, EMPTY_BYTES);
             netSyToRedeem = netSyRemoved + netSySwappedOut;
         }
 

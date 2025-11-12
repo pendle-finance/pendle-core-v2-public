@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IPMsgReceiverApp.sol";
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
+import "../../interfaces/IPMsgReceiverApp.sol";
 
 // solhint-disable no-empty-blocks
 

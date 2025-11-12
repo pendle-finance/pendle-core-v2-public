@@ -64,12 +64,10 @@ interface IStandardizedYield is IERC20Metadata {
      * Requirements:
      * - (`tokenIn`) must be a valid base token.
      */
-    function deposit(
-        address receiver,
-        address tokenIn,
-        uint256 amountTokenToDeposit,
-        uint256 minSharesOut
-    ) external payable returns (uint256 amountSharesOut);
+    function deposit(address receiver, address tokenIn, uint256 amountTokenToDeposit, uint256 minSharesOut)
+        external
+        payable
+        returns (uint256 amountSharesOut);
 
     /**
      * @notice redeems an amount of base tokens by burning some shares
@@ -95,9 +93,9 @@ interface IStandardizedYield is IERC20Metadata {
     /**
      * @notice exchangeRate * syBalance / 1e18 must return the asset balance of the account
      * @notice vice-versa, if a user uses some amount of tokens equivalent to X asset, the amount of sy
-     he can mint must be X * exchangeRate / 1e18
+     * exchangeRate / 1e18
      * @dev SYUtils's assetToSy & syToAsset should be used instead of raw multiplication
-     & division
+     *  & division
      */
     function exchangeRate() external view returns (uint256 res);
 
@@ -146,20 +144,21 @@ interface IStandardizedYield is IERC20Metadata {
 
     function isValidTokenOut(address token) external view returns (bool);
 
-    function previewDeposit(
-        address tokenIn,
-        uint256 amountTokenToDeposit
-    ) external view returns (uint256 amountSharesOut);
+    function previewDeposit(address tokenIn, uint256 amountTokenToDeposit)
+        external
+        view
+        returns (uint256 amountSharesOut);
 
-    function previewRedeem(
-        address tokenOut,
-        uint256 amountSharesToRedeem
-    ) external view returns (uint256 amountTokenOut);
+    function previewRedeem(address tokenOut, uint256 amountSharesToRedeem)
+        external
+        view
+        returns (uint256 amountTokenOut);
 
     /**
      * @notice This function contains information to interpret what the asset is
      * @return assetType the type of the asset (0 for ERC20 tokens, 1 for AMM liquidity tokens,
-        2 for bridged yield bearing tokens like wstETH, rETH on Arbi whose the underlying asset doesn't exist on the chain)
+     *     2 for bridged yield bearing tokens like wstETH, rETH on Arbi whose the underlying asset doesn't exist on the
+     * chain)
      * @return assetAddress the address of the asset
      * @return assetDecimals the decimals of the asset
      */

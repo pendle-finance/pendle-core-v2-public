@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {MarketMathCore, MarketState} from "../../core/Market/MarketMathCore.sol";
-import {PYIndexLib, PYIndex} from "../../core/StandardizedYield/PYIndex.sol";
+import {PYIndex, PYIndexLib} from "../../core/StandardizedYield/PYIndex.sol";
 import {PMath} from "../../core/libraries/math/PMath.sol";
 
 library MarketApproxEstimateLib {
@@ -51,21 +51,19 @@ library MarketApproxEstimateLib {
         }
     }
 
-    function estimateSwapExactSyForPt(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 amountSyIn
-    ) internal pure returns (uint256 estimatedPtOut) {
+    function estimateSwapExactSyForPt(MarketState memory market, PYIndex index, uint256 blockTime, uint256 amountSyIn)
+        internal
+        pure
+        returns (uint256 estimatedPtOut)
+    {
         return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.PT);
     }
 
-    function estimateSwapExactSyForYt(
-        MarketState memory market,
-        PYIndex index,
-        uint256 blockTime,
-        uint256 amountSyIn
-    ) internal pure returns (uint256 estimatedYtOut) {
+    function estimateSwapExactSyForYt(MarketState memory market, PYIndex index, uint256 blockTime, uint256 amountSyIn)
+        internal
+        pure
+        returns (uint256 estimatedYtOut)
+    {
         return estimateAmount(market, index, blockTime, amountSyIn, TokenType.SY, TokenType.YT);
     }
 

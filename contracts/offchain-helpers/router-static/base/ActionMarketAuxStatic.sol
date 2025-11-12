@@ -3,8 +3,8 @@ pragma solidity ^0.8.17;
 
 import "../../../interfaces/IPMarket.sol";
 import "../../../interfaces/IPRouterStatic.sol";
-import "./StorageLayout.sol";
 import "./MarketApproxLibV1.sol";
+import "./StorageLayout.sol";
 
 contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using MarketMathCore for MarketState;
@@ -14,9 +14,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     using PYIndexLib for PYIndex;
     using PYIndexLib for IPYieldToken;
 
-    function getMarketState(
-        address market
-    )
+    function getMarketState(address market)
         public
         view
         returns (
@@ -41,13 +39,8 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         if (IPMarket(market).isExpired()) return PMath.ONE;
 
         MarketPreCompute memory comp = state.getMarketPreCompute(_pyIndex(market), block.timestamp);
-        int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
-            state.totalPt,
-            comp.totalAsset,
-            comp.rateScalar,
-            comp.rateAnchor,
-            0
-        );
+        int256 preFeeExchangeRate =
+            MarketMathCore._getExchangeRate(state.totalPt, comp.totalAsset, comp.rateScalar, comp.rateAnchor, 0);
         return preFeeExchangeRate.Uint();
     }
 
@@ -59,11 +52,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         MarketPreCompute memory comp = state.getMarketPreCompute(_pyIndex(market), block.timestamp);
 
         int256 preFeeExchangeRate = MarketMathCore._getExchangeRate(
-            state.totalPt,
-            comp.totalAsset,
-            comp.rateScalar,
-            comp.rateAnchor,
-            netPtToAccount
+            state.totalPt, comp.totalAsset, comp.rateScalar, comp.rateAnchor, netPtToAccount
         );
 
         if (netPtToAccount > 0) {
@@ -105,23 +94,23 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     /**
      * @notice get the rate of yieldToken & PT
      * @return yieldToken the address of yieldToken
-     * @return netPtOut the amount of PT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't swap, return type(uint256).max
-     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 PT (10**PT.decimals()). If can't swap, return type(uint256).max
+     * @return netPtOut the amount of PT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't
+     * swap, return type(uint256).max
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 PT (10**PT.decimals()). If can't
+     * swap, return type(uint256).max
      */
-    function getYieldTokenAndPtRate(
-        address market
-    ) public view returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut) {
-        (IStandardizedYield SY, IPPrincipalToken PT, ) = _readTokens(market);
+    function getYieldTokenAndPtRate(address market)
+        public
+        view
+        returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut)
+    {
+        (IStandardizedYield SY, IPPrincipalToken PT,) = _readTokens(market);
         yieldToken = SY.yieldToken();
         uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
         uint256 ptDecimals = PT.decimals();
 
         try IPRouterStatic(address(this)).swapExactTokenForPtStatic(market, yieldToken, 10 ** yieldDecimals) returns (
-            uint256 netPtOutRet,
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 netPtOutRet, uint256, uint256, uint256, uint256
         ) {
             netPtOut = netPtOutRet;
         } catch {
@@ -129,11 +118,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         }
 
         try IPRouterStatic(address(this)).swapExactPtForTokenStatic(market, 10 ** ptDecimals, yieldToken) returns (
-            uint256 netYieldTokenOutRet,
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 netYieldTokenOutRet, uint256, uint256, uint256, uint256
         ) {
             netYieldTokenOut = netYieldTokenOutRet;
         } catch {
@@ -144,23 +129,23 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     /**
      * @notice get the rate of yieldToken & YT
      * @return yieldToken the address of yieldToken
-     * @return netYtOut the amount of YT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't swap, return type(uint256).max
-     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 YT (10**YT.decimals()). If can't swap, return type(uint256).max
+     * @return netYtOut the amount of YT that can be swapped from 1 yieldToken (10**yieldToken.decimals()). If can't
+     * swap, return type(uint256).max
+     * @return netYieldTokenOut the amount of yieldToken that can be swapped from 1 YT (10**YT.decimals()). If can't
+     * swap, return type(uint256).max
      */
-    function getYieldTokenAndYtRate(
-        address market
-    ) public view returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut) {
-        (IStandardizedYield SY, , IPYieldToken YT) = _readTokens(market);
+    function getYieldTokenAndYtRate(address market)
+        public
+        view
+        returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut)
+    {
+        (IStandardizedYield SY,, IPYieldToken YT) = _readTokens(market);
         yieldToken = SY.yieldToken();
         uint256 yieldDecimals = IERC20Metadata(yieldToken).decimals();
         uint256 ytDecimals = YT.decimals();
 
         try IPRouterStatic(address(this)).swapExactTokenForYtStatic(market, yieldToken, 10 ** yieldDecimals) returns (
-            uint256 netYtOutRet,
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 netYtOutRet, uint256, uint256, uint256, uint256
         ) {
             netYtOut = netYtOutRet;
         } catch {
@@ -168,14 +153,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         }
 
         try IPRouterStatic(address(this)).swapExactYtForTokenStatic(market, 10 ** ytDecimals, yieldToken) returns (
-            uint256 netYieldTokenOutRet,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
+            uint256 netYieldTokenOutRet, uint256, uint256, uint256, uint256, uint256, uint256, uint256
         ) {
             netYieldTokenOut = netYieldTokenOutRet;
         } catch {
@@ -184,17 +162,17 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     }
 
     function getLpToSyRate(address market) public view returns (uint256) {
-        (IStandardizedYield SY, , ) = _readTokens(market);
+        (IStandardizedYield SY,,) = _readTokens(market);
         return getLpToAssetRate(market).divDown(SY.exchangeRate());
     }
 
     function getPtToSyRate(address market) public view returns (uint256) {
-        (IStandardizedYield SY, , ) = _readTokens(market);
+        (IStandardizedYield SY,,) = _readTokens(market);
         return getPtToAssetRate(market).divDown(SY.exchangeRate());
     }
 
     function getYtToSyRate(address market) external view returns (uint256) {
-        (IStandardizedYield SY, , ) = _readTokens(market);
+        (IStandardizedYield SY,,) = _readTokens(market);
         return getYtToAssetRate(market).divDown(SY.exchangeRate());
     }
 
@@ -210,8 +188,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
             MarketPreCompute memory comp = state.getMarketPreCompute(pyIndexCurrent, block.timestamp);
 
             totalHypotheticalAsset =
-                comp.totalAsset +
-                state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
+                comp.totalAsset + state.totalPt.mulDown(int256(_getPtToAssetRate(market, state, pyIndexCurrent)));
         }
 
         return totalHypotheticalAsset.divDown(state.totalLp).Uint();
@@ -227,11 +204,7 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     }
 
     /// @param slippage A fixed-point number with 18 decimal places
-    function swapExactSyForPtStaticAndGenerateApproxParams(
-        address market,
-        uint256 exactSyIn,
-        uint256 slippage
-    )
+    function swapExactSyForPtStaticAndGenerateApproxParams(address market, uint256 exactSyIn, uint256 slippage)
         external
         view
         returns (
@@ -265,17 +238,17 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
             ApproxParams memory approxParams
         )
     {
-        (netPtOut, netSyMinted, netSyFee, priceImpact, exchangeRateAfter) = IPActionMarketCoreStatic(address(this))
-            .swapExactTokenForPtStatic(market, tokenIn, amountTokenIn);
+        (netPtOut, netSyMinted, netSyFee, priceImpact, exchangeRateAfter) =
+            IPActionMarketCoreStatic(address(this)).swapExactTokenForPtStatic(market, tokenIn, amountTokenIn);
         approxParams = genApproxParamsToSwapExactSyForPt(market, netPtOut, slippage);
     }
 
     /// @param slippage A fixed-point number with 18 decimal places
-    function genApproxParamsToSwapExactSyForPt(
-        address market,
-        uint256 netPtOut,
-        uint256 slippage
-    ) public view returns (ApproxParams memory) {
+    function genApproxParamsToSwapExactSyForPt(address market, uint256 netPtOut, uint256 slippage)
+        public
+        view
+        returns (ApproxParams memory)
+    {
         MarketState memory state = _readState(market);
         MarketPreCompute memory comp = state.getMarketPreCompute(_pyIndex(market), block.timestamp);
 
@@ -285,12 +258,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
     }
 
     /// @param slippage A fixed-point number with 18 decimal places
-    function genApproxParamsPtOut(
-        uint256 netPtOut,
-        uint256 guessLowerBound,
-        uint256 guessUpperBound,
-        uint256 slippage
-    ) internal pure returns (ApproxParams memory) {
+    function genApproxParamsPtOut(uint256 netPtOut, uint256 guessLowerBound, uint256 guessUpperBound, uint256 slippage)
+        internal
+        pure
+        returns (ApproxParams memory)
+    {
         uint256 guessOffchain = netPtOut;
         uint256 MAX_ITERATION = 30;
 
@@ -300,23 +272,18 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         uint256 guessMin = PMath.max(guessLowerBound, netPtOut.tweakDown(slippage));
         uint256 guessMax = PMath.min(guessUpperBound, netPtOut.tweakUp(5 * slippage));
 
-        return
-            ApproxParams({
-                guessOffchain: guessOffchain,
-                maxIteration: MAX_ITERATION,
-                eps: eps,
-                guessMin: guessMin,
-                guessMax: guessMax
-            });
+        return ApproxParams({
+            guessOffchain: guessOffchain, maxIteration: MAX_ITERATION, eps: eps, guessMin: guessMin, guessMax: guessMax
+        });
     }
 
-    function _getPtToAssetRate(
-        address market,
-        MarketState memory state,
-        PYIndex pyIndexCurrent
-    ) internal view returns (uint256 ptToAssetRate) {
+    function _getPtToAssetRate(address market, MarketState memory state, PYIndex pyIndexCurrent)
+        internal
+        view
+        returns (uint256 ptToAssetRate)
+    {
         if (state.expiry <= block.timestamp) {
-            (IStandardizedYield SY, , ) = _readTokens(market);
+            (IStandardizedYield SY,,) = _readTokens(market);
             return (SY.exchangeRate().divDown(PYIndex.unwrap(pyIndexCurrent)));
         }
         uint256 timeToExpiry = state.expiry - block.timestamp;
@@ -345,9 +312,11 @@ contract ActionMarketAuxStatic is IPActionMarketAuxStatic {
         return IPRouterStatic(address(this)).readMarketState(market);
     }
 
-    function _readTokens(
-        address market
-    ) internal view returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT) {
+    function _readTokens(address market)
+        internal
+        view
+        returns (IStandardizedYield _SY, IPPrincipalToken _PT, IPYieldToken _YT)
+    {
         return IPMarket(market).readTokens();
     }
 

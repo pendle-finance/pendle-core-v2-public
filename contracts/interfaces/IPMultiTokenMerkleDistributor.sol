@@ -15,19 +15,13 @@ interface IPMultiTokenMerkleDistributor {
 
     function verified(address token, address user) external view returns (uint256);
 
-    function claim(
-        address receiver,
-        address[] memory tokens,
-        uint256[] memory totalAccrueds,
-        bytes32[][] memory proofs
-    ) external returns (uint256[] memory amountOuts);
+    function claim(address receiver, address[] memory tokens, uint256[] memory totalAccrueds, bytes32[][] memory proofs)
+        external
+        returns (uint256[] memory amountOuts);
 
     function claimVerified(address receiver, address[] memory tokens) external returns (uint256[] memory amountOuts);
 
-    function verify(
-        address user,
-        address[] memory tokens,
-        uint256[] memory totalAccrueds,
-        bytes32[][] memory proofs
-    ) external returns (uint256[] memory amountClaimable);
+    function verify(address user, address[] memory tokens, uint256[] memory totalAccrueds, bytes32[][] memory proofs)
+        external
+        returns (uint256[] memory amountClaimable);
 }

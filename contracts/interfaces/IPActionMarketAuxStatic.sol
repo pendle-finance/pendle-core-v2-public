@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: None
 pragma solidity ^0.8.0;
 
-import "./IPMarket.sol";
 import {ApproxParams} from "../router/math/MarketApproxLibV2.sol";
+import "./IPMarket.sol";
 
 interface IPActionMarketAuxStatic {
     function calcPriceImpactPY(address market, int256 netPtOut) external view returns (uint256);
@@ -11,9 +11,7 @@ interface IPActionMarketAuxStatic {
 
     function calcPriceImpactYt(address market, int256 netPtOut) external view returns (uint256);
 
-    function getMarketState(
-        address market
-    )
+    function getMarketState(address market)
         external
         view
         returns (
@@ -29,13 +27,15 @@ interface IPActionMarketAuxStatic {
 
     function getTradeExchangeRateIncludeFee(address market, int256 netPtOut) external view returns (uint256);
 
-    function getYieldTokenAndPtRate(
-        address market
-    ) external view returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut);
+    function getYieldTokenAndPtRate(address market)
+        external
+        view
+        returns (address yieldToken, uint256 netPtOut, uint256 netYieldTokenOut);
 
-    function getYieldTokenAndYtRate(
-        address market
-    ) external view returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut);
+    function getYieldTokenAndYtRate(address market)
+        external
+        view
+        returns (address yieldToken, uint256 netYtOut, uint256 netYieldTokenOut);
 
     function getLpToSyRate(address market) external view returns (uint256);
 
@@ -50,11 +50,7 @@ interface IPActionMarketAuxStatic {
     function getYtToAssetRate(address market) external view returns (uint256);
 
     /// @param slippage A fixed-point number with 18 decimal places
-    function swapExactSyForPtStaticAndGenerateApproxParams(
-        address market,
-        uint256 exactSyIn,
-        uint256 slippage
-    )
+    function swapExactSyForPtStaticAndGenerateApproxParams(address market, uint256 exactSyIn, uint256 slippage)
         external
         view
         returns (

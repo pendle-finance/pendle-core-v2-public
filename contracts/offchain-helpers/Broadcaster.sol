@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPVotingController.sol";
 import "../LiquidityMining/libraries/WeekMath.sol";
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/TokenHelper.sol";
+import "../interfaces/IPVotingController.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 contract Broadcaster is Initializable, BoringOwnableUpgradeableV2, UUPSUpgradeable, TokenHelper {
     IPVotingController public immutable votingController;
@@ -28,7 +28,7 @@ contract Broadcaster is Initializable, BoringOwnableUpgradeableV2, UUPSUpgradeab
         lastBroadcastedWeek = currentWeek;
 
         votingController.finalizeEpoch();
-        for (uint256 i = 0; i < chainIds.length; ) {
+        for (uint256 i = 0; i < chainIds.length;) {
             uint64 chainId = chainIds[i];
             uint256 fee = votingController.getBroadcastResultFee(chainId);
             votingController.broadcastResults{value: fee}(chainId);

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.17;
 
-import "./PendlePYOracleLib.sol";
-import "./PendleLpOracleLib.sol";
-import "../../interfaces/IPPYLpOracle.sol";
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
+import "../../interfaces/IPPYLpOracle.sol";
+import "./PendleLpOracleLib.sol";
+import "./PendlePYOracleLib.sol";
 
 // This is a pre-deployed version of PendlePtOracleLib & PendleLpOracleLib with additional utility functions.
-// Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler structure
-// but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
+// Use of this contract rather than direct library integration resulting in a smaller bytecode size and simpler
+// structure but slightly higher gas usage (~ 4000 gas, 2 external calls & 1 cold code load)
 contract PendlePYLpOracle is BoringOwnableUpgradeableV2, IPPYLpOracle {
     using PendlePYOracleLib for IPMarket;
     using PendleLpOracleLib for IPMarket;
@@ -78,38 +78,34 @@ contract PendlePYLpOracle is BoringOwnableUpgradeableV2, IPPYLpOracle {
      * A check function for the cardinality status of the market
      * @param market PendleMarket address
      * @param duration twap duration
-     * @return increaseCardinalityRequired a boolean indicates whether the cardinality should be increased to serve the duration
+     * @return increaseCardinalityRequired a boolean indicates whether the cardinality should be increased to serve the
+     * duration
      * @return cardinalityRequired the amount of cardinality required for the twap duration
      */
-    function getOracleState(
-        address market,
-        uint32 duration
-    )
+    function getOracleState(address market, uint32 duration)
         external
         view
         returns (bool increaseCardinalityRequired, uint16 cardinalityRequired, bool oldestObservationSatisfied)
     {
-        (, , , uint16 observationIndex, uint16 observationCardinality, uint16 cardinalityReserved) = IPMarket(market)
-            ._storage();
+        (,,, uint16 observationIndex, uint16 observationCardinality, uint16 cardinalityReserved) =
+            IPMarket(market)._storage();
 
         // checkIncreaseCardinalityRequired
         cardinalityRequired = _calcCardinalityRequiredRequired(duration);
         increaseCardinalityRequired = cardinalityReserved < cardinalityRequired;
 
         // check oldestObservationSatisfied
-        (uint32 oldestTimestamp, , bool initialized) = IPMarket(market).observations(
-            (observationIndex + 1) % observationCardinality
-        );
+        (uint32 oldestTimestamp,, bool initialized) =
+            IPMarket(market).observations((observationIndex + 1) % observationCardinality);
         if (!initialized) {
-            (oldestTimestamp, , ) = IPMarket(market).observations(0);
+            (oldestTimestamp,,) = IPMarket(market).observations(0);
         }
         oldestObservationSatisfied = oldestTimestamp < block.timestamp - duration;
     }
 
     function _calcCardinalityRequiredRequired(uint32 duration) internal view returns (uint16) {
-        uint32 cardinalityRequired = (duration * BLOCK_CYCLE_DENOMINATOR + blockCycleNumerator - 1) /
-            blockCycleNumerator +
-            1;
+        uint32 cardinalityRequired =
+            (duration * BLOCK_CYCLE_DENOMINATOR + blockCycleNumerator - 1) / blockCycleNumerator + 1;
         if (cardinalityRequired > type(uint16).max) {
             revert TwapDurationTooLarge(duration, cardinalityRequired);
         }

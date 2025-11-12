@@ -19,12 +19,10 @@ library ExcessivelySafeCall {
     /// @param _calldata The data to send to the remote contract
     /// @return success and returndata, as `.call()`. Returndata is capped to
     /// `_maxCopy` bytes.
-    function excessivelySafeCall(
-        address _target,
-        uint256 _gas,
-        uint16 _maxCopy,
-        bytes memory _calldata
-    ) internal returns (bool, bytes memory) {
+    function excessivelySafeCall(address _target, uint256 _gas, uint16 _maxCopy, bytes memory _calldata)
+        internal
+        returns (bool, bytes memory)
+    {
         // set up for assembly call
         uint256 _toCopy;
         bool _success;
@@ -71,12 +69,11 @@ library ExcessivelySafeCall {
     /// @param _calldata The data to send to the remote contract
     /// @return success and returndata, as `.call()`. Returndata is capped to
     /// `_maxCopy` bytes.
-    function excessivelySafeStaticCall(
-        address _target,
-        uint256 _gas,
-        uint16 _maxCopy,
-        bytes memory _calldata
-    ) internal view returns (bool, bytes memory) {
+    function excessivelySafeStaticCall(address _target, uint256 _gas, uint16 _maxCopy, bytes memory _calldata)
+        internal
+        view
+        returns (bool, bytes memory)
+    {
         // set up for assembly call
         uint256 _toCopy;
         bool _success;

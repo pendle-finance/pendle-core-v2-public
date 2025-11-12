@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.19;
 
-import {IPFixedPricePTAMM, IPFixedPricePTAMMSwapCallback} from "../interfaces/IPFixedPricePTAMM.sol";
 import {IPChainlinkOracleEssential} from "../interfaces/IPChainlinkOracleEssential.sol";
+import {IPFixedPricePTAMM, IPFixedPricePTAMMSwapCallback} from "../interfaces/IPFixedPricePTAMM.sol";
 
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import {PMath} from "../core/libraries/math/PMath.sol";
 import {BoringOwnableUpgradeableV2} from "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import {TokenHelper} from "../core/libraries/TokenHelper.sol";
+import {PMath} from "../core/libraries/math/PMath.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract FixedPricePTAMM is
@@ -55,35 +55,36 @@ contract FixedPricePTAMM is
         }
     }
 
-    function priceOracle(
-        address PT,
-        address token
-    ) public view returns (IPChainlinkOracleEssential oracle, uint256 multiplier) {
+    function priceOracle(address PT, address token)
+        public
+        view
+        returns (IPChainlinkOracleEssential oracle, uint256 multiplier)
+    {
         oracle = IPChainlinkOracleEssential($().priceOracle[PT][token].oracle);
         multiplier = $().priceOracle[PT][token].multiplier;
 
         if (address(oracle) == address(0)) revert OracleNotSet(PT, token);
     }
 
-    function previewSwapPtForExactToken(
-        address PT,
-        address token,
-        uint256 exactTokenOut
-    ) public view returns (uint256 amountPtIn) {
+    function previewSwapPtForExactToken(address PT, address token, uint256 exactTokenOut)
+        public
+        view
+        returns (uint256 amountPtIn)
+    {
         (IPChainlinkOracleEssential oracle, uint256 multiplier) = priceOracle(PT, token);
-        (, int256 rawPrice, , , ) = oracle.latestRoundData();
+        (, int256 rawPrice,,,) = oracle.latestRoundData();
 
         // ceil(exactTokenOut / (rawPrice * multiplier))
         return (exactTokenOut * PMath.ONE * PMath.ONE).rawDivUp(rawPrice.Uint() * multiplier);
     }
 
-    function previewSwapExactPtForToken(
-        address PT,
-        uint256 exactPtIn,
-        address token
-    ) public view returns (uint256 amountTokenOut) {
+    function previewSwapExactPtForToken(address PT, uint256 exactPtIn, address token)
+        public
+        view
+        returns (uint256 amountTokenOut)
+    {
         (IPChainlinkOracleEssential oracle, uint256 multiplier) = priceOracle(PT, token);
-        (, int256 rawPrice, , , ) = oracle.latestRoundData();
+        (, int256 rawPrice,,,) = oracle.latestRoundData();
 
         // exactPtIn * rawPrice * multiplier
         return (exactPtIn * rawPrice.Uint() * multiplier) / (PMath.ONE * PMath.ONE);
@@ -99,31 +100,27 @@ contract FixedPricePTAMM is
         return _swapPtForExactToken(receiver, PT, token, exactTokenOut, data, false);
     }
 
-    function swapExactPtForToken(
-        address receiver,
-        address PT,
-        uint256 exactPtIn,
-        address token,
-        bytes calldata data
-    ) external nonReentrant returns (uint256 netTokenOut) {
+    function swapExactPtForToken(address receiver, address PT, uint256 exactPtIn, address token, bytes calldata data)
+        external
+        nonReentrant
+        returns (uint256 netTokenOut)
+    {
         return _swapExactPtForToken(receiver, PT, exactPtIn, token, data, false);
     }
 
-    function transferInThenSwapPtForExactToken(
-        address receiver,
-        address PT,
-        address token,
-        uint256 exactTokenOut
-    ) external nonReentrant returns (uint256 netPtIn) {
+    function transferInThenSwapPtForExactToken(address receiver, address PT, address token, uint256 exactTokenOut)
+        external
+        nonReentrant
+        returns (uint256 netPtIn)
+    {
         return _swapPtForExactToken(receiver, PT, token, exactTokenOut, "", true);
     }
 
-    function transferInThenSwapExactPtForToken(
-        address receiver,
-        address PT,
-        uint256 exactPtIn,
-        address token
-    ) external nonReentrant returns (uint256 netPtIn) {
+    function transferInThenSwapExactPtForToken(address receiver, address PT, uint256 exactPtIn, address token)
+        external
+        nonReentrant
+        returns (uint256 netPtIn)
+    {
         return _swapExactPtForToken(receiver, PT, exactPtIn, token, "", true);
     }
 
@@ -161,8 +158,9 @@ contract FixedPricePTAMM is
         uint256 exactTokenOut,
         bytes memory data
     ) internal {
-        if ($().totalToken[token] < exactTokenOut)
+        if ($().totalToken[token] < exactTokenOut) {
             revert InsufficientTokenForTrade(token, $().totalToken[token], exactTokenOut);
+        }
 
         _transferOut(token, receiver, exactTokenOut);
         $().totalToken[token] -= exactTokenOut;
@@ -172,8 +170,9 @@ contract FixedPricePTAMM is
         }
 
         $().totalToken[PT] += exactPtIn;
-        if (_selfBalance(PT) < $().totalToken[PT])
+        if (_selfBalance(PT) < $().totalToken[PT]) {
             revert InsufficientPtReceived(PT, _selfBalance(PT), $().totalToken[PT]);
+        }
 
         emit Swap(msg.sender, receiver, PT, exactPtIn, token, exactTokenOut);
     }

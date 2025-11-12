@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IPMsgSendEndpoint.sol";
 import "../../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../../core/libraries/Errors.sol";
+import "../../interfaces/IPMsgSendEndpoint.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 // solhint-disable no-empty-blocks
@@ -61,7 +61,6 @@ abstract contract PendleMsgSenderAppUpg is BoringOwnableUpgradeableV2 {
     }
 
     function _getSendMessageFee(uint256 chainId, bytes memory message) internal view returns (uint256) {
-        return
-            pendleMsgSendEndpoint.calcFee(destinationContracts.get(chainId), chainId, message, approxDstExecutionGas);
+        return pendleMsgSendEndpoint.calcFee(destinationContracts.get(chainId), chainId, message, approxDstExecutionGas);
     }
 }

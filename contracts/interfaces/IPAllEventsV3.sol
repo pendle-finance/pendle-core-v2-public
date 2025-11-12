@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {ExitPreExpReturnParams, ExitPostExpReturnParams} from "./IPAllActionTypeV3.sol";
+import {ExitPostExpReturnParams, ExitPreExpReturnParams} from "./IPAllActionTypeV3.sol";
 
 interface IPActionAddRemoveLiqV3Events {
     event AddLiquidityDualSyAndPt(
@@ -25,19 +25,11 @@ interface IPActionAddRemoveLiqV3Events {
     );
 
     event AddLiquiditySinglePt(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netPtIn,
-        uint256 netLpOut
+        address indexed caller, address indexed market, address indexed receiver, uint256 netPtIn, uint256 netLpOut
     );
 
     event AddLiquiditySingleSy(
-        address indexed caller,
-        address indexed market,
-        address indexed receiver,
-        uint256 netSyIn,
-        uint256 netLpOut
+        address indexed caller, address indexed market, address indexed receiver, uint256 netSyIn, uint256 netLpOut
     );
 
     event AddLiquiditySingleToken(
@@ -179,19 +171,11 @@ interface IPActionMiscV3Events {
     );
 
     event MintPyFromSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netSyIn,
-        uint256 netPyOut
+        address indexed caller, address indexed receiver, address indexed YT, uint256 netSyIn, uint256 netPyOut
     );
 
     event RedeemPyToSy(
-        address indexed caller,
-        address indexed receiver,
-        address indexed YT,
-        uint256 netPyIn,
-        uint256 netSyOut
+        address indexed caller, address indexed receiver, address indexed YT, uint256 netPyIn, uint256 netSyOut
     );
 
     event MintPyFromToken(
