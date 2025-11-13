@@ -185,20 +185,24 @@ abstract contract OKXScaleHelper {
         bytes memory tail = rawCallData[scaledCallData.length:];
         // search trim flag from back to front, get the index
         assembly {
-            let endPtr := add(tail, mload(tail))
-            let startPtr := tail
+            let endPtr := add(add(tail, 32), mload(tail))
+            let startPtr := add(tail, 32)
+            let shown := 0
 
             for { let i := sub(endPtr, 32) } or(gt(i, startPtr), eq(i, startPtr)) { i := sub(i, 32) } {
                 let data := mload(i)
                 if or(eq(and(data, TRIM_FLAG_MASK), TRIM_FLAG), eq(and(data, TRIM_FLAG_MASK), TRIM_DUAL_FLAG)) {
-                    let expectAmountOut := and(data, TRIM_EXPECT_AMOUNT_OUT_MASK)
-                    let acutalExpectAmountOut := mul(expectAmountOut, actualAmountIn)
-                    acutalExpectAmountOut := div(acutalExpectAmountOut, rawAmountIn)
-                    acutalExpectAmountOut := and(acutalExpectAmountOut, TRIM_EXPECT_AMOUNT_OUT_MASK)
-                    data := and(data, not(TRIM_EXPECT_AMOUNT_OUT_MASK))
-                    data := or(data, acutalExpectAmountOut)
-                    mstore(i, data)
-                    break
+                    shown := add(shown, 1)
+                    if eq(shown, 2) {
+                        let expectAmountOut := and(data, TRIM_EXPECT_AMOUNT_OUT_MASK)
+                        let acutalExpectAmountOut := mul(expectAmountOut, actualAmountIn)
+                        acutalExpectAmountOut := div(acutalExpectAmountOut, rawAmountIn)
+                        acutalExpectAmountOut := and(acutalExpectAmountOut, TRIM_EXPECT_AMOUNT_OUT_MASK)
+                        data := and(data, not(TRIM_EXPECT_AMOUNT_OUT_MASK))
+                        data := or(data, acutalExpectAmountOut)
+                        mstore(i, data)
+                        break
+                    }
                 }
             }
         }
