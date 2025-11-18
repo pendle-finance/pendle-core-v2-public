@@ -52,7 +52,8 @@
     "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
     "experimental": {
         "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd",
-        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
+        "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
     },
     "receiverEndpoint": "0x998CF52b2585e05494BF9F2bF502351a9C7FdA8f",
     "vePendle": "0x8A09574b0401A856d89d1b583eE22E8cb0C5530B",
