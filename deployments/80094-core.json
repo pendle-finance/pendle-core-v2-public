@@ -44,9 +44,8 @@
     "vePendleAirdropDistributor": "0x7f6Ca6aA1F2291992E252Fb8E25348c4861C5C25",
     "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
     "experimental": {
-        "PendleChainlinkOracleFactory": "0x9E5129dcC15d39625617DcD7F0F44FB0BB957FFd",
-        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
-        "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
+        "PendleChainlinkOracleFactory": "0x6502cda86f9110f3655512237C9FF2B9CE247c69",
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
     },
     "receiverEndpoint": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "vePendle": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
