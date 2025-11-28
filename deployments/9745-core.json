@@ -56,5 +56,6 @@
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
     "cross-chain": {
         "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
-    }
+    },
+    "merkleDistributor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4"
 }

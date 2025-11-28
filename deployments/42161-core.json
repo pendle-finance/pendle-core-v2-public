@@ -66,5 +66,6 @@
     "cross-chain": {
         "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870",
         "ptOftAdapterFactory": "0x4F215b3F8a6E056Ff293E6818F3f501B5F4787D7"
-    }
+    },
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4"
 }
