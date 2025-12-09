@@ -16,7 +16,7 @@ contract Reflector is TokenHelper, IPReflector {
     receive() external payable {}
 
     function reflect(bytes calldata inputData) external returns (bytes memory result) {
-        (uint256 value, bytes memory newCalldata) = _getNewCalldata(inputData);
+        (uint256 value, bytes memory newCalldata, address receiver, address market) = _getNewCalldata(inputData);
         bool success;
 
         (success, result) = ROUTER.call{value: value}(newCalldata);
@@ -26,9 +26,14 @@ contract Reflector is TokenHelper, IPReflector {
                 revert(add(32, result), mload(result))
             }
         }
+
+        if (market != address(0)) _sweepMarketDustBalance(receiver, market);
     }
 
-    function _getNewCalldata(bytes calldata inputData) internal returns (uint256 value, bytes memory newCalldata) {
+    function _getNewCalldata(bytes calldata inputData)
+        internal
+        returns (uint256 value, bytes memory newCalldata, address receiver, address market)
+    {
         bytes4 selector = bytes4(inputData[:4]);
         bytes calldata data = inputData[4:];
 
@@ -48,12 +53,14 @@ contract Reflector is TokenHelper, IPReflector {
 
             value = _scaleTokenInputAndGetValue(v5);
             newCalldata = abi.encodeWithSelector(selector, v1, v2, v3, v4, v5, v6);
+            (receiver, market) = (v1, v2);
         } else if (selector == IPActionAddRemoveLiqV3.addLiquiditySingleTokenKeepYt.selector) {
             (address v1, address v2, uint256 v3, uint256 v4, TokenInput memory v5) =
                 abi.decode(data, (address, address, uint256, uint256, TokenInput));
 
             value = _scaleTokenInputAndGetValue(v5);
             newCalldata = abi.encodeWithSelector(selector, v1, v2, v3, v4, v5);
+            (receiver, market) = (v1, v2);
         } else if (
             selector == IPActionAddRemoveLiqV3.addLiquiditySingleSy.selector
                 || selector == IPActionSwapPTV3.swapExactSyForPt.selector
@@ -63,11 +70,13 @@ contract Reflector is TokenHelper, IPReflector {
                 abi.decode(data, (address, address, uint256, uint256, ApproxParams, LimitOrderData));
 
             newCalldata = abi.encodeWithSelector(selector, v1, v2, _scaleSyInput(v2), v4, v5, v6);
+            (receiver, market) = (v1, v2);
         } else if (selector == IPActionAddRemoveLiqV3.addLiquiditySingleSyKeepYt.selector) {
             (address v1, address v2,, uint256 v4, uint256 v5) =
                 abi.decode(data, (address, address, uint256, uint256, uint256));
 
             newCalldata = abi.encodeWithSelector(selector, v1, v2, _scaleSyInput(v2), v4, v5);
+            (receiver, market) = (v1, v2);
         } else {
             revert("UNSUPPORTED_SELECTOR");
         }
@@ -96,5 +105,13 @@ contract Reflector is TokenHelper, IPReflector {
             IERC20(address(SY)).forceApprove(ROUTER, type(uint256).max);
             approved[address(SY)] = true;
         }
+    }
+
+    function _sweepMarketDustBalance(address receiver, address market) internal {
+        (IStandardizedYield SY, IPPrincipalToken PT, IPYieldToken YT) = IPMarket(market).readTokens();
+
+        _transferOut(address(SY), receiver, _selfBalance(SY));
+        _transferOut(address(PT), receiver, _selfBalance(PT));
+        _transferOut(address(YT), receiver, _selfBalance(YT));
     }
 }
