@@ -45,6 +45,9 @@ abstract contract OKXScaleHelper {
         if (chainid == 9745) {
             return 0x9FD43F5E4c24543b2eBC807321E58e6D350d6a5A;
         }
+        if (chainid == 130) {
+            return 0x2e28281Cf3D58f475cebE27bec4B8a23dFC7782c;
+        }
         return address(0);
     }
 
@@ -283,7 +286,10 @@ interface IOKXDexRouter {
         uint256 minReturn,
         // solhint-disable-next-line no-unused-vars
         bytes32[] calldata pools
-    ) external payable returns (uint256 returnAmount);
+    )
+        external
+        payable
+        returns (uint256 returnAmount);
 
     function smartSwapByOrderId(
         uint256 orderId,
