@@ -2,9 +2,9 @@
     "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
     "network": {
         "chainId": 999,
-        "treasury": "0x17A191644E750AA24a5ec13A253b9446f4eF178b",
-        "governance": "0x34Ac848b6eC31BE87f99ddf7ED15Fa5662E7430a",
-        "devMultisig": "0x2e7542c7BB887269474995fa8b9cB7F7e6fAC895",
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
         "pendle": "0xD6Eb81136884713E843936843E286FD2a85A205A",
         "lzEndpoint": "0x2D61DCDD36F10b22176E0433B86F74567d529aAa",
         "wrappedNative": "0x5555555555555555555555555555555555555555",
