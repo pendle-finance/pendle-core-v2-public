@@ -2,7 +2,8 @@
     "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
     "network": {
         "chainId": 130,
-        "wrappedNative": "0x4200000000000000000000000000000000000006"
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac"
     },
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
     "routerFacets": {
