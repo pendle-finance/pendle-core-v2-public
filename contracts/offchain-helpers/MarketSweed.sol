@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.17;
 
-import "../interfaces/IPMarket.sol";
-import "../router/math/MarketApproxLibOnchain.sol";
-import "../router/base/ActionBase.sol";
 import "../interfaces/IMarketSweed.sol";
+import "../interfaces/IPMarket.sol";
+import "../router/base/ActionBase.sol";
+import "../router/math/MarketApproxLibOnchain.sol";
 
 contract MarketSweed is ActionBase, IMarketSweed {
     using PMath for uint256;
@@ -40,29 +40,31 @@ contract MarketSweed is ActionBase, IMarketSweed {
         (netPtOut, netYtOut, guessedAmountPtToSwap) = _swap(receiver, market, tokens, sweedParams);
 
         uint256 netYtFromSeed;
-        (netLpOut, netYtFromSeed, ) = _seed(receiver, market, tokens, _selfBalance(tokens.SY), netPtOut);
+        (netLpOut, netYtFromSeed,) = _seed(receiver, market, tokens, _selfBalance(tokens.SY), netPtOut);
         netYtOut += netYtFromSeed;
 
         if (netLpOut < minLpOut) revert("Slippage: INSUFFICIENT_LP_OUT");
         if (netYtOut < minYtOut) revert("Slippage: INSUFFICIENT_YT_OUT");
     }
 
-    function mintPYFromToken__noCall(
-        address YT,
-        TokenInput calldata input
-    ) external payable returns (uint256 netPYOut) {
+    function mintPYFromToken__noCall(address YT, TokenInput calldata input)
+        external
+        payable
+        returns (uint256 netPYOut)
+    {
         address SY = IPYieldToken(YT).SY();
         _mintSyFromToken(YT, SY, 1, input);
         netPYOut = IPYieldToken(YT).mintPY(msg.sender, msg.sender);
     }
 
-    function _seed(
-        address receiver,
-        address market,
-        MarketTokens memory tokens,
-        uint256 netSyIn,
-        uint256 netPtIn
-    ) internal returns (uint256 /*netLpOut*/, uint256 /*netYtOut*/, uint256 /*netSyMintPy*/) {
+    function _seed(address receiver, address market, MarketTokens memory tokens, uint256 netSyIn, uint256 netPtIn)
+        internal
+        returns (
+            uint256, /*netLpOut*/
+            uint256, /*netYtOut*/
+            uint256 /*netSyMintPy*/
+        )
+    {
         uint256 netSyMintPy = _calcSyToMintPYSeed(market, tokens, netSyIn, netPtIn);
 
         // transfer SY to mint PY
@@ -74,16 +76,14 @@ contract MarketSweed is ActionBase, IMarketSweed {
         _transferOut(address(tokens.SY), market, netSyAddLiquidity);
         _transferOut(address(tokens.PT), market, netPtIn);
 
-        (uint256 netLpOut, , ) = IPMarket(market).mint(receiver, netSyAddLiquidity, netPYMinted + netPtIn);
+        (uint256 netLpOut,,) = IPMarket(market).mint(receiver, netSyAddLiquidity, netPYMinted + netPtIn);
         return (netLpOut, netPYMinted, netSyMintPy);
     }
 
-    function _swap(
-        address receiver,
-        address market,
-        MarketTokens memory tokens,
-        ApproxSweedParams memory sweedParams
-    ) internal returns (uint256 amountPtToAccount, uint256 amountYTToAccount, int256 guessedSwap) {
+    function _swap(address receiver, address market, MarketTokens memory tokens, ApproxSweedParams memory sweedParams)
+        internal
+        returns (uint256 amountPtToAccount, uint256 amountYTToAccount, int256 guessedSwap)
+    {
         PYIndex index = _getPYIndex(market);
         MarketState memory state = _readMarket(market);
         MarketPreCompute memory comp = state.getMarketPreCompute(index, block.timestamp);
@@ -94,10 +94,8 @@ contract MarketSweed is ActionBase, IMarketSweed {
 
         if (state.lastLnImpliedRate > sweedParams.targetLnImpliedRate) {
             // Normalize maxPtToSwap
-            sweedParams.maxPtToSwap = PMath.min(
-                sweedParams.maxPtToSwap,
-                MarketApproxPtOutLibOnchain.calcMaxPtOut(comp, state.totalPt)
-            );
+            sweedParams.maxPtToSwap =
+                PMath.min(sweedParams.maxPtToSwap, MarketApproxPtOutLibOnchain.calcMaxPtOut(comp, state.totalPt));
 
             int256 amountSyToAccount;
 
@@ -108,10 +106,8 @@ contract MarketSweed is ActionBase, IMarketSweed {
             IPMarket(market).swapSyForExactPt(address(this), guessedSwap.abs(), EMPTY_BYTES);
         } else {
             // Normalize maxPtToSwap
-            sweedParams.maxPtToSwap = PMath.min(
-                sweedParams.maxPtToSwap,
-                MarketApproxPtInLibOnchain.calcSoftMaxPtIn(state, comp)
-            );
+            sweedParams.maxPtToSwap =
+                PMath.min(sweedParams.maxPtToSwap, MarketApproxPtInLibOnchain.calcSoftMaxPtIn(state, comp));
 
             guessedSwap = _calcAmountPtToSell(state, index, sweedParams);
 
@@ -128,11 +124,11 @@ contract MarketSweed is ActionBase, IMarketSweed {
         }
     }
 
-    function _calcAmountPtToBuy(
-        MarketState memory state,
-        PYIndex index,
-        ApproxSweedParams memory sweedParams
-    ) internal view returns (int256 amountPtToSwapToAccount, int256 amountSyToAccount) {
+    function _calcAmountPtToBuy(MarketState memory state, PYIndex index, ApproxSweedParams memory sweedParams)
+        internal
+        view
+        returns (int256 amountPtToSwapToAccount, int256 amountSyToAccount)
+    {
         int256 refAmt = sweedParams.maxPtToSwap.Int();
         int256 accPtToAccount = 0;
         MarketState memory localState;
@@ -148,7 +144,7 @@ contract MarketSweed is ActionBase, IMarketSweed {
 
             _makeACopyTo(state, localState);
             // Will not revert. maxPtToBuy should already be normalized
-            (int256 localAmountSyToAccount, , ) = localState.executeTradeCore(index, guess, block.timestamp);
+            (int256 localAmountSyToAccount,,) = localState.executeTradeCore(index, guess, block.timestamp);
 
             if (PMath.isAApproxB(localState.lastLnImpliedRate, sweedParams.targetLnImpliedRate, sweedParams.eps)) {
                 return (guess, localAmountSyToAccount);
@@ -161,11 +157,11 @@ contract MarketSweed is ActionBase, IMarketSweed {
         revert("_calcAmountPtToBuy: failed");
     }
 
-    function _calcAmountPtToSell(
-        MarketState memory state,
-        PYIndex index,
-        ApproxSweedParams memory sweedParams
-    ) internal view returns (int256 amountPtToSwapToAccount) {
+    function _calcAmountPtToSell(MarketState memory state, PYIndex index, ApproxSweedParams memory sweedParams)
+        internal
+        view
+        returns (int256 amountPtToSwapToAccount)
+    {
         int256 refAmt = sweedParams.maxPtToSwap.Int();
         int256 accPtToAccount = 0;
         MarketState memory localState;
@@ -195,19 +191,16 @@ contract MarketSweed is ActionBase, IMarketSweed {
         revert("_calcAmountPtToSell: failed");
     }
 
-    function _calcSyToMintPYSeed(
-        address market,
-        MarketTokens memory tokens,
-        uint256 netSyIn,
-        uint256 netPtIn
-    ) internal returns (uint256 /* netSyMintPy */) {
+    function _calcSyToMintPYSeed(address market, MarketTokens memory tokens, uint256 netSyIn, uint256 netPtIn)
+        internal
+        returns (
+            uint256 /* netSyMintPy */
+        )
+    {
         uint256 netSyMintPy = netSyIn;
         if (netPtIn > 0) {
-            (, , uint256 netSyDual, uint256 netPtDual) = _readMarket(market).addLiquidity(
-                netSyIn,
-                netPtIn,
-                block.timestamp
-            );
+            (,, uint256 netSyDual, uint256 netPtDual) =
+                _readMarket(market).addLiquidity(netSyIn, netPtIn, block.timestamp);
             if (netPtDual < netPtIn) {
                 revert("MS: Bought too much PT");
             }
@@ -217,14 +210,13 @@ contract MarketSweed is ActionBase, IMarketSweed {
         MarketState memory state = _readMarket(market);
         PYIndex pyIndex = tokens.YT.newIndex();
         netSyMintPy =
-            (netSyMintPy * state.totalPt.Uint()) /
-            (state.totalPt.Uint() + pyIndex.syToAsset(state.totalSy.Uint()));
+            (netSyMintPy * state.totalPt.Uint()) / (state.totalPt.Uint() + pyIndex.syToAsset(state.totalSy.Uint()));
 
         return netSyMintPy;
     }
 
     function _getPYIndex(address market) internal returns (PYIndex) {
-        (, , IPYieldToken YT) = IPMarket(market).readTokens();
+        (,, IPYieldToken YT) = IPMarket(market).readTokens();
         return PYIndex.wrap(YT.pyIndexCurrent());
     }
 

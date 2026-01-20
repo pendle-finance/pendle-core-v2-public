@@ -138,7 +138,7 @@ library Errors {
     error VEReceiveOldSupply(uint256 msgTime);
 
     error GCNotPendleMarket(address caller);
-    error GCNotVotingController(address caller);
+    error GCNotRewardDataUpdater(address caller);
 
     error InvalidWTime(uint256 wTime);
     error ExpiryInThePast(uint256 expiry);

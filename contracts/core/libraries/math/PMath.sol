@@ -211,6 +211,11 @@ library PMath {
         return uint80(x);
     }
 
+    function Uint152(uint256 x) internal pure returns (uint152) {
+        require(x <= type(uint152).max);
+        return uint152(x);
+    }
+
     function isAApproxB(uint256 a, uint256 b, uint256 eps) internal pure returns (bool) {
         return mulDown(b, ONE - eps) <= a && a <= mulDown(b, ONE + eps);
     }

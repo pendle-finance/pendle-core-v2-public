@@ -16,11 +16,10 @@ contract PendleMerkleDepositor {
     }
 
     /// @notice The `tokens` array must be sorted in strictly ascending order with no duplicates.
-    function depositToMerkleCampaign(
-        bytes32 campaignId,
-        address[] calldata tokens,
-        uint256[] calldata amounts
-    ) external payable {
+    function depositToMerkleCampaign(bytes32 campaignId, address[] calldata tokens, uint256[] calldata amounts)
+        external
+        payable
+    {
         uint256 length = tokens.length;
 
         require(length != 0, "PMD: empty array");
@@ -51,7 +50,7 @@ contract PendleMerkleDepositor {
 
     function _transferFrom(address token, address from, address to, uint256 amount) internal {
         if (token == NATIVE) {
-            (bool success, ) = to.call{value: amount}("");
+            (bool success,) = to.call{value: amount}("");
             require(success, "PMD: eth send failed");
         } else {
             IERC20(token).safeTransferFrom(from, to, amount);

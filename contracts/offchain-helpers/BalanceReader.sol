@@ -6,6 +6,10 @@ import "../interfaces/IPMarket.sol";
 import "../interfaces/IStandardizedYield.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
+interface ILegacyMarket {
+    function activeBalance(address user) external view returns (uint256);
+}
+
 contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
     struct UserMarketInfo {
         uint256 lpBalance;
@@ -44,7 +48,13 @@ contract BalanceReader is UUPSUpgradeable, BoringOwnableUpgradeableV2 {
             (, IPPrincipalToken PT, IPYieldToken YT) = market.readTokens();
 
             info.lpBalance = market.balanceOf(user);
-            info.lpActiveBalance = market.activeBalance(user);
+
+            try ILegacyMarket(address(market)).activeBalance(user) returns (uint256 activeBalance) {
+                info.lpActiveBalance = activeBalance;
+            } catch {
+                info.lpActiveBalance = 0;
+            }
+
             info.lpRewardsOut = _redeemRewards(market, user);
 
             info.ytBalance = YT.balanceOf(user);

@@ -16,7 +16,7 @@ import "./PendleGauge.sol";
  * - address(0) & address(this) should never have any rewards & activeBalance accounting done. This is
  *     guaranteed by address(0) & address(this) check in each updateForTwo function
  */
-contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
+contract PendleMarketV7 is PendleERC20, PendleGauge, IPMarket {
     using PMath for uint256;
     using PMath for int256;
     using MarketMathCore for MarketState;
@@ -44,7 +44,7 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
     string private constant LP_NAME_PREF = "PLP ";
     string private constant LP_SYMBOL_PREF = "PLP-";
 
-    uint256 public constant VERSION = 6;
+    uint256 public constant VERSION = 7;
 
     IPPrincipalToken internal immutable PT;
     IStandardizedYield internal immutable SY;
@@ -66,16 +66,9 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
         _;
     }
 
-    constructor(
-        address _PT,
-        int256 _scalarRoot,
-        int256 _initialAnchor,
-        uint80 _lnFeeRateRoot,
-        address _vePendle,
-        address _gaugeController
-    )
+    constructor(address _PT, int256 _scalarRoot, int256 _initialAnchor, uint80 _lnFeeRateRoot, address _gaugeController)
         PendleERC20(_getLPName(_PT), _getLPSymbol(_PT), 18)
-        PendleGauge(IPPrincipalToken(_PT).SY(), _vePendle, _gaugeController)
+        PendleGauge(IPPrincipalToken(_PT).SY(), _gaugeController)
     {
         PT = IPPrincipalToken(_PT);
         SY = IStandardizedYield(PT.SY());
@@ -370,11 +363,11 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
                     PENDLE GAUGE - RELATED
     //////////////////////////////////////////////////////////////*/
 
-    function _stakedBalance(address user) internal view override returns (uint256) {
+    function _rewardSharesUser(address user) internal view override returns (uint256) {
         return balanceOf(user);
     }
 
-    function _totalStaked() internal view override returns (uint256) {
+    function _rewardSharesTotal() internal view override returns (uint256) {
         return totalSupply();
     }
 
@@ -386,8 +379,15 @@ contract PendleMarketV6 is PendleERC20, PendleGauge, IPMarket {
         PendleGauge._beforeTokenTransfer(from, to, amount);
     }
 
-    // solhint-disable-next-line ordering
-    function _afterTokenTransfer(address from, address to, uint256 amount) internal override(PendleERC20, PendleGauge) {
-        PendleGauge._afterTokenTransfer(from, to, amount);
+    /*///////////////////////////////////////////////////////////////
+                            LEGACY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function totalActiveSupply() external view returns (uint256) {
+        return totalSupply();
+    }
+
+    function activeBalance(address user) external view returns (uint256) {
+        return balanceOf(user);
     }
 }

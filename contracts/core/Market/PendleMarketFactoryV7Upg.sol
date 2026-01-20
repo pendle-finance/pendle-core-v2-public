@@ -10,10 +10,10 @@ import "../libraries/BaseSplitCodeFactory.sol";
 import "../libraries/BoringOwnableUpgradeableV2.sol";
 import "../libraries/Errors.sol";
 
-contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory {
+contract PendleMarketFactoryV7Upg is BoringOwnableUpgradeableV2, IPMarketFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    uint256 public constant VERSION = 6;
+    uint256 public constant VERSION = 7;
 
     address public immutable marketCreationCodeContractA;
     uint256 public immutable marketCreationCodeSizeA;
@@ -21,7 +21,6 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
     uint256 public immutable marketCreationCodeSizeB;
 
     address public immutable yieldContractFactory;
-    address public immutable vePendle;
     address public immutable gaugeController;
 
     uint256 public immutable maxLnFeeRateRoot;
@@ -44,7 +43,6 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
         uint256 _marketCreationCodeSizeA,
         address _marketCreationCodeContractB,
         uint256 _marketCreationCodeSizeB,
-        address _vePendle,
         address _gaugeController
     ) {
         yieldContractFactory = _yieldContractFactory;
@@ -55,7 +53,6 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
         marketCreationCodeContractB = _marketCreationCodeContractB;
         marketCreationCodeSizeB = _marketCreationCodeSizeB;
 
-        vePendle = _vePendle;
         gaugeController = _gaugeController;
 
         _disableInitializers();
@@ -91,7 +88,7 @@ contract PendleMarketFactoryV6Upg is BoringOwnableUpgradeableV2, IPMarketFactory
         market = BaseSplitCodeFactory._create2(
             0,
             bytes32(block.chainid),
-            abi.encode(PT, scalarRoot, initialAnchor, lnFeeRateRoot, vePendle, gaugeController),
+            abi.encode(PT, scalarRoot, initialAnchor, lnFeeRateRoot, gaugeController),
             marketCreationCodeContractA,
             marketCreationCodeSizeA,
             marketCreationCodeContractB,

@@ -86,4 +86,16 @@ interface IPMarket is IPGauge, IERC20Metadata {
     function VERSION() external pure returns (uint256);
 
     function reentrancyGuardEntered() external view returns (bool);
+
+    /*///////////////////////////////////////////////////////////////
+                            LEGACY FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Kept for backward compatibility
+    /// @dev From version 7, this function returns `totalSupply()`.
+    function totalActiveSupply() external view returns (uint256);
+
+    /// @dev Kept for backward compatibility
+    /// @dev From version 7, this function returns `balanceOf(user)`.
+    function activeBalance(address user) external view returns (uint256);
 }
