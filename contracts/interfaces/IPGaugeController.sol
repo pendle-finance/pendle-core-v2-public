@@ -12,6 +12,8 @@ interface IPGaugeController {
 
     event UpdateMarketRewardV2(address indexed market, uint128 pendlePerSec, uint128 incentiveEndsAt);
 
+    event WhitelistMarketSet(address indexed market, bool isWhitelisted);
+
     function setRewardDatas(
         address[] calldata markets,
         uint128[] calldata pendlePerSecs,
@@ -24,10 +26,12 @@ interface IPGaugeController {
 
     function redeemMarketReward() external;
 
-    function rewardData(
-        address market
-    )
+    function rewardData(address market)
         external
         view
         returns (uint128 pendlePerSec, uint128 accumulatedPendle, uint128 lastUpdated, uint128 incentiveEndsAt);
+
+    function isWhitelisted(address market) external view returns (bool);
+
+    function whitelistMarkets(address[] memory markets, bool _isWhitelisted) external;
 }

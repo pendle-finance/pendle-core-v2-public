@@ -22,7 +22,7 @@ contract PendleGaugeControllerUpg is IPGaugeController, BoringOwnableUpgradeable
         uint128 incentiveEndsAt;
     }
 
-    uint256 internal constant MAX_PENDLE_PER_SEC_PER_POOL = 1e17; // i.e: 60k PENDLE per week
+    uint256 internal constant MAX_PENDLE_PER_SEC_PER_POOL = 0.0333e18; // i.e: 20k PENDLE per week
 
     // solhint-disable immutable-vars-naming
     address public immutable pendle;
@@ -31,8 +31,9 @@ contract PendleGaugeControllerUpg is IPGaugeController, BoringOwnableUpgradeable
 
     mapping(uint128 => bool) private __deprecated__epochRewardReceived;
     mapping(address => bool) private __deprecated__isValidMarket;
+    mapping(address market => bool) public isWhitelisted;
 
-    uint256[99] private __gap;
+    uint256[98] private __gap;
 
     constructor(address _pendle) {
         pendle = _pendle;
@@ -81,6 +82,8 @@ contract PendleGaugeControllerUpg is IPGaugeController, BoringOwnableUpgradeable
     }
 
     function _setRewardData(address market, uint128 newPendlePerSec, uint128 newIncentiveEndsAt) internal {
+        require(isWhitelisted[market], "PGC: market not eligible");
+
         uint256 expiry = IPMarket(market).expiry();
         require(block.timestamp < newIncentiveEndsAt && newIncentiveEndsAt <= expiry, "invalid incentivesEnds");
 
@@ -109,4 +112,11 @@ contract PendleGaugeControllerUpg is IPGaugeController, BoringOwnableUpgradeable
     /// ----------------- owner logic -----------------
 
     function _authorizeUpgrade(address) internal virtual override onlyOwner {}
+
+    function whitelistMarkets(address[] memory markets, bool _isWhitelisted) external onlyOwner {
+        for (uint256 i = 0; i < markets.length; ++i) {
+            isWhitelisted[markets[i]] = _isWhitelisted;
+            emit WhitelistMarketSet(markets[i], _isWhitelisted);
+        }
+    }
 }
