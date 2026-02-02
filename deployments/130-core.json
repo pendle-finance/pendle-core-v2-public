@@ -3,8 +3,11 @@
     "network": {
         "chainId": 130,
         "wrappedNative": "0x4200000000000000000000000000000000000006",
-        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac"
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
     "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
     "routerFacets": {
         "ActionAddRemoveLiqV3": "0x663C21103915B68e9dA797CfdF3cAb01a037D5Ff",
