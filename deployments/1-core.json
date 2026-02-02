@@ -55,15 +55,11 @@
         "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
         "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
     },
-    "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
     "sPendle": "0x999999999991E178D52Cd95AFd4b00d066664144",
     "senderEndpoint": "0x07b1014c88f14C9E910092526db57A20052E989F",
-    "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0",
     "gaugeController": "0x47D74516B33eD5D70ddE7119A40839f6Fcc24e57",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
     "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
-    "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
-    "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
     "lpWrapperFactory": "0x12930Bd944bb34B0A21CCc2E7d32a6834Bd58e19",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
     "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
@@ -71,5 +67,11 @@
         "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870",
         "ptOftAdapterFactory": "0x905aF80C4DE82E0075a19fDE2f5777f1A6636732"
     },
-    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4"
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
+    "deprecated": {
+        "vePendle": "0x4f30A9D41B80ecC5B94306AB4364951AE3170210",
+        "feeDistributor": "0xd7b34a6fDCb2A7ceD2115FF7f5fdD72aa6aA4dE2",
+        "feeDistributorV2": "0x8C237520a8E14D658170A633D96F8e80764433b9",
+        "votingController": "0x44087E105137a5095c008AaB6a6530182821F2F0"
+    }
 }

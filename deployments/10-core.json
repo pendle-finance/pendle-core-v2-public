@@ -56,7 +56,6 @@
         "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
     },
     "receiverEndpoint": "0xED18de5442297a4Ec1ce59C7c7d9427Adc2A012b",
-    "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18",
     "gaugeController": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C",
     "expiredRedeemer": "0x8267fdabd1b8C8645138f2dE5B0fe24988DC9820",
     "lpWrapperFactory": "0xeCfEB97D7F070DA5b93c5DC274183F1D7f68532F",
@@ -66,5 +65,8 @@
         "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870",
         "ptOftAdapterFactory": "0x45Dd4aEcc425b01bf98C567407aB4a4fF3C7d349"
     },
-    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4"
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
+    "deprecated": {
+        "vePendle": "0xd5C47D2383Fddc19596489280C0A33AC42b2bB18"
+    }
 }

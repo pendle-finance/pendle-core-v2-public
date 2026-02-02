@@ -47,7 +47,6 @@
     "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
     "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
     "receiverEndpoint": "0xf799E4c029d14f41Dc1918C9A4C67242F565710e",
-    "vePendle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b",
     "gaugeController": "0x428f2f93afAc3F96B0DE59854038c585e06165C8",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
@@ -63,5 +62,8 @@
     "cross-chain": {
         "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
     },
-    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4"
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
+    "deprecated": {
+        "vePendle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b"
+    }
 }
