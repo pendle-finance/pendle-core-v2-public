@@ -25,8 +25,8 @@
 
 ### Cross-chain messaging module
 
-- There are contracts inheritting `CelerSender` on governance chain - Ethereum, with a function `sendMessage(chain Y, sender, message)` to send messages to other chains.
-- On each non-governance chain, we have contracts inheritting `CelerReceiver`. Each has a function `afterReceivingMessage(sender, message)` to receive the message from governance.
+- There are contracts inheriting `CelerSender` on governance chain - Ethereum, with a function `sendMessage(chain Y, sender, message)` to send messages to other chains.
+- On each non-governance chain, we have contracts inheriting `CelerReceiver`. Each has a function `afterReceivingMessage(sender, message)` to receive the message from governance.
 - When `sendMessage(chain Y, sender, message)` is called on governance chain, `afterReceivingMessage(sender, message)` will be called on chain Y, thanks to the cross-chain messaging module
 - The current mechanics for the module is using Celer
 - The cross-chain messaging module can be plugged in/plugged out by the governance address (which will initially be controlled by a team multisig)
@@ -36,19 +36,19 @@
 - On Ethereum, there is a `VotingController` contract to control the voting on incentives for the different markets on the different chains.
 - Adding a new chain:
   - Only the governance address will be able to add markets and a new chains' GaugeController.
-- There is a list of `(market)` that are elligible for the voting, added by governance
+- There is a list of `(market)` that are eligible for the voting, added by governance
   - markets that are expired will be removed by governance
 - vePendle holders can allocate their vePendle to multiple markets on multiple chains
 - Similar to Curve, we store the bias and slope of the total vePendle voted for every market
-  - Similary, we adjust the slope/bias changes due to expired vePendle at the weekly mark
+  - Similarly, we adjust the slope/bias changes due to expired vePendle at the weekly mark
 - There is a global PENDLE per second rate for all the incentives across all the chains. This is set by governance.
-- The `VotingController` does not hold any fund. The incentivizing PENDLE is transferred directly to GaugeController by governacne. \* GaugeControllers: admin can withdraw PENDLE from it
+- The `VotingController` does not hold any fund. The incentivizing PENDLE is transferred directly to GaugeController by governance. \* GaugeControllers: admin can withdraw PENDLE from it
 - In each chain, there is a `GaugeController` contract that is responsible for keeping PENDLE incentives and distributing PENDLE to incentivise different markets.
 - At the finalization of each week (starting of new week), anyone can call a function `finalizeVotingResults` and then `broadcastVotes()` in `VotingController` to broadcast to any chain:
   1. The PENDLE allocation of each market for the next week
   2. The timestamp to mark which week is the incentivization coming from
      When this happens, the `GaugeController` in each chain will update the PENDLE per second among the different markets
-- At any time, the governacne has the voting power equivalent to locking X PENDLE in 2 years
+- At any time, the governance has the voting power equivalent to locking X PENDLE in 2 years
 
 ### GaugeController
 
