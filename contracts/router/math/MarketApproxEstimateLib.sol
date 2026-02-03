@@ -83,7 +83,7 @@ library MarketApproxEstimateLib {
         //   => pa = totalPt / totalSy * sa
         //
         // +) Let `syToPtRate` be the spot price between the PT and SY amount.
-        //    Conversion between exessive/missing parts need to respect the
+        //    Conversion between excessive/missing parts need to respect the
         //    current price:
         //      (sa - netSyOwning) * syToPtRate = netPtOwning - pa
         //  <=> (sa - netSyOwning) * syToPtRate = netPtOwning - totalPt / totalSy * sa
