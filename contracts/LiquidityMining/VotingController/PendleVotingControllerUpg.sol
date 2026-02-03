@@ -19,7 +19,7 @@ Voting accounting:
     - In the very extreme case where no one broadcast the result of week x, and at week x+1,
     the results for both are now broadcasted, then the WEEK of (block.timestamp -> WEEK)
     will receive both of the reward pack
-    - Each pack of money will has it own id as timestamp, a gauge controller does not
+    - Each pack of money will have its own id as timestamp, a gauge controller does not
     receive a pack of money with the same id twice, this allow governance to rebroadcast
     in case the last message was corrupted by LayerZero
 
