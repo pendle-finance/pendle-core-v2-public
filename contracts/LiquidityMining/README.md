@@ -9,7 +9,7 @@
 - As such, we just need to store $bias_u$ and $slope_u$ for each user. (Considerations: store $bias_u$ and $t_{expiry}$ for the user instead, because $t_{expiry}$ is always an exact number)
 - The amount of PENDLE locked by user $u$ is $locked_u$
 - For total supply, it's simply $totalBalance = totalBias - totalSlope * t$
-- Possible actions by an user:
+- Possible actions by a user:
   - User $u$ create a new lock by locking $d_{PENDLE}$ of PENDLE tokens, expiring at $t_{expiry}$
     $slope_u = d_{PENDLE} / MAXLOCKTIME$
     $bias_u = slope_u \cdot t_{expiry}$
