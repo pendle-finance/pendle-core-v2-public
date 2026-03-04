@@ -286,10 +286,7 @@ interface IOKXDexRouter {
         uint256 minReturn,
         // solhint-disable-next-line no-unused-vars
         bytes32[] calldata pools
-    )
-        external
-        payable
-        returns (uint256 returnAmount);
+    ) external payable returns (uint256 returnAmount);
 
     function smartSwapByOrderId(
         uint256 orderId,
