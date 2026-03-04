@@ -294,7 +294,7 @@ abstract contract LimitRouterBase is
         return (orderHash, remainingMakerAmount, filledMakerAmount);
     }
 
-    // ----------------- simple helper functions functions -----------------
+    // ----------------- simple helper functions -----------------
 
     function _transferFromMakers_mintSy_updMakings(address SY, FillOrderParams[] memory params)
         internal
