@@ -7,18 +7,25 @@ License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 
 Parameters
 
-Licensor:             Uniswap Labs
+Licensor:             Pendle Labs
 
-Licensed Work:        Uniswap V3 Core
-                      The Licensed Work is (c) 2021 Uniswap Labs
+Licensed Work:        Pendle V2 Core
+                      The Licensed Work is (c) 2021 Pendle Labs
 
 Additional Use Grant: Any uses listed and defined at
-                      v3-core-license-grants.uniswap.eth
+                      license.pendlefinance.eth
 
-Change Date:          The earlier of 2023-04-01 or a date specified at
-                      v3-core-license-date.uniswap.eth
+Change Date:          2023-07-01
 
 Change License:       GNU General Public License v2.0 or later
+
+-----------------------------------------------------------------------------
+
+Notice
+
+The Business Source License (this document, or the “License”) is not an Open
+Source license. However, the Licensed Work will eventually be made available
+under an Open Source License, as stated in this License.
 
 -----------------------------------------------------------------------------
 
@@ -90,11 +97,3 @@ other recipients of the licensed work to be provided by Licensor:
 3. To specify a Change Date.
 
 4. Not to modify this License in any other way.
-
------------------------------------------------------------------------------
-
-Notice
-
-The Business Source License (this document, or the "License") is not an Open
-Source license. However, the Licensed Work will eventually be made available
-under an Open Source License, as stated in this License.
