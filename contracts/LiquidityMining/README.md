@@ -54,7 +54,7 @@
 
 Gauge controller will receive the voting results from VotingController and incentivize the amount of PENDLE from `block.timestamp` to `block.timestamp + 1 WEEK`.
 
-If there is still leftover reward in each pool, the gauge controller will remove and take the leftover to top up the incentivize for the current week.
+If there is still leftover reward in each pool, the gauge controller will remove and take the leftover to top up the incentives for the current week.
 
 ### Gauge & Market
 
