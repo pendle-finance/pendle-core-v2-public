@@ -5,9 +5,9 @@ This repository contains the core smart contracts for the Pendle V2 Protocol.
 Specifications for how Pendle V2 Protocol works can be read in our 4 whitepapers at [this link](https://github.com/pendle-finance/pendle-v2-resources/tree/main/whitepapers)
 
 ## Audits
-Pendle V2 contracts have been auditted by 6 auditors. The reports could be found in the `audits` folder
+Pendle V2 contracts have been audited by 6 auditors. The reports could be found in the `audits` folder
 
-## Documentations
+## Documentation
 We have included documentations on how things work in the contract codes. There will be more documentations to come, which will be updated here when they are available.
 
 ## Using solidity interfaces
