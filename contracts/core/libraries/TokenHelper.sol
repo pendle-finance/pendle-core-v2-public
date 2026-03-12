@@ -21,7 +21,7 @@ abstract contract TokenHelper {
     }
 
     function _transferOut(address token, address to, uint256 amount) internal {
-        if (amount == 0) return;
+        if (amount == 0 || to == address(this)) return;
         if (token == NATIVE) {
             (bool success,) = to.call{value: amount}("");
             require(success, "eth send failed");
@@ -41,8 +41,12 @@ abstract contract TokenHelper {
         }
     }
 
+    function _balanceOf(address addr, address token) internal view returns (uint256) {
+        return (token == NATIVE) ? addr.balance : IERC20(token).balanceOf(addr);
+    }
+
     function _selfBalance(address token) internal view returns (uint256) {
-        return (token == NATIVE) ? address(this).balance : IERC20(token).balanceOf(address(this));
+        return _balanceOf(address(this), token);
     }
 
     function _selfBalance(IERC20 token) internal view returns (uint256) {
