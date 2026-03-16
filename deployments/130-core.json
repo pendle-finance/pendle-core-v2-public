@@ -20,5 +20,7 @@
         "ActionCrossChain": "0x7C082f4c2790F04F62923243Db85A1c60f768857"
     },
     "pendleSwap": "0xd4F480965D2347d421F1bEC7F545682E5Ec2151D",
-    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb"
+    "experimental": {
+        "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb"
+    }
 }

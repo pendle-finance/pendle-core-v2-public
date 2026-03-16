@@ -1,0 +1,15 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 57073,
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "initialRewardFee": "50000000000000000",
+        "initialInterestFee": "50000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64"
+}

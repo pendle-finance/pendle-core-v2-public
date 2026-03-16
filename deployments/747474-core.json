@@ -1,0 +1,18 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 747474,
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "wrappedNative": "0xEE7D8BCFb72bC1880D0Cf19822eB0A2e6577aB62",
+        "initialRewardFee": "50000000000000000",
+        "initialInterestFee": "50000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "experimental": {
+        "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb"
+    }
+}
