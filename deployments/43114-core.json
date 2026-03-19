@@ -18,5 +18,8 @@
         "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
         "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
     },
-    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e"
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
 }

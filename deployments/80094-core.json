@@ -59,5 +59,7 @@
     "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
     "deprecated": {
         "vePendle": "0x6875e4A945E498FE1B90BbB13CFbAF0b68658C9C"
-    }
+    },
+    "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
 }
