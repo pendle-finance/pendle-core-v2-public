@@ -14,8 +14,8 @@
         "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
     "fixedPricePTAMM": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
+    "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
     "experimental": {
-        "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
         "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579"
     },
     "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
