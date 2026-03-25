@@ -6,9 +6,31 @@ import "./LimitRouterBase.sol";
 
 contract PendleLimitRouter is LimitRouterBase {
     using Address for address;
+    using PMath for uint256;
 
     constructor(address _WNATIVE) LimitRouterBase(_WNATIVE) {
         _disableInitializers();
+    }
+
+    /// @notice Pre-sign multiple orders on-chain by setting remaining amount to makingAmount
+    function preSignBatch(Order[] calldata orders) external {
+        for (uint256 i = 0; i < orders.length; ++i) {
+            preSignSingle(orders[i]);
+        }
+    }
+
+    /// @notice Pre-sign order by setting remaining amount to makingAmount
+    /// @dev Allow bypassing EIP-712 signature validation during fill
+    function preSignSingle(Order calldata order) public {
+        require(order.maker == msg.sender, "LOP: Access denied");
+        require(order.nonce >= nonce[order.maker], "LOP: invalid nonce");
+        require(block.timestamp < order.expiry && order.expiry < IPYieldToken(order.YT).expiry(), "LOP: invalid expiry");
+
+        bytes32 orderHash = hashOrder(order);
+        require(_status[orderHash].remaining == _ORDER_DOES_NOT_EXIST, "LOP: already exist");
+        _status[orderHash].remaining = (order.makingAmount + 1).Uint128();
+
+        emit OrderPreSigned(orderHash, order);
     }
 
     /// @notice Cancels multiple orders by setting remaining amount to zero
@@ -30,7 +52,7 @@ contract PendleLimitRouter is LimitRouterBase {
     }
 
     /// @dev auto skip cancelled orders to avoid race conditions
-    function forceCancel(bytes32[] calldata orderHashes) public onlyHelperAndOwner {
+    function forceCancel(bytes32[] calldata orderHashes) public onlyOwner {
         for (uint256 i = 0; i < orderHashes.length; ++i) {
             if (_status[orderHashes[i]].remaining == _ORDER_FILLED) continue;
 

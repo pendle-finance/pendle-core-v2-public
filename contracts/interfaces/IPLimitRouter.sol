@@ -71,6 +71,9 @@ interface IPLimitRouter is IPLimitOrderType {
         uint128 remaining;
     }
 
+    // event added on 11/3/2026
+    event OrderPreSigned(bytes32 indexed orderHash, Order order);
+
     event OrderCanceled(address indexed maker, bytes32 indexed orderHash);
 
     event OrderForceCanceled(bytes32 indexed orderHash);
@@ -103,6 +106,10 @@ interface IPLimitRouter is IPLimitOrderType {
     function feeRecipient() external view returns (address);
 
     function hashOrder(Order memory order) external view returns (bytes32);
+
+    function preSignSingle(Order calldata order) external;
+
+    function preSignBatch(Order[] calldata order) external;
 
     function cancelSingle(Order calldata order) external;
 

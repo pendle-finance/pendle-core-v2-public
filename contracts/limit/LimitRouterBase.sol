@@ -42,14 +42,9 @@ abstract contract LimitRouterBase is
 
     mapping(bytes32 => OrderStatus) internal _status;
 
-    address public ownerHelper;
+    address private __deprecated__ownerHelper;
 
     uint256[99] private __gap;
-
-    modifier onlyHelperAndOwner() {
-        require(msg.sender == ownerHelper || msg.sender == owner, "not allowed");
-        _;
-    }
 
     constructor(address _WNATIVE) {
         WNATIVE = _WNATIVE;
@@ -460,14 +455,10 @@ abstract contract LimitRouterBase is
         feeRecipient = _feeRecipient;
     }
 
-    function setOwnerHelper(address _helper) public onlyOwner {
-        ownerHelper = _helper;
-    }
-
     /// @dev if zero fees are intended, it must be explicitly allowed again
     function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots, bool allowZeroFees)
         public
-        onlyHelperAndOwner
+        onlyOwner
     {
         uint256 len = YTs.length;
         require(len == lnFeeRateRoots.length, "LOP: length mismatch");
