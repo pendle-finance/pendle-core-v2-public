@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 
 import "./IPActionAddRemoveLiqV3.sol";
 import "./IPActionCallbackV3.sol";
-import "./IPActionCrossChain.sol";
 import "./IPActionMiscV3.sol";
 import "./IPActionSimple.sol";
 import "./IPActionStorageV4.sol";
@@ -18,6 +17,5 @@ interface IPAllActionV3 is
     IPActionMiscV3,
     IPActionCallbackV3,
     IPActionStorageV4,
-    IPActionSimple,
-    IPActionCrossChain
+    IPActionSimple
 {}

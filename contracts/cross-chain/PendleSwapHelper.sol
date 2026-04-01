@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {IPActionCrossChain, TokenOutput} from "../interfaces/IPActionCrossChain.sol";
-import {IPFixedPricePTAMM} from "../interfaces/IPFixedPricePTAMM.sol";
-import {ActionBase} from "./base/ActionBase.sol";
-import {IPSwapAggregator, SwapType} from "./swap-aggregator/IPSwapAggregator.sol";
+import {TokenHelper} from "../core/libraries/TokenHelper.sol";
+import {IPFixedPricePTAMMV2} from "../interfaces/IPFixedPricePTAMMV2.sol";
+import {IPSwapHelper, TokenOutput} from "../interfaces/IPSwapHelper.sol";
+import {IPSwapAggregator, SwapType} from "../router/swap-aggregator/IPSwapAggregator.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ActionCrossChain is ActionBase, IPActionCrossChain {
+contract PendleSwapHelper is IPSwapHelper, TokenHelper {
     function swapWithFixedPricePTAMM(
         address receiver,
         address fixedPricePTAMM,
@@ -15,9 +15,13 @@ contract ActionCrossChain is ActionBase, IPActionCrossChain {
         uint256 exactPtIn,
         TokenOutput calldata out
     ) external returns (uint256 netTokenOut) {
+        require(
+            out.tokenRedeemSy == IPFixedPricePTAMMV2(fixedPricePTAMM).outputToken(), "SwapHelper: INVALID_TOKEN_REDEEM"
+        );
+
         _transferFrom(IERC20(PT), msg.sender, fixedPricePTAMM, exactPtIn);
-        uint256 tokenOut = IPFixedPricePTAMM(fixedPricePTAMM)
-            .swapExactPtForToken(__swapDestination(receiver, out), PT, exactPtIn, out.tokenRedeemSy, EMPTY_BYTES);
+        uint256 tokenOut = IPFixedPricePTAMMV2(fixedPricePTAMM)
+            .swapExactPtForToken(__swapDestination(receiver, out), PT, exactPtIn, "");
         return __handleTokenOutput(receiver, tokenOut, out);
     }
 
