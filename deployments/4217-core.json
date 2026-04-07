@@ -1,0 +1,13 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 4217,
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "proxyAdmin": "0xD1253ec561EE8708Bd08a77e817668B288f643b3",
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb"
+}
