@@ -8,11 +8,12 @@ import {IPMarketFactory} from "../interfaces/IPMarketFactory.sol";
 import {IPYieldToken} from "../interfaces/IPYieldToken.sol";
 
 import {BoringOwnableUpgradeableV2} from "../core/libraries/BoringOwnableUpgradeableV2.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Errors} from "../core/libraries/Errors.sol";
 import {LogExpMath} from "../core/libraries/math/LogExpMath.sol";
 import {PMath} from "../core/libraries/math/PMath.sol";
 
-contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
+contract PendleFeeSetter is BoringOwnableUpgradeableV2, UUPSUpgradeable {
     using PMath for uint256;
     using PMath for int256;
     using LogExpMath for int256;
@@ -21,8 +22,10 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
     event SetterSet(address indexed setter);
 
     uint256 internal constant LIMIT_MAX_LN_FEE_RATE_ROOT = 48_790_164_169_432_003; // ln(1.05)
+    uint256 internal constant POST_FILL_AMM_LN_FEE_RATE_ROOT = 999_999_500_000; // ln(1.000001)
 
     address public immutable router;
+    address public immutable postFillRouter;
     IPLimitRouter public immutable limitRouter;
     IPGovernanceProxy public immutable govProxy;
 
@@ -35,9 +38,10 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
         _;
     }
 
-    constructor(address _router, address _limitRouter, address _govProxy) {
+    constructor(address _router, address _postFillRouter, address _limitRouter, address _govProxy) {
         _disableInitializers();
         router = _router;
+        postFillRouter = _postFillRouter;
         limitRouter = IPLimitRouter(_limitRouter);
         govProxy = IPGovernanceProxy(_govProxy);
     }
@@ -47,7 +51,23 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
         initializer
     {
         __BoringOwnableV2_init(_owner);
+        __UUPSUpgradeable_init();
         _setFeeFactors(_impliedRateToFeeFactor, _routerLnFeeToLimitLnFeeFactor);
+    }
+
+    function setPostFillRouterAMMFee(address[] memory markets) external onlyOwnerOrSetter {
+        uint256 n = markets.length;
+
+        IPGovernanceProxy.Call[] memory calls = new IPGovernanceProxy.Call[](n);
+
+        for (uint256 i = 0; i < n; ++i) {
+            calls[i].target = IPMarket(markets[i]).factory();
+            calls[i].callData = abi.encodeCall(
+                IPMarketFactory.setOverriddenFee, (postFillRouter, markets[i], POST_FILL_AMM_LN_FEE_RATE_ROOT.Uint80())
+            );
+        }
+
+        govProxy.aggregateWithScopedAccess(calls);
     }
 
     function setFees(address[] memory markets) external onlyOwnerOrSetter {
@@ -146,4 +166,8 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
         setter = _setter;
         emit SetterSet(setter);
     }
+
+    // ============================== Upgrade functions ==============================
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }
