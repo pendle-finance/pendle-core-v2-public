@@ -12,6 +12,7 @@
         "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "devProxyAdmin": "0xD37eB2E6DE40a33ba68BaD94427723b66c954EA9",
     "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
     "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
