@@ -8,12 +8,11 @@ import {IPMarketFactory} from "../interfaces/IPMarketFactory.sol";
 import {IPYieldToken} from "../interfaces/IPYieldToken.sol";
 
 import {BoringOwnableUpgradeableV2} from "../core/libraries/BoringOwnableUpgradeableV2.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Errors} from "../core/libraries/Errors.sol";
 import {LogExpMath} from "../core/libraries/math/LogExpMath.sol";
 import {PMath} from "../core/libraries/math/PMath.sol";
 
-contract PendleFeeSetter is BoringOwnableUpgradeableV2, UUPSUpgradeable {
+contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
     using PMath for uint256;
     using PMath for int256;
     using LogExpMath for int256;
@@ -51,7 +50,6 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2, UUPSUpgradeable {
         initializer
     {
         __BoringOwnableV2_init(_owner);
-        __UUPSUpgradeable_init();
         _setFeeFactors(_impliedRateToFeeFactor, _routerLnFeeToLimitLnFeeFactor);
     }
 
@@ -166,8 +164,4 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2, UUPSUpgradeable {
         setter = _setter;
         emit SetterSet(setter);
     }
-
-    // ============================== Upgrade functions ==============================
-
-    function _authorizeUpgrade(address) internal override onlyOwner {}
 }
