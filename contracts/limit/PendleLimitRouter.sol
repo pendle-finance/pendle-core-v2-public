@@ -8,7 +8,7 @@ contract PendleLimitRouter is LimitRouterBase {
     using Address for address;
     using PMath for uint256;
 
-    constructor(address _WNATIVE) LimitRouterBase(_WNATIVE) {
+    constructor(address _WNATIVE, address _ROUTER) LimitRouterBase(_WNATIVE, _ROUTER) {
         _disableInitializers();
     }
 

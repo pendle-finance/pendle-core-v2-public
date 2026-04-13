@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../router/swap-aggregator/IPSwapAggregator.sol";
 import "./IPLimitRouter.sol";
+import "./IPYieldToken.sol";
 
 /*
  * NOTICE:

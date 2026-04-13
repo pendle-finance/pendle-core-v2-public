@@ -323,10 +323,12 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         IPLimitRouter router = IPLimitRouter(lim.limitRouter);
         netLeft = netInput;
 
+        (bytes memory normalOptData, bytes memory flashOptData) = _decodeLimOptData(lim.optData);
+
         if (lim.normalFills.length != 0) {
             _safeApproveInf(address(tokenIn), lim.limitRouter);
             (uint256 actualMaking, uint256 actualTaking, uint256 totalFee,) =
-                router.fill(lim.normalFills, receiver, netLeft, lim.optData, EMPTY_BYTES);
+                router.fill(lim.normalFills, receiver, netLeft, normalOptData, EMPTY_BYTES);
             netOut += actualMaking;
             netLeft -= actualTaking;
             netSyFee += totalFee;
@@ -337,7 +339,7 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
             OrderType orderType = lim.flashFills[0].order.orderType;
 
             (,, uint256 totalFee, bytes memory ret) = router.fill(
-                lim.flashFills, YT, type(uint256).max, lim.optData, abi.encode(orderType, YT, netLeft, receiver)
+                lim.flashFills, YT, type(uint256).max, flashOptData, abi.encode(orderType, YT, netLeft, receiver)
             );
             (uint256 netUse, uint256 netReceived) = abi.decode(ret, (uint256, uint256));
 
@@ -347,6 +349,18 @@ abstract contract ActionBase is TokenHelper, CallbackHelper, IPLimitOrderType {
         }
 
         doMarketOrder = netLeft > netInput.mulDown(lim.epsSkipMarket);
+    }
+
+    function _decodeLimOptData(bytes memory limOptData)
+        internal
+        pure
+        returns (bytes memory normalOptData, bytes memory flashOptData)
+    {
+        if (limOptData.length != 0) {
+            (uint256 version, bytes memory payload) = abi.decode(limOptData, (uint256, bytes));
+            require(version == 1, "invalid version");
+            (normalOptData, flashOptData) = abi.decode(payload, (bytes, bytes));
+        }
     }
 
     function _isEmptyLimit(LimitOrderData calldata a) internal pure returns (bool) {

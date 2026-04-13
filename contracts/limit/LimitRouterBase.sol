@@ -4,18 +4,18 @@ pragma solidity ^0.8.17;
 
 import "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import "../core/libraries/TokenHelper.sol";
+import "../interfaces/IPAllActionV3.sol";
 import "../interfaces/IPLimitRouter.sol";
 import "../interfaces/IStandardizedYield.sol";
-import "../interfaces/IWETH.sol";
 import {LimitMathCore as LimitMath} from "./LimitMathCore.sol";
+import "./helpers/MintSyHelper.sol";
 import "./helpers/NonceManager.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 abstract contract LimitRouterBase is
-    EIP712Upgradeable,
     IPLimitRouter,
     BoringOwnableUpgradeableV2,
+    MintSyHelper,
     NonceManager,
     TokenHelper
 {
@@ -28,10 +28,7 @@ abstract contract LimitRouterBase is
 
     uint128 internal constant _ORDER_DOES_NOT_EXIST = 0;
     uint128 internal constant _ORDER_FILLED = 1;
-    uint256 internal constant NEW_PRIME = 12_421;
     uint256 internal constant MAX_LN_FEE_RATE_ROOT = 48_790_164_169_432_003; // ln(1.05)
-
-    bytes private constant EMPTY_BYTES = abi.encode();
 
     address public feeRecipient;
 
@@ -39,15 +36,20 @@ abstract contract LimitRouterBase is
     mapping(address => uint256) internal __lnFeeRateRoot;
 
     address public immutable WNATIVE;
+    address public immutable ROUTER;
 
     mapping(bytes32 => OrderStatus) internal _status;
 
     address private __deprecated__ownerHelper;
 
-    uint256[99] private __gap;
+    address public mintSySigner1;
+    address public mintSySigner2;
 
-    constructor(address _WNATIVE) {
+    uint256[97] private __gap;
+
+    constructor(address _WNATIVE, address _ROUTER) {
         WNATIVE = _WNATIVE;
+        ROUTER = _ROUTER;
     }
 
     // solhint-disable-next-line no-empty-blocks
@@ -64,18 +66,20 @@ abstract contract LimitRouterBase is
         FillOrderParams[] memory params,
         address receiver,
         uint256 maxTaking,
-        bytes calldata,
-        /*optData*/
+        bytes memory optData,
         bytes memory callback
     ) external returns (uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory callbackReturn) {
-        params = _validateSkipSigAndFilterOrders(params);
+        OptionalArgs memory oArgs = _decodeAndVerifySigOpt_prePrune(params, optData);
+
+        _validateSkipSigAndPruneOrders(params);
         if (params.length == 0) return fillNoOrders(callback);
 
         OrderType orderType = params[0].order.orderType;
+        Args memory a = Args(orderType, params, receiver, maxTaking, callback, oArgs);
         if (orderType == OrderType.SY_FOR_PT || orderType == OrderType.SY_FOR_YT) {
-            return fillTokenForPY(Args(orderType, params, receiver, maxTaking, callback));
+            return fillTokenForPY(a);
         } else {
-            return fillPYForToken(Args(orderType, params, receiver, maxTaking, callback));
+            return fillPYForToken(a);
         }
     }
 
@@ -87,6 +91,11 @@ abstract contract LimitRouterBase is
         address receiver;
         uint256 maxTaking;
         bytes callback;
+        OptionalArgs oArgs;
+    }
+
+    struct OptionalArgs {
+        MintSyData mintSyData;
     }
 
     function fillNoOrders(bytes memory callback)
@@ -104,7 +113,7 @@ abstract contract LimitRouterBase is
         (address SY, address PT, address YT, bytes32[] memory orderHashes) = _checkSig_updMakingAndStatus(a.params);
 
         // Token => This
-        uint256[] memory fromMakers = _transferFromMakers_mintSy_updMakings(SY, a.params);
+        uint256[] memory fromMakers = _transferFromMakers_mintSy_updMakings(SY, a.params, a.oArgs.mintSyData);
 
         FillResults memory out = LimitMath.calcBatch(a.params, YT, getLnFeeRateRoot(YT));
         (actualMaking, actualTaking, totalFee) = (out.totalMaking - out.totalFee, out.totalTaking, out.totalFee);
@@ -160,35 +169,43 @@ abstract contract LimitRouterBase is
     }
 
     // ----------------- verify & convert functions -----------------
-    function _validateSkipSigAndFilterOrders(FillOrderParams[] memory params)
+
+    function _decodeAndVerifySigOpt_prePrune(FillOrderParams[] memory params, bytes memory optData)
         internal
         view
-        returns (FillOrderParams[] memory res)
+        returns (OptionalArgs memory oArgs)
     {
+        if (optData.length != 0) {
+            (uint256 version, bytes memory payload) = abi.decode(optData, (uint256, bytes));
+            require(version == 1, "LOP: invalid version");
+
+            oArgs.mintSyData = abi.decode(payload, (MintSyData));
+            _verifyMintSyData(oArgs.mintSyData, hashFillParams(params), mintSySigner1, mintSySigner2);
+        }
+    }
+
+    function _validateSkipSigAndPruneOrders(FillOrderParams[] memory params) internal view {
         uint256 len = params.length;
         require(len != 0, "LOP: empty batch");
 
         (address YT, OrderType orderType) = (params[0].order.YT, params[0].order.orderType);
         require(block.timestamp < IPYieldToken(YT).expiry(), "LOP: PY expired");
 
-        uint256 skipped = 0;
+        uint256 keep = 0;
         for (uint256 i = 0; i < len; i++) {
             Order memory order = params[i].order;
+
+            require(i == 0 || order.token >= params[i - 1].order.token, "LOP: invalid ordering");
             require(order.orderType == orderType && order.YT == YT, "LOP: mismatch types");
 
-            if (!(block.timestamp < order.expiry && order.nonce >= nonce[order.maker])) {
-                skipped++;
-                params[i].signature = EMPTY_BYTES;
-            }
+            if (!(block.timestamp < order.expiry && order.nonce >= nonce[order.maker])) continue;
+
+            params[keep] = params[i];
+            keep++;
         }
 
-        res = new FillOrderParams[](len - skipped);
-        uint256 iter = 0;
-        for (uint256 i = 0; i < len; i++) {
-            if (params[i].signature.length != 0) {
-                res[iter] = params[i];
-                iter++;
-            }
+        assembly ("memory-safe") {
+            mstore(params, keep)
         }
     }
 
@@ -289,12 +306,13 @@ abstract contract LimitRouterBase is
         return (orderHash, remainingMakerAmount, filledMakerAmount);
     }
 
-    // ----------------- simple helper functions functions -----------------
+    // ----------------- simple helper functions -----------------
 
-    function _transferFromMakers_mintSy_updMakings(address SY, FillOrderParams[] memory params)
-        internal
-        returns (uint256[] memory fromMakers)
-    {
+    function _transferFromMakers_mintSy_updMakings(
+        address SY,
+        FillOrderParams[] memory params,
+        MintSyData memory mintSyData
+    ) internal returns (uint256[] memory fromMakers) {
         uint256 len = params.length;
         fromMakers = new uint256[](len);
 
@@ -309,21 +327,54 @@ abstract contract LimitRouterBase is
 
             if (sharedToken == SY || totalMaking == 0) continue;
 
-            uint256 totalSy = __mintSy_Single(SY, sharedToken, totalMaking);
+            uint256 totalSy = __mintSy_Single(SY, sharedToken, totalMaking, mintSyData.inps, mintSyData.minSyOuts);
             for (uint256 i = l; i < r; i++) {
                 uint256 netToken = params[i].makingAmount;
                 uint256 netSy = (netToken * totalSy) / totalMaking;
-
-                if (_isNewOrder(params[i].order)) {
-                    require(netToken.mulDown(params[i].order.failSafeRate) <= netSy, "LOP: fail safe");
-                }
+                require(netToken.mulDown(params[i].order.failSafeRate) <= netSy, "LOP: fail safe");
 
                 params[i].makingAmount = netSy;
             }
         }
     }
 
-    function __mintSy_Single(address SY, address token, uint256 netTokenIn) private returns (uint256 netSyOut) {
+    /// @dev each token group appears at most once because params are sorted by token
+    function __mintSy_Single(
+        address SY,
+        address token,
+        uint256 netTokenIn,
+        TokenInput[] memory inps,
+        uint256[] memory minSyOuts
+    ) private returns (uint256 netSyOut) {
+        for (uint256 i = 0; i < inps.length; i++) {
+            if (inps[i].tokenIn == token) {
+                return __mintSy_Single_viaRouter(SY, token, netTokenIn, inps[i], minSyOuts[i]);
+            }
+        }
+        return __mintSy_Single_direct(SY, token, netTokenIn);
+    }
+
+    function __mintSy_Single_viaRouter(
+        address SY,
+        address token,
+        uint256 netTokenIn,
+        TokenInput memory inp,
+        uint256 minSyOut
+    ) private returns (uint256 netSyOut) {
+        require(inp.swapData.needScale, "LOP: need scale");
+        require(netTokenIn <= inp.netTokenIn, "LOP: only scale down");
+
+        // Scale down input
+        uint256 scaledMinSyOut = (minSyOut * netTokenIn) / inp.netTokenIn;
+        require(scaledMinSyOut > 0, "LOP: zero scaledMinSy");
+        inp.netTokenIn = netTokenIn;
+
+        // Approve and mint via router
+        _safeApproveInf(token, ROUTER);
+        netSyOut = IPAllActionV3(ROUTER).mintSyFromToken(address(this), SY, scaledMinSyOut, inp);
+    }
+
+    function __mintSy_Single_direct(address SY, address token, uint256 netTokenIn) private returns (uint256 netSyOut) {
         if (token == WNATIVE && !IStandardizedYield(SY).isValidTokenIn(WNATIVE)) {
             _wrap_unwrap_ETH(WNATIVE, NATIVE, netTokenIn);
             token = NATIVE;
@@ -374,12 +425,9 @@ abstract contract LimitRouterBase is
             }
 
             for (uint256 i = l; i < r; i++) {
-                if (_isNewOrder(params[i].order)) {
-                    uint256 netSy = netSyOuts[i];
-                    uint256 netToken = toMakers[i];
-
-                    require(netSy.mulDown(params[i].order.failSafeRate) <= netToken, "LOP: fail safe");
-                }
+                uint256 netSy = netSyOuts[i];
+                uint256 netToken = toMakers[i];
+                require(netSy.mulDown(params[i].order.failSafeRate) <= netToken, "LOP: fail safe");
             }
         }
     }
@@ -432,8 +480,8 @@ abstract contract LimitRouterBase is
         }
     }
 
-    function _isNewOrder(Order memory order) internal pure returns (bool) {
-        return order.salt % NEW_PRIME == 0;
+    function hashFillParams(FillOrderParams[] memory params) public pure returns (bytes32) {
+        return keccak256(abi.encode(params));
     }
 
     function hashOrder(Order memory order) public view returns (bytes32) {
@@ -453,6 +501,12 @@ abstract contract LimitRouterBase is
 
     function setFeeRecipient(address _feeRecipient) public onlyOwner {
         feeRecipient = _feeRecipient;
+    }
+
+    function setMintSySigners(address _signer1, address _signer2) public onlyOwner {
+        mintSySigner1 = _signer1;
+        mintSySigner2 = _signer2;
+        emit MintSySignersSet(_signer1, _signer2);
     }
 
     /// @dev if zero fees are intended, it must be explicitly allowed again

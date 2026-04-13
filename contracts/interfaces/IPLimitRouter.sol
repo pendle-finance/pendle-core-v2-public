@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../core/StandardizedYield/PYIndex.sol";
+import "../interfaces/IPAllActionTypeV3.sol";
 
 interface IPLimitOrderType {
     enum OrderType {
@@ -59,6 +60,16 @@ struct FillOrderParams {
     uint256 makingAmount;
 }
 
+struct MintSyData {
+    TokenInput[] inps;
+    uint256[] minSyOuts;
+    uint256 expiry;
+    bytes32 fillParamsHash;
+
+    bytes sig1;
+    bytes sig2;
+}
+
 interface IPLimitRouterCallback is IPLimitOrderType {
     function limitRouterCallback(uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory data)
         external
@@ -94,6 +105,9 @@ interface IPLimitRouter is IPLimitOrderType {
     // event added on 2/1/2025
     event LnFeeRateRootsSet(address[] YTs, uint256[] lnFeeRateRoots);
 
+    // event added on 11/3/2026
+    event MintSySignersSet(address signer1, address signer2);
+
     // @dev actualMaking, actualTaking are in the SY form
     function fill(
         FillOrderParams[] memory params,
@@ -104,6 +118,12 @@ interface IPLimitRouter is IPLimitOrderType {
     ) external returns (uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory callbackReturn);
 
     function feeRecipient() external view returns (address);
+
+    function mintSySigner1() external view returns (address);
+
+    function mintSySigner2() external view returns (address);
+
+    function hashFillParams(FillOrderParams[] memory params) external pure returns (bytes32);
 
     function hashOrder(Order memory order) external view returns (bytes32);
 
@@ -130,6 +150,8 @@ interface IPLimitRouter is IPLimitOrderType {
     function simulate(address target, bytes calldata data) external payable;
 
     function WNATIVE() external view returns (address);
+
+    function ROUTER() external view returns (address);
 
     function _checkSig(Order memory order, bytes memory signature)
         external
