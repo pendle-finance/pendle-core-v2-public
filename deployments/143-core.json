@@ -11,6 +11,7 @@
         "safeWaitTime": 15000,
         "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "devProxyAdmin": "0xD37eB2E6DE40a33ba68BaD94427723b66c954EA9",
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
