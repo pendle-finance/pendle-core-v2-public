@@ -14,8 +14,8 @@ import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 
 abstract contract LimitRouterBase is
     IPLimitRouter,
-    BoringOwnableUpgradeableV2,
     MintSyHelper,
+    BoringOwnableUpgradeableV2,
     NonceManager,
     TokenHelper
 {
