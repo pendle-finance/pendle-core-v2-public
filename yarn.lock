@@ -781,6 +781,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@layerzerolabs/lz-evm-messagelib-v2@npm:^3.0.166":
+  version: 3.0.166
+  resolution: "@layerzerolabs/lz-evm-messagelib-v2@npm:3.0.166"
+  peerDependencies:
+    "@arbitrum/nitro-contracts": ^1.1.0
+    "@axelar-network/axelar-gmp-sdk-solidity": ^5.6.4
+    "@chainlink/contracts-ccip": ^0.7.6
+    "@eth-optimism/contracts": ^0.6.0
+    "@layerzerolabs/lz-evm-protocol-v2": ^3.0.166
+    "@layerzerolabs/lz-evm-v1-0.7": ^3.0.166
+    "@openzeppelin/contracts": ^4.8.1 || ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^4.8.1 || ^5.0.0
+    hardhat-deploy: ^0.12.4
+    solidity-bytes-utils: ^0.8.0
+  peerDependenciesMeta:
+    "@arbitrum/nitro-contracts":
+      optional: true
+  checksum: 10/a789622c384c9831c7d0500c48f104e553543b0581464ddab9ea3092ec2b3e28abe2ec5d5f3d523ec38a018ff5f26cbe85a8058272a1e5f1701c519706dcb241
+  languageName: node
+  linkType: hard
+
 "@layerzerolabs/lz-evm-protocol-v2@npm:^3.0.75":
   version: 3.0.109
   resolution: "@layerzerolabs/lz-evm-protocol-v2@npm:3.0.109"
@@ -823,17 +844,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@layerzerolabs/oft-evm@npm:^3.1.4":
-  version: 3.1.4
-  resolution: "@layerzerolabs/oft-evm@npm:3.1.4"
+"@layerzerolabs/oft-evm-upgradeable@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@layerzerolabs/oft-evm-upgradeable@npm:4.0.2"
   peerDependencies:
-    "@layerzerolabs/lz-evm-messagelib-v2": ^3.0.75
-    "@layerzerolabs/lz-evm-protocol-v2": ^3.0.75
-    "@layerzerolabs/lz-evm-v1-0.7": ^3.0.75
-    "@layerzerolabs/oapp-evm": ^0.3.2
+    "@layerzerolabs/lz-evm-messagelib-v2": ^3.0.148
+    "@layerzerolabs/lz-evm-protocol-v2": ^3.0.148
+    "@layerzerolabs/lz-evm-v1-0.7": ^3.0.148
+    "@layerzerolabs/oapp-evm": ^0.4.1
     "@openzeppelin/contracts": ^4.8.1 || ^5.0.0
     "@openzeppelin/contracts-upgradeable": ^4.8.1 || ^5.0.0
-  checksum: 10/ddfee2d1522f9810347970c7862a23beaabd2b3989c18429de8c38655932f6f3cd4f65b08bf863bee2ae88f322e020b1043bc2a70a21b6cf39550571053b5f23
+  checksum: 10/2860fa989ae1c9099d3f24c16b9aabab0f8d6d82cc43b038709555741607fd4c649026e6dfcd835d44925121a1a7e9927d015312c14e5e840dd19bc7709a04de
+  languageName: node
+  linkType: hard
+
+"@layerzerolabs/oft-evm@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@layerzerolabs/oft-evm@npm:4.0.1"
+  peerDependencies:
+    "@layerzerolabs/lz-evm-messagelib-v2": ^3.0.148
+    "@layerzerolabs/lz-evm-protocol-v2": ^3.0.148
+    "@layerzerolabs/lz-evm-v1-0.7": ^3.0.148
+    "@layerzerolabs/oapp-evm": ^0.4.1
+    "@openzeppelin/contracts": ^4.8.1 || ^5.0.0
+    "@openzeppelin/contracts-upgradeable": ^4.8.1 || ^5.0.0
+  checksum: 10/ec33b2f391c6a928fa1c53d87851afd91bc2f28d3b244af7e2d0468a339b0b07b29205fbb73cd1da0fdee61727258e9233e439c665b19dd239b1a637dd608d6f
   languageName: node
   linkType: hard
 
@@ -1191,10 +1226,12 @@ __metadata:
   resolution: "@pendle/core-v2@workspace:."
   dependencies:
     "@chainlink/contracts": "npm:^0.8.0"
+    "@layerzerolabs/lz-evm-messagelib-v2": "npm:^3.0.166"
     "@layerzerolabs/lz-evm-protocol-v2": "npm:^3.0.75"
     "@layerzerolabs/oapp-evm": "npm:^0.3.2"
     "@layerzerolabs/oapp-evm-upgradeable": "npm:^0.1.2"
-    "@layerzerolabs/oft-evm": "npm:^3.1.4"
+    "@layerzerolabs/oft-evm": "npm:^4.0.1"
+    "@layerzerolabs/oft-evm-upgradeable": "npm:^4.0.2"
     "@openzeppelin/contracts": "npm:4.9.3"
     "@openzeppelin/contracts-upgradeable": "npm:4.9.3"
     "@typechain/ethers-v5": "npm:^9.0.0"
@@ -1204,6 +1241,7 @@ __metadata:
     hardhat-contract-sizer: "npm:^2.10.0"
     solc: "npm:^0.8.23-fixed"
     solhint: "npm:^4.0.0"
+    solidity-bytes-utils: "npm:^0.8.4"
     ts-node: "npm:^10.9.2"
     typechain: "npm:^8.3.2"
     typescript: "npm:^5.3.3"
@@ -4746,6 +4784,13 @@ __metadata:
   bin:
     solhint: solhint.js
   checksum: 10/41e01c292ea16d9b1303d689c6381426aa845697911edd915ccf4019b58fae499af4ee7c47aa2c83601535f3824a1d27220735aa8e35816e03768518ccb18fb6
+  languageName: node
+  linkType: hard
+
+"solidity-bytes-utils@npm:^0.8.4":
+  version: 0.8.4
+  resolution: "solidity-bytes-utils@npm:0.8.4"
+  checksum: 10/a05aac090c9b943c2db7492b48cd7660a4f8b8614c0653046b21d45f6e9037cbd520319e82d707556c8c05a79a00b533aef1396b38ec4c6e71baffbe837d4d1d
   languageName: node
   linkType: hard
 

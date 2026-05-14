@@ -2,40 +2,49 @@
 pragma solidity ^0.8.19;
 
 import {IPBridgedPrincipalToken} from "../../../interfaces/IPBridgedPrincipalToken.sol";
-import {IOFT, OFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFT.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {
+    IOFT,
+    OFTCoreUpgradeable,
+    OFTUpgradeable
+} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTUpgradeable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {
+    IERC20MetadataUpgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 
-contract PendleBridgedPrincipalToken is IPBridgedPrincipalToken, OFT {
+/// @notice Contract deployer must be IPBridgePTFactory for additional information.
+///         This is for deterministic deployment.
+contract PendleBridgedPrincipalToken is IPBridgedPrincipalToken, OFTUpgradeable {
     uint256 public immutable expiry;
     uint8 internal immutable LOCAL_DECIMALS;
-    uint8 internal immutable SHARED_DECIMALS;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _lzEndpoint,
-        address _delegate,
-        uint256 _expiry,
-        uint8 _localDecimals,
-        uint8 _sharedDecimals,
-        address initialOwner
-    ) OFT(_name, _symbol, _lzEndpoint, _delegate) {
+    constructor(address _lzEndpoint, uint256 _expiry, uint8 _decimals) OFTUpgradeable(_lzEndpoint) {
         expiry = _expiry;
-        _transferOwnership(initialOwner);
 
-        LOCAL_DECIMALS = _localDecimals;
-        SHARED_DECIMALS = _sharedDecimals;
+        LOCAL_DECIMALS = _decimals;
+
+        uint8 shared = sharedDecimals();
+        require(LOCAL_DECIMALS >= shared, "InvalidLocalDecimals");
 
         // override decimalConversionRate set in OFTCore constructor
-        decimalConversionRate = 10 ** (LOCAL_DECIMALS - SHARED_DECIMALS);
+        decimalConversionRate = 10 ** (LOCAL_DECIMALS - sharedDecimals());
+
+        _disableInitializers();
     }
 
-    function decimals() public view override(ERC20, IERC20Metadata) returns (uint8) {
-        return LOCAL_DECIMALS;
+    function initialize(string memory _name, string memory _symbol, address ownerDelegate) external initializer {
+        __OFT_init(_name, _symbol, ownerDelegate);
+        _transferOwnership(ownerDelegate);
     }
 
-    function sharedDecimals() public view override(OFTCore, IOFT) returns (uint8) {
-        return SHARED_DECIMALS;
+    /// @dev This functions is used to passed in the decimals to OFTCoreUpgradeable's constructor.
+    /// Since `LOCAL_DECIMALS` was not initialized at that point, we return 18 to avoid the `InvalidLocalDecimals`
+    /// revert.
+    ///
+    /// See
+    /// https://github.com/LayerZero-Labs/devtools/blob/128b697838f4b0fd53ae748093fd66cc409ae5c4/packages/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol#L72
+    function decimals() public view override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (uint8 res) {
+        res = LOCAL_DECIMALS;
+        if (res == 0) res = 18;
     }
 }

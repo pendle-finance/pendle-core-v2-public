@@ -44,13 +44,16 @@
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "@chainlink/contracts": "^0.8.0",
+    "@layerzerolabs/lz-evm-messagelib-v2": "^3.0.166",
     "@layerzerolabs/lz-evm-protocol-v2": "^3.0.75",
     "@layerzerolabs/oapp-evm": "^0.3.2",
     "@layerzerolabs/oapp-evm-upgradeable": "^0.1.2",
-    "@layerzerolabs/oft-evm": "^3.1.4",
+    "@layerzerolabs/oft-evm": "^4.0.1",
+    "@layerzerolabs/oft-evm-upgradeable": "^4.0.2",
     "@openzeppelin/contracts": "4.9.3",
     "@openzeppelin/contracts-upgradeable": "4.9.3",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "solidity-bytes-utils": "^0.8.4"
   },
   "publishConfig": {
     "access": "public"
