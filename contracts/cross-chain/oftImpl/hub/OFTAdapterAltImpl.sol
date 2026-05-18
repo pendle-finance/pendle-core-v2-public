@@ -10,9 +10,10 @@ import {
 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// @notice Base OFT contract, without any additional functionality (like RateLimiter).
-// @dev This contract inherits Ownable from OpenZeppelin v4.
-// @dev Sender is set as the contract owner at deployment.
+/// @notice Base OFT contract, without any additional functionality (like RateLimiter).
+/// @notice Contract deployer must be IPBridgePTFactory for additional information.
+///         This is for deterministic deployment.
+/// @dev This contract inherits Ownable from OpenZeppelin v4.
 contract OFTAdapterAltImpl is OFTAdapterImpl {
     using SafeERC20 for IERC20;
 
@@ -21,7 +22,7 @@ contract OFTAdapterAltImpl is OFTAdapterImpl {
 
     address public immutable nativeToken;
 
-    constructor(address _token, address _endpoint, address _delegate) OFTAdapterImpl(_token, _endpoint, _delegate) {
+    constructor(address _token, address _lzEndpoint) OFTAdapterImpl(_token, _lzEndpoint) {
         nativeToken = endpoint.nativeToken();
     }
 

@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import {IPBridgePTFactory} from "../../../interfaces/IPBridgePTFactory.sol";
 import {OFTAdapterUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTAdapterUpgradeable.sol";
 
 /// @notice Base OFT contract, without any additional functionality (like RateLimiter).

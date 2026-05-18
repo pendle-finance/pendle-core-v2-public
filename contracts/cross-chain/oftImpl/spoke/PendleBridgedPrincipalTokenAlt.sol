@@ -9,6 +9,8 @@ import {
 } from "@layerzerolabs/lz-evm-protocol-v2/contracts/interfaces/ILayerZeroEndpointV2.sol";
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @notice Contract deployer must be IPBridgePTFactory for additional information.
+///         This is for deterministic deployment.
 contract PendleBridgedPrincipalTokenAlt is PendleBridgedPrincipalToken {
     using SafeERC20 for IERC20;
 
@@ -17,19 +19,8 @@ contract PendleBridgedPrincipalTokenAlt is PendleBridgedPrincipalToken {
 
     address public immutable nativeToken;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _lzEndpoint,
-        address _delegate,
-        uint256 _expiry,
-        uint8 _localDecimals,
-        uint8 _sharedDecimals,
-        address initialOwner
-    )
-        PendleBridgedPrincipalToken(
-            _name, _symbol, _lzEndpoint, _delegate, _expiry, _localDecimals, _sharedDecimals, initialOwner
-        )
+    constructor(address _lzEndpoint, uint256 _expiry, uint8 _decimals)
+        PendleBridgedPrincipalToken(_lzEndpoint, _expiry, _decimals)
     {
         nativeToken = endpoint.nativeToken();
     }
