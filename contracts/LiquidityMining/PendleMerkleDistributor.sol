@@ -14,7 +14,7 @@ contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, Boring
     bytes32 public merkleRoot;
 
     mapping(address => uint256) public claimed;
-    mapping(address => uint256) public verified;
+    mapping(address => uint256) private __deprecated__verified;
 
     constructor(address _token) initializer {
         token = _token;
@@ -38,33 +38,6 @@ contract PendleMerkleDistributor is IPMerkleDistributor, UUPSUpgradeable, Boring
 
         _transferOut(token, receiver, amountOut);
         emit Claimed(user, receiver, amountOut);
-    }
-
-    function claimVerified(address receiver) external returns (uint256 amountOut) {
-        address user = msg.sender;
-        uint256 amountVerified = verified[user];
-        uint256 amountClaimed = claimed[user];
-
-        if (amountVerified <= amountClaimed) {
-            return 0;
-        }
-
-        amountOut = amountVerified - amountClaimed;
-        claimed[user] = amountVerified;
-
-        _transferOut(token, receiver, amountOut);
-        emit Claimed(user, receiver, amountOut);
-    }
-
-    function verify(address user, uint256 totalAccrued, bytes32[] calldata proof)
-        external
-        returns (uint256 amountClaimable)
-    {
-        if (!_verifyMerkleData(user, totalAccrued, proof)) revert InvalidMerkleProof();
-        amountClaimable = totalAccrued - claimed[user];
-        verified[user] = totalAccrued;
-
-        emit Verified(user, amountClaimable);
     }
 
     function _verifyMerkleData(address user, uint256 amount, bytes32[] calldata proof) internal view returns (bool) {

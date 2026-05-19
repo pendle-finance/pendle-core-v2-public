@@ -19,7 +19,7 @@ contract PendleMultiTokenMerkleDistributor is
 
     /// (token, user) => amount
     mapping(address => mapping(address => uint256)) public claimed;
-    mapping(address => mapping(address => uint256)) public verified;
+    mapping(address => mapping(address => uint256)) private __deprecated__verified;
 
     constructor() {
         _disableInitializers();
@@ -52,41 +52,6 @@ contract PendleMultiTokenMerkleDistributor is
 
             _transferOut(token, receiver, amountOuts[i]);
             emit Claimed(token, user, receiver, amountOuts[i]);
-        }
-    }
-
-    function claimVerified(address receiver, address[] memory tokens) external returns (uint256[] memory amountOuts) {
-        address user = msg.sender;
-        uint256 nToken = tokens.length;
-        amountOuts = new uint256[](nToken);
-
-        for (uint256 i = 0; i < nToken; ++i) {
-            address token = tokens[i];
-            uint256 amountVerified = verified[token][user];
-            uint256 amountClaimed = claimed[token][user];
-
-            if (amountVerified > amountClaimed) {
-                amountOuts[i] = amountVerified - amountClaimed;
-                claimed[token][user] = amountVerified;
-                _transferOut(token, receiver, amountOuts[i]);
-                emit Claimed(token, user, receiver, amountOuts[i]);
-            }
-        }
-    }
-
-    function verify(address user, address[] memory tokens, uint256[] memory totalAccrueds, bytes32[][] memory proofs)
-        external
-        returns (uint256[] memory amountClaimable)
-    {
-        uint256 nToken = tokens.length;
-        amountClaimable = new uint256[](nToken);
-
-        for (uint256 i = 0; i < nToken; ++i) {
-            (address token, uint256 totalAccrued, bytes32[] memory proof) = (tokens[i], totalAccrueds[i], proofs[i]);
-            if (!_verifyMerkleData(token, user, totalAccrued, proof)) revert InvalidMerkleProof();
-            amountClaimable[i] = totalAccrued - claimed[token][user];
-            verified[token][user] = totalAccrued;
-            emit Verified(token, user, amountClaimable[i]);
         }
     }
 
