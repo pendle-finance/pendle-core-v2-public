@@ -41,7 +41,7 @@
     "format": "forge fmt",
     "prepack": "yarn compile"
   },
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.12.0",
   "dependencies": {
     "@chainlink/contracts": "0.8.0",
     "@layerzerolabs/lz-evm-messagelib-v2": "3.0.148",
