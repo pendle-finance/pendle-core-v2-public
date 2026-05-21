@@ -13,6 +13,7 @@
         "safeWaitTime": 15000,
         "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
+    "pendleSwap": "0xd4F480965D2347d421F1bEC7F545682E5Ec2151D",
     "fixedPricePTAMM": "0x4d717868F4Bd14ac8B29Bb6361901e30Ae05e340",
     "sparkLinearDiscountOracleFactory": "0x1fbacedf510daa79dfd9b41227a7ba192d5d548d",
     "experimental": {
