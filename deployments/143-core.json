@@ -2,8 +2,10 @@
     "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
     "network": {
         "chainId": 143,
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
         "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
         "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "pendle": "0x5e49e1f85813f2b65858860a3fa231b4186f2e0e",
         "wrappedNative": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
         "initialRewardFee": "50000000000000000",
         "initialInterestFee": "50000000000000000",
@@ -11,10 +13,43 @@
         "safeWaitTime": 15000,
         "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
     },
+    "PENDLE": "0x5e49e1f85813f2b65858860a3fa231b4186f2e0e",
     "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
     "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
     "devProxyAdmin": "0xD37eB2E6DE40a33ba68BaD94427723b66c954EA9",
+    "baseCodeSplitter": "0xed080cfaE31Ed1c4d4FdbE0A76Ed992Ec9171264",
+    "gaugeController": "0x7e500c6efBb00FD3227888256E477171a1304721",
+    "yieldContractFactoryV6": "0x4fe1B23ab695D99394Ab78c16A5bE358f31847F4",
+    "marketFactoryV6": "0xA3cb62a49b66eB2536cf6F3C7AC82293784888A3",
+    "pyYtLpOracle": "0x5542be50420E88dd7D5B4a3D488FA6ED82F6DAc2",
+    "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0x2fb6d0753602Bf397fcE38Ec8Ee3a811cA07B3FD",
+        "ActionSwapPTV3": "0xbb0Dd79794e58795b08b599297ec55a6Afb6AB58",
+        "ActionSwapYTV3": "0x171B480B1A2ebc1acE52e46E0Bd73e7E08413ec2",
+        "ActionMiscV3": "0xac1700293346b0bEFC71bCB7E14Bf1c38a5c2a97",
+        "ActionSimple": "0xc66eeDCFf0eC9eACbbF721519E5A03c4d82Fe49b",
+        "ActionCallbackV3": "0x1F593511d7C670FbA0e2601315F6444C10bC9177",
+        "ActionStorageV4": "0x9815cA631062C29f80f5A29783DDd51E08A702db"
+    },
+    "routerStatic": "0x6813d43782395A1F2AAb42f39aeEDE03ac655e09",
+    "pendleSwap": "0xd4F480965D2347d421F1bEC7F545682E5Ec2151D",
+    "reflector": "0x73d5DBF81A4f3bFa7b335e6a2d4638D6017a4fA8",
+    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
+    "PendleChainlinkOracleFactory": "0x6502cda86f9110f3655512237C9FF2B9CE247c69",
+    "experimental": {
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
+        "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
+    },
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
+    "lpWrapperFactory": "0xA997a99af899951c6A3F218Ef65A0A448A9fF55a",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
+    "lpLinearDiscountOracleFactory": "0x44fb16D078E9C39B65d6c15E78EDe9736a9f2DF5",
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
-    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D",
-    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb"
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
 }
