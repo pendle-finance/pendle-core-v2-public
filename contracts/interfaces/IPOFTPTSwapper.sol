@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {TokenOutput} from "./IPAllActionTypeV3.sol";
 
-interface IPSwapHelper {
+interface IPOFTPTSwapper {
     function swapWithFixedPricePTAMM(
         address receiver,
         address fixedPricePTAMM,

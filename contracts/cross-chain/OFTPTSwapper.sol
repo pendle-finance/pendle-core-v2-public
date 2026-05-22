@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {TokenHelper} from "../core/libraries/TokenHelper.sol";
 import {IPFixedPricePTAMMV2} from "../interfaces/IPFixedPricePTAMMV2.sol";
-import {IPSwapHelper, TokenOutput} from "../interfaces/IPSwapHelper.sol";
+import {IPOFTPTSwapper, TokenOutput} from "../interfaces/IPOFTPTSwapper.sol";
 import {IPSwapAggregator, SwapType} from "../router/swap-aggregator/IPSwapAggregator.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract PendleSwapHelper is IPSwapHelper, TokenHelper {
+contract OFTPTSwapper is IPOFTPTSwapper, TokenHelper {
     function swapWithFixedPricePTAMM(
         address receiver,
         address fixedPricePTAMM,
@@ -16,7 +16,8 @@ contract PendleSwapHelper is IPSwapHelper, TokenHelper {
         TokenOutput calldata out
     ) external returns (uint256 netTokenOut) {
         require(
-            out.tokenRedeemSy == IPFixedPricePTAMMV2(fixedPricePTAMM).outputToken(), "SwapHelper: INVALID_TOKEN_REDEEM"
+            out.tokenRedeemSy == IPFixedPricePTAMMV2(fixedPricePTAMM).outputToken(),
+            "OFTPTSwapper: INVALID_TOKEN_REDEEM"
         );
 
         _transferFrom(IERC20(PT), msg.sender, fixedPricePTAMM, exactPtIn);

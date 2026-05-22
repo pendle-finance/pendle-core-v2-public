@@ -72,5 +72,6 @@
         "vePendle": "0x3209E9412cca80B18338f2a56ADA59c484c39644"
     },
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
-    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D",
+    "oftPtSwapper": "0x8ef78aD230887E05fa3324277A5225fE93889b08"
 }
