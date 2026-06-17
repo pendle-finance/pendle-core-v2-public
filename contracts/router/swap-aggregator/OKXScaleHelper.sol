@@ -22,7 +22,7 @@ abstract contract OKXScaleHelper {
         }
     }
 
-    // https://web3.okx.com/build/dev-docs/dex-api/dex-smart-contract#token-approval
+    // https://web3.okx.com/onchainos/dev-docs/trade/dex-smart-contract#token-approval
     function __getTokenApproveForChain(uint256 chainid) private pure returns (address) {
         if (chainid == 1 || chainid == 43_114) {
             return 0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f;
@@ -50,6 +50,9 @@ abstract contract OKXScaleHelper {
         }
         if (chainid == 143) {
             return 0xf534A8a1CAD0543Cd6438f7534CA3486c01998d4;
+        }
+        if (chainid == 999) {
+            return 0x56e6983D59bF472Ced0E63966A14d94A3A291589;
         }
         return address(0);
     }
