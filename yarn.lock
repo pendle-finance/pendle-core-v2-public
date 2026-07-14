@@ -1237,6 +1237,7 @@ __metadata:
     "@typechain/ethers-v5": "npm:^9.0.0"
     "@typechain/hardhat": "npm:^4.0.0"
     ethers: "npm:^5.7.2"
+    forge-std: "github:foundry-rs/forge-std#v1.16.1"
     hardhat: "npm:^2.19.2"
     hardhat-contract-sizer: "npm:^2.10.0"
     solc: "npm:^0.8.23-fixed"
@@ -2808,6 +2809,13 @@ __metadata:
     debug:
       optional: true
   checksum: 10/a89f184582ddd5f53d48254ac2ffaa7022cc12a214f9e11388eb92a24022218c9a55fbf5b9f27af7d3dad2026962a1860802f8fbae80783a9f46eba9079cdbfd
+  languageName: node
+  linkType: hard
+
+"forge-std@github:foundry-rs/forge-std#v1.16.1":
+  version: 1.16.1
+  resolution: "forge-std@https://github.com/foundry-rs/forge-std.git#commit=620536fa5277db4e3fd46772d5cbc1ea0696fb43"
+  checksum: 10/9f982d6c068affc148b5812c677672ef83dab9a44a8d410b17ada6a3cfd4cc2b4f3c5a65ee2b7c4212f2ad71b40bc31fcef4ba53a5a3d2cbc839bada8dbf66f5
   languageName: node
   linkType: hard
 

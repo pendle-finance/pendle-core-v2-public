@@ -10,7 +10,7 @@ function viaIR(version: string, runs: number) {
                 enabled: true,
                 runs: runs,
             },
-            evmVersion: 'shanghai',
+            evmVersion: 'cancun',
             viaIR: true,
         },
     };
@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
                         enabled: true,
                         runs: 0,
                     },
-                    evmVersion: 'shanghai',
+                    evmVersion: 'cancun',
                 },
             },
         ],
@@ -50,6 +50,7 @@ const config: HardhatUserConfig = {
                 '0.8.30',
                 35000,
             ),
+            'contracts/pt-looping/PendlePTLooper.sol': viaIR('0.8.30', 1000000),
         },
     },
     contractSizer: {

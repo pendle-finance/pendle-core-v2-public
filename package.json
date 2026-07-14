@@ -25,6 +25,7 @@
   "devDependencies": {
     "@typechain/ethers-v5": "^9.0.0",
     "@typechain/hardhat": "^4.0.0",
+    "forge-std": "github:foundry-rs/forge-std#v1.16.1",
     "hardhat": "^2.19.2",
     "hardhat-contract-sizer": "^2.10.0",
     "solc": "^0.8.23-fixed",
