@@ -51,6 +51,7 @@ const config: HardhatUserConfig = {
                 35000,
             ),
             'contracts/pt-looping/PendlePTLooper.sol': viaIR('0.8.30', 1000000),
+            'contracts/pt-looping/loop-position-box/LoopPositionBoxFactory.sol': viaIR('0.8.30', 1000000),
         },
     },
     contractSizer: {

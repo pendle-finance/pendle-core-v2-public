@@ -1,62 +1,62 @@
 {
-  "name": "@pendle/core-v2",
-  "description": "Core smart contracts of Pendle Protocol.",
-  "license": "BUSL-1.1",
-  "version": "6.7.1",
-  "homepage": "https://pendle.finance",
-  "keywords": [
-    "pendle",
-    "core",
-    "v2"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pendle-finance/pendle-core-internal-v2"
-  },
-  "files": [
-    "contracts",
-    "typechain-types",
-    "build/artifacts/contracts/**",
-    "deployments/"
-  ],
-  "engines": {
-    "node": ">=10"
-  },
-  "devDependencies": {
-    "@typechain/ethers-v5": "^9.0.0",
-    "@typechain/hardhat": "^4.0.0",
-    "forge-std": "github:foundry-rs/forge-std#v1.16.1",
-    "hardhat": "^2.19.2",
-    "hardhat-contract-sizer": "^2.10.0",
-    "solc": "^0.8.23-fixed",
-    "solhint": "^4.0.0",
-    "ts-node": "^10.9.2",
-    "typechain": "^8.3.2",
-    "typescript": "^5.3.3"
-  },
-  "scripts": {
-    "compile": "yarn hardhat compile",
-    "size": "yarn hardhat size-contracts",
-    "clean": "yarn hardhat clean",
-    "fcompile": "yarn clean && yarn compile",
-    "format": "forge fmt",
-    "prepack": "yarn compile"
-  },
-  "packageManager": "yarn@4.12.0",
-  "dependencies": {
-    "@chainlink/contracts": "0.8.0",
-    "@layerzerolabs/lz-evm-messagelib-v2": "3.0.148",
-    "@layerzerolabs/lz-evm-protocol-v2": "3.0.148",
-    "@layerzerolabs/oapp-evm": "0.4.1",
-    "@layerzerolabs/oapp-evm-upgradeable": "0.1.3",
-    "@layerzerolabs/oft-evm": "4.0.1",
-    "@layerzerolabs/oft-evm-upgradeable": "4.0.2",
-    "@openzeppelin/contracts": "4.9.3",
-    "@openzeppelin/contracts-upgradeable": "4.9.3",
-    "ethers": "^5.7.2",
-    "solidity-bytes-utils": "0.8.4"
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "@pendle/core-v2",
+	"description": "Core smart contracts of Pendle Protocol.",
+	"license": "BUSL-1.1",
+	"version": "6.8.1",
+	"homepage": "https://pendle.finance",
+	"keywords": [
+		"pendle",
+		"core",
+		"v2"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pendle-finance/pendle-core-internal-v2"
+	},
+	"files": [
+		"contracts",
+		"typechain-types",
+		"build/artifacts/contracts/**",
+		"deployments/"
+	],
+	"engines": {
+		"node": ">=10"
+	},
+	"devDependencies": {
+		"@typechain/ethers-v5": "^9.0.0",
+		"@typechain/hardhat": "^4.0.0",
+		"forge-std": "github:foundry-rs/forge-std#v1.16.1",
+		"hardhat": "^2.19.2",
+		"hardhat-contract-sizer": "^2.10.0",
+		"solc": "^0.8.23-fixed",
+		"solhint": "^4.0.0",
+		"ts-node": "^10.9.2",
+		"typechain": "^8.3.2",
+		"typescript": "^5.3.3"
+	},
+	"scripts": {
+		"compile": "yarn hardhat compile",
+		"size": "yarn hardhat size-contracts",
+		"clean": "yarn hardhat clean",
+		"fcompile": "yarn clean && yarn compile",
+		"format": "forge fmt",
+		"prepack": "yarn compile"
+	},
+	"packageManager": "yarn@4.12.0",
+	"dependencies": {
+		"@chainlink/contracts": "0.8.0",
+		"@layerzerolabs/lz-evm-messagelib-v2": "3.0.148",
+		"@layerzerolabs/lz-evm-protocol-v2": "3.0.148",
+		"@layerzerolabs/oapp-evm": "0.4.1",
+		"@layerzerolabs/oapp-evm-upgradeable": "0.1.3",
+		"@layerzerolabs/oft-evm": "4.0.1",
+		"@layerzerolabs/oft-evm-upgradeable": "4.0.2",
+		"@openzeppelin/contracts": "4.9.3",
+		"@openzeppelin/contracts-upgradeable": "4.9.3",
+		"ethers": "^5.7.2",
+		"solidity-bytes-utils": "0.8.4"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
