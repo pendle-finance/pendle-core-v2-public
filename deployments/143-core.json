@@ -49,6 +49,9 @@
     "lpWrapperFactory": "0xA997a99af899951c6A3F218Ef65A0A448A9fF55a",
     "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
     "lpLinearDiscountOracleFactory": "0x44fb16D078E9C39B65d6c15E78EDe9736a9f2DF5",
+    "cross-chain": {
+      "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
+    },
     "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
     "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D",
