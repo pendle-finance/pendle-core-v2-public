@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pendle-finance/pendle-core-internal-v2"
+    "url": "https://github.com/pendle-finance/pendle-core-v2-public"
   },
   "files": [
     "contracts",
