@@ -73,5 +73,8 @@
     },
     "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
     "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D",
-    "oftPtSwapper": "0x8ef78aD230887E05fa3324277A5225fE93889b08"
+    "oftPtSwapper": "0x8ef78aD230887E05fa3324277A5225fE93889b08",
+    "pendlePtLooper": "0xF82Ef4080A53b71093f9c470676Fc80E2ADC4263",
+    "pendlePtLooperView": "0x887b00B5F584f1cC015e8f68C29d6Feb6bf95b02",
+    "loopPositionBoxFactory": "0xe5125dfE3Fc232723E7Ae17cFa66034b3BCAC696"
 }
