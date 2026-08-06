@@ -81,7 +81,6 @@ contract PendlePTLooper is PTLooperBase {
 
         preInBalance = _boxBal(s.box, tokenIn);
 
-        require(ms.fee <= preInBalance.mulDown(req.maxFeeRate), "PTLooper: fee exceeds maxFeeRate");
         _boxWithdraw(s.box, TREASURY, tokenIn, ms.fee);
 
         uint256 netIn = preInBalance - ms.fee;
@@ -161,9 +160,12 @@ contract PendlePTLooper is PTLooperBase {
         Session memory s,
         uint256 netPtToSwap
     ) internal returns (uint256 postDebtBal) {
-        (postDebtBal,) = _boxSwapToken(
+        (uint256 preFeeDebtBal,) = _boxSwapToken(
             s.box, s.bd.hubPt, netPtToSwap, s.bd.hubDebtToken, req.minPtToDebtSwapRate, ms.swap
         );
+
+        _boxWithdraw(s.box, TREASURY, s.bd.hubDebtToken, ms.fee);
+        postDebtBal = preFeeDebtBal - ms.fee;
 
         if (_isCrossChain(s.bd)) {
             _boxBridgeToken(

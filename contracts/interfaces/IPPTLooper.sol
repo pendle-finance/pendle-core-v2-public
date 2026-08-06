@@ -54,10 +54,6 @@ interface IPPTLooperEIP712Types {
         /// @notice when true, the "swap" is a 1:1 PT+YT mint via SY; the co-minted YT is
         ///         immediately withdrawn to the owner.
         bool isZeroPriceImpact;
-
-        /// @notice maximum fee rate allowed based on the amount of token in.
-        /// See `IncreasePositionMessage.fee`.
-        uint256 maxFeeRate;
     }
 
     struct IncreasePositionMessage {
@@ -92,6 +88,8 @@ interface IPPTLooperEIP712Types {
         BridgeData bridge;
         // Spoke-only: repay then withdraw.
         uint256 amountPtWithdrawn;
+        /// @notice Hub-only. Fee is in debtToken, taken out of the swap's output.
+        uint256 fee;
 
         bytes postStateCheckData;
     }

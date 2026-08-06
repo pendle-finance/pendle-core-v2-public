@@ -74,10 +74,10 @@ library PTLooperEIP712TypesEncodeDataLib {
     // IPPTLooper.sol > IPPTLooperEIP712Types > IncreasePositionRequest
     function encodeData(IPPTLooperEIP712Types.IncreasePositionRequest memory data) internal pure returns (bytes32) {
         /* bytes32 typeHash = keccak256(
-            "IncreasePositionRequest(RequestHeader header,address initTokenIn,uint256 initMinToPtSwapRate,uint256 minDebtToPtSwapRate,uint256 postBorrowMaxLTV,bool isZeroPriceImpact,uint256 maxFeeRate)" 
+            "IncreasePositionRequest(RequestHeader header,address initTokenIn,uint256 initMinToPtSwapRate,uint256 minDebtToPtSwapRate,uint256 postBorrowMaxLTV,bool isZeroPriceImpact)" 
             "RequestHeader(bytes32 boxId,uint256 expiry,uint32 sessionNonce,uint32 permitNonceCap,uint256 swapBridgeSlippage,bytes offchainMetadata)" 
         ); */
-        bytes32 typeHash = 0x3dbdcfb2686d43e144206a30f06f896545dd0bf378284ab15ce7d25ca65ed9cc;
+        bytes32 typeHash = 0xb37d571e358db3b5130424792ae520a87def7c4a54a9d100801057de49dd0a56;
         return keccak256(abi.encode(
             typeHash,
             encodeData(data.header),
@@ -85,8 +85,7 @@ library PTLooperEIP712TypesEncodeDataLib {
             data.initMinToPtSwapRate,
             data.minDebtToPtSwapRate,
             data.postBorrowMaxLTV,
-            data.isZeroPriceImpact,
-            data.maxFeeRate
+            data.isZeroPriceImpact
         ));
     }
     
@@ -128,18 +127,19 @@ library PTLooperEIP712TypesEncodeDataLib {
     // IPPTLooper.sol > IPPTLooperEIP712Types > DecreasePositionMessage
     function encodeData(IPPTLooperEIP712Types.DecreasePositionMessage memory data) internal pure returns (bytes32) {
         /* bytes32 typeHash = keccak256(
-            "DecreasePositionMessage(BoxPermit permit,BoxApprovedCall swap,BridgeData bridge,uint256 amountPtWithdrawn,bytes postStateCheckData)" 
+            "DecreasePositionMessage(BoxPermit permit,BoxApprovedCall swap,BridgeData bridge,uint256 amountPtWithdrawn,uint256 fee,bytes postStateCheckData)" 
             "BoxApprovedCall(address extRouter,address approve,bytes callData)" 
             "BoxPermit(address owner,bytes32 boxId,uint256 expiry,uint256 nonce)" 
             "BridgeData(BoxApprovedCall call,uint256 maxAmount,uint256 nativeFee)" 
         ); */
-        bytes32 typeHash = 0xa2638841c0c7fcfce10275ef9bc3e8b2711ac24f07818116b6942c54a9805f12;
+        bytes32 typeHash = 0x4acf1a63082999b1c5bc3be18a62b4549817bf7f6bf2999238c2eddb1cd71942;
         return keccak256(abi.encode(
             typeHash,
             encodeData(data.permit),
             encodeData(data.swap),
             encodeData(data.bridge),
             data.amountPtWithdrawn,
+            data.fee,
             keccak256(data.postStateCheckData)
         ));
     }
