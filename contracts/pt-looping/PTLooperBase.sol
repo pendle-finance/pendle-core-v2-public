@@ -19,6 +19,16 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
 
     address public executor;
     address public proposer;
+
+    // ========== Executor Validation ==========
+    address public pendingExecutor;
+    uint256 public executorChangeInitiatedAt;
+    uint256 public constant EXECUTOR_TIMELOCK = 1 days;
+
+    // ========== Slippage & Cap Controls ==========
+    uint256 public maxSlippage; // e.g., 500 = 5% (in basis points)
+    uint256 public maxLoopAmountPerTx; // max PT amount per loop iteration
+
     mapping(address owner => mapping(bytes32 requestHash => uint256 nonce)) public proposerNonce;
     mapping(address owner => mapping(bytes32 boxId => UserRequestInfo)) internal _userRequest;
 
@@ -41,9 +51,52 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
         _;
     }
 
-    function setExecutor(address executor_) external onlyOwner {
-        executor = executor_;
-        emit SetExecutor(executor_);
+    modifier slippageCheck(uint256 actualSlippage) {
+        require(actualSlippage <= maxSlippage, "PTLooper: slippage exceeds max");
+        _;
+    }
+
+    modifier loopAmountCheck(uint256 amount) {
+        require(maxLoopAmountPerTx == 0 || amount <= maxLoopAmountPerTx, "PTLooper: loop amount exceeds cap");
+        _;
+    }
+
+    // ========== Admin: Timelocked Executor ==========
+    function initiateExecutorChange(address newExecutor) external onlyOwner {
+        pendingExecutor = newExecutor;
+        executorChangeInitiatedAt = block.timestamp;
+        emit ExecutorChangeInitiated(newExecutor, block.timestamp);
+    }
+
+    function completeExecutorChange() external onlyOwner {
+        require(pendingExecutor != address(0), "PTLooper: no pending change");
+        require(block.timestamp >= executorChangeInitiatedAt + EXECUTOR_TIMELOCK, "PTLooper: timelock not met");
+
+        address oldExecutor = executor;
+        executor = pendingExecutor;
+        delete pendingExecutor;
+        delete executorChangeInitiatedAt;
+
+        emit SetExecutor(executor);
+        emit ExecutorChangeCompleted(oldExecutor, executor);
+    }
+
+    function cancelExecutorChange() external onlyOwner {
+        delete pendingExecutor;
+        delete executorChangeInitiatedAt;
+        emit ExecutorChangeCancelled();
+    }
+
+    // ========== Admin: Slippage & Cap Controls ==========
+    function setMaxSlippage(uint256 newMaxSlippage) external onlyOwner {
+        require(newMaxSlippage <= 10000, "PTLooper: slippage > 100%");
+        maxSlippage = newMaxSlippage;
+        emit MaxSlippageUpdated(newMaxSlippage);
+    }
+
+    function setMaxLoopAmountPerTx(uint256 newMaxLoopAmount) external onlyOwner {
+        maxLoopAmountPerTx = newMaxLoopAmount;
+        emit MaxLoopAmountPerTxUpdated(newMaxLoopAmount);
     }
 
     function setProposer(address proposer_) external onlyOwner {

@@ -145,6 +145,15 @@ interface IPPTLooper is IPPTLooperEIP712Types {
 
     event SetProposer(address proposer);
 
+    // ========== Executor Validation Events ==========
+    event ExecutorChangeInitiated(address newExecutor, uint256 initiatedAt);
+    event ExecutorChangeCompleted(address oldExecutor, address newExecutor);
+    event ExecutorChangeCancelled();
+
+    // ========== Slippage & Cap Events ==========
+    event MaxSlippageUpdated(uint256 newMaxSlippage);
+    event MaxLoopAmountPerTxUpdated(uint256 newMaxLoopAmount);
+
     event TokenSwapped(
         IPLoopPositionBox indexed box,
         address indexed tokenIn,
@@ -293,7 +302,15 @@ interface IPPTLooper is IPPTLooperEIP712Types {
 
     // ========== Admin functions ==========
 
-    function setExecutor(address executor) external;
+    function initiateExecutorChange(address newExecutor) external;
+
+    function completeExecutorChange() external;
+
+    function cancelExecutorChange() external;
+
+    function setMaxSlippage(uint256 newMaxSlippage) external;
+
+    function setMaxLoopAmountPerTx(uint256 newMaxLoopAmount) external;
 
     function setProposer(address proposer) external;
 }
