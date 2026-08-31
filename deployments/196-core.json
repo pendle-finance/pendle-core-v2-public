@@ -45,5 +45,8 @@
 	"experimental": {
 		"PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
 		"MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
-	}
+	},
+	"pendlePtLooper": "0xF82Ef4080A53b71093f9c470676Fc80E2ADC4263",
+	"pendlePtLooperView": "0x887b00B5F584f1cC015e8f68C29d6Feb6bf95b02",
+	"loopPositionBoxFactory": "0xe5125dfE3Fc232723E7Ae17cFa66034b3BCAC696"
 }
