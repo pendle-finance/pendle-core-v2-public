@@ -1,0 +1,366 @@
+# The single entry point for every publish of @pendle/core-v2.
+#
+# ── Why one file ─────────────────────────────────────────────────────────────
+# npm permits ONE trusted publisher for each package - "Each package can only
+# have one trusted publisher configured at a time" - and it matches the
+# ENTRY-POINT workflow filename, not the workflow that runs the publish command.
+#
+# This package used to have three entry points: release.yml on push,
+# snapshot-release.yml on workflow_dispatch, and comment-snapshot-release.yml on
+# issue_comment. One record can cover one of them, so the other two needed a
+# long-lived npm token. That token was the org secret NPM_PUBLISH_TOKEN, deleted
+# on 2026-08-30 because every private repo in the org could read it.
+#
+# Collapsing the three triggers onto this one file makes the single record cover
+# every path, so no publish token exists anywhere. Both publish jobs run in the
+# npm-production environment because that is the environment the record already
+# names. The name now covers snapshots too. Renaming it is cosmetic and costs an
+# edit to the record on npmjs.com, so it stays.
+#
+# Both modes are jobs in THIS file rather than reusable workflows on purpose. A
+# reusable workflow makes workflow_ref and job_workflow_ref disagree, and npm
+# documents that it reads the caller. Keeping them equal removes the question.
+#
+# Copied from pendle-sdk-core-v2, where the flow is proven end to end. Before
+# this file every version of this package was published by hand from a personal
+# npm login. `prepack` runs `yarn compile`, so a publish compiles the contracts.
+#
+# ── Adding a trigger ─────────────────────────────────────────────────────────
+# Any new publish path must be a job here. A new workflow file that publishes
+# will fail the OIDC exchange, because the record names this filename.
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  issue_comment:
+    types: [created]
+
+# Deny by default. Every job states the scopes it needs; anything unlisted is
+# unavailable rather than inheriting the repository's default token scopes.
+permissions: {}
+
+jobs:
+  # ── Snapshot gate, comment path only ───────────────────────────────────────
+  authorize:
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/snapshot-release')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      # `pull-requests: write`, not `read`. The Acknowledge step below reacts to a
+      # comment that lives on a PULL REQUEST, and GitHub governs writes to a PR's
+      # comment thread with the `pull-requests` scope - `issues: write` is not enough
+      # and the call 403s with `Resource not accessible by integration`. That kills
+      # the authorize job, so the snapshot job never runs and `/snapshot-release`
+      # does nothing.
+      pull-requests: write
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+      branch_name: ${{ steps.resolve.outputs.branch_name }}
+    steps:
+      # author_association is NOT sufficient: COLLABORATOR includes read-only
+      # collaborators, who can comment but must not be able to publish.
+      - name: Require write access
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const actor = context.payload.comment.user.login;
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: actor,
+            });
+            if (!['admin', 'write'].includes(data.permission)) {
+              core.setFailed(`${actor} has '${data.permission}' on this repo - needs write.`);
+            }
+
+      # Pin the exact SHA here, before the release job starts. Passing a branch
+      # name lets the ref be re-read later, so what gets built need not be what
+      # was authorised. This also replaces xt0rted/pull-request-comment-branch,
+      # an unpinned third-party action that used to decide what got published.
+      - name: Resolve head SHA
+        id: resolve
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput('sha', pr.data.head.sha);
+            core.setOutput('branch_name', pr.data.head.ref);
+
+      - name: Acknowledge
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1',
+            });
+
+  # ── Production, push to main ───────────────────────────────────────────────
+  production:
+    if: github.event_name == 'push'
+    environment: npm-production
+    runs-on: ubuntu-latest
+    permissions:
+      # Only `actions/checkout` uses this token now, and it only reads. The release commit,
+      # the tag and the release PR all go through the App token minted below.
+      contents: read
+      id-token: write # mints the OIDC token for npm trusted publishing
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 2 # the version gate below needs HEAD~1
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      # Pinned to 11.x ON PURPOSE - do not change to npm@latest. Trusted
+      # publishing needs npm >= 11.5.1, but npm@latest is now 12.x, and npm 12
+      # changed `npm info --json` to return an ARRAY where 11 returned an
+      # object. changesets reads `.versions` off it, gets undefined, decides
+      # the current version was never published, and tries to republish it.
+      # No `registry-url` on setup-node either: it writes an .npmrc holding
+      # _authToken=${NODE_AUTH_TOKEN}, which with no token resolves to the
+      # literal placeholder and breaks every registry read.
+      - name: Install npm 11
+        run: npm install -g npm@11
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Prepare pull request message
+        # `.releases` is EMPTY on a merge that carries no changeset, so `.releases[0].newVersion`
+        # yields the string "null" and the log reads `Releasing vnull`. `// empty` leaves
+        # NEW_VERSION unset instead. Nothing downstream breaks either way: with no changeset the
+        # action takes the publish path and never opens a PR, so the title is never used.
+        run: |
+          # `changeset status` exits 1 on "packages have been changed but no changesets were
+          # found". That is a normal state on the default branch right after a changeset-less
+          # merge, such as a CI-only PR. Under `bash -e` a bare call therefore kills the whole
+          # release job. The single-line `$( ... )` form this replaced hid the same exit code
+          # by accident, because only `echo`'s status was ever checked.
+          #
+          # Not this workflow's job to police it either way: the changesets action below is
+          # what decides whether to publish or to open a version PR, and NEW_VERSION is only
+          # ever read for the PR title. Enforcing "every change needs a changeset" belongs on
+          # a pull_request check, where it can still be acted on, not on a post-merge job.
+          yarn changeset status --output=release.json || true
+          if [ -f release.json ]; then
+            echo "NEW_VERSION=$(jq -r '.releases[0].newVersion // empty' release.json)" >> $GITHUB_ENV
+            rm release.json
+          fi
+
+      # ── Why the publish is gated ─────────────────────────────────────────────
+      # `changeset publish` first runs `npm info <pkg>` to decide whether the
+      # local version is already on the registry. This package is RESTRICTED and
+      # there is no npm token here any more, so that read is unauthenticated and
+      # returns 404 — changesets reads every version as unpublished.
+      #
+      # On a REAL release that is harmless: the version genuinely is new, so the
+      # PUT succeeds. The OIDC exchange works — a run on 2026-08-30 reached
+      # `Publishing to https://registry.npmjs.org with tag latest` and was
+      # refused only with `cannot publish over the previously published
+      # versions`, a duplicate rejection rather than an auth failure.
+      #
+      # A CHANGESET-LESS merge is what breaks: the version is unchanged and
+      # already published, so changesets attempts a republish and 403s — a red
+      # job on an ordinary CI-only merge to the default branch.
+      #
+      # So gate on the one thing knowable without asking the registry: did THIS
+      # push change the version in package.json? Only then is there anything to
+      # publish. A read token would also fix the lookup, but it would sit in
+      # npm's config at publish time, and on a private repo there is no
+      # provenance attestation to prove afterwards which credential was used.
+      - name: Did this push change the package version?
+        id: verchanged
+        run: |
+          PREV="$(git show HEAD~1:package.json 2>/dev/null | jq -r '.version // empty' || true)"
+          CURR="$(jq -r '.version' package.json)"
+          echo "previous=${PREV:-<none>} current=${CURR}"
+          if [ -n "$PREV" ] && [ "$PREV" != "$CURR" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Mint release-bot token
+        id: release-token
+        # `GITHUB_TOKEN` cannot open a pull request in this org. The org setting
+        # `can_approve_pull_request_reviews = false` governs two verbs, not one: it blocks
+        # CREATE as well as approve, and the failure is
+        # `GitHub Actions is not permitted to create or approve pull requests.`
+        # Re-enabling the setting is not the fix - it would let a bot satisfy the
+        # `required_approving_review_count: 1` rule on the default branch. An App token is.
+        #
+        # NO `owner:` here. Omitting it scopes the token to THIS repo alone; with `owner:`
+        # the token reaches every repo the App is installed on.
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write # createCommitOnBranch + the GitHub release/tag
+          permission-pull-requests: write # the release PR
+
+      - name: Create release pull request
+        id: changesets
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        with:
+          title: "Releasing v${{ env.NEW_VERSION }}"
+          commit: "v${{ env.NEW_VERSION }}"
+          commitMode: github-api # push commits/tags via the GitHub API so they are GPG-signed (Verified)
+          # `changeset publish` skips any version already on the registry. `yarn npm publish`
+          # PUTs unconditionally, so every changeset-less merge to the default branch 403s.
+          # No NPM_TOKEN anywhere in this step, on purpose. `changeset publish`
+          # shells out to the npm CLI, which performs the OIDC exchange and is
+          # matched by npm against the trusted-publisher record for this repo +
+          # this workflow filename + the npm-production environment. If a token
+          # were present changesets would silently prefer it over OIDC.
+          # Empty string = version-only mode: changesets opens or updates the
+          # version PR and does not publish. Set only when the version moved.
+          publish: ${{ steps.verchanged.outputs.changed == 'true' && 'yarn changeset publish' || '' }}
+          github-token: ${{ steps.release-token.outputs.token }}
+        env:
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
+
+      # No independent post-publish verification here, deliberately.
+      #
+      # It used to run `npm view <pkg>@<version>` and fail the job if the
+      # version was not visible. On a RESTRICTED package that read is
+      # unauthenticated and always 404s, so it reported a false negative on a
+      # publish that had actually succeeded - the 3.34.3 release on 2026-08-30
+      # published fine and then went red here.
+      #
+      # It is also redundant: `changeset publish` exits non-zero when the
+      # publish fails, which already fails this job. That is how the earlier
+      # 403s surfaced. The check only ever added value on a PUBLIC package,
+      # where an anonymous read works - boros-sdk keeps it for that reason.
+
+  # ── Snapshot, manual dispatch or an authorised /snapshot-release comment ────
+  snapshot:
+    needs: [authorize]
+    # `!cancelled()` rather than `success()`. On workflow_dispatch the authorize
+    # job is skipped by its own `if`, and a skipped dependency skips every job
+    # that needs it unless the condition tolerates it. The comment path still
+    # demands that authorize actually passed.
+    if: >-
+      !cancelled() &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'issue_comment' && needs.authorize.result == 'success'))
+    # Same environment as production, because npm's single trusted-publisher
+    # record names it. See the header.
+    environment: npm-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # mints the OIDC token for npm trusted publishing
+    outputs:
+      package_version: ${{ steps.changeset_prepare.outputs.package_version }}
+    env:
+      # On the comment path these come from the gate above, which pinned them
+      # before this job started. On workflow_dispatch there is no gate and the
+      # dispatched ref is the source of truth.
+      REF: ${{ needs.authorize.outputs.sha || github.sha }}
+      BRANCH_NAME: ${{ needs.authorize.outputs.branch_name || github.ref_name }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          # An exact SHA on the comment path, never a branch name. Re-reading the
+          # branch here would let code be swapped between the authorisation and
+          # the publish.
+          ref: ${{ env.REF }}
+
+      # No `registry-url`, for the same reason as the production job above: it
+      # writes an .npmrc holding a token placeholder, and there is no token here
+      # any more. This path USED to authenticate with NPM_PUBLISH_TOKEN through
+      # NODE_AUTH_TOKEN, which is what needed the .npmrc.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      # See the production job for why this is pinned to the 11.x line.
+      - name: Install npm 11
+        run: npm install -g npm@11
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Prepare changeset snapshot version (part after the last slash)
+        id: changeset_prepare
+        run: |
+          yarn changeset version --snapshot "${BRANCH_NAME##*/}"
+          PACKAGE_VERSION="$(jq -r '.version' package.json)"
+          echo "$PACKAGE_VERSION"
+          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+      # `changeset publish`, not `yarn npm publish`. yarn cannot perform an OIDC
+      # exchange; the npm CLI can, and changesets shells out to it. It also reads
+      # `access` from .changeset/config.json, so the snapshot keeps the same
+      # restricted access as a production release.
+      #
+      # `--tag nightly` matters: without it npm defaults to `latest`, and a
+      # snapshot built from a feature branch would become what every unpinned
+      # consumer installs.
+      #
+      # No NPM_TOKEN. npm mints the credential from `id-token: write` above,
+      # exactly as the production job does.
+      - name: Create snapshot release
+        run: yarn changeset publish --tag nightly
+
+  notify-done:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [authorize, snapshot]
+    if: ${{ github.event_name == 'issue_comment' && needs.snapshot.result == 'success' }}
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          package_version: ${{ needs.snapshot.outputs.package_version }}
+          sha: ${{ needs.authorize.outputs.sha }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Snapshot released from `' + process.env.sha.slice(0, 7) +
+                    '` under the `nightly` tag:\n```\n' + process.env.package_version + '\n```',
+            });
+
+  notify-done-fail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [authorize, snapshot]
+    if: ${{ failure() && github.event_name == 'issue_comment' }}
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Snapshot release failed. Check the workflow run for details.',
+            });

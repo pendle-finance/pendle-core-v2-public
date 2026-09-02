@@ -23,6 +23,7 @@
 		"node": ">=10"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.7",
 		"@typechain/ethers-v5": "^9.0.0",
 		"@typechain/hardhat": "^4.0.0",
 		"forge-std": "github:foundry-rs/forge-std#v1.16.1",
