@@ -57,6 +57,9 @@ abstract contract OKXScaleHelper {
         if (chainid == 196) {
             return 0x8b773D83bc66Be128c60e07E17C8901f7a64F000;
         }
+        if (chainid == 4663) {
+            return 0x42170295F1173c9e5874ea9d00c6d137E1a4f53d;
+        }
         return address(0);
     }
 
