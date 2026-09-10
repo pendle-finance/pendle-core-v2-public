@@ -47,7 +47,7 @@ contract PendlePTLooper is PTLooperBase {
         bytes memory proposerSig,
         IncreasePositionRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable onlyExecutor {
+    ) external payable onlyExecutor loopAmountCheck(ms.amountDebtBorrowed) {
         (Session memory s, bytes32 requestHash) = _ensureSessionAndAuth(ms, req, proposerSig, ownerSigIfFirstCall);
 
         uint256 preInBalance;
@@ -237,6 +237,13 @@ contract PendlePTLooper is PTLooperBase {
         netSwappedOut = postTokenOutBal - preTokenOutBal;
 
         require(netSwappedOut * PMath.ONE >= tokenInBal * minSwapRate, "PTLooper: swap below minSwapRate");
+
+        // Validate against global max slippage
+        if (maxSlippage > 0 && tokenInBal > 0) {
+            uint256 slippageBps = ((tokenInBal * PMath.ONE - netSwappedOut * PMath.ONE) / tokenInBal) * 10000 / PMath.ONE;
+            require(slippageBps <= maxSlippage, "PTLooper: slippage exceeds global max");
+        }
+
         emit TokenSwapped(box, tokenIn, tokenInBal, tokenOut, netSwappedOut);
     }
 
