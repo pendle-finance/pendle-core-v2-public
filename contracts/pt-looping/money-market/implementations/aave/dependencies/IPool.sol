@@ -379,13 +379,8 @@ interface IPool {
      * @param receiveAToken True if the liquidators wants to receive the collateral aTokens, `false` if he wants
      * to receive the underlying collateral asset directly
      */
-    function liquidationCall(
-        IERC20 collateral,
-        IERC20 debtAsset,
-        address user,
-        uint256 debtToCover,
-        bool receiveAToken
-    ) external;
+    function liquidationCall(IERC20 collateral, IERC20 debtAsset, address user, uint256 debtToCover, bool receiveAToken)
+        external;
 
     /**
      * @notice Allows smartcontracts to access the liquidity of the pool within one transaction,
@@ -661,4 +656,18 @@ interface IPool {
      *   0 if the action is executed directly by the user, without any middle-man
      */
     function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+
+    /**
+     * @notice Returns the aToken address of a reserve.
+     * @param asset The address of the underlying asset of the reserve
+     * @return The address of the aToken
+     */
+    function getReserveAToken(address asset) external view returns (address);
+
+    /**
+     * @notice Returns the variableDebtToken address of a reserve.
+     * @param asset The address of the underlying asset of the reserve
+     * @return The address of the variableDebtToken
+     */
+    function getReserveVariableDebtToken(address asset) external view returns (address);
 }

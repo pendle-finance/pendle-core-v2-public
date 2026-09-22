@@ -21,6 +21,7 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
     address public proposer;
     mapping(address owner => mapping(bytes32 requestHash => uint256 nonce)) public proposerNonce;
     mapping(address owner => mapping(bytes32 boxId => UserRequestInfo)) internal _userRequest;
+    mapping(address owner => mapping(bytes32 requestHash => RequestStatus)) public requestStatus;
 
     constructor(address treasury_, address positionBoxFactory_) {
         TREASURY = treasury_;
@@ -182,6 +183,16 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
         );
     }
 
+    function preApproveRequest(bytes32 requestHash, bytes memory proposerSig) external {
+        require(
+            SignatureChecker.isValidSignatureNow(proposer, requestHash, proposerSig),
+            "PTLooper: invalid proposer signature"
+        );
+        require(requestStatus[msg.sender][requestHash] == RequestStatus.DEFAULT, "PTLooper: invalid request status");
+        requestStatus[msg.sender][requestHash] = RequestStatus.PRE_APPROVED;
+        emit RequestPreApproved(msg.sender, requestHash);
+    }
+
     /// @dev Per-iteration auth + implicit session init. First call for a slot
     /// (`userReq.requestHash == 0`) opens the session — checks `boxId`/`sessionNonce` agree and
     /// verifies the owner sig. Subsequent calls just match `userReq.requestHash`;
@@ -206,7 +217,8 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
             require(header.boxId == permit.boxId, "PTLooper: req/permit boxId mismatch");
             require(header.sessionNonce == userReq.sessionNonce, "PTLooper: invalid session nonce");
             require(
-                SignatureChecker.isValidSignatureNow(permit.owner, requestHash, ownerSigIfFirstCall),
+                SignatureChecker.isValidSignatureNow(permit.owner, requestHash, ownerSigIfFirstCall)
+                    || requestStatus[permit.owner][requestHash] == RequestStatus.PRE_APPROVED,
                 "PTLooper: invalid owner signature"
             );
             userReq.requestHash = requestHash;

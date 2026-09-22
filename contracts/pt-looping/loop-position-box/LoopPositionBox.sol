@@ -2,7 +2,7 @@
 pragma solidity ^0.8.30;
 
 import {TokenHelper} from "../../core/libraries/TokenHelper.sol";
-import {ApprovedCall, IPLoopPositionBox} from "../../interfaces/IPLoopPositionBox.sol";
+import {BoxCall, IPLoopPositionBox} from "../../interfaces/IPLoopPositionBox.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC20Metadata as IERC20} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -52,33 +52,39 @@ contract LoopPositionBox is IPLoopPositionBox, TokenHelper, Initializable {
         _transferOut(token, to, amount);
     }
 
-    function approveAndCall(ApprovedCall memory call, address nativeRefund)
+    function approveAndCall(BoxCall memory call, address nativeRefund)
         external
         payable
         onlyManager
         returns (bytes memory result)
     {
-        uint256 nativeAmount = call.token == NATIVE ? call.amount : 0;
+        require(call.tokens.length == call.amounts.length, "LoopPositionBox: tokens/amounts length mismatch");
+        // `initialize` gave the spoke MM an infinite approval; the reset-to-zero below would wipe it.
+        require(
+            SPOKE_MONEY_MARKET == address(0) || call.approve != SPOKE_MONEY_MARKET,
+            "LoopPositionBox: approve cannot be spokeMM"
+        );
+
         uint256 nativeFee = msg.value;
 
-        // Back out the native the manager just sent in (call.amount if NATIVE, plus the msg.value fee)
-        // so the post-call diff refunds only router-returned surplus, not the box's pre-existing native.
-        uint256 initialNativeBalance = _selfBalance(NATIVE) - nativeAmount - nativeFee;
+        // `initialNativeBalance` is what the box ends with if the router keeps every wei we send it:
+        // pre-tx balance (current minus the msg.value fee) minus the box's own `nativeAmount`.
+        // Anything above that after the call is router surplus, refunded to `nativeRefund`.
+        uint256 initialNativeBalance = _selfBalance(NATIVE) - call.nativeAmount - nativeFee;
 
-        _approveForExtRouter(call.token, call.approveTo, call.amount);
-        result = call.callTo.functionCallWithValue(call.data, nativeAmount + nativeFee);
-        _approveForExtRouter(call.token, call.approveTo, 0);
+        for (uint256 i = 0; i < call.tokens.length; ++i) {
+            IERC20(call.tokens[i]).forceApprove(call.approve, call.amounts[i]);
+        }
+        result = call.extRouter.functionCallWithValue(call.callData, call.nativeAmount + nativeFee);
+        for (uint256 i = 0; i < call.tokens.length; ++i) {
+            IERC20(call.tokens[i]).forceApprove(call.approve, 0);
+        }
 
         uint256 finalNativeBalance = _selfBalance(NATIVE);
 
         if (finalNativeBalance > initialNativeBalance) {
             _transferOut(NATIVE, nativeRefund, finalNativeBalance - initialNativeBalance);
         }
-    }
-
-    function _approveForExtRouter(address token, address extRouter, uint256 amount) internal {
-        if (token == NATIVE || extRouter == SPOKE_MONEY_MARKET) return;
-        IERC20(token).forceApprove(extRouter, amount);
     }
 
     receive() external payable {}

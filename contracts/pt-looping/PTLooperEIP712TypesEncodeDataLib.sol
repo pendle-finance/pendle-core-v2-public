@@ -112,15 +112,16 @@ library PTLooperEIP712TypesEncodeDataLib {
     // IPPTLooper.sol > IPPTLooperEIP712Types > DecreasePositionRequest
     function encodeData(IPPTLooperEIP712Types.DecreasePositionRequest memory data) internal pure returns (bytes32) {
         /* bytes32 typeHash = keccak256(
-            "DecreasePositionRequest(RequestHeader header,uint256 minPtToDebtSwapRate,uint256 postWithdrawMaxLTV)" 
+            "DecreasePositionRequest(RequestHeader header,uint256 minPtToDebtSwapRate,uint256 postWithdrawMaxLTV,bool redeemWithPY)" 
             "RequestHeader(bytes32 boxId,uint256 expiry,uint32 sessionNonce,uint32 permitNonceCap,uint256 swapBridgeSlippage,bytes offchainMetadata)" 
         ); */
-        bytes32 typeHash = 0xf2fd81fd04f9cee0ece251f806445c3b1d5103fcd06f31002a34371094102b59;
+        bytes32 typeHash = 0xcef8ce2150dc900a3944ee876f241e8fdc5f7f7e3c93a83a807ca2f6df6dcef6;
         return keccak256(abi.encode(
             typeHash,
             encodeData(data.header),
             data.minPtToDebtSwapRate,
-            data.postWithdrawMaxLTV
+            data.postWithdrawMaxLTV,
+            data.redeemWithPY
         ));
     }
     

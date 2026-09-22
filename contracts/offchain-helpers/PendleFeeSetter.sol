@@ -9,13 +9,11 @@ import {IPYieldToken} from "../interfaces/IPYieldToken.sol";
 
 import {BoringOwnableUpgradeableV2} from "../core/libraries/BoringOwnableUpgradeableV2.sol";
 import {Errors} from "../core/libraries/Errors.sol";
-import {LogExpMath} from "../core/libraries/math/LogExpMath.sol";
 import {PMath} from "../core/libraries/math/PMath.sol";
 
 contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
     using PMath for uint256;
     using PMath for int256;
-    using LogExpMath for int256;
 
     event FeeFactorSet(uint128 impliedRateToFeeFactor, uint128 routerLnFeeToLimitLnFeeFactor);
     event SetterSet(address indexed setter);
@@ -106,13 +104,14 @@ contract PendleFeeSetter is BoringOwnableUpgradeableV2 {
     {
         uint256 marketLnFee = IPMarket(market).getNonOverrideLnFeeRateRoot();
         MarketState memory state = IPMarket(market).readState(router);
-        uint256 impliedRate = state.lastLnImpliedRate.Int().exp().Uint();
 
-        uint256 newFee = (impliedRate - PMath.ONE).mulDown(_impliedRateToFeeFactor) + PMath.ONE;
-        uint256 newLnFeeRateRoot = newFee.Int().ln().Uint();
+        // Fee root scales the ln implied rate, so fee / yield = (e^{phi*t} - 1) / (e^{r*t} - 1), which is at most
+        // `factor` and converges to `factor` as expiry approaches. Scaling the annual APY instead
+        // (ln(1 + factor * APY)) overcharges for t < 1 year and blows up at high rates (15000% -> 300% fee root).
+        uint256 newLnFeeRateRoot = state.lastLnImpliedRate.mulDown(_impliedRateToFeeFactor);
 
         routerLnFeeRateRoot = marketLnFee.min(newLnFeeRateRoot);
-        limitLnFeeRateRoot = LIMIT_MAX_LN_FEE_RATE_ROOT.min(routerLnFeeRateRoot.mulDown(_routerLnFeeToLimitLnFeeFactor));
+        limitLnFeeRateRoot = newLnFeeRateRoot.mulDown(_routerLnFeeToLimitLnFeeFactor);
 
         // Fix up `routerLnFeeRateRoot` for this case:
         // https://github.com/pendle-finance/pendle-core-v2/blob/6169376d0a8c12030307e3d64d02e84b07ffe4f9/contracts/core/Market/v3/PendleMarketFactoryV3.sol#L131-L135

@@ -72,7 +72,7 @@ contract AaveMoneyMarketView is BaseMoneyMarketView, TokenHelper {
         override
         returns (uint256 ltv, uint256 liquidationThreshold)
     {
-        (uint8 eModeCategoryId,) = AaveMMPayloadLib.unwrap(bd.mmPayload);
+        uint8 eModeCategoryId = AaveMMPayloadLib.unwrap(bd.mmPayload);
 
         if (eModeCategoryId == 0) {
             (, ltv, liquidationThreshold,,,,,,,) = dataProvider().getReserveConfigurationData(bd.spokePt);

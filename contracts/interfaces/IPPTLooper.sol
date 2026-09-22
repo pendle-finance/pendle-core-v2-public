@@ -77,12 +77,17 @@ interface IPPTLooperEIP712Types {
         RequestHeader header;
         uint256 minPtToDebtSwapRate;
         uint256 postWithdrawMaxLTV;
+        /// @notice Hub-only. If true, YT held by the box is approved alongside PT so the router can redeem
+        ///         PT + YT -> SY -> Token instead of swapping PT. YT must be consumed 1:1 with PT.
+        ///         Amount redeemed is min(PT, YT) held by the box; any PT above the YT balance stays in
+        ///         the box. The owner transfers YT in beforehand (the looper never acquires YT itself).
+        bool redeemWithPY;
     }
 
     struct DecreasePositionMessage {
         BoxPermit permit;
         // Hub-only: swap PT→debtToken.
-        /// @notice Set extRouter to address(0) to disable swapping.
+        /// @notice Set extRouter to address(0) to disable swapping. See `DecreasePositionRequest.redeemWithPY`.
         BoxApprovedCall swap;
         // Cross-chain only: hub bridges debt to spoke; spoke bridges PT back to hub.
         BridgeData bridge;
@@ -132,10 +137,18 @@ interface IPPTLooper is IPPTLooperEIP712Types {
         uint32 sessionNonce;
     }
 
+    enum RequestStatus {
+        DEFAULT,
+        PRE_APPROVED
+        /* CANCELLED */
+    }
+
     /// @notice Emitted on the first iteration call of a session, when the implicit init branch
     /// runs (owner signature verified, `userReq.requestHash` set). `sessionNonce` is the
     /// pre-increment value the session was opened with.
     event SessionInitiated(address indexed owner, bytes32 indexed boxId, bytes32 requestHash, uint32 sessionNonce);
+
+    event RequestPreApproved(address indexed owner, bytes32 requestHash);
 
     /// @notice Emitted by `terminateSession`. `sessionNonce` is the post-increment value that
     /// the next user request must match.
@@ -149,6 +162,14 @@ interface IPPTLooper is IPPTLooperEIP712Types {
         IPLoopPositionBox indexed box,
         address indexed tokenIn,
         uint256 netIn,
+        address indexed tokenOut,
+        uint256 netSwappedOut
+    );
+
+    event PYRedeemed(
+        IPLoopPositionBox indexed box,
+        address indexed pt,
+        uint256 netPyIn,
         address indexed tokenOut,
         uint256 netSwappedOut
     );
@@ -216,6 +237,8 @@ interface IPPTLooper is IPPTLooperEIP712Types {
 
     function userRequest(address owner, bytes32 boxId) external view returns (UserRequestInfo memory);
 
+    function requestStatus(address owner, bytes32 requestHash) external view returns (RequestStatus);
+
     // ========== Hash functions (exposed for off-chain typed-data tooling) ==========
 
     function hashRaw(BoxPermit memory permit) external pure returns (bytes32);
@@ -256,28 +279,36 @@ interface IPPTLooper is IPPTLooperEIP712Types {
 
     /// @notice One increase iteration. The first call for a `(owner, boxId)` slot also opens
     ///         the session — pass the owner's typed-data signature over `req` in
-    ///         `ownerSigIfFirstCall`. Subsequent iterations within the same session can pass
-    ///         empty bytes for that arg (it is ignored once the session is open).
+    ///         `ownerSigIfFirstCall` (if not pre-approved).
+    /// @notice `ownerSigIfFirstCall` can be passed as empty bytes:
+    ///         - at subsequent iterations within the same session (it is ignored once the session is open).
+    ///         - when the request is pre-approved (see `preApproveRequest`).
     function increaseLoopPosition(
         IncreasePositionMessage memory ms,
         bytes memory proposerSig,
         IncreasePositionRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable;
+    ) external;
 
     function decreaseLoopPosition(
         DecreasePositionMessage memory ms,
         bytes memory proposerSig,
         DecreasePositionRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable;
+    ) external;
 
     function swapBridgeWithdrawAll(
         SwapBridgeWithdrawAllMessage memory ms,
         bytes memory proposerSig,
         SwapBridgeWithdrawAllRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable;
+    ) external;
+
+    /// @notice `msg.sender` call this function to approve a request instead of
+    ///         signing it with `ownerSigIfFirstCall`.
+    ///         The proposer signs the request hash.
+    ///         `ownerSigIfFirstCall` can then be left empty when a session is created.
+    function preApproveRequest(bytes32 requestHash, bytes memory proposerSig) external;
 
     /// @notice Closes the open session at `(owner, boxId)`. `requestHash` must equal the
     ///         currently-stored `userReq.requestHash` (proves the caller identifies which

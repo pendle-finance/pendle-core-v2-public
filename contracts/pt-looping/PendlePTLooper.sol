@@ -2,8 +2,9 @@
 pragma solidity ^0.8.30;
 
 import {PMath} from "../core/libraries/math/PMath.sol";
+import {ArrayLib} from "../core/libraries/ArrayLib.sol";
 import {MarketCtx, createMarketCtx} from "../interfaces/IMoneyMarket.sol";
-import {ApprovedCall, BoxData, IPLoopPositionBox} from "../interfaces/IPLoopPositionBox.sol";
+import {BoxCall, BoxData, IPLoopPositionBox} from "../interfaces/IPLoopPositionBox.sol";
 import {PTLooperBase} from "./PTLooperBase.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPPrincipalToken} from "../interfaces/IPPrincipalToken.sol";
@@ -47,7 +48,7 @@ contract PendlePTLooper is PTLooperBase {
         bytes memory proposerSig,
         IncreasePositionRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable onlyExecutor {
+    ) external onlyExecutor {
         (Session memory s, bytes32 requestHash) = _ensureSessionAndAuth(ms, req, proposerSig, ownerSigIfFirstCall);
 
         uint256 preInBalance;
@@ -117,7 +118,7 @@ contract PendlePTLooper is PTLooperBase {
         bytes memory proposerSig,
         DecreasePositionRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable onlyExecutor {
+    ) external onlyExecutor {
         (Session memory s, bytes32 requestHash) = _ensureSessionAndAuth(ms, req, proposerSig, ownerSigIfFirstCall);
 
         uint256 preDebtBal;
@@ -160,9 +161,9 @@ contract PendlePTLooper is PTLooperBase {
         Session memory s,
         uint256 netPtToSwap
     ) internal returns (uint256 postDebtBal) {
-        (uint256 preFeeDebtBal,) = _boxSwapToken(
-            s.box, s.bd.hubPt, netPtToSwap, s.bd.hubDebtToken, req.minPtToDebtSwapRate, ms.swap
-        );
+        (uint256 preFeeDebtBal,) = req.redeemWithPY
+            ? _boxRedeemPYToToken(s.box, s.bd.hubPt, netPtToSwap, s.bd.hubDebtToken, req.minPtToDebtSwapRate, ms.swap)
+            : _boxSwapToken(s.box, s.bd.hubPt, netPtToSwap, s.bd.hubDebtToken, req.minPtToDebtSwapRate, ms.swap);
 
         _boxWithdraw(s.box, TREASURY, s.bd.hubDebtToken, ms.fee);
         postDebtBal = preFeeDebtBal - ms.fee;
@@ -179,7 +180,7 @@ contract PendlePTLooper is PTLooperBase {
         bytes memory proposerSig,
         SwapBridgeWithdrawAllRequest memory req,
         bytes memory ownerSigIfFirstCall
-    ) external payable onlyExecutor {
+    ) external onlyExecutor {
         (Session memory s, bytes32 requestHash) = _ensureSessionAndAuth(ms, req, proposerSig, ownerSigIfFirstCall);
 
         address tokenOutHere = _onHub(s.bd) ? req.hubTokenOut : req.dstTokenOut;
@@ -214,33 +215,80 @@ contract PendlePTLooper is PTLooperBase {
         uint256 minSwapRate,
         BoxApprovedCall memory swap
     ) internal returns (uint256 postTokenOutBal, uint256 netSwappedOut) {
-        if (tokenIn == tokenOut) {
-            return (tokenInBal, 0);
-        }
+        if (tokenIn == tokenOut) return (tokenInBal, 0);
 
+        BoxCall memory call = tokenIn == NATIVE
+            ? _toBoxCall(swap, new address[](0), new uint256[](0), tokenInBal)
+            : _toBoxCall(swap, ArrayLib.create(tokenIn), ArrayLib.create(tokenInBal), 0);
+
+        (postTokenOutBal, netSwappedOut) = _boxExecSwap(box, tokenInBal, tokenOut, minSwapRate, call);
+
+        if (netSwappedOut > 0) emit TokenSwapped(box, tokenIn, tokenInBal, tokenOut, netSwappedOut);
+    }
+
+    /// @dev PT -> `tokenOut`. The box's YT is approved
+    /// alongside PT (amount = min of the two) so the router can redeem PT + YT -> SY -> Token;
+    /// YT must be consumed 1:1 with PT. PT is never `tokenOut`, so no same-token short-circuit.
+    /// @param ptBal the box's `pt` whole balance (`_boxBal(box, pt)`) right **before** this function is
+    /// called — it is the minuend of the 1:1 check below, not just the approval size.
+    function _boxRedeemPYToToken(
+        IPLoopPositionBox box,
+        address pt,
+        uint256 ptBal,
+        address tokenOut,
+        uint256 minSwapRate,
+        BoxApprovedCall memory swap
+    ) internal returns (uint256 postTokenOutBal, uint256 netSwappedOut) {
+        address yt = IPPrincipalToken(pt).YT();
+        uint256 ytBal = _boxBal(box, yt);
+        uint256 netPyIn = PMath.min(ytBal, ptBal);
+
+        BoxCall memory call = _toBoxCall(swap, ArrayLib.create(pt, yt), ArrayLib.create(netPyIn, netPyIn), 0);
+        (postTokenOutBal, netSwappedOut) = _boxExecSwap(box, netPyIn, tokenOut, minSwapRate, call);
+
+        // Underflow (router returned PT/YT to the box) is an intended revert.
+        require(ytBal - _boxBal(box, yt) == ptBal - _boxBal(box, pt), "PTLooper: PY redeem mismatch");
+
+        if (netSwappedOut > 0) emit PYRedeemed(box, pt, netPyIn, tokenOut, netSwappedOut);
+    }
+
+    /// @dev Shared body of `_boxSwapToken` / `_boxRedeemPYToToken`. No-op (returns the current
+    /// `tokenOut` balance) when `call.extRouter == address(0)`; `minSwapRate` is checked against
+    /// `netIn` only when a swap occurs. Emitting is left to the callers, which report different events.
+    function _boxExecSwap(
+        IPLoopPositionBox box,
+        uint256 netIn,
+        address tokenOut,
+        uint256 minSwapRate,
+        BoxCall memory call
+    ) internal returns (uint256 postTokenOutBal, uint256 netSwappedOut) {
         uint256 preTokenOutBal = _boxBal(box, tokenOut);
-        if (swap.extRouter == address(0)) {
-            return (preTokenOutBal, 0);
-        }
+        if (call.extRouter == address(0)) return (preTokenOutBal, 0);
 
-        box.approveAndCall(
-            ApprovedCall({ //
-                token: tokenIn,
-                amount: tokenInBal,
-                approveTo: swap.approve,
-                callTo: swap.extRouter,
-                data: swap.callData
-            }),
-            address(box)
-        );
+        box.approveAndCall(call, address(box));
         postTokenOutBal = _boxBal(box, tokenOut);
         netSwappedOut = postTokenOutBal - preTokenOutBal;
 
-        require(netSwappedOut * PMath.ONE >= tokenInBal * minSwapRate, "PTLooper: swap below minSwapRate");
-        emit TokenSwapped(box, tokenIn, tokenInBal, tokenOut, netSwappedOut);
+        require(netSwappedOut * PMath.ONE >= netIn * minSwapRate, "PTLooper: swap below minSwapRate");
     }
 
-    /// @notice Only bridge between hubChain and spokeChain.
+    function _toBoxCall(
+        BoxApprovedCall memory swap,
+        address[] memory tokens,
+        uint256[] memory amounts,
+        uint256 nativeAmount
+    ) internal pure returns (BoxCall memory) {
+        return BoxCall({
+            tokens: tokens,
+            amounts: amounts,
+            nativeAmount: nativeAmount,
+            approve: swap.approve,
+            extRouter: swap.extRouter,
+            callData: swap.callData
+        });
+    }
+
+    /// @dev Stub until cross-chain lands; callers gate on `_isCrossChain`.
     function _boxBridgeToken(Session memory, BridgeData memory, address, uint256, address, uint256, bool)
         internal
         pure
@@ -274,7 +322,7 @@ contract PendlePTLooper is PTLooperBase {
         revert("PTLooper: unsupported chainid");
     }
 
-    function _ltvCheck(uint256 mmPtBal, uint256 mmDebtBal, uint256 mmOraclePtDebtRate, uint256 maxLTV) internal pure {
+    function _checkLTV(uint256 mmPtBal, uint256 mmDebtBal, uint256 mmOraclePtDebtRate, uint256 maxLTV) internal pure {
         require(mmDebtBal <= mmPtBal.mulDown(mmOraclePtDebtRate).mulDown(maxLTV), "PTLooper: maxLTV exceeded");
     }
 
@@ -285,7 +333,7 @@ contract PendlePTLooper is PTLooperBase {
         (uint256 netLent, uint256 mmPtBal) = s.spokeMM.lend(ctx, ptIn);
         (uint256 netBorrowed, uint256 mmDebtBal) = s.spokeMM.borrow(ctx, debtOut);
         uint256 rate = s.spokeMM.oraclePtDebtRate(ctx);
-        _ltvCheck(mmPtBal, mmDebtBal, rate, req.postBorrowMaxLTV);
+        _checkLTV(mmPtBal, mmDebtBal, rate, req.postBorrowMaxLTV);
         emit MoneyMarketLentThenBorrowed(s.box, netLent, netBorrowed);
     }
 
@@ -296,7 +344,7 @@ contract PendlePTLooper is PTLooperBase {
         (uint256 netRepaid, uint256 mmDebtBal) = s.spokeMM.repay(ctx, debtIn);
         (uint256 netWithdrawn, uint256 mmPtBal) = s.spokeMM.withdraw(ctx, ptOut);
         uint256 rate = s.spokeMM.oraclePtDebtRate(ctx);
-        _ltvCheck(mmPtBal, mmDebtBal, rate, req.postWithdrawMaxLTV);
+        _checkLTV(mmPtBal, mmDebtBal, rate, req.postWithdrawMaxLTV);
         emit MoneyMarketRepaidThenWithdrawn(s.box, netRepaid, netWithdrawn);
     }
 

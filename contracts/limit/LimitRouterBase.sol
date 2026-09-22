@@ -28,7 +28,6 @@ abstract contract LimitRouterBase is
 
     uint128 internal constant _ORDER_DOES_NOT_EXIST = 0;
     uint128 internal constant _ORDER_FILLED = 1;
-    uint256 internal constant MAX_LN_FEE_RATE_ROOT = 48_790_164_169_432_003; // ln(1.05)
 
     address public feeRecipient;
 
@@ -519,7 +518,6 @@ abstract contract LimitRouterBase is
 
         for (uint256 i = 0; i < len; i++) {
             require(lnFeeRateRoots[i] > 0 || allowZeroFees, "LOP: zero fee must be allowed explicitly");
-            require(lnFeeRateRoots[i] <= MAX_LN_FEE_RATE_ROOT, "LOP: fee too high");
 
             __lnFeeRateRoot[YTs[i]] = lnFeeRateRoots[i];
         }

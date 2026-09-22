@@ -25,6 +25,15 @@
 # this file every version of this package was published by hand from a personal
 # npm login. `prepack` runs `yarn compile`, so a publish compiles the contracts.
 #
+# ── Why /snapshot-release does not publish in its own run ─────────────────────
+# Since 2026-09-19 npm refuses the OIDC exchange for a token whose event_name
+# is issue_comment: HTTP 404 "OIDC token exchange error - package not found".
+# The same exchange with the same repository, workflow and environment returns
+# 201 on workflow_dispatch, on develop and on a feature branch (runs 35440283948,
+# 35440433396, 35439930999). npm does not document this. So the comment run only
+# authorises and pins the SHA, then dispatches this file on the default branch.
+# The publish always runs as workflow_dispatch.
+#
 # ── Adding a trigger ─────────────────────────────────────────────────────────
 # Any new publish path must be a job here. A new workflow file that publishes
 # will fail the OIDC exchange, because the record names this filename.
@@ -35,6 +44,17 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      # Set by the authorize job below. Empty on a manual dispatch.
+      sha:
+        description: Exact commit to snapshot (default is the dispatched ref)
+        required: false
+      branch_name:
+        description: Branch name for the snapshot suffix (default is the dispatched ref)
+        required: false
+      pr:
+        description: Pull request to comment the result on
+        required: false
   issue_comment:
     types: [created]
 
@@ -61,9 +81,7 @@ jobs:
       # the authorize job, so the snapshot job never runs and `/snapshot-release`
       # does nothing.
       pull-requests: write
-    outputs:
-      sha: ${{ steps.resolve.outputs.sha }}
-      branch_name: ${{ steps.resolve.outputs.branch_name }}
+      actions: write # dispatches the snapshot run
     steps:
       # author_association is NOT sufficient: COLLABORATOR includes read-only
       # collaborators, who can comment but must not be able to publish.
@@ -108,6 +126,21 @@ jobs:
               comment_id: context.payload.comment.id,
               content: '+1',
             });
+
+      # workflow_dispatch, not a publish here: npm refuses OIDC for issue_comment.
+      # See the header. The run reads this file from the default branch, never
+      # from the PR, and gets the SHA pinned above. A GITHUB_TOKEN dispatch does
+      # start a run; workflow_dispatch is exempt from the no-recursion rule.
+      - name: Dispatch the snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          SHA: ${{ steps.resolve.outputs.sha }}
+          BRANCH_NAME: ${{ steps.resolve.outputs.branch_name }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$DEFAULT_BRANCH" \
+            -f sha="$SHA" -f branch_name="$BRANCH_NAME" -f pr="$PR"
 
   # ── Production, push to main ───────────────────────────────────────────────
   production:
@@ -249,17 +282,9 @@ jobs:
       # 403s surfaced. The check only ever added value on a PUBLIC package,
       # where an anonymous read works - boros-sdk keeps it for that reason.
 
-  # ── Snapshot, manual dispatch or an authorised /snapshot-release comment ────
+  # ── Snapshot, manual dispatch or dispatched by /snapshot-release ───────────
   snapshot:
-    needs: [authorize]
-    # `!cancelled()` rather than `success()`. On workflow_dispatch the authorize
-    # job is skipped by its own `if`, and a skipped dependency skips every job
-    # that needs it unless the condition tolerates it. The comment path still
-    # demands that authorize actually passed.
-    if: >-
-      !cancelled() &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event_name == 'issue_comment' && needs.authorize.result == 'success'))
+    if: github.event_name == 'workflow_dispatch'
     # Same environment as production, because npm's single trusted-publisher
     # record names it. See the header.
     environment: npm-production
@@ -271,11 +296,11 @@ jobs:
     outputs:
       package_version: ${{ steps.changeset_prepare.outputs.package_version }}
     env:
-      # On the comment path these come from the gate above, which pinned them
-      # before this job started. On workflow_dispatch there is no gate and the
-      # dispatched ref is the source of truth.
-      REF: ${{ needs.authorize.outputs.sha || github.sha }}
-      BRANCH_NAME: ${{ needs.authorize.outputs.branch_name || github.ref_name }}
+      # On the comment path these come from the authorize job, which pinned them
+      # before it dispatched this run. On a manual dispatch the inputs are empty
+      # and the dispatched ref is the source of truth.
+      REF: ${{ inputs.sha || github.sha }}
+      BRANCH_NAME: ${{ inputs.branch_name || github.ref_name }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -324,8 +349,8 @@ jobs:
   notify-done:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [authorize, snapshot]
-    if: ${{ github.event_name == 'issue_comment' && needs.snapshot.result == 'success' }}
+    needs: [snapshot]
+    if: ${{ inputs.pr != '' && needs.snapshot.result == 'success' }}
     permissions:
       issues: write
       pull-requests: write
@@ -334,11 +359,12 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           package_version: ${{ needs.snapshot.outputs.package_version }}
-          sha: ${{ needs.authorize.outputs.sha }}
+          sha: ${{ inputs.sha }}
+          pr: ${{ inputs.pr }}
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: Number(process.env.pr),
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'Snapshot released from `' + process.env.sha.slice(0, 7) +
@@ -349,17 +375,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [authorize, snapshot]
-    if: ${{ failure() && github.event_name == 'issue_comment' }}
+    # Covers both runs: a failed authorize in the comment run, and a failed
+    # snapshot in the run it dispatched.
+    if: ${{ failure() && (github.event_name == 'issue_comment' || inputs.pr != '') }}
     permissions:
       issues: write
       pull-requests: write
     steps:
       - name: Comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          pr: ${{ inputs.pr }}
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: context.issue.number || Number(process.env.pr),
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'Snapshot release failed. Check the workflow run for details.',

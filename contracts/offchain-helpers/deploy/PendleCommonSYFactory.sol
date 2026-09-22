@@ -68,7 +68,10 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
         );
 
         emit DeployedSY(id, constructorParams, SY);
-        IOwnable(SY).transferOwnership(syOwner, true, false);
+
+        if (IOwnable(SY).owner() != syOwner) {
+            IOwnable(SY).transferOwnership(syOwner, true, false);
+        }
     }
 
     function deployUpgradableSY(bytes32 id, bytes memory constructorParams, bytes memory initData, address syOwner)
@@ -94,7 +97,10 @@ contract PendleCommonSYFactory is BoringOwnableUpgradeableV2 {
 
         emit DeployedSY(id, constructorParams, proxy);
 
-        IOwnable(proxy).transferOwnership(syOwner, true, false);
+        if (IOwnable(proxy).owner() != syOwner) {
+            IOwnable(proxy).transferOwnership(syOwner, true, false);
+        }
+
         return proxy;
     }
 }

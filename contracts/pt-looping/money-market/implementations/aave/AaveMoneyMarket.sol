@@ -33,11 +33,30 @@ contract AaveMoneyMarket is BaseMoneyMarket {
     function _initialize(MarketCtx memory ctx) internal virtual override {
         IPool _pool = pool();
 
-        (uint8 eModeCategoryId,) = AaveMMPayloadLib.unwrap(ctx.mmPayload);
-        _pool.setUserEMode(eModeCategoryId);
+        uint8 eModeCategoryId = AaveMMPayloadLib.unwrap(ctx.mmPayload);
+        _forceSetEModeAtInit(_pool, eModeCategoryId);
 
         _safeApproveInf(ctx.collateral, address(_pool));
         _safeApproveInf(ctx.debtAsset, address(_pool));
+    }
+
+    /// @notice Enters eMode, unset any pre-existing asset that is used as
+    /// collateral if needed.
+    /// @dev A counterfactual mm address can be funded by anyone before
+    /// deployment, which can make the asset as collateral for the mm address.
+    /// Such collateral that Aave flagged (LTV != 0 outside eMode, e.g. WETH)
+    /// makes `setUserEMode` revert with InvalidCollateralInEmode.
+    /// Therefore, we unset all collateral assets before setting EMode.
+    function _forceSetEModeAtInit(IPool _pool, uint8 eModeCategoryId) internal {
+        // https://github.com/aave-dao/aave-v3-origin/blob/cff15de6d1271b0c800fc001f4aea4c263e8a597/src/contracts/protocol/libraries/logic/ValidationLogic.sol#L448
+        // We use the similar shortcut as Aave for happy case (do nothing if no bit is set in userConfBitmap)
+        uint256 userConfBitmap = _pool.getUserConfiguration(address(this)).data;
+        for (uint16 id = 0; userConfBitmap != 0; (id, userConfBitmap) = (id + 1, userConfBitmap >> 2)) {
+            bool isUsingAsCollat = (userConfBitmap & 2) != 0;
+            if (isUsingAsCollat) _pool.setUserUseReserveAsCollateral(_pool.getReserveAddressById(id), false);
+        }
+
+        _pool.setUserEMode(eModeCategoryId);
     }
 
     function collateralBalance(MarketCtx memory ctx) public view override returns (uint256 balance) {
@@ -56,10 +75,7 @@ contract AaveMoneyMarket is BaseMoneyMarket {
 
         actualAmount = amount;
 
-        (, bool isolationMode) = AaveMMPayloadLib.unwrap(ctx.mmPayload);
-        if (isolationMode) {
-            _pool.setUserUseReserveAsCollateral(asset, true);
-        }
+        _pool.setUserUseReserveAsCollateral(asset, true);
     }
 
     function _borrow(MarketCtx memory ctx, uint256 amount) internal virtual override returns (uint256 actualAmount) {
@@ -97,11 +113,11 @@ contract AaveMoneyMarket is BaseMoneyMarket {
     }
 
     function _aToken(IPool _pool, address asset) internal view virtual returns (IERC20) {
-        return IERC20(_pool.getReserveData(IERC20(asset)).aTokenAddress);
+        return IERC20(_pool.getReserveAToken(asset));
     }
 
     function _vToken(IPool _pool, address asset) internal view virtual returns (IERC20) {
-        return IERC20(_pool.getReserveData(IERC20(asset)).variableDebtTokenAddress);
+        return IERC20(_pool.getReserveVariableDebtToken(asset));
     }
 
     /// @dev `mmPayload` unused: Aave's price oracle is queried directly by asset address.

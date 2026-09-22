@@ -2,7 +2,17 @@
 pragma solidity ^0.8.0;
 
 import {IMoneyMarket} from "./IMoneyMarket.sol";
-import {ApprovedCall} from "./IPDepositBox.sol";
+
+/// @dev `tokens` are ERC20 only; native value goes in `nativeAmount`.
+/// `approve` / `extRouter` / `callData` mirror `IPPTLooperEIP712Types.BoxApprovedCall`.
+struct BoxCall {
+    address[] tokens;
+    uint256[] amounts;
+    uint256 nativeAmount;
+    address approve;
+    address extRouter;
+    bytes callData;
+}
 
 struct BoxData {
     uint32 hubChainId;
@@ -34,5 +44,5 @@ interface IPLoopPositionBox {
 
     function withdrawTo(address to, address token, uint256 amount) external;
 
-    function approveAndCall(ApprovedCall memory call, address nativeRefund) external payable returns (bytes memory);
+    function approveAndCall(BoxCall memory call, address nativeRefund) external payable returns (bytes memory);
 }
