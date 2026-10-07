@@ -94,13 +94,11 @@ library PendlePYOracleLib {
     }
 
     function getMarketLnImpliedRate(IPMarket market, uint32 duration) internal view returns (uint256) {
-        if (duration == 0) {
-            (,, uint96 lnImpliedRate,,,) = IPMarket(market)._storage();
-            return uint256(lnImpliedRate);
-        }
-
+        // Always use observe() for TWAP-smoothed rate; duration==0 case previously
+        // read raw lastLnImpliedRate which was vulnerable to single-block price manipulation.
         uint32[] memory durations = new uint32[](2);
         durations[0] = duration;
+        durations[1] = duration;
 
         uint216[] memory lnImpliedRateCumulative = market.observe(durations);
         return (lnImpliedRateCumulative[1] - lnImpliedRateCumulative[0]) / duration;
