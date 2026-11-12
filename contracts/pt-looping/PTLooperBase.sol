@@ -245,4 +245,25 @@ abstract contract PTLooperBase is IPPTLooper, EIP712Upgradeable, BoringOwnableUp
 
         (s.box, s.spokeMM, s.bd) = POSITION_BOX_FACTORY.deployPositionBoxAndMoneyMarket(permit.owner, permit.boxId);
     }
+
+    /// @notice Recover tokens stranded in a position box after a session
+    ///         terminates with residual balances. Without this, tokens left
+    ///         in a box after a failed or partially-completed session are
+    ///         permanently locked, degrading the user experience.
+    /// @dev Callable by the box owner or the contract owner. Uses the
+    ///      box's own `withdrawTo` which enforces the manager-only check
+    ///      via the LoopPositionBox contract.
+    /// @param box The position box to recover from.
+    /// @param token The token to recover.
+    /// @param to The recipient of the recovered tokens.
+    function recoverStrandedBoxTokens(IPLoopPositionBox box, address token, address to)
+        external
+    {
+        address boxOwner = box.OWNER();
+        require(msg.sender == boxOwner || msg.sender == owner, "PTLooper: unauthorized recover");
+        box.withdrawTo(to, token, _balanceOf(address(box), token));
+        emit StrandedBoxTokensRecovered(address(box), token, to);
+    }
+
+    event StrandedBoxTokensRecovered(address indexed box, address indexed token, address indexed to);
 }
