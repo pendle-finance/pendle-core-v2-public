@@ -1,0 +1,3 @@
+{
+  "detectors_to_exclude": "reentrancy-eth,reentrancy-no-eth,reentrancy-benign,reentrancy-events,reentrancy-unlimited-gas,divide-before-multiply,dead-code,too-many-digits,conformance-to-solidity-naming-conventions,timestamp,assembly,pragma,low-level-calls"
+}

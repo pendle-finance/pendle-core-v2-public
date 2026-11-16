@@ -1,0 +1,72 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 5000,
+        "treasury": "0x5C30d3578A4D07a340650a76B9Ae5dF20D5bdF55",
+        "governance": "0x9F72a06084EdD040E973C32Bf026b1ACf65db9aB",
+        "pendle": "0xd27B18915e7acc8FD6Ac75DB6766a80f8D2f5729",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "lzEndpoint": "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
+        "wrappedNative": "0x78c1b0c915c4faa5fffa6cabf0219da63d7f4cb8",
+        "initialRewardFee": "30000000000000000",
+        "initialInterestFee": "30000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "sySwapper": "",
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "baseCodeSplitter": "0x3d622b0ac50552d6283C7efE6EAdfc98aD0f6cB7",
+    "PENDLE": "0xd27B18915e7acc8FD6Ac75DB6766a80f8D2f5729",
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0x663C21103915B68e9dA797CfdF3cAb01a037D5Ff",
+        "ActionSwapPTV3": "0xd8D200d9A713A1c71cF1e7F694B14E5F1D948b15",
+        "ActionSwapYTV3": "0x4a03Ce0a268951d04E187B1CF48075eE69266e27",
+        "ActionMiscV3": "0x373Dba2055Ad40cb4815148bC47cd1DC16e92E44",
+        "ActionSimple": "0x852e59252c94716F0df19B52b36512f6C9297a96",
+        "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
+        "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
+    },
+    "routerStatic": "0xCAd502Bb55d1A3F79952F969BFF3f011CF30a94a",
+    "pendleSwap": "0xd4F480965D2347d421F1bEC7F545682E5Ec2151D",
+    "pyYtLpOracle": "0x5542be50420E88dd7D5B4a3D488FA6ED82F6DAc2",
+    "yieldContractFactoryV3": "0x964840644B88C583500F473E4B829Ab629aF96A8",
+    "marketFactoryV3": "0xD228EC1f7D4313fe321fab511A872475D07F5bA6",
+    "yieldContractFactoryV4": "0x5256e5dbe627e696b2e54eb77c2227276D80cd3c",
+    "marketFactoryV4": "0xCa274A44a52241c1a8EFb9f84Bf492D8363929FC",
+    "yieldContractFactoryV5": "0x5dFBEAEa9e41f85c334075482A20afb7031207aE",
+    "marketFactoryV5": "0xcb02435716b0143D4Ac1BDf370302D619E714126",
+    "yieldContractFactoryV6": "0x14030836AEc15B2ad48bB097bd57032559339c92",
+    "marketFactoryV6": "0xa35AE21a593CB06959978E20b33Db34163166C79",
+    "poolDeployHelper": "0x553dCDd1297058B2b2E05779FC5Ec3d5225376Ce",
+    "poolDeployHelperV2": "0x6E716B682D0b63E7BF2C7b1cD20F2Fc2F3596fc7",
+    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "devProxyAdmin": "0xD37eB2E6DE40a33ba68BaD94427723b66c954EA9",
+    "reflector": "0x30544e00Cf296B34A9eE59E5540Ae2f9CCCD55DD",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
+    "receiverEndpoint": "0xf799E4c029d14f41Dc1918C9A4C67242F565710e",
+    "gaugeController": "0x428f2f93afAc3F96B0DE59854038c585e06165C8",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
+    "PendleChainlinkOracleFactory": "0x6502cda86f9110f3655512237C9FF2B9CE247c69",
+    "experimental": {
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
+        "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
+    },
+    "lpWrapperFactory": "0x6D653C8DAAc8D81c9CE98E038fbF94D7E652e147",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
+    "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
+    "cross-chain": {
+        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
+    },
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
+    "deprecated": {
+        "vePendle": "0x30c6d4e892871220B5Ab66c10db577da96Fb974b"
+    },
+    "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D"
+}

@@ -1,0 +1,12 @@
+[profile.default]
+via_ir = true
+optimizer = true
+evm_version = "cancun"
+
+[profile.v2-script]
+skip = ["contracts/**"]
+ffi = true
+via_ir = true
+fs_permissions = [
+    { path = "./", access = "read-write" }
+]

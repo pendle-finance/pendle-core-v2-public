@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.17;
+
+import "../../interfaces/IPRouterStatic.sol";
+import "./base/StorageLayout.sol";
+import "@openzeppelin/contracts/proxy/Proxy.sol";
+
+// solhint-disable no-empty-blocks
+contract PendleRouterStatic is Proxy, StorageLayout {
+    constructor(address owner_, address actionStorage) {
+        owner = owner_;
+        selectorToFacet[IPMiniDiamond.setFacetForSelectors.selector] = actionStorage;
+    }
+
+    function _implementation() internal view override returns (address res) {
+        res = selectorToFacet[msg.sig];
+        require(res != address(0), "selector not found");
+    }
+}

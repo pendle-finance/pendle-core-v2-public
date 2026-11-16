@@ -1,0 +1,184 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.0;
+
+import "../core/StandardizedYield/PYIndex.sol";
+import "../interfaces/IPAllActionTypeV3.sol";
+
+interface IPLimitOrderType {
+    enum OrderType {
+        SY_FOR_PT,
+        PT_FOR_SY,
+        SY_FOR_YT,
+        YT_FOR_SY
+    }
+
+    // Fixed-size order part with core information
+    struct StaticOrder {
+        uint256 salt;
+        uint256 expiry;
+        uint256 nonce;
+        OrderType orderType;
+        address token;
+        address YT;
+        address maker;
+        address receiver;
+        uint256 makingAmount;
+        uint256 lnImpliedRate;
+        uint256 failSafeRate;
+    }
+
+    struct FillResults {
+        uint256 totalMaking;
+        uint256 totalTaking;
+        uint256 totalFee;
+        uint256 totalNotionalVolume;
+        uint256[] netMakings;
+        uint256[] netTakings;
+        uint256[] netFees;
+        uint256[] notionalVolumes;
+    }
+}
+
+struct Order {
+    uint256 salt;
+    uint256 expiry;
+    uint256 nonce;
+    IPLimitOrderType.OrderType orderType;
+    address token;
+    address YT;
+    address maker;
+    address receiver;
+    uint256 makingAmount;
+    uint256 lnImpliedRate;
+    uint256 failSafeRate;
+    bytes permit;
+}
+
+struct FillOrderParams {
+    Order order;
+    bytes signature;
+    uint256 makingAmount;
+}
+
+struct MintSyData {
+    TokenInput[] inps;
+    uint256[] minSyOuts;
+    uint256 expiry;
+    bytes32 fillParamsHash;
+
+    bytes sig1;
+    bytes sig2;
+}
+
+interface IPLimitRouterCallback is IPLimitOrderType {
+    function limitRouterCallback(uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory data)
+        external
+        returns (bytes memory);
+}
+
+interface IPLimitRouter is IPLimitOrderType {
+    struct OrderStatus {
+        uint128 filledAmount;
+        uint128 remaining;
+    }
+
+    // event added on 11/3/2026
+    event OrderPreSigned(bytes32 indexed orderHash, Order order);
+
+    event OrderCanceled(address indexed maker, bytes32 indexed orderHash);
+
+    event OrderForceCanceled(bytes32 indexed orderHash);
+
+    event OrderFilledV2(
+        bytes32 indexed orderHash,
+        OrderType indexed orderType,
+        address indexed YT,
+        address token,
+        uint256 netInputFromMaker,
+        uint256 netOutputToMaker,
+        uint256 feeAmount,
+        uint256 notionalVolume,
+        address maker,
+        address taker
+    );
+
+    // event added on 2/1/2025
+    event LnFeeRateRootsSet(address[] YTs, uint256[] lnFeeRateRoots);
+
+    // event added on 11/3/2026
+    event MintSySignersSet(address signer1, address signer2);
+
+    // @dev actualMaking, actualTaking are in the SY form
+    function fill(
+        FillOrderParams[] memory params,
+        address receiver,
+        uint256 maxTaking,
+        bytes calldata optData,
+        bytes calldata callback
+    ) external returns (uint256 actualMaking, uint256 actualTaking, uint256 totalFee, bytes memory callbackReturn);
+
+    function feeRecipient() external view returns (address);
+
+    function mintSySigner1() external view returns (address);
+
+    function mintSySigner2() external view returns (address);
+
+    function hashFillParams(FillOrderParams[] memory params) external pure returns (bytes32);
+
+    function hashOrder(Order memory order) external view returns (bytes32);
+
+    function preSignSingle(Order calldata order) external;
+
+    function preSignBatch(Order[] calldata order) external;
+
+    function cancelSingle(Order calldata order) external;
+
+    function cancelBatch(Order[] calldata orders) external;
+
+    function orderStatusesRaw(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts);
+
+    function orderStatuses(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainings, uint256[] memory filledAmounts);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+
+    function simulate(address target, bytes calldata data) external payable;
+
+    function WNATIVE() external view returns (address);
+
+    function ROUTER() external view returns (address);
+
+    function _checkSig(Order memory order, bytes memory signature)
+        external
+        view
+        returns (
+            bytes32,
+            /*orderHash*/
+            uint256,
+            /*remainingMakerAmount*/
+            uint256
+        ); /*filledMakerAmount*/
+
+    function setLnFeeRateRoots(address[] memory YTs, uint256[] memory lnFeeRateRoots, bool allowZeroFees) external;
+
+    function getLnFeeRateRoot(address YT) external view returns (uint256 res);
+
+    /* --- Deprecated events --- */
+
+    // deprecate on 7/1/2024, prior to official launch
+    event OrderFilled(
+        bytes32 indexed orderHash,
+        OrderType indexed orderType,
+        address indexed YT,
+        address token,
+        uint256 netInputFromMaker,
+        uint256 netOutputToMaker,
+        uint256 feeAmount,
+        uint256 notionalVolume
+    );
+}

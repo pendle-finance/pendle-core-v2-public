@@ -1,0 +1,72 @@
+{
+    "deployer": "0x1FcCC097db89A86Bfc474A1028F93958295b1Fb7",
+    "network": {
+        "chainId": 8453,
+        "treasury": "0xCbcb48e22622a3778b6F14C2f5d258Ba026b05e6",
+        "governance": "0x7877AdFaDEd756f3248a0EBfe8Ac2E2eF87b75Ac",
+        "devMultisig": "0xE6F0489ED91dc27f40f9dbe8f81fccbFC16b9cb1",
+        "pendle": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
+        "lzEndpoint": "0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7",
+        "wrappedNative": "0x4200000000000000000000000000000000000006",
+        "initialRewardFee": "30000000000000000",
+        "initialInterestFee": "30000000000000000",
+        "initialReserveFeePercent": "80",
+        "safeWaitTime": 15000,
+        "hardwareDeployer": "0xeea6F790F18563E91b18DF00B89d9f79b2E6761F"
+    },
+    "baseCodeSplitter": "0xf3f560164979fe7F8f3eb2b64669Eac00E7043A6",
+    "PENDLE": "0xA99F6e6785Da0F5d6fB42495Fe424BCE029Eeb3E",
+    "governanceProxy": "0x2aD631F72fB16d91c4953A7f4260A97C2fE2f31e",
+    "router": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+    "routerFacets": {
+        "ActionAddRemoveLiqV3": "0x664AafE2bD40E581Aa4F8C5A594c9Ee168B92d4f",
+        "ActionSwapPTV3": "0x9D215290f43366BBcEFF40A79FBAC9Dd23325379",
+        "ActionSwapYTV3": "0xA685FC7CEf9Eb4c1E8337f11019Aeba111E48c31",
+        "ActionMiscV3": "0x1266261289d815650A6bcdb308766BE36efA8149",
+        "ActionSimple": "0xF475964Cb5235641f23E99C8D7828996C4289aC4",
+        "ActionCallbackV3": "0x997FBC511a8Ad11F84a400feACD66E2A3fa805d2",
+        "ActionStorageV4": "0x6a0Ed0A9193FCBe7ae9B0F3D90F88e365Cca64fC"
+    },
+    "routerStatic": "0xB4205a645c7e920BD8504181B1D7f2c5C955C3e7",
+    "pendleSwap": "0xd4F480965D2347d421F1bEC7F545682E5Ec2151D",
+    "pyYtLpOracle": "0x5542be50420E88dd7D5B4a3D488FA6ED82F6DAc2",
+    "yieldContractFactoryV5": "0x963ddBB35c1AE44e2a159E3b5fb5177E0B32660d",
+    "marketFactoryV5": "0x59968008a703dC13E6beaECed644bdCe4ee45d13",
+    "yieldContractFactoryV6": "0xdDBfA21ecf024971486684E4E1600998ADeabc88",
+    "marketFactoryV6": "0x81E80A50E56d10C501fF17B5Fe2F662bd9EA4590",
+    "poolDeployHelper": "0x8D77771fA2518474cc83a613ef3d6140A84dbe56",
+    "limitRouter": "0x000000000000c9B3E2C3Ec88B1B4c0cD853f4321",
+    "proxyAdmin": "0xA28c08f165116587D4F3E708743B4dEe155c5E64",
+    "devProxyAdmin": "0xD37eB2E6DE40a33ba68BaD94427723b66c954EA9",
+    "reflector": "0x30544e00Cf296B34A9eE59E5540Ae2f9CCCD55DD",
+    "commonDeploy": "0x2Ed473F528E5B320f850d17ADfe0e558f0298aA9",
+    "syFactory": "0x466CeD3b33045Ea986B2f306C8D0aA8067961CF8",
+    "sparkLinearDiscountOracleFactory": "0x34C91651A070664279866E5f3d6B4d5F65cbbFFb",
+    "vePendleAirdropDistributor": "0x3942F7B55094250644cFfDa7160226Caa349A38E",
+    "externalRewardsDistributor": "0x33305665f69B4642D1275f4Ce81c23651674D21C",
+    "PendleChainlinkOracleFactory": "0x6502cda86f9110f3655512237C9FF2B9CE247c69",
+    "experimental": {
+        "PendleSparkLinearDiscountOracleFactoryWrapper": "0x9E80e2525c7289ebd6352B428f2beC53b5A4e579",
+        "MarketSweed": "0x9205aCD8A2fFD56917d4b9139bA423b4f2a70EE5"
+    },
+    "receiverEndpoint": "0xeE708FC793a02F1eDd5BB9DBD7fD13010D1F7136",
+    "gaugeController": "0x17F100fB4bE2707675c6439468d38249DD993d58",
+    "lpWrapperFactory": "0xCa274A44a52241c1a8EFb9f84Bf492D8363929FC",
+    "decimalsFactory": "0x992ec6a490a4b7f256bd59e63746951d98b29be9",
+    "lpLinearDiscountOracleFactory": "0x44fb16d078e9c39b65d6c15e78ede9736a9f2df5",
+    "cross-chain": {
+        "exchangeRateOracle": "0xA914c44E960cC95D996969BDf0ab5D6f4f2B5870"
+    },
+    "merkleDepositor": "0x3dAe3d1734cA3C7B3089D4DD03C9876e0A0102b4",
+    "deprecated": {
+        "vePendle": "0x051dcd6a80f11fE68F77Fb0EBdE03853FA96B1fD"
+    },
+    "crossChainSwapHub": "0xd41c99760f4A7e27E736ED25cd6915110948Ea8a",
+    "depositBoxFactory": "0x15Ff9D268ef3300a3fcCe5DE4bc4326316c5dD6D",
+    "oftPtSwapper": "0x8ef78aD230887E05fa3324277A5225fE93889b08",
+    "tokenPriceRegistry": "0x008aDd9978E014135A0CbE2A40A074Da1c877753",
+    "rateLimiter": "0x94604284c47e0308526687798185346f8Ea0440C",
+    "pendlePtLooper": "0xF82Ef4080A53b71093f9c470676Fc80E2ADC4263",
+    "pendlePtLooperView": "0x887b00B5F584f1cC015e8f68C29d6Feb6bf95b02",
+    "loopPositionBoxFactory": "0xe5125dfE3Fc232723E7Ae17cFa66034b3BCAC696"
+}

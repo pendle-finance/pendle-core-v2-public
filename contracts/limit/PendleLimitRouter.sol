@@ -1,0 +1,101 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity ^0.8.17;
+
+import "../core/libraries/Errors.sol";
+import "./LimitRouterBase.sol";
+
+contract PendleLimitRouter is LimitRouterBase {
+    using Address for address;
+    using PMath for uint256;
+
+    constructor(address _WNATIVE, address _ROUTER) LimitRouterBase(_WNATIVE, _ROUTER) {
+        _disableInitializers();
+    }
+
+    /// @notice Pre-sign multiple orders on-chain by setting remaining amount to makingAmount
+    function preSignBatch(Order[] calldata orders) external {
+        for (uint256 i = 0; i < orders.length; ++i) {
+            preSignSingle(orders[i]);
+        }
+    }
+
+    /// @notice Pre-sign order by setting remaining amount to makingAmount
+    /// @dev Allow bypassing EIP-712 signature validation during fill
+    function preSignSingle(Order calldata order) public {
+        require(order.maker == msg.sender, "LOP: Access denied");
+        require(order.nonce >= nonce[order.maker], "LOP: invalid nonce");
+        require(block.timestamp < order.expiry && order.expiry < IPYieldToken(order.YT).expiry(), "LOP: invalid expiry");
+
+        bytes32 orderHash = hashOrder(order);
+        require(_status[orderHash].remaining == _ORDER_DOES_NOT_EXIST, "LOP: already exist");
+        _status[orderHash].remaining = (order.makingAmount + 1).Uint128();
+
+        emit OrderPreSigned(orderHash, order);
+    }
+
+    /// @notice Cancels multiple orders by setting remaining amount to zero
+    function cancelBatch(Order[] calldata orders) external {
+        for (uint256 i = 0; i < orders.length; ++i) {
+            cancelSingle(orders[i]);
+        }
+    }
+
+    /// @notice Cancels order by setting remaining amount to zero
+    function cancelSingle(Order calldata order) public {
+        require(order.maker == msg.sender, "LOP: Access denied");
+
+        bytes32 orderHash = hashOrder(order);
+        require(_status[orderHash].remaining != _ORDER_FILLED, "LOP: already filled");
+        _status[orderHash].remaining = _ORDER_FILLED;
+
+        emit OrderCanceled(msg.sender, orderHash);
+    }
+
+    /// @dev auto skip cancelled orders to avoid race conditions
+    function forceCancel(bytes32[] calldata orderHashes) public onlyOwner {
+        for (uint256 i = 0; i < orderHashes.length; ++i) {
+            if (_status[orderHashes[i]].remaining == _ORDER_FILLED) continue;
+
+            _status[orderHashes[i]].remaining = _ORDER_FILLED;
+            emit OrderForceCanceled(orderHashes[i]);
+        }
+    }
+
+    function orderStatusesRaw(bytes32[] memory orderHashes)
+        public
+        view
+        returns (uint256[] memory remainingsRaw, uint256[] memory filledAmounts)
+    {
+        uint256 len = orderHashes.length;
+        remainingsRaw = new uint256[](len);
+        filledAmounts = new uint256[](len);
+
+        for (uint256 i = 0; i < len; i++) {
+            OrderStatus memory status = _status[orderHashes[i]];
+            (remainingsRaw[i], filledAmounts[i]) = (status.remaining, status.filledAmount);
+        }
+    }
+
+    function orderStatuses(bytes32[] memory orderHashes)
+        external
+        view
+        returns (uint256[] memory remainings, uint256[] memory filledAmounts)
+    {
+        (remainings, filledAmounts) = orderStatusesRaw(orderHashes);
+        for (uint256 i = 0; i < remainings.length; i++) {
+            require(remainings[i] != _ORDER_DOES_NOT_EXIST, "LOP: Unknown order");
+            unchecked {
+                remainings[i] -= 1;
+            }
+        }
+    }
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32) {
+        return _domainSeparatorV4();
+    }
+
+    function simulate(address target, bytes calldata data) external payable {
+        (bool success, bytes memory result) = target.delegatecall(data);
+        revert Errors.SimulationResults(success, result);
+    }
+}
